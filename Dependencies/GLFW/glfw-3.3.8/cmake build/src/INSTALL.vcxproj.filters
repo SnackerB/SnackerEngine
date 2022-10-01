@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\GLFW\glfw-3.3.8\build\CMakeFiles\7bc13e6ba6eb02061fcfdbda4ca79a3f\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A40BB31E-8B01-39BE-97B5-FB9DA0312011}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

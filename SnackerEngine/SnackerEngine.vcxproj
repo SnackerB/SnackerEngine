@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{cf7a45a5-724f-4d67-aadd-bee5336da63a}</ProjectGuid>
+    <RootNamespace>SnackerEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AssetManager\AssetManager.h" />
+    <ClInclude Include="src\AssetManager\FontManager.h" />
+    <ClInclude Include="src\AssetManager\LoaderOBJ.h" />
+    <ClInclude Include="src\AssetManager\MaterialData.h" />
+    <ClInclude Include="src\AssetManager\MaterialManager.h" />
+    <ClInclude Include="src\AssetManager\MeshManager.h" />
+    <ClInclude Include="src\AssetManager\ModelManager.h" />
+    <ClInclude Include="src\AssetManager\ShaderManager.h" />
+    <ClInclude Include="src\AssetManager\TextureManager.h" />
+    <ClInclude Include="src\Core\Assert.h" />
+    <ClInclude Include="src\Core\Engine.h" />
+    <ClInclude Include="src\Core\Keys.h" />
+    <ClInclude Include="src\Core\Timer.h" />
+    <ClInclude Include="src\Core\Log.h" />
+    <ClInclude Include="src\Core\Scene.h" />
+    <ClInclude Include="src\External\stb_image.h" />
+    <ClInclude Include="src\Graphics\Camera.h" />
+    <ClInclude Include="src\Graphics\Color.h" />
+    <ClInclude Include="src\Graphics\FrameBuffer.h" />
+    <ClInclude Include="src\Graphics\IndexBuffer.h" />
+    <ClInclude Include="src\Graphics\Material.h" />
+    <ClInclude Include="src\Graphics\Materials\MaterialMultipleUniforms.h" />
+    <ClInclude Include="src\Graphics\Materials\MaterialPBR.h" />
+    <ClInclude Include="src\Graphics\Materials\MaterialSingleUniform.h" />
+    <ClInclude Include="src\Graphics\Mesh.h" />
+    <ClInclude Include="src\Graphics\Meshes\Cube.h" />
+    <ClInclude Include="src\Graphics\Meshes\Plane.h" />
+    <ClInclude Include="src\Graphics\Meshes\ScreenQuad.h" />
+    <ClInclude Include="src\Graphics\Meshes\Sphere.h" />
+    <ClInclude Include="src\Graphics\Meshes\Square.h" />
+    <ClInclude Include="src\Graphics\Meshes\Triangle.h" />
+    <ClInclude Include="src\Graphics\Model.h" />
+    <ClInclude Include="src\Graphics\Shader.h" />
+    <ClInclude Include="src\Graphics\Texture.h" />
+    <ClInclude Include="src\Graphics\TextureDataBuffer.h" />
+    <ClInclude Include="src\Graphics\TextureEnums.h" />
+    <ClInclude Include="src\Graphics\VertexArray.h" />
+    <ClInclude Include="src\Graphics\VertexBuffer.h" />
+    <ClInclude Include="src\Graphics\VertexBufferLayout.h" />
+    <ClInclude Include="src\Gui\GuiElement.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiButton.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiPanel.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiWindow.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiEventHandle.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle.h" />
+    <ClInclude Include="src\Gui\GuiManager.h" />
+    <ClInclude Include="src\Gui\Layout.h" />
+    <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalLayout.h" />
+    <ClInclude Include="src\Gui\Text\Font.h" />
+    <ClInclude Include="src\Gui\Text\Glyph.h" />
+    <ClInclude Include="src\Gui\Text\Text.h" />
+    <ClInclude Include="src\Gui\Text\Text2.h" />
+    <ClInclude Include="src\Gui\Text\TextMaterial.h" />
+    <ClInclude Include="src\Math\Mat.h" />
+    <ClInclude Include="src\Math\Utility.h" />
+    <ClInclude Include="src\Math\Vec.h" />
+    <ClInclude Include="src\Graphics\Renderer.h" />
+    <ClInclude Include="src\Math\VectorAlgorithms.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\AssetManager\AssetManager.cpp" />
+    <ClCompile Include="src\AssetManager\FontManager.cpp" />
+    <ClCompile Include="src\AssetManager\LoaderOBJ.cpp" />
+    <ClCompile Include="src\AssetManager\MaterialData.cpp" />
+    <ClCompile Include="src\AssetManager\MaterialManager.cpp" />
+    <ClCompile Include="src\AssetManager\MeshManager.cpp" />
+    <ClCompile Include="src\AssetManager\ModelManager.cpp" />
+    <ClCompile Include="src\AssetManager\ShaderManager.cpp" />
+    <ClCompile Include="src\AssetManager\TextureManager.cpp" />
+    <ClCompile Include="src\Core\Assert.cpp" />
+    <ClCompile Include="src\Core\Engine.cpp" />
+    <ClCompile Include="src\Core\Log.cpp" />
+    <ClCompile Include="src\Core\Timer.cpp" />
+    <ClCompile Include="src\External\stb_image.cpp" />
+    <ClCompile Include="src\Graphics\Camera.cpp" />
+    <ClCompile Include="src\Graphics\FrameBuffer.cpp" />
+    <ClCompile Include="src\Graphics\IndexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Material.cpp" />
+    <ClCompile Include="src\Graphics\Materials\MaterialPBR.cpp" />
+    <ClCompile Include="src\Graphics\Mesh.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\Cube.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\Plane.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\ScreenQuad.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\Sphere.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\Square.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\Triangle.cpp" />
+    <ClCompile Include="src\Graphics\Model.cpp" />
+    <ClCompile Include="src\Graphics\Renderer.cpp" />
+    <ClCompile Include="src\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Graphics\TextureDataBuffer.cpp" />
+    <ClCompile Include="src\Graphics\VertexArray.cpp" />
+    <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\VertexBufferLayout.cpp" />
+    <ClCompile Include="src\Gui\GuiElement.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp" />
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp" />
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp" />
+    <ClCompile Include="src\Gui\GuiManager.cpp" />
+    <ClCompile Include="src\Gui\Layout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp" />
+    <ClCompile Include="src\Gui\Text\Font.cpp" />
+    <ClCompile Include="src\Gui\Text\Glyph.cpp" />
+    <ClCompile Include="src\Gui\Text\Text.cpp" />
+    <ClCompile Include="src\Gui\Text\Text2.cpp" />
+    <ClCompile Include="src\Gui\Text\TextMaterial.cpp" />
+    <ClCompile Include="src\Math\VectorAlgorithms.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\basic.shader" />
+    <None Include="resources\shaders\basicTexture.shader" />
+    <None Include="resources\shaders\gui\simpleColor.shader" />
+    <None Include="resources\shaders\basic3DText.shader" />
+    <None Include="resources\shaders\gui\basic2DText.shader" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

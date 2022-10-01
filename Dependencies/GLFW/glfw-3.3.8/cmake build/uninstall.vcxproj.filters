@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\GLFW\glfw-3.3.8\build\CMakeFiles\b28c2d72e8cf307effe82ddccf01fe80\uninstall.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\GLFW\glfw-3.3.8\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\GLFW\glfw-3.3.8\build\CMakeFiles\uninstall" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A40BB31E-8B01-39BE-97B5-FB9DA0312011}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
