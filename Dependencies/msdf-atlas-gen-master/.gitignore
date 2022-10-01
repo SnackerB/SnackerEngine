@@ -1,7 +1,7 @@
-Debug/
-Release/
-Debug Library/
-Release Library/
+#Debug/
+#Release/
+#Debug Library/
+#Release Library/
 #x86/
 #x64/
 *.exe
