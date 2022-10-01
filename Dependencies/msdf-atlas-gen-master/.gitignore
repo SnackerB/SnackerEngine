@@ -2,8 +2,8 @@ Debug/
 Release/
 Debug Library/
 Release Library/
-x86/
-x64/
+#x86/
+#x64/
 *.exe
 *.user
 *.sdf
