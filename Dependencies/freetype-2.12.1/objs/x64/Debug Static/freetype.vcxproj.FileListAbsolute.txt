@@ -1,0 +1,1 @@
+C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\freetype-2.12.1\objs\x64\Debug Static\freetype.lib
