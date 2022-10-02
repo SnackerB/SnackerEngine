@@ -94,11 +94,11 @@ namespace SnackerEngine
 		/// Vector of lines
 		std::vector<Line> lines;
 		/// Constructs the model from the text member variable using parse mode 'CHARACTERS'
-		Model parseTextCharacters();
+		virtual Model parseTextCharacters();
 		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD'
-		Model parseTextWordByWord();
+		virtual Model parseTextWordByWord();
 		/// Constructs the model from the text member variable
-		void constructModel();
+		virtual void constructModel();
 	public:
 		/// Default constructor
 		DynamicText2();
@@ -121,7 +121,7 @@ namespace SnackerEngine
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
-		void setText(const std::u8string& text, bool recompute = true);
+		virtual void setText(const std::u8string& text, bool recompute = true);
 		/// Sets the textwidth. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
@@ -136,7 +136,67 @@ namespace SnackerEngine
 	/// to control the cursor position and add/remove characters
 	class EditableText : public DynamicText2
 	{
-
+	protected:
+		/// If this bool is set to true, the UTF-8 encoded variable text is up-to-date
+		bool textIsUpToDate;
+		/// The vector of vertices. Contains positions and texture coordinates
+		std::vector<Vec4f> vertices;
+		/// Vector of indices
+		std::vector<unsigned int> indices;
+		/// index of the character which currently comes after the cursor
+		unsigned cursorPosIndex;
+		/// Position of the cursor
+		Vec2f cursorPos;
+		/// Size of the cursor
+		Vec2f cursorSize;
+		/// Finds the line number of the given unicode character
+		unsigned int getLineNumber(const unsigned int& characterIndex) const;
+		/// Constructs the model from the text member variable using parse mode 'CHARACTERS'
+		Model parseTextCharacters() override;
+		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD'
+		Model parseTextWordByWord() override;
+		/// Constructs the model from the text member variable using parse mode 'CHARACTERS', starting at the line with the given index
+		Model parseTextCharactersFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD', starting at the line with the given index
+		Model parseTextWordByWordFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable
+		void constructModelFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable
+		void constructModel() override;
+	public:
+		/// Default constructor
+		EditableText();
+		/// Constuctor using a string and various parameters
+		EditableText(const std::u8string& text, const Font& font, const double& fontSize, const double& textWidth, const double& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		/// Sets the contents of the text. Needs to recompute the text model.
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		void setText(const std::u8string& text, bool recompute = true) override;
+		/// Sets the cursor position
+		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
+		void setCursorPos(unsigned int characterIndex);
+		/// Moves the cursor one character to the left
+		void moveCursorToLeft();
+		/// Moves the cursor one character to the right
+		void moveCursorToRight();
+		/// Moves the cursor to the beginning of the current/last word
+		void moveCursorToLeftWordBeginning();
+		/// Moves the cursor to the end of the current/next word
+		void moveCursorToRightWordEnd();
+		/// Returns the cursor position
+		const Vec2f& getCursorPos() const;
+		/// Inputs a unicode character at the current cursor position
+		void inputAtCursor(const Unicode& codepoint);
+		/// Inputs the 'line break' or 'newline' unicode character at the current cursor position
+		void inputNewlineAtCursor();
+		/// Deletes all characters in [beginIndex, endIndex] (inclusive)
+		void deleteCharacters(unsigned int beginIndex, unsigned int endIndex);
+		/// Deletes the character before the current cursor pos
+		void deleteCharacterBeforeCursor();
+		/// Deletes the complete word before the current cursor pos
+		void deleteWordBeforeCursor();
+		/// Returns the size of the cursor
+		const Vec2f& getCursorSize() const;
 	};
 	//--------------------------------------------------------------------------------------------------
 }
