@@ -21,6 +21,11 @@ namespace SnackerEngine
         this->guiElement = &guiElement;
     }
     //--------------------------------------------------------------------------------------------------
+    void GuiHandle::onHandleUpdate()
+    {
+        if (guiElement) guiElement->onHandleUpdate(*this);
+    }
+    //--------------------------------------------------------------------------------------------------
     GuiHandle::GuiHandle()
         : guiHandleID(0), guiElement(nullptr) {}
     //--------------------------------------------------------------------------------------------------

@@ -29,6 +29,8 @@ namespace SnackerEngine
 			: r(r), g(g), b(b), alpha(alpha) {}
 		Color4(const T& val, const T& alpha = T(1))
 			: r(val), g(val), b(val), alpha(alpha) {}
+		Color4(const Color3<T>& color, const T& alpha)
+			: r(color.r), g(color.g), b(color.b), alpha(alpha) {}
 		Color4() = default;
 		/// Converts from a color vector where each color is in [0, 255]
 		template<typename T2>

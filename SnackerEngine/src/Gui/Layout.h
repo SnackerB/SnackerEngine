@@ -2,6 +2,8 @@
 
 #include "Math/Vec.h"
 
+#include <span>
+
 namespace SnackerEngine
 {
 
@@ -43,6 +45,8 @@ namespace SnackerEngine
 		void notifyPositionChange(const GuiID& guiID);
 		/// Calls OnSizeChange() on the given guiElement
 		void notifySizeChange(const GuiID& guiID);
+		/// Returns a span of currently vsible elements
+		std::span<GuiID> getVisibleElements();
 	public:
 		Layout() : elementID(0), guiManager(nullptr) {}
 		/// Enforces this layout by possibly changing position and size of the children guiElements

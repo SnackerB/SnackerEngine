@@ -17,8 +17,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::drawChildren(const Vec2i& parentPosition)
 	{
-		if (guiManager && !childrenIDs.empty())
-			guiManager->drawElements(childrenIDs, parentPosition + position);
+		guiManager->drawElements(childrenIDs, parentPosition + position);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::removeChild(const GuiElement& guiElement)
@@ -87,12 +86,12 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size)
-		: guiID(0), guiManager(nullptr), position(position), size(size), parentID(0), childrenIDs{}, layouts() {}
+		: guiID(0), guiManager(nullptr), position(position), size(size), preferredSize{}, preferredMinSize{}, preferredMaxSize{}, parentID(0), childrenIDs{}, layouts() {}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(GuiElement& other) noexcept
+	GuiElement::GuiElement(const GuiElement& other) noexcept
 		: GuiElement(other.position, other.size) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement& GuiElement::operator=(GuiElement& other) noexcept
+	GuiElement& GuiElement::operator=(const GuiElement& other) noexcept
 	{
 		if (guiManager) {
 			guiManager->signOff(*this);
@@ -109,6 +108,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
 		: guiID(other.guiID), guiManager(other.guiManager), position(other.position), size(other.size), 
+		preferredSize(other.preferredSize), preferredMinSize(other.preferredMinSize), preferredMaxSize(other.preferredMaxSize),
 		parentID(other.parentID), childrenIDs(other.childrenIDs), layouts(std::move(other.layouts))
 	{
 		other.signOff();

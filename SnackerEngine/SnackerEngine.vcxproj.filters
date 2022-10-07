@@ -168,9 +168,6 @@
     <ClInclude Include="src\Gui\Text\Glyph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\Text\Text.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Gui\GuiElements\GuiWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -195,7 +192,22 @@
     <ClInclude Include="src\Gui\Text\TextMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\Text\Text2.h">
+    <ClInclude Include="src\Gui\Text\Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiTextVariable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Text\Unicode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\ListLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiStyle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -326,9 +338,6 @@
     <ClCompile Include="src\Gui\Text\Glyph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Text\Text.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -353,7 +362,16 @@
     <ClCompile Include="src\Gui\Text\TextMaterial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Text\Text2.cpp">
+    <ClCompile Include="src\Gui\Text\Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Layouts\ListLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiStyle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Text\Unicode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

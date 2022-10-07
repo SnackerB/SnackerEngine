@@ -20,7 +20,7 @@ namespace SnackerEngine
 	}
 	//------------------------------------------------------------------------------------------------------
 	Font::Font()
-		: fontID(fontID) {}
+		: fontID(0) {}
 	//------------------------------------------------------------------------------------------------------
 	Font::Font(const std::string& path)
 		: fontID(FontManager::loadFont(path))
@@ -65,6 +65,7 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	double Font::getAdvance(const Unicode& first, const Unicode& second)
 	{
+		if (!FontManager::isValidGlyph(*this, first) || !FontManager::isValidGlyph(*this, second)) return 0.0;
 		double result;
 		if (FontManager::getFontData(*this).fontGeometry.getAdvance(result, first, second)) {
 			return result;

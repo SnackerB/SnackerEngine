@@ -9,6 +9,7 @@
 #include <memory>
 #include <queue>
 #include <unordered_set>
+#include <span>
 
 namespace SnackerEngine
 {
@@ -90,7 +91,7 @@ namespace SnackerEngine
 		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
 		void updateMoved(GuiElement& guiElement);
 		/// Called by GuiElement objects to draw their children
-		void drawElements(const std::vector<GuiID>& guiIDs, const Vec2i& parentPosition);
+		void drawElements(const std::span<GuiID>& guiIDs, const Vec2i& parentPosition);
 		/// Returns a reference to the guiElement with a given guiID
 		GuiElement& getElement(const GuiID& guiID);
 		//==============================================================================================

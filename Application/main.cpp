@@ -1,4 +1,4 @@
-#include "Core/Engine.h"
+ï»¿#include "Core/Engine.h"
 #include "Graphics/Camera.h"
 #include "Core/Keys.h"
 #include "Core/Log.h"
@@ -9,7 +9,7 @@
 #include "Graphics/Meshes/Plane.h"
 #include "Graphics/Renderer.h"
 #include "Gui/Text/Font.h"
-#include "Gui/Text/Text2.h"
+#include "Gui/Text/Text.h"
 #include "Math/Utility.h"
 #include "Gui/Text/TextMaterial.h"
 #include "AssetManager/MaterialManager.h"
@@ -31,7 +31,7 @@ class TextDemo : public SnackerEngine::Scene
 	double fontSize;
 	double textWidth;
 	SnackerEngine::EditableText text1;
-	SnackerEngine::DynamicText2 text2;
+	SnackerEngine::DynamicText Text;
 
 	SnackerEngine::Mat4f fontSizeIndicatorModelMatrix;
 	SnackerEngine::Mat4f textWidthIndicatorModelMatrix;
@@ -52,8 +52,8 @@ public:
 		materialText(SnackerEngine::MaterialManager::createMaterial(std::make_unique<SnackerEngine::SimpleTextMaterialData>(SnackerEngine::Shader("shaders/basic3DText.shader"), font, SnackerEngine::Color4f(1.0f, 0.0f, 0.0f, 1.0f), 
 			SnackerEngine::Color4f(0.0f, 0.0f, 0.0f, 0.0f)))), positionLeft({ -1.1f, -1.5f, 3.0f }), positionRight({ 0.1f, -1.5f, 3.0f }),
 		positionText1({ -1.5f, 0.6f, 2.0f }), positionText2({ -1.5f, -1.3f, 2.0f }), rightSize(1.0f), rightSizeChange(0.5f), fontSize(1000.0), textWidth(10000.0),
-		text1(u8""/*"aaa  aaa\naaa  aaa"*/, font, fontSize, textWidth, 0.05, SnackerEngine::StaticText2::ParseMode::WORD_BY_WORD, SnackerEngine::StaticText2::Alignment::LEFT),
-		text2(u8"Hello Wörld! This is a test. And now we have a reallyreallyreallyreallylongword!ü yeah", font, fontSize, textWidth, SnackerEngine::StaticText2::ParseMode::WORD_BY_WORD),
+		text1(u8""/*"aaa  aaa\naaa  aaa"*/, font, fontSize, textWidth, 0.05, SnackerEngine::StaticText::ParseMode::WORD_BY_WORD, SnackerEngine::StaticText::Alignment::LEFT),
+		Text(u8"Hello WÃ¶rld! This is a test. And now we have a reallyreallyreallyreallylongword!Ã¼ yeah", font, fontSize, textWidth, SnackerEngine::StaticText::ParseMode::WORD_BY_WORD),
 		fontSizeIndicatorModelMatrix(SnackerEngine::Mat4f::TranslateAndScale(positionText1 - SnackerEngine::Vec3f(0.5f, 0.0f, 0.0f), SnackerEngine::pointsToMeters(fontSize))),
 		textWidthIndicatorModelMatrix(SnackerEngine::Mat4f::TranslateAndScale(positionText1 + SnackerEngine::Vec3f(0.0f, 0.5f, 0.0f), 
 		SnackerEngine::Vec3f(SnackerEngine::pointsToMeters(textWidth), SnackerEngine::pointsToMeters(fontSize), 0.0f))),
@@ -100,7 +100,7 @@ public:
 		materialText.bind();
 		materialText.getShader().setModelViewProjection(SnackerEngine::Mat4f::TranslateAndScale(positionText2, SnackerEngine::pointsToMeters(fontSize)), camera.getViewMatrix(), camera.getProjectionMatrix());
 		font.bind();
-		SnackerEngine::Renderer::draw(text2.getModel(), materialText);
+		SnackerEngine::Renderer::draw(Text.getModel(), materialText);
 
 		// Draw font size indicator
 		fontSizeIndicatorMaterial.bind();

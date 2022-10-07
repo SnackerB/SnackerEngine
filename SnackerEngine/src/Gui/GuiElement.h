@@ -2,6 +2,7 @@
 
 #include "Math/Vec.h"
 #include "Gui/GuiEventHandles/GuiHandle.h"
+#include "Gui/GuiEventHandles/GuiVariableHandle.h"
 #include "Core/Log.h"
 #include "Gui/Layout.h"
 
@@ -32,6 +33,11 @@ namespace SnackerEngine
 		Vec2i position;
 		/// Dimensions of the bounding rectangle in pixels. The origin is at the upper left corner
 		Vec2i size;
+		/// Preferred sizes are just hints to the layout and not a guarantee.
+		/// A preferred size of zero means that the element does not has size preferences at all.
+		Vec2i preferredSize;
+		Vec2i preferredMinSize;
+		Vec2i preferredMaxSize;
 		/// guiID of the parent guiElement. If this is zero, this element does not have a parent
 		GuiID parentID;
 		/// vector of guiIDs of child guiElements
@@ -130,6 +136,12 @@ namespace SnackerEngine
 		virtual void onHandleDestruction(GuiHandle& guiHandle) {};
 		/// This function calls activate() on the given GuiEventHandle
 		void activate(GuiEventHandle& guiEventHandle);
+		/// This function can be called by a handle if something occurs/changes with the handle
+		/// example: value of a variable handle changes!
+		virtual void onHandleUpdate(GuiHandle& guiHandle) {};
+		/// template function used to change a value of a variable handle
+		template<typename T>
+		void setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value);
 		//==============================================================================================
 		// Layouts
 		//==============================================================================================
@@ -147,9 +159,9 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i());
 		/// Copy constructor
-		GuiElement(GuiElement& other) noexcept;
+		GuiElement(const GuiElement& other) noexcept;
 		/// Copy assignment operator
-		GuiElement& operator=(GuiElement& other) noexcept;
+		GuiElement& operator=(const GuiElement& other) noexcept;
 		/// Move constructor
 		GuiElement(GuiElement&& other) noexcept;
 		/// Move assignment operator
@@ -158,13 +170,20 @@ namespace SnackerEngine
 		bool isValid();
 		/// Sets the position of this element. Calls OnPositionChange() and enforces the layouts of the parent
 		/// element, this element, and child elements
-		void setPosition(const Vec2i& position);
+		virtual void setPosition(const Vec2i& position);
 		/// Sets the size of this element. Calls OnPositionChange() and enforces the layouts of the parent
 		/// element, this element, and child elements
-		void setSize(const Vec2i& size);
+		virtual void setSize(const Vec2i& size);
 		/// Destructor
 		~GuiElement();
 	};
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiElement::setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value)
+	{
+		variableHandle->val = value;
+		variableHandle->activate();
+	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename LayoutType>
 	inline LayoutType::LayoutReference GuiElement::registerLayout(LayoutType&& layout)

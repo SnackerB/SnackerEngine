@@ -174,7 +174,7 @@ namespace SnackerEngine
 		guiElementPtrArray[guiElement.guiID] = &guiElement;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::drawElements(const std::vector<GuiID>& guiIDs, const Vec2i& parentPosition)
+	void GuiManager::drawElements(const std::span<GuiID>& guiIDs, const Vec2i& parentPosition)
 	{
 		// We do not have to enable depth testing, since this function is only called 
 		// while were in the guiManager draw call anyways!

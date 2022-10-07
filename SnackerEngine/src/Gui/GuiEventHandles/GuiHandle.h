@@ -25,6 +25,9 @@ namespace SnackerEngine
 		void signOff();
 		/// Function that is called by the guiElement after it is moved
 		void onMove(GuiElement& guiElement);
+		/// Function that can be called by the handle to notify to the guiElement 
+		/// that something has occured/changed!
+		void onHandleUpdate();
 		/// Constructor
 		GuiHandle();
 	public:

@@ -4,7 +4,7 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class GuiEventHandle : public GuiHandle
 	{
 	private:
@@ -26,5 +26,5 @@ namespace SnackerEngine
 		/// Sets the active boolean back to false
 		void reset();
 	};
-
+	//--------------------------------------------------------------------------------------------------
 }

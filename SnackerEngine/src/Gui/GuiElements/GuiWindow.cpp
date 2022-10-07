@@ -3,6 +3,7 @@
 #include "Core/Keys.h"
 #include "Gui/GuiManager.h"
 #include "Graphics/Renderer.h"
+#include "Gui/GuiStyle.h"
 
 namespace SnackerEngine
 {
@@ -111,11 +112,14 @@ namespace SnackerEngine
 		computeResizeButtonModelMatrix();
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiWindow::GuiWindow(GuiWindow& other) noexcept
+	GuiWindow::GuiWindow(const GuiStyle& style)
+		: GuiWindow(Vec2i(), style.guiWindowSize, style.guiWindowBackgroundColor, style.guiWindowResizeButtonSize, style.guiWindowResizeButtonColor) {}
+	//--------------------------------------------------------------------------------------------------
+	GuiWindow::GuiWindow(const GuiWindow& other) noexcept
 		: GuiPanel(other), resizeButtonSize(other.resizeButtonSize), resizeButtonColor(other.resizeButtonColor) ,
 		resizeButtonModelMatrix(other.resizeButtonModelMatrix), isMoving(false), isResizing(false), mouseOffset(Vec2f()) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiWindow& GuiWindow::operator=(GuiWindow& other) noexcept
+	GuiWindow& GuiWindow::operator=(const GuiWindow& other) noexcept
 	{
 		GuiPanel::operator=(other);
 		resizeButtonSize = other.resizeButtonSize;

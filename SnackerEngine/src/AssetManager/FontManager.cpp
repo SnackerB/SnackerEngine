@@ -170,13 +170,13 @@ namespace SnackerEngine
 #ifdef _DEBUG
         if (font.fontID == 0 || font.fontID > maxFonts || !fontDataArray[font.fontID].valid) {
             warningLogger << LOGGER::BEGIN << "tried to get glyph from invalid font" << LOGGER::ENDL;
-            return Glyph();
+            return {};
         }
 #endif // _DEBUG
         const msdf_atlas::GlyphGeometry* glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(codepoint);
         // Add glyph to atlas if necessary
         if (glyph == nullptr) {
-            if (!addNewGlyph(codepoint, font.fontID)) return Glyph();
+            if (!addNewGlyph(codepoint, font.fontID)) return {};
             glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(codepoint);
         }
         // Now we have loaded our glyph
@@ -296,6 +296,11 @@ namespace SnackerEngine
     const FontManager::FontData& FontManager::getFontData(const Font& font)
     {
         return fontDataArray[font.fontID];
+    }
+    //------------------------------------------------------------------------------------------------------
+    bool FontManager::isValidGlyph(const Font& font, const Unicode& codepoint)
+    {
+        return fontDataArray[font.fontID].fontGeometry.getGlyph(codepoint) != nullptr;
     }
     //------------------------------------------------------------------------------------------------------
 }

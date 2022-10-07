@@ -113,6 +113,8 @@ namespace SnackerEngine
 		static void terminate();
 		/// Returns a const refrence to the corresponding FontData object
 		static const FontData& getFontData(const Font& font);
+		/// Checks if the given codepoint was loaded already / corresponds to a valid glyph
+		static bool isValidGlyph(const Font& font, const Unicode& codepoint);
 	public:
 		/// Deleted constructor: this is a purely virtual class!
 		FontManager() = delete;

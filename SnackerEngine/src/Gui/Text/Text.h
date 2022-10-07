@@ -10,52 +10,79 @@
 
 namespace SnackerEngine
 {
-
-	/// A struct that saves important information about each character
-	struct DynamicTextCharacter
-	{
-		/// The codepoint of the character
-		Unicode codepoint;
-		/// The position of the left edge of the character
-		double leftPosition;
-		/// The position od the right edge of the character
-		double rightPosition;
-	};
-
-	/// A struct that saves important information about each line
-	struct DynamicTextLine
-	{
-		/// The y position of the baseline
-		double baselineY;
-		/// indices into the unicodeCharacters vector (begin and end, inclusive)
-		/// line includes characters in [beginIndex, endIndex]
-		unsigned beginIndex, endIndex;
-		/// Comparison operators for searching a given index
-		bool operator<(const DynamicTextLine& other) const;
-		bool operator>(const DynamicTextLine& other) const;
-		bool operator==(const DynamicTextLine& other) const;
-	};
-
-	/// Enum to specify how text is parsed and displayed
-	enum class TextParseMode
-	{
-		WORD_BY_WORD,	/// The parser tries to not split words and moves them to the next line if they are too long
-		CHARACTERS,		/// The parser does not care about words and just parses each character
-	};
-
-	/// Enum for the different alignment modes a StaticText object can use
-	enum class Alignment
-	{
-		LEFT,
-		CENTER,
-		RIGHT,
-	};
-
-	/// A class representing text in a scene. The text can only be changed as a whole, and
-	/// cannot be changed at certain positions only.
+	//--------------------------------------------------------------------------------------------------
+	using Unicode = unsigned;
+	//--------------------------------------------------------------------------------------------------
+	/// A StaticText object computes the text model once during construction. No parameters of the text
+	/// can be changed later, including fontSize, textwidth, the text itself, the font, etc.
 	class StaticText
 	{
-	private:
+	protected:
+		/// friend declaration for data structure that is used during parsing
+		friend struct ParseData;
+		/// Helper struct that saves information about a single character
+		struct Character
+		{
+			/// The unicode codepoint of the character
+			Unicode codepoint;
+			/// The position of the left and right edge of a character in a left aligned context
+			double left;
+			double right;
+		};
+		/// Helper struct that saves information about a single line
+		struct Line
+		{
+			/// The y position of the baseline
+			double baselineY;
+			/// indices into the unicodeCharacters vector (begin and end, inclusive)
+			/// line includes characters in [beginIndex, endIndex]
+			unsigned beginIndex, endIndex;
+			/// Comparison operators for searching a given index
+			bool operator<(const Line& other) const;
+			bool operator>(const Line& other) const;
+			bool operator==(const Line& other) const;
+		};
+	public:
+		/// Enum to specify how text is parsed and displayed
+		enum class ParseMode
+		{
+			WORD_BY_WORD,	/// The parser tries to not split words and moves them to the next line if they are too long
+			CHARACTERS,		/// The parser does not care about words and just parses each character
+			SINGLE_LINE,	/// Same as characters, but never goes to a new line!
+		};
+		/// Enum for the different horitontal alignment modes a StaticText object can use
+		enum class Alignment
+		{
+			LEFT,
+			CENTER,
+			RIGHT,
+		};
+	protected:
+		/// The model used for rendering
+		Model model;
+		/// Constructs the model using the given parameters and using parse mode 'CHARACTERS'
+		Model parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment = Alignment::LEFT);
+		/// Constructs the model using the given parameters and using parse mode 'WORD_BY_WORD'
+		Model parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment = Alignment::LEFT);
+		/// Constructs the model from the text member variable using parse mode 'SINGLE_LINE'
+		Model parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment = Alignment::LEFT);
+		/// Constructs the model from the text member variable
+		virtual void constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+	public:
+		/// Default constructor
+		StaticText();
+		/// Constuctor using a string and various parameters
+		StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		/// Copy and Move constructors
+		StaticText(const StaticText& other) noexcept;
+		StaticText(StaticText&& other) noexcept;
+	};
+	//--------------------------------------------------------------------------------------------------
+	/// A DynamicText object does everything a StaticText object does, but has functions that can be used
+	/// to change the parameters of the text, in which case the text model may be recomputed
+	class DynamicText : public StaticText
+	{
+	protected:
 		/// The font in which the text is written
 		Font font;
 		/// The font size in pt
@@ -63,40 +90,38 @@ namespace SnackerEngine
 		/// The width of the text in pt
 		double textWidth;
 		/// The contents of the text
-		std::u8string text;
-		/// The model used for rendering
-		Model model;
+		std::string text;
 		/// The mode used while parsing
-		TextParseMode parseMode;
+		ParseMode parseMode;
 		/// The alignment of the text
 		Alignment alignment;
-		/// The y coordinate of the bottom of the text (in pt)
-		/// The 0 coordinate is the baseline of the first character
-		double bottom;
+		/// Vector of unicode characters
+		std::vector<Character> characters;
+		/// Vector of lines
+		std::vector<Line> lines;
 		/// Constructs the model from the text member variable using parse mode 'CHARACTERS'
-		Model parseTextCharacters();
+		virtual Model parseTextCharacters();
 		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD'
-		Model parseTextWordByWord();
+		virtual Model parseTextWordByWord();
+		/// Constructs the model from the text member variable using parse mode 'SINGLE_LINE'
+		virtual Model parseTextSingleLine();
 		/// Constructs the model from the text member variable
-		void constructModel();
+		virtual void constructModel();
 	public:
 		/// Default constructor
-		StaticText();
-		/// Constuctor using a string
-		StaticText(const std::u8string& text, const Font& font, const double& fontSize, const double& textWidth, const TextParseMode& parseMode, const Alignment& alignment = Alignment::LEFT);
-		/// Returns a const reference to the contents of the text
-		const std::u8string& getText() const;
-		/// Sets the contents of the text
-		void setText(const std::u8string& text);
-		/// Sets the textwidth. May need to recompute the text model
-		void setTextWidth(const double& textWidth);
-		/// Returns the font size
+		DynamicText();
+		/// Constuctor using a string and various parameters
+		DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		/// Copy and Move constructors
+		DynamicText(const DynamicText& other) noexcept;
+		DynamicText(DynamicText&& other) noexcept;
+		/// Getters
+		const Font& getFont() const;
 		const double& getFontSize() const;
-		/// Returns a const reference to the model
-		const Model& getModel();
-		/// Returns a const reference to the font
-		const Font& getFont();
-		/// Returns the alignment
+		const double& getTextWidth() const;
+		const std::string& getText() const;
+		const Model& getModel() const;
+		const ParseMode& getParseMode() const;
 		const Alignment& getAlignment() const;
 		/// Returns the y coordinate of the top of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
@@ -104,29 +129,37 @@ namespace SnackerEngine
 		/// Returns the y coordinate of the bottom of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
 		const double& getBottom();
+		/// Sets the contents of the text. Needs to recompute the text model.
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		virtual void setText(const std::string& text, bool recompute = true);
+		/// Sets the textwidth. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		void setTextWidth(const double& textWidth, bool recompute = true);
+		/// Sets the font size. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		void setFontSize(const double& fontSize, bool recompute = true);
+		/// Sets the font. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		void setFont(const Font& font, bool recompute = true);
+		/// Sets the parse mode. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true);
+		/// Sets the alignment.
+		void setAlignment(const StaticText::Alignment& alignment, bool recompute = true);
 	};
-
-	/// A class representing a more dynamic text, that can be edited on the fly
-	class DynamicText
+	//--------------------------------------------------------------------------------------------------
+	/// A EditableText object does everything a DynamicText object does, but has functions that can be used
+	/// to control the cursor position and add/remove characters
+	class EditableText : public DynamicText
 	{
-	private:
-		/// The font in which the text is written
-		Font font;
-		/// The font size in pt
-		double fontSize;
-		/// The width of the text in pt
-		double textWidth;
-		/// Vector of DynamicTextCharacters, representing the contents of the text.
-		/// This vector is up-to-date at all times
-		std::vector<DynamicTextCharacter> unicodeCharacters;
-		/// Map that saves DynamicTextLine structs for each line. The index is the line number, starting at 0
-		std::vector<DynamicTextLine> lines;
-		/// The contents of the text as a UTF-8 encoded string. Might not be up-to-data at all times
-		std::u8string text;
+	protected:
 		/// If this bool is set to true, the UTF-8 encoded variable text is up-to-date
 		bool textIsUpToDate;
-		/// The model used for rendering
-		Model model;
 		/// The vector of vertices. Contains positions and texture coordinates
 		std::vector<Vec4f> vertices;
 		/// Vector of indices
@@ -137,41 +170,34 @@ namespace SnackerEngine
 		Vec2f cursorPos;
 		/// Size of the cursor
 		Vec2f cursorSize;
-		/// Parse mode
-		TextParseMode parseMode;
-		/// The alignment of the text
-		Alignment alignment;
-		/// Constructs the full model and fills the unicodeCharacters and lines vectors from the UTF-8 encoded string (parseMode == WORD_BY_WORD)
-		Model parseTextWordByWord();
-		/// Constructs the full model and fills the unicodeCharacters and lines vectors from the UTF-8 encoded string (parseMode == CHARACTERS)
-		Model parseTextCharacters();
-		/// Constructs the full model and fills the unicodeCharacters and lines vectors from the UTF-8 encoded string
-		void constructNew();
-		/// Constructs the model, starting at the given index into the unicodeCharacters vector (inclusive).
-		/// All vertices before the index are not changed. The UTF-8 encoded text is not updated (parseMode == WORD_BY_WORD)
-		Model parseTextStartingAtIndexWordByWord(unsigned int characterIndex);
-		/// Constructs the model, starting at the given index into the unicodeCharacters vector (inclusive).
-		/// All vertices before the index are not changed. The UTF-8 encoded text is not updated (parseMode == CHARACTERS)
-		Model parseTextStartingAtIndexCharacters(unsigned int characterIndex);
-		/// Constructs the model, starting at the given index into the unicodeCharacters vector (inclusive).
-		/// All vertices before the index are not changed. The UTF-8 encoded text is not updated
-		void constructFrom(unsigned int characterIndex);
 		/// Finds the line number of the given unicode character
 		unsigned int getLineNumber(const unsigned int& characterIndex) const;
-		/// Aligns the text model properly, should be called after the lines and unicodeCharacters vectors are constructed
-		/// but before the model is created
-		void enforceAlignment();
+		/// Constructs the model from the text member variable using parse mode 'CHARACTERS'
+		Model parseTextCharacters() override;
+		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD'
+		Model parseTextWordByWord() override;
+		/// Constructs the model from the text member variable using parse mode 'CHARACTERS', starting at the line with the given index
+		Model parseTextCharactersFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD', starting at the line with the given index
+		Model parseTextWordByWordFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable using parse mode 'SINGLE_LINE', starting at the line with the given index
+		Model parseTextSingleLineFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable
+		void constructModelFrom(const unsigned int& lineIndex);
+		/// Constructs the model from the text member variable
+		void constructModel() override;
 	public:
-		/// Constuctor using a string
-		DynamicText(const std::u8string& text, const Font& font, const double& fontSize, const double& textWidth, const TextParseMode& parseMode = TextParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
-		/// Returns a const reference to the contents of the text
-		const std::u8string& getText() const;
-		/// Sets the contents of the text
-		void setText(const std::u8string& text);
-		/// Returns the font size
-		const double& getFontSize() const;
-		/// Returns a const reference to the model
-		const Model& getModel();
+		/// Default constructor
+		EditableText();
+		/// Constuctor using a string and various parameters
+		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const double& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		/// Copy and Move constructors
+		EditableText(const EditableText& other) noexcept;
+		EditableText(EditableText&& other) noexcept;
+		/// Sets the contents of the text. Needs to recompute the text model.
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		void setText(const std::string& text, bool recompute = true) override;
 		/// Sets the cursor position
 		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
 		void setCursorPos(unsigned int characterIndex);
@@ -185,8 +211,6 @@ namespace SnackerEngine
 		void moveCursorToRightWordEnd();
 		/// Returns the cursor position
 		const Vec2f& getCursorPos() const;
-		/// Returns cursor size
-		const Vec2f& getCursorSize() const;
 		/// Inputs a unicode character at the current cursor position
 		void inputAtCursor(const Unicode& codepoint);
 		/// Inputs the 'line break' or 'newline' unicode character at the current cursor position
@@ -197,6 +221,8 @@ namespace SnackerEngine
 		void deleteCharacterBeforeCursor();
 		/// Deletes the complete word before the current cursor pos
 		void deleteWordBeforeCursor();
+		/// Returns the size of the cursor
+		const Vec2f& getCursorSize() const;
 	};
-	
+	//--------------------------------------------------------------------------------------------------
 }

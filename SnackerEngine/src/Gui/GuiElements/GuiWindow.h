@@ -5,6 +5,9 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	/// Forward declaration of guiStyle
+	struct GuiStyle;
+	//--------------------------------------------------------------------------------------------------
 	class GuiWindow : public GuiPanel
 	{
 	private:
@@ -50,10 +53,12 @@ namespace SnackerEngine
 	public:
 		/// Constructor
 		GuiWindow(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Color3f& backgroundColor = Color3f(), const double& resizeButtonSize = 100, const Color3f& resizeButtonColor = Color3f(1.0f));
+		/// Constructor using guiStyle
+		GuiWindow(const GuiStyle& style);
 		/// Copy constructor
-		GuiWindow(GuiWindow& other) noexcept;
+		GuiWindow(const GuiWindow& other) noexcept;
 		/// Copy assignment operator
-		GuiWindow& operator=(GuiWindow& other) noexcept;
+		GuiWindow& operator=(const GuiWindow& other) noexcept;
 		/// Move constructor
 		GuiWindow(GuiWindow&& other) noexcept;
 		/// Move assignment operator
