@@ -171,7 +171,7 @@
     <ClInclude Include="src\Gui\GuiElements\GuiWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\Layout.h">
+    <ClInclude Include="src\Gui\GuiLayout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Gui\Layouts\GridLayout.h">
@@ -350,7 +350,7 @@
     <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Layout.cpp">
+    <ClCompile Include="src\Gui\GuiLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Meshes\Triangle.cpp">

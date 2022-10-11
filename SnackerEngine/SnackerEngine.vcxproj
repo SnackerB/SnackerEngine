@@ -204,7 +204,7 @@
     <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle.h" />
     <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle.h" />
     <ClInclude Include="src\Gui\GuiManager.h" />
-    <ClInclude Include="src\Gui\Layout.h" />
+    <ClInclude Include="src\Gui\GuiLayout.h" />
     <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
     <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\ListLayout.h" />
@@ -265,7 +265,7 @@
     <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp" />
     <ClCompile Include="src\Gui\GuiManager.cpp" />
     <ClCompile Include="src\Gui\GuiStyle.cpp" />
-    <ClCompile Include="src\Gui\Layout.cpp" />
+    <ClCompile Include="src\Gui\GuiLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\ListLayout.cpp" />

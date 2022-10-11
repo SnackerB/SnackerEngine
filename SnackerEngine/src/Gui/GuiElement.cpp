@@ -2,38 +2,92 @@
 #include "Gui/GuiManager.h"
 #include "Gui/GuiEventHandles/GuiHandle.h"
 #include "Gui/GuiEventHandles/GuiEventHandle.h"
+#include "Gui/GuiLayout.h"
 
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::signOff()
+	void GuiInteractable::signOff()
 	{
-		guiID = 0;
 		guiManager = nullptr;
 		parentID = 0;
-		childrenIDs.clear();
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable::IsCollidingResult GuiInteractable::isColliding(const Vec2i& position)
+	{
+		return IsCollidingResult::NOT_COLLIDING;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiInteractable::signUpEvent(const CallbackType& callbackType)
+	{
+		if (guiManager) guiManager->signUpEvent(*this, callbackType);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiInteractable::signOffEvent(const CallbackType& callbackType)
+	{
+		if (guiManager) guiManager->signOffEvent(*this, callbackType);
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable::GuiInteractable(const GuiInteractableType& type)
+		: guiManager(nullptr), guiID(0), parentID(0), type(type) {}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable::~GuiInteractable() {}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable::GuiInteractable(const GuiInteractable& other) noexcept
+		: GuiInteractable(other.type) {}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable& GuiInteractable::operator=(const GuiInteractable& other) noexcept
+	{
+		signOff();
+		guiManager = nullptr;
+		guiID = 0;
+		parentID = 0;
+		type = other.type;
+		return *this;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable::GuiInteractable(GuiInteractable&& other) noexcept
+		: guiManager(other.guiManager), guiID(other.guiID), parentID(other.parentID), type(other.type)
+	{
+		other.signOff();
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiInteractable& GuiInteractable::operator=(GuiInteractable&& other) noexcept
+	{
+		signOff();
+		guiManager = other.guiManager;
+		guiID = other.guiID;
+		parentID = other.parentID;
+		type = other.type;
+		other.signOff();
+		return *this;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiInteractable::isValid()
+	{
+		return guiManager != nullptr;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signOff()
+	{
+		GuiInteractable::signOff();
+		guiID = 0;
 		layouts.clear();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::drawChildren(const Vec2i& parentPosition)
 	{
-		guiManager->drawElements(childrenIDs, parentPosition + position);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::removeChild(const GuiElement& guiElement)
-	{
-		auto result = std::find(childrenIDs.begin(), childrenIDs.end(), guiElement.guiID);
-		if (result == childrenIDs.end()) {
-			warningLogger << LOGGER::BEGIN << "Tried to remove a child that was not the child of this guiElement" << LOGGER::ENDL;
-		}
-		else {
-			childrenIDs.erase(result);
+		for (auto& layout : layouts) {
+			layout->draw(parentPosition + position);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& position)
+	void GuiElement::removeChild(GuiElement& guiElement)
 	{
-		return IsCollidingResult::NOT_COLLIDING;
+		auto result = layoutIDToIndex.find(guiElement.parentLayoutID);
+		if (result != layoutIDToIndex.end()) {
+			layouts[result->second]->removeChild(guiElement);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2f GuiElement::getMouseOffset()
@@ -46,16 +100,6 @@ namespace SnackerEngine
 	{
 		if (guiManager) return guiManager->getMouseOffset(parentID);
 		return Vec2f();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::signUpEvent(const CallbackType& callbackType)
-	{
-		if (guiManager) guiManager->signUpEvent(*this, callbackType);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::signOffEvent(const CallbackType& callbackType)
-	{
-		if (guiManager) guiManager->signOffEvent(*this, callbackType);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signUpHandle(GuiHandle& guiHandle, const GuiHandle::GuiHandleID& handleID)
@@ -78,6 +122,16 @@ namespace SnackerEngine
 		guiEventHandle.activate();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::addChild(const GuiID& childID)
+	{
+		auto result = layoutIDToIndex.find(1);
+		if (result == layoutIDToIndex.end()) {
+			warningLogger << LOGGER::BEGIN << "Tried to add guiElement to layout using an invalid layoutReference!" << LOGGER::ENDL;
+			return;
+		}
+		static_cast<GuiLayout*>(layouts[result->second].get())->addChild(childID, GuiLayoutOptions{});
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::enforceLayouts()
 	{
 		for (auto& layout : layouts) {
@@ -85,72 +139,89 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::enforceLayout(const GuiID& layoutID)
+	{
+		auto result = layoutIDToIndex.find(layoutID);
+		if (result != layoutIDToIndex.end()) {
+			layouts[result->second]->enforceLayout();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiLayout& GuiElement::getLayout(const GuiID& layoutID)
+	{
+		auto result = layoutIDToIndex.find(layoutID);
+		if (result != layoutIDToIndex.end()) {
+			return *layouts[result->second];
+		}
+		// Return standard layout
+		return *layouts[0];
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size)
-		: guiID(0), guiManager(nullptr), position(position), size(size), preferredSize{}, preferredMinSize{}, preferredMaxSize{}, parentID(0), childrenIDs{}, layouts() {}
+		: GuiInteractable(GuiInteractableType::GUI_ELEMENT), parentLayoutID(0), nextLayoutID(1), position(position), size(size), 
+		preferredSize{}, preferredMinSize{}, preferredMaxSize{}, layouts(), layoutIDToIndex{} 
+	{
+		// Standard layout
+		registerLayout<GuiLayout>(std::move(GuiLayout()));
+	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const GuiElement& other) noexcept
 		: GuiElement(other.position, other.size) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(const GuiElement& other) noexcept
 	{
-		if (guiManager) {
-			guiManager->signOff(*this);
-		}
-		guiID = 0;
-		guiManager = nullptr;
+		GuiInteractable::operator=(other);
+		parentLayoutID = 0;
+		nextLayoutID = 1;
 		position = other.position;
 		size = other.size;
-		parentID = 0;
-		childrenIDs = {};
+		preferredSize = other.preferredSize;
+		preferredMinSize = other.preferredMinSize;
+		preferredMaxSize = other.preferredMaxSize;
 		layouts.clear();
+		// Standard layout
+		registerLayout<GuiLayout>(std::move(GuiLayout()));
+		layoutIDToIndex.clear();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
-		: guiID(other.guiID), guiManager(other.guiManager), position(other.position), size(other.size), 
+		: GuiInteractable(other), parentLayoutID(other.parentLayoutID), nextLayoutID(other.nextLayoutID), position(other.position), size(other.size),
 		preferredSize(other.preferredSize), preferredMinSize(other.preferredMinSize), preferredMaxSize(other.preferredMaxSize),
-		parentID(other.parentID), childrenIDs(other.childrenIDs), layouts(std::move(other.layouts))
+		layouts(std::move(other.layouts)), layoutIDToIndex(std::move(other.layoutIDToIndex)) 
 	{
-		other.signOff();
-		if (guiManager)
-			guiManager->updateMoved(*this);
+		if (guiManager) guiManager->updateMoved(*this);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(GuiElement&& other) noexcept
 	{
-		if (guiManager) {
-			guiManager->signOff(*this);
-		}
-		guiID = other.guiID;
-		guiManager = other.guiManager;
+		GuiInteractable::operator=(other);
+		parentLayoutID = other.parentLayoutID;
+		nextLayoutID = other.nextLayoutID;
 		position = other.position;
 		size = other.size;
+		preferredSize = other.preferredSize;
+		preferredMinSize = other.preferredMinSize;
+		preferredMaxSize = other.preferredMaxSize;
 		parentID = other.parentID;
-		childrenIDs = other.childrenIDs;
 		layouts = std::move(other.layouts);
-		other.signOff();
-		if (guiManager)
-			guiManager->updateMoved(*this);
+		layoutIDToIndex = std::move(other.layoutIDToIndex);
+		if (guiManager) guiManager->updateMoved(*this);
 		return *this;
-	}
-	//--------------------------------------------------------------------------------------------------
-	bool GuiElement::isValid()
-	{
-		return guiManager != nullptr;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPosition(const Vec2i& position)
 	{
 		this->position = position;
 		onPositionChange();
-		if (parentID != 0) guiManager->getElement(parentID).enforceLayouts();
+		if (parentID != 0) guiManager->getElement(parentID).enforceLayout(parentLayoutID);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setSize(const Vec2i& size)
 	{
 		this->size = size;
 		onSizeChange();
-		if (parentID != 0) guiManager->getElement(parentID).enforceLayouts();
+		if (parentID != 0) guiManager->getElement(parentID).enforceLayout(parentLayoutID);
 		else enforceLayouts();
 	}
 	//--------------------------------------------------------------------------------------------------

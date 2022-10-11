@@ -1,5 +1,5 @@
 #pragma once
-#include "Gui/Layout.h"
+#include "Gui/GuiLayout.h"
 
 namespace SnackerEngine
 {
@@ -11,7 +11,7 @@ namespace SnackerEngine
 		float weight;
 	};
 
-	class HorizontalLayout : public Layout
+	class HorizontalLayout : public GuiLayout
 	{
 	public:
 		using LayoutReference = HorizontalLayoutReference;

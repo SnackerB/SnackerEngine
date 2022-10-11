@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <xhash>
 
 namespace SnackerEngine
 {
@@ -36,5 +37,16 @@ namespace SnackerEngine
 	{
 		return points / T(72);
 	}
+	//------------------------------------------------------------------------------------------------------
+	/// Struct that can be used for standard library templates using hasing when one wants to hash pairs of integers
+	struct Pairhash final {
+	public:
+		template <typename T1, typename T2>
+		std::size_t operator()(const std::pair<T1, T2>& x) const
+		{
+			auto temp = std::hash<T1>()(x.first);
+			return temp << 1 + temp + std::hash<T2>()(x.second);
+		}
+	};
 	//------------------------------------------------------------------------------------------------------
 }

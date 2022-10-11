@@ -4,33 +4,42 @@
 namespace SnackerEngine
 {
 
-	GridLayout::GridLayout(unsigned totalColumns, unsigned totalRows)
-		: totalColumns(totalColumns), totalRows(totalRows) {}
+	void GridLayout::addChild(const GuiID& guiID, const LayoutOptions& options)
+	{
+		GuiLayout::addChild(guiID, {});
+		layoutOptions.push_back(options);
+		enforceLayout();
+	}
+
+	std::size_t GridLayout::removeChild(GuiElement& guiElement)
+	{
+		std::size_t index = GuiLayout::removeChild(guiElement);
+		layoutOptions.erase(layoutOptions.begin() + index);
+		return index;
+	}
 
 	void GridLayout::enforceLayout()
 	{
 		if (!guiManager) return;
-		Vec2i parentSize = getSize(elementID);
+		Vec2i parentSize = getSize(parentID);
 		Vec2i elementSize = Vec2i(parentSize.x / totalColumns, parentSize.y / totalRows);
 		Vec2i lastElementSize = elementSize + Vec2i(parentSize.x % totalColumns, parentSize.y % totalRows);
-		for (auto& element : guiElements) {
+		for (unsigned i = 0; i < children.size(); ++i) {
 			// Set size
 			Vec2i currentSize = elementSize;
-			if (element.second.column == totalColumns) currentSize.x = lastElementSize.x;
-			if (element.second.row == totalRows) currentSize.y = lastElementSize.y;
-			setSize(element.first, currentSize);
-			notifySizeChange(element.first);
+			if (layoutOptions[i].column == totalColumns) currentSize.x = lastElementSize.x;
+			if (layoutOptions[i].row == totalRows) currentSize.y = lastElementSize.y;
+			setSize(children[i], currentSize);
+			notifySizeChange(children[i]);
 			// Set position
-			setPosition(element.first, Vec2i(elementSize.x * (element.second.column - 1), elementSize.y * (element.second.row - 1)));
-			notifyPositionChange(element.first);
+			setPosition(children[i], Vec2i(elementSize.x * (layoutOptions[i].column - 1), elementSize.y * (layoutOptions[i].row - 1)));
+			notifyPositionChange(children[i]);
 			// Enforce layout
-			enforceLayouts(element.first);
+			enforceLayouts(children[i]);
 		}
 	}
 
-	void GridLayout::addElement(const GuiID& guiID, const LayoutOptions& options)
-	{
-		guiElements.push_back(std::make_pair(guiID, options));
-	}
+	GridLayout::GridLayout(unsigned totalColumns, unsigned totalRows)
+		: totalColumns(totalColumns), totalRows(totalRows), layoutOptions{} {}
 
 }

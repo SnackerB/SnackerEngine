@@ -3,9 +3,30 @@
 #include "Graphics/Meshes/Triangle.h"
 #include "Graphics/Renderer.h"
 #include "core/Engine.h"
+#include "Gui/GuiLayout.h"
 
 namespace SnackerEngine
 {
+	void GuiManager::processSignOffQueue()
+	{
+		for (auto& element : signOffQueue) {
+			switch (element.second)
+			{
+			case GuiInteractable::CallbackType::MOUSE_BUTTON: eventSetMouseButton.erase(element.first); break;
+			case GuiInteractable::CallbackType::MOUSE_MOTION: eventSetMouseMotion.erase(element.first); break;
+			case GuiInteractable::CallbackType::KEYBOARD: eventSetKeyboard.erase(element.first); break;
+			case GuiInteractable::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.erase(element.first); break;
+			case GuiInteractable::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.erase(element.first); break;
+			case GuiInteractable::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.erase(element.first); break;
+			case GuiInteractable::CallbackType::MOUSE_ENTER: eventSetMouseEnter.erase(element.first); break;
+			case GuiInteractable::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.erase(element.first); break;
+			case GuiInteractable::CallbackType::UPDATE: eventSetUpdate.erase(element.first); break;
+			default:
+				break;
+			}
+		}
+		signOffQueue.clear();
+	}
 	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiID GuiManager::getNewGuiID()
 	{
@@ -47,12 +68,8 @@ namespace SnackerEngine
 		guiElementPtrArray[guiElement.guiID] = nullptr;
 		registeredGuiElementsCount--;
 		guiElement.parentID = 0;
-		// Sign off children
-		for (const auto& childID : guiElement.childrenIDs)
-		{
-			signOffWithoutNotifyingParent(*guiElementPtrArray[childID]);
-		}
-		guiElement.childrenIDs.clear();
+		// Clear layouts (which will sign off their children)
+		guiElement.layouts.clear();
 		// Clear event queues
 		clearEventQueues(guiElement);
 		// Delete element if it is stored by guiManager
@@ -64,20 +81,23 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::clearEventQueues(GuiElement& guiElement)
+	void GuiManager::clearEventQueues(GuiInteractable& guiInteractable)
 	{
-		eventSetMouseButton.erase(guiElement.guiID);
-		eventSetMouseMotion.erase(guiElement.guiID);
-		eventSetKeyboard.erase(guiElement.guiID);
-		eventSetCharacterInput.erase(guiElement.guiID);
-		eventSetMouseButtonOnElement.erase(guiElement.guiID);
-		eventSetMouseScrollOnElement.erase(guiElement.guiID);
-		eventSetMouseEnter.erase(guiElement.guiID);
-		eventSetMouseLeave.erase(guiElement.guiID);
-		eventSetUpdate.erase(guiElement.guiID);
+		std::pair<GuiID, GuiID> temp;
+		if (guiInteractable.type == GuiInteractable::GUI_ELEMENT) temp = { guiInteractable.guiID, 0 };
+		else temp = { guiInteractable.guiID, guiInteractable.parentID };
+		eventSetMouseButton.erase(temp);
+		eventSetMouseMotion.erase(temp);
+		eventSetKeyboard.erase(temp);
+		eventSetCharacterInput.erase(temp);
+		eventSetMouseButtonOnElement.erase(temp);
+		eventSetMouseScrollOnElement.erase(temp);
+		eventSetMouseEnter.erase(temp);
+		eventSetMouseLeave.erase(temp);
+		eventSetUpdate.erase(temp);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiManager::GuiID GuiManager::getCollidingElement(const Vec2i& position)
+	std::pair<GuiManager::GuiID, GuiManager::GuiID> GuiManager::getCollidingElement(const Vec2i& position)
 	{
 		// TODO: There could be a more efficient implementation for some special layouts/guiElements.
 		// Maybe we can do this with recursive function calls?
@@ -88,29 +108,40 @@ namespace SnackerEngine
 				Vec2i currentPosition = position - guiElementPtrArray[currentGuiID]->position;
 				while (true) {
 					bool foundCollidingChild = false;
-					for (auto it2 = guiElementPtrArray[currentGuiID]->childrenIDs.rbegin();
-						it2 != guiElementPtrArray[currentGuiID]->childrenIDs.rend(); it2++) {
-						result = guiElementPtrArray[*it2]->isColliding(currentPosition);
+					for (auto it2 = guiElementPtrArray[currentGuiID]->layouts.rbegin();
+						it2 != guiElementPtrArray[currentGuiID]->layouts.rend(); it2++) {
+						// First check if the layout is colliding
+						result = (*it2)->isColliding(currentPosition);
 						if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
-							foundCollidingChild = true;
-							currentGuiID = *it2;
-							currentPosition -= guiElementPtrArray[currentGuiID]->position;
-							break;
+							// Check if any of the children are colliding
+							for (auto it3 = (*it2)->children.rbegin(); it3 != (*it2)->children.rend(); it3++) {
+								result = guiElementPtrArray[*it3]->isColliding(currentPosition);
+								if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
+									foundCollidingChild = true;
+									currentGuiID = *it3;
+									currentPosition -= guiElementPtrArray[currentGuiID]->position;
+									break;
+								}
+								else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
+									return { *it3, 0 };
+								}
+							}
 						}
 						else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-							return *it2;
+							return { (*it2)->guiID, (*it2)->parentID };
 						}
+						if (foundCollidingChild)
+							break;
 					}
 					if (!foundCollidingChild)
-						return currentGuiID;
+						return { currentGuiID, 0 };
 				}
 			}
 			else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-				return *it1;
+				return { *it1, 0 };
 			}
 		}
-
-		return 0;
+		return { 0, 0 };
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2f GuiManager::getMouseOffset(GuiID guiID)
@@ -126,16 +157,18 @@ namespace SnackerEngine
 	void GuiManager::handleLayoutsOnGuiElementRegister(GuiElement& guiElement)
 	{
 		for (auto& layout : guiElement.layouts) {
-			layout->elementID = guiElement.guiID;
 			layout->guiManager = this;
-			layout->enforceLayout();
+			layout->handleLayoutOnParentRegister(guiElement.guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::handleChildrenOnGuiElementRegister(GuiElement& guiElement)
+	GuiInteractable& GuiManager::getGuiInteractable(std::pair<GuiID, GuiID> identifier)
 	{
-		for (auto& childID : guiElement.childrenIDs) {
-			guiElementPtrArray[childID]->parentID = guiElement.guiID;
+		if (identifier.second == 0) {
+			return *guiElementPtrArray[identifier.first];
+		}
+		else {
+			guiElementPtrArray[lastMouseHoverElement.second]->getLayout(lastMouseHoverElement.first);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -174,47 +207,57 @@ namespace SnackerEngine
 		guiElementPtrArray[guiElement.guiID] = &guiElement;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::drawElements(const std::span<GuiID>& guiIDs, const Vec2i& parentPosition)
-	{
-		// We do not have to enable depth testing, since this function is only called 
-		// while were in the guiManager draw call anyways!
-		for (const GuiID& guiID : guiIDs)
-		{
-			guiElementPtrArray[guiID]->draw(parentPosition);
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiManager::getElement(const GuiID& guiID)
 	{
 		return *guiElementPtrArray[guiID];
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::signUpEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType)
+	void GuiManager::signUpEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType)
 	{
-		if (guiElement.guiID == 0) return;
-		if (guiElement.guiID > maxGuiElements)
-		{
-			warningLogger << LOGGER::BEGIN << "Tried to sign up guiElement that was not valid to event!" << LOGGER::ENDL;
-			return;
+		if (guiInteractable.guiID == 0) return;
+		std::pair<GuiID, GuiID> insertID;
+		if (guiInteractable.type == GuiInteractable::GuiInteractableType::GUI_ELEMENT) {
+			if (guiInteractable.guiID > maxGuiElements) {
+				warningLogger << LOGGER::BEGIN << "Tried to sign up guiElement that was not valid to event!" << LOGGER::ENDL;
+				return;
+			}
+			insertID = std::make_pair(guiInteractable.guiID, 0);
+		}
+		else {
+			insertID = std::make_pair(guiInteractable.guiID, guiInteractable.parentID);
 		}
 		switch (callbackType)
 		{
-		case GuiElement::CallbackType::MOUSE_BUTTON: eventSetMouseButton.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::MOUSE_MOTION: eventSetMouseMotion.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::KEYBOARD: eventSetKeyboard.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::MOUSE_ENTER: eventSetMouseEnter.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.insert(guiElement.guiID); break;
-		case GuiElement::CallbackType::UPDATE: eventSetUpdate.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::MOUSE_BUTTON: eventSetMouseButton.insert(insertID); break;
+		case GuiElement::CallbackType::MOUSE_MOTION: eventSetMouseMotion.insert(insertID); break;
+		case GuiElement::CallbackType::KEYBOARD: eventSetKeyboard.insert(insertID); break;
+		case GuiElement::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.insert(insertID); break;
+		case GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.insert(insertID); break;
+		case GuiElement::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.insert(insertID); break;
+		case GuiElement::CallbackType::MOUSE_ENTER: eventSetMouseEnter.insert(insertID); break;
+		case GuiElement::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.insert(insertID); break;
+		case GuiElement::CallbackType::UPDATE: eventSetUpdate.insert(insertID); break;
 		default:
 			break;
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::signOffEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType)
+	void GuiManager::signOffEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType)
 	{
+		if (guiInteractable.guiID == 0) return;
+		std::pair<GuiID, GuiID> removeID;
+		if (guiInteractable.type == GuiInteractable::GuiInteractableType::GUI_ELEMENT) {
+			if (guiInteractable.guiID > maxGuiElements) {
+				warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement that was not valid to event!" << LOGGER::ENDL;
+				return;
+			}
+			removeID = std::make_pair(guiInteractable.guiID, 0);
+		}
+		else {
+			removeID = std::make_pair(guiInteractable.guiID, guiInteractable.parentID);
+		}
+		// push into signOffQueue. Event will be signed off the next time update() is called.
+		signOffQueue.push_back(std::make_pair(removeID, callbackType));
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiManager(const unsigned int& startingSize)
@@ -246,8 +289,6 @@ namespace SnackerEngine
 		guiElementPtrArray[guiElement.guiID] = &guiElement;
 		// Put into back of parent array
 		parentGuiElements.push_back(guiElement.guiID);
-		// Update children
-		handleChildrenOnGuiElementRegister(*guiElementPtrArray[guiElement.guiID]);
 		// Update layouts
 		handleLayoutsOnGuiElementRegister(*guiElementPtrArray[guiElement.guiID]);
 		// Call onRegister()
@@ -270,7 +311,7 @@ namespace SnackerEngine
 		registeredGuiElementsCount++;
 		guiElementPtrArray[childElement.guiID] = &childElement;
 		// Insert as child into parent element (in the back of the children vector)
-		parentElement.childrenIDs.push_back(childElement.guiID);
+		parentElement.addChild(childElement.guiID);
 		guiElementPtrArray[childElement.guiID]->parentID = parentElement.guiID;
 		// Call onRegister()
 		childElement.onRegister();
@@ -315,35 +356,33 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods)
 	{
-		for (auto& guiID : eventSetKeyboard) {
-			guiElementPtrArray[guiID]->callbackKeyboard(key, scancode, action, mods);
+		for (const auto& identifier : eventSetKeyboard) {
+			getGuiInteractable(identifier).callbackKeyboard(key, scancode, action, mods);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
 		if (eventSetMouseButtonOnElement.find(lastMouseHoverElement) != eventSetMouseButtonOnElement.end()) {
-			guiElementPtrArray[lastMouseHoverElement]->callbackMouseButtonOnElement(button, action, mods);
+			getGuiInteractable(lastMouseHoverElement).callbackMouseButtonOnElement(button, action, mods);
 		}
-		for (auto& guiID : eventSetMouseButton) {
-			guiElementPtrArray[guiID]->callbackMouseButton(button, action, mods);
+		for (const auto& identifier : eventSetMouseButton) {
+			getGuiInteractable(identifier).callbackMouseButton(button, action, mods);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackMouseMotion(const Vec2d& position)
 	{
 		currentMousePosition = position;
-		GuiID newMouseHoverElement = getCollidingElement(position);
+		auto newMouseHoverElement = getCollidingElement(position);
 		if (newMouseHoverElement != lastMouseHoverElement) {
-			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end()) {
-				guiElementPtrArray[newMouseHoverElement]->callbackMouseEnter(position);
-			}
-			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end()) {
-				guiElementPtrArray[lastMouseHoverElement]->callbackMouseLeave(position);
-			}
+			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
+				getGuiInteractable(newMouseHoverElement).callbackMouseEnter(position);
+			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end())
+				getGuiInteractable(lastMouseHoverElement).callbackMouseLeave(position);
 		}
-		for (auto& guiID : eventSetMouseMotion) {
-			guiElementPtrArray[guiID]->callbackMouseMotion(position);
+		for (const auto& identifier : eventSetMouseMotion) {
+			getGuiInteractable(identifier).callbackMouseMotion(position);
 		}
 		lastMouseHoverElement = newMouseHoverElement;
 	}
@@ -356,21 +395,22 @@ namespace SnackerEngine
 	void GuiManager::callbackMouseScroll(const Vec2d& offset)
 	{
 		if (eventSetMouseScrollOnElement.find(lastMouseHoverElement) != eventSetMouseScrollOnElement.end()) {
-			guiElementPtrArray[lastMouseHoverElement]->callbackMouseScrollOnElement(offset);
+			getGuiInteractable(lastMouseHoverElement).callbackMouseScrollOnElement(offset);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackCharacterInput(const unsigned int& codepoint)
 	{
-		for (auto& guiID : eventSetCharacterInput) {
-			guiElementPtrArray[guiID]->callbackCharacterInput(codepoint);
+		for (auto& identifier : eventSetCharacterInput) {
+			getGuiInteractable(identifier).callbackCharacterInput(codepoint);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::update(const double& dt)
 	{
-		for (auto& guiID : eventSetUpdate) {
-			guiElementPtrArray[guiID]->update(dt);
+		processSignOffQueue();
+		for (auto& identifier : eventSetUpdate) {
+			getGuiInteractable(identifier).update(dt);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

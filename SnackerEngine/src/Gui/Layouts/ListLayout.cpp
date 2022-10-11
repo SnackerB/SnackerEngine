@@ -3,26 +3,35 @@
 namespace SnackerEngine
 {
 
+	void ListLayout::addChild(const GuiID& guiID, const LayoutOptions& options)
+	{
+		GuiLayout::addChild(guiID, {});
+		layoutOptions.push_back(options);
+		enforceLayout();
+	}
+
+	std::size_t ListLayout::removeChild(GuiElement& guiElement)
+	{
+		std::size_t index = GuiLayout::removeChild(guiElement);
+		layoutOptions.erase(layoutOptions.begin() + index);
+		return index;
+	}
+
 	ListLayout::ListLayout(float verticalOffset, float leftBorder)
-		: verticalOffset(verticalOffset), leftBorder(leftBorder), currentVerticalSize(0.0f), guiElements{} {}
+		: GuiLayout(), verticalOffset(verticalOffset), leftBorder(leftBorder), currentVerticalSize(0.0f), layoutOptions{} {}
 
 	void ListLayout::enforceLayout() 
 	{
 		if (!guiManager) return;
 		float currentYOffset = verticalOffset;
-		for (const auto& element : guiElements) {
-			int height = getSize(element.first).y;
+		for (unsigned int i = 0; i < children.size(); ++i) {
+			int height = getSize(children[i]).y;
 			// Set position
-			setPosition(element.first, Vec2i(leftBorder, currentYOffset));
-			notifyPositionChange(element.first);
+			setPosition(children[i], Vec2i(leftBorder, currentYOffset));
+			notifyPositionChange(children[i]);
 			// Advance to next element
 			currentYOffset += height + verticalOffset;
 		}
-	}
-
-	void ListLayout::addElement(const GuiID& guiID, const LayoutOptions& options)
-	{
-		guiElements.push_back(std::make_pair(guiID, options));
 	}
 
 }

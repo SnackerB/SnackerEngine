@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Gui/GuiElement.h"
+#include "Gui/GuiLayout.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Model.h"
 #include "Core/Log.h"
+#include "Math/Utility.h"
 
 #include <vector>
 #include <memory>
@@ -43,17 +45,25 @@ namespace SnackerEngine
 		/// The current mouse position
 		Vec2i currentMousePosition;
 		/// The guiID of the element the mouse was over last
-		GuiID lastMouseHoverElement;
-		/// Sets of GuiIDs for each event that can happen to a guiElement
-		std::unordered_set<GuiID> eventSetMouseButton;
-		std::unordered_set<GuiID> eventSetMouseMotion;
-		std::unordered_set<GuiID> eventSetKeyboard;
-		std::unordered_set<GuiID> eventSetCharacterInput;
-		std::unordered_set<GuiID> eventSetMouseButtonOnElement;
-		std::unordered_set<GuiID> eventSetMouseScrollOnElement;
-		std::unordered_set<GuiID> eventSetMouseEnter;
-		std::unordered_set<GuiID> eventSetMouseLeave;
-		std::unordered_set<GuiID> eventSetUpdate;
+		std::pair<GuiID, GuiID> lastMouseHoverElement;
+		/// Sets of std::pairs of GuiIDs for each event that can happen to a guiElement or guiLayout.
+		/// In a pair, the first entry is the guiID of the element or layout. The second entry is zero
+		/// if the object is a guiElement, and is the guiID of the parent element if the object
+		/// is a guiLayout.
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetMouseButton;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetMouseMotion;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetKeyboard;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetCharacterInput;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetMouseButtonOnElement;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetMouseScrollOnElement;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetMouseEnter;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetMouseLeave;
+		std::unordered_set<std::pair<GuiID, GuiID>, Pairhash> eventSetUpdate;
+		/// The pairs in the sign off queue are processed after an event happens. If the sets are changed
+		/// while they are iterated errors can occur!
+		std::vector<std::pair<std::pair<GuiID, GuiID>, GuiInteractable::CallbackType>> signOffQueue;
+		/// empties the signoff queue and signs off the elements
+		void processSignOffQueue();
 		//==============================================================================================
 		// Special Models, Textures etc. stored by the guiManager
 		//==============================================================================================
@@ -72,35 +82,36 @@ namespace SnackerEngine
 		/// (called ny guiManager when doing a cascading sign off starting at some element)
 		void signOffWithoutNotifyingParent(GuiElement& guiElement);
 		/// Helper function that clears all event queues of a given guiElement
-		void clearEventQueues(GuiElement& guiElement);
-		/// Computes the GuiID of the element that is colliding with the given position, or 0 if no element
-		/// is found. Chooses the child farthest down the childElement tree!
-		GuiID getCollidingElement(const Vec2i& position);
+		void clearEventQueues(GuiInteractable& guiInteractable);
+		/// Checks which guiElement or GuiLayout is colliding with the given position. Returns a pair of
+		/// GuiIDs. The first GuiID is the guiID of the guiElement or guiLayout. The second guiID is zero
+		/// in case of a guiElement and holds the parentID in case of a layout.
+		/// If no colliding element/layout is found, {0, 0} is returned.
+		std::pair<GuiID, GuiID> getCollidingElement(const Vec2i& position);
 		/// Computes the current offset of the mouse to the top left corner of the element with the given ID
 		Vec2f getMouseOffset(GuiID guiID);
 		/// Updates the elementID and calls enforceLayout() of all layouts that a guiElement owns. 
 		/// Should be called when a new guiElement is registered.
 		void handleLayoutsOnGuiElementRegister(GuiElement& guiElement);
-		/// Updates the parentIDs of all children. Should be called when a new guiElement is registered
-		void handleChildrenOnGuiElementRegister(GuiElement& guiElement);
+		/// Returns a reference to the GuiInteractable object that is referenced by the pair of GuiIDs
+		GuiInteractable& getGuiInteractable(std::pair<GuiID, GuiID> identifier);
 	protected:
+		friend class GuiInteractable;
 		friend class GuiElement;
-		friend class Layout;
-		/// Called by GuiElement objects when they want to be signed off from this GuiManager
+		friend class GuiLayout;
+		/// Called by GuiInteractable objects when they want to be signed off from this GuiManager
 		void signOff(GuiElement& guiElement);
-		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
+		/// Called by GuiInteractable objects when they are moved, to update the pointer in the GuiManager
 		void updateMoved(GuiElement& guiElement);
-		/// Called by GuiElement objects to draw their children
-		void drawElements(const std::span<GuiID>& guiIDs, const Vec2i& parentPosition);
 		/// Returns a reference to the guiElement with a given guiID
 		GuiElement& getElement(const GuiID& guiID);
 		//==============================================================================================
-		// Events that can happen to a guiElement
+		// Events that can happen to a guiINteractable object
 		//==============================================================================================
-		/// This function can be called by guiElement to register themselves for getting notified when events happen
-		void signUpEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType);
-		/// This function can be called by guiElement to sign off getting notified when certain events happen
-		void signOffEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType);
+		/// This function can be called by guiINteractable to register themselves for getting notified when events happen
+		void signUpEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType);
+		/// This function can be called by guiINteractable to sign off getting notified when certain events happen
+		void signOffEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType);
 	public:
 		/// Constructor
 		GuiManager(const unsigned int& startingSize = 20);
@@ -192,9 +203,7 @@ namespace SnackerEngine
 		}
 		// Put into back of parent array
 		parentGuiElements.push_back(guiID);
-		// Update children
-		handleChildrenOnGuiElementRegister(*guiElementPtrArray[guiID]);
-		// Update layouts
+		// Update layouts and children
 		handleLayoutsOnGuiElementRegister(*guiElementPtrArray[guiID]);
 		// Call onRegister()
 		guiElementPtrArray[guiID]->onRegister();
@@ -226,9 +235,8 @@ namespace SnackerEngine
 		guiElementPtrOwnedArray[guiID]->guiID = guiID;
 		guiElementPtrOwnedArray[guiID]->guiManager = this;
 		guiElementPtrArray[guiID] = guiElementPtrOwnedArray[guiID];
-		// Insert as child into parent element (in the back of the children vector)
-		parentElement.childrenIDs.push_back(guiID);
-		guiElementPtrArray[guiID]->parentID = parentElement.guiID;
+		// Insert as child into parent element
+		parentElement.addChild(guiID);
 		// Call onRegister()
 		guiElementPtrArray[guiID]->onRegister();
 	}
@@ -236,8 +244,26 @@ namespace SnackerEngine
 	template<typename GuiElementType, typename LayoutType>
 	inline void GuiManager::registerElement(GuiElement& parentElement, GuiElementType&& childElement, const typename LayoutType::LayoutReference& layoutReference, const typename LayoutType::LayoutOptions& layoutOptions)
 	{
-		registerElement<GuiElementType>(parentElement, std::move(childElement));
-		parentElement.addChild<LayoutType>(layoutReference, parentElement.childrenIDs.back(), layoutOptions);
+		if (childElement.guiID != 0) {
+			warningLogger << LOGGER::BEGIN << "Tried to register already registered guiElement!" << LOGGER::ENDL;
+			return;
+		}
+		if (childElement.parentID != 0) {
+			warningLogger << LOGGER::BEGIN << "Tried to set element as child that already has a parent!" << LOGGER::ENDL;
+			return; // TODO: Maybe dont display warning but just change parent!
+		}
+		/// Get new GuiID
+		GuiID guiID = getNewGuiID();
+		registeredGuiElementsCount++;
+		ownedGuiElementsCount++;
+		guiElementPtrOwnedArray[guiID] = new GuiElementType(std::move(childElement));
+		guiElementPtrOwnedArray[guiID]->guiID = guiID;
+		guiElementPtrOwnedArray[guiID]->guiManager = this;
+		guiElementPtrArray[guiID] = guiElementPtrOwnedArray[guiID];
+		// Insert as child into parent element
+		parentElement.addChild<LayoutType>(layoutReference, guiID, layoutOptions);
+		// Call onRegister()
+		guiElementPtrArray[guiID]->onRegister();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename LayoutType>

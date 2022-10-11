@@ -93,6 +93,7 @@ namespace SnackerEngine
 		const StaticText::Alignment& getAlignment() const { return text->getAlignment(); }
 		const TextBoxMode& getTextBoxMode() const { return textBoxMode; }
 	};
+	/*
 	//--------------------------------------------------------------------------------------------------
 	class GuiEditTextBox : public GuiDynamicTextBox
 	{
@@ -112,4 +113,5 @@ namespace SnackerEngine
 		GuiEditTextBox& operator=(const GuiEditTextBox& other) noexcept;
 		GuiEditTextBox& operator=(GuiEditTextBox&& other) noexcept;
 	};
+	*/
 }

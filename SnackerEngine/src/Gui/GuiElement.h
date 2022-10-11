@@ -4,9 +4,9 @@
 #include "Gui/GuiEventHandles/GuiHandle.h"
 #include "Gui/GuiEventHandles/GuiVariableHandle.h"
 #include "Core/Log.h"
-#include "Gui/Layout.h"
 
 #include <vector>
+#include <unordered_map>
 
 namespace SnackerEngine
 {
@@ -15,56 +15,45 @@ namespace SnackerEngine
 	class GuiManager;
 	class GuiHandle;
 	class GuiEventHandle;
-	class Layout;
+	class GuiLayout;
 	//--------------------------------------------------------------------------------------------------
-	class GuiElement
+	/// Base class for guiElement and guiLayout
+	class GuiInteractable
 	{
 	private:
-		using GuiID = unsigned int;
 		friend class GuiManager;
-		friend class GuiHandle;
-		friend class Layout;
-		GuiID guiID;
+		using GuiID = unsigned int;
 	protected:
 		/// Pointer to the parent guiManager
 		GuiManager* guiManager;
-		/// Position of this guiElement relative to its parent guiElement. The position vector points to the upper left corner
-		/// of the bounding rectangle.
-		Vec2i position;
-		/// Dimensions of the bounding rectangle in pixels. The origin is at the upper left corner
-		Vec2i size;
-		/// Preferred sizes are just hints to the layout and not a guarantee.
-		/// A preferred size of zero means that the element does not has size preferences at all.
-		Vec2i preferredSize;
-		Vec2i preferredMinSize;
-		Vec2i preferredMaxSize;
-		/// guiID of the parent guiElement. If this is zero, this element does not have a parent
+		/// guiID of this guiInteractable object. For guiElements, this is an index into the guiElements vector
+		/// of the guiManager. For guiLayouts, this can be used to access the layout from the parent guiElement.
+		GuiID guiID;
+		/// guiID of the parent guiElement. If this is zero, this GuiInteractable object does not have a parent.
 		GuiID parentID;
-		/// vector of guiIDs of child guiElements
-		std::vector<GuiID> childrenIDs;
-		/// Vector of pointers to the layouts that handle this guiElements childrens position and size
-		std::vector<std::unique_ptr<Layout>> layouts;
-		/// tells this guiElement that the guiManager was deleted
-		void signOff();
-		/// Draws this guiElement relative to its parent
+		/// enum that can be used to distinguish guiElements and guiLayouts
+		enum GuiInteractableType
+		{
+			GUI_ELEMENT,
+			GUI_LAYOUT,
+		};
+		GuiInteractableType type;
+		/// tells this guiInteractable object that the guiManager was deleted
+		virtual void signOff();
+		/// Draws this guiInteractable object relative to its parent element
 		/// parentPosition:		position of the upper left corner of the parent element
 		virtual void draw(const Vec2i& parentPosition) {};
-		/// Calls the draw function on all children.
-		/// parentPosition:		position of the upper left corner of the parent element
-		void drawChildren(const Vec2i& parentPosition);
 		/// Update function
 		virtual void update(const float dt) {};
-		/// This function gets called when the position changes. Not called by the constructor!
-		virtual void onPositionChange() {};
-		/// This function gets called when the size changes. Not called by the constructor!
-		/// This will call enforceLayouts on this element!
-		virtual void onSizeChange() {};
-		/// This function is called by the guiManager after registering this guiElement.
-		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
+		/// This function is called by the guiManager after registering this guiInteractable object.
+		/// When this function is called, the guiManager pointer is set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
 		virtual void onRegister() {};
-		/// Removes a single child parentElement from this guiElement
-		void removeChild(const GuiElement& guiElement);
+
+		//==============================================================================================
+		// Collisions
+		//==============================================================================================
+
 		/// Enum that contains the possible return types of isColliding
 		enum class IsCollidingResult
 		{
@@ -75,14 +64,12 @@ namespace SnackerEngine
 		/// Returns true if the given position vector (relative to the top left corner of the parent element)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& position);
-		/// Returns the offset of the mouse to the current element
-		Vec2f getMouseOffset();
-		/// Returns the offset of the mouse to the parent of the current element
-		Vec2f getParentMouseOffset();
+
 		//==============================================================================================
-		// Events that can happen to a guiElement
+		// Events that can happen to a guiInteractable
 		//==============================================================================================
-		/// Enum for different types of update/callback events a guiElement can register itself for
+
+		/// Enum for different types of update/callback events a guiInteractable object can register itself for
 		enum class CallbackType {
 			MOUSE_BUTTON,
 			MOUSE_MOTION,
@@ -94,9 +81,9 @@ namespace SnackerEngine
 			MOUSE_LEAVE,
 			UPDATE,
 		};
-		/// This function can be called by derived guiElements to register themselves for getting notified when events happen
+		/// This function can be called by derived guiElements or guiLayouts to register themselves for getting notified when events happen
 		void signUpEvent(const CallbackType& callbackType);
-		/// This function can be called by derived guiElements to sign off getting notified when certain events happen
+		/// This function can be called by derived guiElements or guiLayouts to sign off getting notified when certain events happen
 		void signOffEvent(const CallbackType& callbackType);
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) {};
@@ -107,7 +94,7 @@ namespace SnackerEngine
 		virtual void callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods) {};
 		/// Callback function for the input of unicode characters. Parameter the same as in Scene.h
 		virtual void callbackCharacterInput(const unsigned int& codepoint) {};
-		/// Callback function for mouse button input on this guiElement. Parameters the same as in Scene.h
+		/// Callback function for mouse button input on this guiInteractable object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) {};
 		/// Callback function for scrolling the mouse wheel. Parameter the same as in Scene.h
 		virtual void callbackMouseScrollOnElement(const Vec2d& offset) {};
@@ -119,9 +106,72 @@ namespace SnackerEngine
 		virtual void callbackMouseLeave(const Vec2d& position) {};
 		/// Update function
 		virtual void update(const double& dt) {};
+		/// Protected constructor
+		GuiInteractable(const GuiInteractableType& type);
+	public:
+		/// Destructor
+		~GuiInteractable();
+		/// Copy constructor and assignment operator
+		GuiInteractable(const GuiInteractable& other) noexcept;
+		GuiInteractable& operator=(const GuiInteractable& other) noexcept;
+		/// Move constructor and assignment operator
+		GuiInteractable(GuiInteractable&& other) noexcept;
+		GuiInteractable& operator=(GuiInteractable&& other) noexcept;
+		/// Returns true if this GuiInteractable object is managed by a guiManager
+		bool isValid();
+	};
+	/// Base class for all GuiElements (Buttons, Sliders, Text, Windows, ...)
+	//--------------------------------------------------------------------------------------------------
+	class GuiElement : public GuiInteractable
+	{
+	private:
+		using GuiID = unsigned int;
+		friend class GuiManager;
+		friend class GuiHandle;
+		friend class GuiLayout;
+	protected:
+		/// GuiID of the layout that this guiElement is saved in.
+		GuiID parentLayoutID;
+		/// GuiID of the next layout that is added to this element
+		GuiID nextLayoutID;
+		/// Position of this guiElement relative to its parent guiElement. The position vector points to the upper left corner
+		/// of the bounding rectangle.
+		Vec2i position;
+		/// Dimensions of the bounding rectangle in pixels. The origin is at the upper left corner
+		Vec2i size;
+		/// Preferred sizes are just hints to the layout and not a guarantee.
+		/// A preferred size of zero means that the element does not has size preferences at all.
+		Vec2i preferredSize;
+		Vec2i preferredMinSize;
+		Vec2i preferredMaxSize;
+		/// Vector of pointers to the GuiLayouts that handle this guiElements childrens position and size
+		std::vector<std::unique_ptr<GuiLayout>> layouts;
+		/// Map that can be used to get an index into the layout vector
+		std::unordered_map<GuiID, std::size_t> layoutIDToIndex;
+		/// tells this guiElement that the guiManager was deleted
+		void signOff() override;
+		/// Calls the draw function on all layouts.
+		/// parentPosition:		position of the upper left corner of the parent element
+		void drawChildren(const Vec2i& parentPosition);
+		/// This function gets called when the position changes. Not called by the constructor!
+		virtual void onPositionChange() {};
+		/// This function gets called when the size changes. Not called by the constructor!
+		virtual void onSizeChange() {};
+		/// This function is called by the guiManager after registering this guiElement.
+		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
+		/// This function can e.g. be used for registering callbacks at the guiManager
+		virtual void onRegister() override {};
+		/// Removes the given child from this guiElement
+		void removeChild(GuiElement& guiElement);
+		/// Returns the offset of the mouse to the current element
+		Vec2f getMouseOffset();
+		/// Returns the offset of the mouse to the parent of the current element
+		Vec2f getParentMouseOffset();
+
 		//==============================================================================================
 		// GuiHandles
 		//==============================================================================================
+
 		/// Overwrite this function if the guiElement owns handles. This function should update the
 		/// handle pointer when the handle is moved. Called by the handle after it is moved.
 		virtual void onHandleMove(GuiHandle& guiHandle) {};
@@ -142,9 +192,11 @@ namespace SnackerEngine
 		/// template function used to change a value of a variable handle
 		template<typename T>
 		void setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value);
+
 		//==============================================================================================
 		// Layouts
 		//==============================================================================================
+
 		/// Registers the given layout on this element and returns a reference object. After calling the 
 		/// function, the layout is owned by this element.
 		template<typename LayoutType>
@@ -153,8 +205,14 @@ namespace SnackerEngine
 		/// must be one created by calling registerLayout on this guiElement!
 		template<typename LayoutType>
 		void addChild(const typename LayoutType::LayoutReference& layoutReference, const GuiID& childID, const typename LayoutType::LayoutOptions& options);
+		/// Adds a child to the standard layout
+		void addChild(const GuiID& childID);
 		/// Enforces all layouts of this element, which will may also call enforceLayouts() on children elements
 		void enforceLayouts();
+		/// Enforces a specific layout of this element, which will may also call enforceLayouts() on children elements
+		void enforceLayout(const GuiID& layoutID);
+		/// Returns a reference to the layout with the given layoutID
+		GuiLayout& getLayout(const GuiID& layoutID);
 	public:
 		/// Default constructor
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i());
@@ -166,8 +224,6 @@ namespace SnackerEngine
 		GuiElement(GuiElement&& other) noexcept;
 		/// Move assignment operator
 		GuiElement& operator=(GuiElement&& other) noexcept;
-		/// Returns true if this GuiElement is managed by a guiManager
-		bool isValid();
 		/// Sets the position of this element. Calls OnPositionChange() and enforces the layouts of the parent
 		/// element, this element, and child elements
 		virtual void setPosition(const Vec2i& position);
@@ -189,20 +245,21 @@ namespace SnackerEngine
 	inline LayoutType::LayoutReference GuiElement::registerLayout(LayoutType&& layout)
 	{
 		layouts.push_back(std::make_unique<LayoutType>(std::move(layout)));
-		layouts.back()->elementID = guiID;
-		return LayoutType::LayoutReference(layouts.size() - 1);
+		layouts.back()->parentID = guiID;
+		layouts.back()->guiID = nextLayoutID;
+		layoutIDToIndex[nextLayoutID] = layouts.size() - 1;
+		return LayoutType::LayoutReference(nextLayoutID++);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename LayoutType>
 	inline void GuiElement::addChild(const typename LayoutType::LayoutReference& layoutReference, const GuiID& childID, const typename LayoutType::LayoutOptions& options)
 	{
-#ifdef _DEBUG
-		if (layoutReference.referenceID >= layouts.size()) {
+		auto result = layoutIDToIndex.find(layoutReference.layoutID);
+		if (result == layoutIDToIndex.end()) {
 			warningLogger << LOGGER::BEGIN << "Tried to add guiElement to layout using an invalid layoutReference!" << LOGGER::ENDL;
 			return;
 		}
-#endif // _DEBUG
-		static_cast<LayoutType*>(layouts[layoutReference.referenceID].get())->addElement(childID, options);
+		static_cast<LayoutType*>(layouts[result->second].get())->addChild(childID, options);
 	}
 	//--------------------------------------------------------------------------------------------------
 }
