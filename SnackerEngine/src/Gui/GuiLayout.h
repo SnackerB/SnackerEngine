@@ -55,11 +55,11 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Helper functions for derived classes (getters&setters)
 		//==============================================================================================
-		Vec2f getSize(const GuiID& guiID);
-		Vec2f getPosition(const GuiID& guiID);
-		Vec2f getPreferredSize(const GuiID& guiID);
-		Vec2f getPreferredMinSize(const GuiID& guiID);
-		Vec2f getPreferredMaxSize(const GuiID& guiID);
+		Vec2i getSize(const GuiID& guiID);
+		Vec2i getPosition(const GuiID& guiID);
+		Vec2i getPreferredSize(const GuiID& guiID);
+		Vec2i getPreferredMinSize(const GuiID& guiID);
+		Vec2i getPreferredMaxSize(const GuiID& guiID);
 		void setSize(const GuiID& guiID, const Vec2f& size);
 		void setPosition(const GuiID& guiID, const Vec2f& position);
 		void setPreferredSize(const GuiID& guiID, const Vec2f& preferredSize);

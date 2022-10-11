@@ -51,27 +51,27 @@ namespace SnackerEngine
 	GuiLayout::GuiLayout()
 		: GuiInteractable(GuiInteractableType::GUI_LAYOUT), children{} {}
 
-	Vec2f GuiLayout::getSize(const GuiID& guiID)
+	Vec2i GuiLayout::getSize(const GuiID& guiID)
 	{
 		return guiManager->getElement(guiID).size;
 	}
 
-	Vec2f GuiLayout::getPosition(const GuiID& guiID)
+	Vec2i GuiLayout::getPosition(const GuiID& guiID)
 	{
 		return guiManager->getElement(guiID).position;
 	}
 
-	Vec2f GuiLayout::getPreferredSize(const GuiID& guiID)
+	Vec2i GuiLayout::getPreferredSize(const GuiID& guiID)
 	{
 		return guiManager->getElement(guiID).preferredSize;
 	}
 
-	Vec2f GuiLayout::getPreferredMinSize(const GuiID& guiID)
+	Vec2i GuiLayout::getPreferredMinSize(const GuiID& guiID)
 	{
 		return guiManager->getElement(guiID).preferredMinSize;
 	}
 
-	Vec2f GuiLayout::getPreferredMaxSize(const GuiID& guiID)
+	Vec2i GuiLayout::getPreferredMaxSize(const GuiID& guiID)
 	{
 		return guiManager->getElement(guiID).preferredMaxSize;
 	}
