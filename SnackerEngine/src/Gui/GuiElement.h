@@ -22,6 +22,7 @@ namespace SnackerEngine
 	{
 	private:
 		friend class GuiManager;
+		friend class GuiElement;
 		using GuiID = unsigned int;
 	protected:
 		/// Pointer to the parent guiManager
@@ -248,6 +249,10 @@ namespace SnackerEngine
 		layouts.back()->parentID = guiID;
 		layouts.back()->guiID = nextLayoutID;
 		layoutIDToIndex[nextLayoutID] = layouts.size() - 1;
+		if (guiManager) {
+			layouts.back()->guiManager = guiManager;
+			layouts.back()->onRegister();
+		}
 		return LayoutType::LayoutReference(nextLayoutID++);
 	}
 	//--------------------------------------------------------------------------------------------------

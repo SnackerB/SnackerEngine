@@ -158,6 +158,7 @@ namespace SnackerEngine
 	{
 		for (auto& layout : guiElement.layouts) {
 			layout->guiManager = this;
+			layout->parentID = guiElement.guiID;
 			layout->handleLayoutOnParentRegister(guiElement.guiID);
 		}
 	}
@@ -168,7 +169,7 @@ namespace SnackerEngine
 			return *guiElementPtrArray[identifier.first];
 		}
 		else {
-			guiElementPtrArray[lastMouseHoverElement.second]->getLayout(lastMouseHoverElement.first);
+			guiElementPtrArray[identifier.second]->getLayout(identifier.first);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

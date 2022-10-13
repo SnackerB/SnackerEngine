@@ -14,6 +14,7 @@
 #include "Gui/GuiStyle.h"
 #include "Gui/Text/Unicode.h"
 #include "Graphics/Renderer.h"
+#include "Gui/Layouts/HorizontalLayout.h"
 
 SnackerEngine::GuiVariableHandleInt intHandle(2);
 SnackerEngine::GuiVariableHandleFloat floatHandle(2.5f);
@@ -76,6 +77,7 @@ public:
 		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
 		*/
 		SnackerEngine::GuiWindow parentWindow(style);
+		parentWindow.setSize({ 100, 100 });
 		auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(20.0, 20.0));
 
 		SnackerEngine::GuiTextVariable<int> intVariable(SnackerEngine::encodeUTF8(u8"test int: "), intHandle, style);
@@ -91,6 +93,20 @@ public:
 		guiManager.registerElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(decreaseButton), listLayoutRef, {});
 
 		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow));
+
+		SnackerEngine::GuiWindow parentWindow2(style);
+		parentWindow2.setPosition({ 500, 500 });
+		parentWindow2.setSize({ 700, 300 });
+		auto horizontalLayoutRef = guiManager.registerLayout(parentWindow2, SnackerEngine::HorizontalLayout(true));
+
+		SnackerEngine::GuiPanel childPanel1({ 0, 0 }, { 0, 0 }, { 1.0f, 0.0f, 0.0f });
+		guiManager.registerElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel1), horizontalLayoutRef, { 1.0f });
+		SnackerEngine::GuiPanel childPanel2({ 0, 0 }, { 0, 0 }, { 0.0f, 1.0f, 0.0f });
+		guiManager.registerElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel2), horizontalLayoutRef, { 2.0f });
+		SnackerEngine::GuiPanel childPanel3({ 0, 0 }, { 0, 0 }, { 0.0f, 0.0f, 1.0f });
+		guiManager.registerElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel3), horizontalLayoutRef, { 0.5f });
+
+		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
 
 		//SnackerEngine::GuiWindow parentWindow({ 500, 500 }, { 500, 300 }, { 1.0f, 0.5f, 0.5f });
 		//auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(20.0, 20.0));

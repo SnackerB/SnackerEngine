@@ -11,6 +11,7 @@ namespace SnackerEngine
 			guiManager->getElement(childID).parentID = parentID;
 			guiManager->getElement(childID).parentLayoutID = guiID;
 		}
+		onRegister();
 		enforceLayout();
 	}
 
@@ -74,6 +75,11 @@ namespace SnackerEngine
 	Vec2i GuiLayout::getPreferredMaxSize(const GuiID& guiID)
 	{
 		return guiManager->getElement(guiID).preferredMaxSize;
+	}
+
+	Vec2f GuiLayout::getMouseOffset(const GuiID& guiID)
+	{
+		return guiManager->getMouseOffset(guiID);
 	}
 
 	void GuiLayout::setSize(const GuiID& guiID, const Vec2f& size)
