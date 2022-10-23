@@ -97,7 +97,7 @@ namespace SnackerEngine
 		eventSetUpdate.erase(temp);
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::pair<GuiManager::GuiID, GuiManager::GuiID> GuiManager::getCollidingElement(const Vec2i& position)
+	std::pair<GuiManager::GuiID, GuiManager::GuiID> GuiManager::getCollidingInteractable(const Vec2i& position)
 	{
 		// TODO: There could be a more efficient implementation for some special layouts/guiElements.
 		// Maybe we can do this with recursive function calls?
@@ -108,22 +108,22 @@ namespace SnackerEngine
 				Vec2i currentPosition = position - guiElementPtrArray[currentGuiID]->position;
 				while (true) {
 					bool foundCollidingChild = false;
+					// Go through all layouts
 					for (auto it2 = guiElementPtrArray[currentGuiID]->layouts.rbegin();
 						it2 != guiElementPtrArray[currentGuiID]->layouts.rend(); it2++) {
 						// First check if the layout is colliding
 						result = (*it2)->isColliding(currentPosition);
 						if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
 							// Check if any of the children are colliding
-							for (auto it3 = (*it2)->children.rbegin(); it3 != (*it2)->children.rend(); it3++) {
-								result = guiElementPtrArray[*it3]->isColliding(currentPosition);
+							auto childResult = (*it2)->getFirstCollidingChild(currentPosition);
+							if (childResult) {
 								if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
 									foundCollidingChild = true;
-									currentGuiID = *it3;
+									currentGuiID = childResult.value().first;
 									currentPosition -= guiElementPtrArray[currentGuiID]->position;
-									break;
 								}
 								else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-									return { *it3, 0 };
+									return { childResult.value().first, 0 };
 								}
 							}
 						}
@@ -169,7 +169,7 @@ namespace SnackerEngine
 			return *guiElementPtrArray[identifier.first];
 		}
 		else {
-			guiElementPtrArray[identifier.second]->getLayout(identifier.first);
+			return guiElementPtrArray[identifier.second]->getLayout(identifier.first);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -211,6 +211,22 @@ namespace SnackerEngine
 	GuiElement& GuiManager::getElement(const GuiID& guiID)
 	{
 		return *guiElementPtrArray[guiID];
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::pair<GuiManager::GuiID, GuiManager::GuiID> GuiManager::getParentInteractable(std::pair<GuiID, GuiID> interactable)
+	{
+		if (interactable.first == 0) {
+			return { 0, 0 };
+		}
+		if (interactable.second == 0) {
+			// interactable is of type GuiElement
+			const GuiElement& element = static_cast<GuiElement&>(getGuiInteractable(interactable));
+			return { element.parentLayoutID, element.parentID };
+		}
+		else {
+			// interactable is of type GuiLayout
+			return { getGuiInteractable(interactable).parentID, 0 };
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::signUpEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType)
@@ -375,7 +391,7 @@ namespace SnackerEngine
 	void GuiManager::callbackMouseMotion(const Vec2d& position)
 	{
 		currentMousePosition = position;
-		auto newMouseHoverElement = getCollidingElement(position);
+		auto newMouseHoverElement = getCollidingInteractable(position);
 		if (newMouseHoverElement != lastMouseHoverElement) {
 			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
 				getGuiInteractable(newMouseHoverElement).callbackMouseEnter(position);
@@ -395,8 +411,27 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackMouseScroll(const Vec2d& offset)
 	{
-		if (eventSetMouseScrollOnElement.find(lastMouseHoverElement) != eventSetMouseScrollOnElement.end()) {
-			getGuiInteractable(lastMouseHoverElement).callbackMouseScrollOnElement(offset);
+		std::pair<GuiID, GuiID> currentInteractable = lastMouseHoverElement;
+		/// If lastMouseHoverElement is of type GuiElement, first check the layouts if they need mouseScroll callback TODO: Smarter solution?
+		if (lastMouseHoverElement.first == 0) {
+			return;
+		}
+		if (lastMouseHoverElement.second == 0) {
+			Vec2i mouseOffset = getMouseOffset(lastMouseHoverElement.first);
+			for (auto& layout : static_cast<GuiElement&>(getGuiInteractable(lastMouseHoverElement)).layouts) {
+				if (layout->isColliding(mouseOffset) != GuiInteractable::IsCollidingResult::NOT_COLLIDING &&
+					eventSetMouseScrollOnElement.find({ layout->guiID, layout->parentID }) != eventSetMouseScrollOnElement.end()) {
+					layout->callbackMouseScrollOnElement(offset);
+					return;
+				}
+			}
+		}
+		while (currentInteractable.first != 0) {
+			if (eventSetMouseScrollOnElement.find(currentInteractable) != eventSetMouseScrollOnElement.end()) {
+				getGuiInteractable(currentInteractable).callbackMouseScrollOnElement(offset);
+				return;
+			}
+			currentInteractable = getParentInteractable(currentInteractable);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

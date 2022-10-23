@@ -78,7 +78,7 @@ public:
 		*/
 		SnackerEngine::GuiWindow parentWindow(style);
 		parentWindow.setSize({ 100, 100 });
-		auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(20.0, 20.0));
+		auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(style));
 
 		SnackerEngine::GuiTextVariable<int> intVariable(SnackerEngine::encodeUTF8(u8"test int: "), intHandle, style);
 		guiManager.registerElement<SnackerEngine::GuiTextVariable<int>, SnackerEngine::ListLayout>(parentWindow, std::move(intVariable), listLayoutRef, {});
@@ -92,6 +92,18 @@ public:
 		SnackerEngine::GuiButton decreaseButton(decreaseIntHandle, "decrease variables", style);
 		guiManager.registerElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(decreaseButton), listLayoutRef, {});
 
+
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 1", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 2", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 3", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 4", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 5", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox(":)", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 6", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 7", style)), listLayoutRef, {});
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 8", style)), listLayoutRef, {});
+
+		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 1", style)), listLayoutRef, {});
 		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow));
 
 		SnackerEngine::GuiWindow parentWindow2(style);

@@ -4,6 +4,7 @@
 #include "Gui/GuiElement.h"
 
 #include <span>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -49,6 +50,9 @@ namespace SnackerEngine
 		/// Returns true if the given position vector (relative to the top left corner of the parent element)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		/// Returns the first colliding child element, if it exists.
+		/// position:	position vector (relative to the top left corner of the parent element)
+		virtual std::optional<std::pair<GuiID, IsCollidingResult>> getFirstCollidingChild(const Vec2i& position);
 		/// Constructor using the parent guiElement 
 		GuiLayout();
 
@@ -69,6 +73,7 @@ namespace SnackerEngine
 		void notifyPositionChange(const GuiID& guiID);
 		void notifySizeChange(const GuiID& guiID);
 		void enforceLayouts(const GuiID& guiID);
+		void drawElement(const GuiID& guiID, const Vec2i& parentPosition);
 	public:
 		/// Destructor
 		~GuiLayout() noexcept;

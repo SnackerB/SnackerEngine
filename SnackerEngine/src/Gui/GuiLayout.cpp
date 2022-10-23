@@ -49,6 +49,17 @@ namespace SnackerEngine
 		return IsCollidingResult::WEAK_COLLIDING;
 	}
 
+	std::optional<std::pair<GuiLayout::GuiID, GuiLayout::IsCollidingResult>> GuiLayout::getFirstCollidingChild(const Vec2i& position)
+	{
+		for (auto it = children.rbegin(); it != children.rend(); it++) {
+			auto result = guiManager->getGuiInteractable({ *it, 0 }).isColliding(position);
+			if (result != GuiElement::IsCollidingResult::NOT_COLLIDING) {
+				return { { *it, result } };
+			}
+		}
+		return {};
+	}
+
 	GuiLayout::GuiLayout()
 		: GuiInteractable(GuiInteractableType::GUI_LAYOUT), children{} {}
 
@@ -120,6 +131,11 @@ namespace SnackerEngine
 	void GuiLayout::enforceLayouts(const GuiID& guiID)
 	{
 		guiManager->getElement(guiID).enforceLayouts();
+	}
+
+	void GuiLayout::drawElement(const GuiID& guiID, const Vec2i& parentPosition)
+	{
+		guiManager->getElement(guiID).draw(parentPosition);
 	}
 
 	GuiLayout::~GuiLayout() noexcept

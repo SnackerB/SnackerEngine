@@ -46,6 +46,16 @@ namespace SnackerEngine
 		result.guiWindowBackgroundColor = Color3f(0.1f, 0.1f, 0.1f);
 		result.guiWindowResizeButtonColor = Color3f::fromColor256(Color3<unsigned char>(23, 70, 162));
 		result.guiWindowResizeButtonSize = screenDims.y * 0.04;
+		/// ListLayout
+		result.listLayoutVerticalOffset = 20.0f;
+		result.listLayoutLeftBorder = 20.0f;
+		result.listLayoutScrollSpeed = 20.0f;
+		result.listLayoutScrollBarBackgroundColor = Color3f(0.07f);
+		result.listLayoutScrollBarColor = result.guiWindowResizeButtonColor;
+		result.listLayoutScrollBarWidth = 25.0f;
+		result.listLayoutScrollBarOffsetTop = 0.0f;
+		result.listLayoutScrollBarOffsetBottom = result.guiWindowResizeButtonSize;
+		result.listLayoutScrollBarOffsetRight = 20.0f;
 		// Return the result
 		return result;
 	}

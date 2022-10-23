@@ -60,6 +60,7 @@ namespace SnackerEngine
 
 	void HorizontalLayout::onRegister()
 	{
+		GuiLayout::onRegister();
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 	}
 

@@ -87,7 +87,7 @@ namespace SnackerEngine
 		/// GuiIDs. The first GuiID is the guiID of the guiElement or guiLayout. The second guiID is zero
 		/// in case of a guiElement and holds the parentID in case of a layout.
 		/// If no colliding element/layout is found, {0, 0} is returned.
-		std::pair<GuiID, GuiID> getCollidingElement(const Vec2i& position);
+		std::pair<GuiID, GuiID> getCollidingInteractable(const Vec2i& position);
 		/// Computes the current offset of the mouse to the top left corner of the element with the given ID
 		Vec2f getMouseOffset(GuiID guiID);
 		/// Updates the elementID and calls enforceLayout() of all layouts that a guiElement owns. 
@@ -105,6 +105,8 @@ namespace SnackerEngine
 		void updateMoved(GuiElement& guiElement);
 		/// Returns a reference to the guiElement with a given guiID
 		GuiElement& getElement(const GuiID& guiID);
+		/// Looksup the parent GuiInteractable object (layout or element) of the given GuiInteractable
+		std::pair<GuiID, GuiID> getParentInteractable(std::pair<GuiID, GuiID> interactable);
 		//==============================================================================================
 		// Events that can happen to a guiINteractable object
 		//==============================================================================================

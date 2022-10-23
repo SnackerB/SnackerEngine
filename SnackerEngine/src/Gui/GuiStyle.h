@@ -47,6 +47,16 @@ namespace SnackerEngine
 		Color3f guiWindowBackgroundColor{};
 		Color3f guiWindowResizeButtonColor{};
 		double guiWindowResizeButtonSize{};
+		/// ListLayout
+		float listLayoutVerticalOffset{};
+		float listLayoutLeftBorder{};
+		float listLayoutScrollSpeed{};
+		Color3f listLayoutScrollBarBackgroundColor{};
+		Color3f listLayoutScrollBarColor{};
+		float listLayoutScrollBarWidth{};
+		float listLayoutScrollBarOffsetTop{};
+		float listLayoutScrollBarOffsetBottom{};
+		float listLayoutScrollBarOffsetRight{};
 	};
 	//--------------------------------------------------------------------------------------------------
 	GuiStyle getDefaultStyle();

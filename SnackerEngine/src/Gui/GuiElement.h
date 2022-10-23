@@ -23,6 +23,7 @@ namespace SnackerEngine
 	private:
 		friend class GuiManager;
 		friend class GuiElement;
+		friend class GuiLayout;
 		using GuiID = unsigned int;
 	protected:
 		/// Pointer to the parent guiManager
