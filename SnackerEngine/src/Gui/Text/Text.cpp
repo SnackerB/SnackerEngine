@@ -4,6 +4,7 @@
 #include "Gui/Text/Unicode.h"
 
 #include <optional>
+#include <sstream>
 
 namespace SnackerEngine
 {
@@ -134,6 +135,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void ParseData::goToNextLine(const unsigned int& firstCharacterOnNewlineIndex)
 	{
+		// We dont want newline if we're just on a single line!
+		if (textWidth == 0.0) return;
 		// Change current baseline
 		currentBaseline.x = 0;
 		currentBaseline.y -= font.getLineHeight();
@@ -838,7 +841,7 @@ namespace SnackerEngine
 		return textWidth;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const std::string& DynamicText::getText() const
+	const std::string& DynamicText::getText()
 	{
 		return text;
 	}
@@ -866,6 +869,57 @@ namespace SnackerEngine
 	const double& DynamicText::getBottom()
 	{
 		return (lines.back().baselineY + font.getDescender()) * fontSize;
+	}
+	//--------------------------------------------------------------------------------------------------
+	const double& DynamicText::getLeft()
+	{
+		switch (alignment)
+		{
+		case SnackerEngine::StaticText::Alignment::LEFT:
+		{
+			return 0.0;
+		}
+		case SnackerEngine::StaticText::Alignment::CENTER:
+		case SnackerEngine::StaticText::Alignment::RIGHT:
+		{
+			double currentLeft = textWidth;
+			for (const auto& line : lines) {
+				if (characters[line.beginIndex].left * fontSize < currentLeft) {
+					currentLeft = characters[line.beginIndex].left * fontSize;
+				}
+			}
+			return currentLeft;
+		}
+		default:
+			break;
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	const double& DynamicText::getRight()
+	{
+		switch (alignment)
+		{
+		case SnackerEngine::StaticText::Alignment::RIGHT:
+		{
+			return 0.0;
+		}
+		case SnackerEngine::StaticText::Alignment::CENTER:
+		case SnackerEngine::StaticText::Alignment::LEFT:
+		{
+			double currentRight = 0.0;
+			for (const auto& line : lines) {
+				if (characters[line.endIndex].right * fontSize > currentRight) {
+					currentRight = characters[line.endIndex].right * fontSize;
+					if (isWhiteSpace(characters[line.endIndex].codepoint) && !isNewline(characters[line.endIndex].codepoint)) {
+						currentRight += font.getGlyph(characters[line.endIndex].codepoint).advance * fontSize;
+					}
+				}
+			}
+			return currentRight;
+		}
+		default:
+			break;
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::setText(const std::string& text, bool recompute)
@@ -1010,6 +1064,16 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void EditableText::constructTextFromCharacters()
+	{
+		std::stringstream ss;
+		for (const auto& character : characters) {
+			appendUnicodeCharacter(ss, character.codepoint);
+		}
+		text = std::move(ss.str());
+		textIsUpToDate = true;
+	}
+	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText()
 		: DynamicText(), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), cursorPos{}, cursorSize{} 
 	{
@@ -1019,7 +1083,6 @@ namespace SnackerEngine
 	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const double& cursorWidth, const ParseMode& parseMode, const Alignment& alignment)
 		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), cursorPos{}, cursorSize(cursorWidth, font.getAscender() - font.getDescender())
 	{
-		// TODO: Define additional constructor such that DynamicText::constructModel() is not called on construction of EditableText object!
 		constructModel();
 		setCursorPos(0);
 	}
@@ -1045,7 +1108,10 @@ namespace SnackerEngine
 	{
 		this->text = text;
 		textIsUpToDate = true;
-		if (recompute) constructModel();
+		constructModel();
+		if (cursorPosIndex > characters.size()) {
+			setCursorPos(characters.size());
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::setCursorPos(unsigned int characterIndex)
@@ -1117,13 +1183,14 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	const Vec2f& EditableText::getCursorPos() const
 	{
-		return cursorPos;
+		return cursorPos * fontSize;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::inputAtCursor(const Unicode& codepoint)
 	{
 		characters.insert(characters.begin() + cursorPosIndex, { codepoint, 0.0, 0.0 });
 		constructModelFrom(getLineNumber(cursorPosIndex));
+		textIsUpToDate = false;
 		setCursorPos(cursorPosIndex + 1);
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -1139,6 +1206,7 @@ namespace SnackerEngine
 		if (endIndex > characters.size()) endIndex = characters.size() - 1;
 		characters.erase(characters.begin() + beginIndex, characters.begin() + endIndex + 1);
 		constructModelFrom(getLineNumber(beginIndex));
+		textIsUpToDate = false;
 		if (cursorPosIndex > beginIndex) {
 			if (cursorPosIndex < endIndex) {
 				setCursorPos(beginIndex);
@@ -1171,7 +1239,53 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	const Vec2f& EditableText::getCursorSize() const
 	{
-		return cursorSize;
+		return cursorSize * fontSize;
+	}
+	//--------------------------------------------------------------------------------------------------
+	const std::string& EditableText::getText()
+	{
+		if (textIsUpToDate) {
+			return text;
+		}
+		else {
+			// Create text from characters vector
+			constructTextFromCharacters();
+			return text;
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setTextWidth(const double& textWidth, bool recompute)
+	{
+		this->textWidth = textWidth;
+		if (recompute) constructModelFrom(0);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setFontSize(const double& fontSize, bool recompute)
+	{
+		this->fontSize = fontSize;
+		if (recompute) constructModelFrom(0);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setFont(const Font& font, bool recompute)
+	{
+		this->font = font;
+		if (recompute) constructModelFrom(0);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setParseMode(const StaticText::ParseMode& parseMode, bool recompute)
+	{
+		if (this->parseMode != parseMode) {
+			this->parseMode = parseMode;
+			if (recompute) constructModelFrom(0);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setAlignment(const StaticText::Alignment& alignment, bool recompute)
+	{
+		if (this->alignment != alignment) {
+			this->alignment = alignment;
+			if (recompute) constructModelFrom(0);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 }

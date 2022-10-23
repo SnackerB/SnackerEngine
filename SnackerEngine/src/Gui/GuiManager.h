@@ -120,7 +120,7 @@ namespace SnackerEngine
 		/// Registers the given element as parent element and moves it to the GuiManager, which from this point on stores 
 		/// the object. If this function is called with an already registered element, it is still moved to the guiManager!
 		template<typename GuiElementType>
-		void registerElement(GuiElementType&& guiElement);
+		void registerAndMoveElement(GuiElementType&& guiElement);
 		/// Registers the given element as child element of a parent element. child element remains at its position.
 		/// The parent element has to be already registered!
 		void registerElement(GuiElement& parentElement, GuiElement& childElement);
@@ -132,12 +132,12 @@ namespace SnackerEngine
 		/// Registers the given element as child element of a parent element. child element is moved to guiManager.
 		/// The parent element has to be already registered! childElement has to not be registered yet!
 		template<typename GuiElementType>
-		void registerElement(GuiElement& parentElement, GuiElementType&& childElement);
+		void registerAndMoveElement(GuiElement& parentElement, GuiElementType&& childElement);
 		/// Registers the given element as child element of a parent element, using the specified layout with the given options.
 		/// Child element is moved to guiManager.
 		/// The parent element has to be already registered! childElement has to not be registered yet!
 		template<typename GuiElementType, typename LayoutType>
-		void registerElement(GuiElement& parentElement, GuiElementType&& childElement, const typename LayoutType::LayoutReference& layoutReference, const typename LayoutType::LayoutOptions& layoutOptions);
+		void registerAndMoveElement(GuiElement& parentElement, GuiElementType&& childElement, const typename LayoutType::LayoutReference& layoutReference, const typename LayoutType::LayoutOptions& layoutOptions);
 		/// Adds a given Layout to the given guiElement and returns a LayoutReference object that can be used to add
 		/// child elements to the layout
 		template<typename LayoutType>
@@ -184,7 +184,7 @@ namespace SnackerEngine
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename GuiElementType>
-	inline void GuiManager::registerElement(GuiElementType&& guiElement)
+	inline void GuiManager::registerAndMoveElement(GuiElementType&& guiElement)
 	{
 		GuiID originalGuiID = guiElement.guiID;
 		GuiID guiID = originalGuiID;
@@ -213,11 +213,11 @@ namespace SnackerEngine
 	inline void GuiManager::registerElement(GuiElement& parentElement, GuiElement& childElement, const typename LayoutType::LayoutReference& layoutReference, const typename LayoutType::LayoutOptions& layoutOptions)
 	{
 		registerElement(parentElement, childElement);
-		parentElement.addChild(layoutReference, childElement.guiID, layoutOptions);
+		parentElement.addChild<LayoutType>(layoutReference, childElement.guiID, layoutOptions);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename GuiElementType>
-	inline void GuiManager::registerElement(GuiElement& parentElement, GuiElementType&& childElement)
+	inline void GuiManager::registerAndMoveElement(GuiElement& parentElement, GuiElementType&& childElement)
 	{
 		if (childElement.guiID != 0) {
 			warningLogger << LOGGER::BEGIN << "Tried to register already registered guiElement!" << LOGGER::ENDL;
@@ -242,7 +242,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename GuiElementType, typename LayoutType>
-	inline void GuiManager::registerElement(GuiElement& parentElement, GuiElementType&& childElement, const typename LayoutType::LayoutReference& layoutReference, const typename LayoutType::LayoutOptions& layoutOptions)
+	inline void GuiManager::registerAndMoveElement(GuiElement& parentElement, GuiElementType&& childElement, const typename LayoutType::LayoutReference& layoutReference, const typename LayoutType::LayoutOptions& layoutOptions)
 	{
 		if (childElement.guiID != 0) {
 			warningLogger << LOGGER::BEGIN << "Tried to register already registered guiElement!" << LOGGER::ENDL;

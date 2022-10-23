@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <sstream>
 
 namespace SnackerEngine
 {
@@ -74,5 +75,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	/// Creates a UTF8 encoded string from a std::u8stirng
 	std::string encodeUTF8(std::u8string input);
+	//--------------------------------------------------------------------------------------------------
+	/// Converts a unicode character to UTF8 and appends the characters to the stringstream object
+	void appendUnicodeCharacter(std::stringstream& ss, const Unicode& codepoint);
 	//--------------------------------------------------------------------------------------------------
 }

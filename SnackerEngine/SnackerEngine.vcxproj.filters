@@ -210,6 +210,9 @@
     <ClInclude Include="src\Gui\GuiStyle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiInputVariable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -372,6 +375,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\Text\Unicode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiElements\GuiInputVariable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -116,7 +116,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const GuiDynamicTextBox::TextBoxMode& textBoxMode)
-		: GuiTextVariable(position, size, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, textBoxMode)
+		: GuiTextVariable<T>(position, size, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, textBoxMode)
 	{
 		setVariableHandle(handle);
 	}
@@ -141,6 +141,7 @@ namespace SnackerEngine
 	inline const T& GuiTextVariable<T>::getVariable() const
 	{
 		if (variableHandle) return variableHandle->get();
+		return T{};
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -165,7 +166,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiTextVariable<T>& GuiTextVariable<T>::operator=(GuiTextVariable<T>&& other) noexcept
 	{
-		GuiDynamicTextBox::operator=(other);
+		GuiDynamicTextBox::operator=(std::move(other));
 		variableHandle = other.variableHandle;
 		label = other.label;
 		other.variableHandle = nullptr;
@@ -179,7 +180,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(GuiTextVariable<T>&& other) noexcept
-		: GuiDynamicTextBox(other), variableHandle(other.variableHandle), label(other.label)
+		: GuiDynamicTextBox(std::move(other)), variableHandle(other.variableHandle), label(other.label)
 	{
 		other.variableHandle = nullptr;
 		notifyHandleOnGuiElementMove(*variableHandle);

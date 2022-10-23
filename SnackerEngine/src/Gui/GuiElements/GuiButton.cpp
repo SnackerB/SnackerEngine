@@ -116,7 +116,7 @@ namespace SnackerEngine
 	}
 
 	GuiButton::GuiButton(GuiButton&& other) noexcept
-		: GuiDynamicTextBox(other), eventHandle(other.eventHandle), backgroundColor(other.backgroundColor),
+		: GuiDynamicTextBox(std::move(other)), eventHandle(other.eventHandle), backgroundColor(other.backgroundColor),
 		hoverColor(other.hoverColor), pressedColor(other.pressedColor), pressedHoverColor(other.pressedHoverColor),
 		isBeingPressed(other.isBeingPressed), isBeingHovered(other.isBeingHovered)
 	{
@@ -126,7 +126,7 @@ namespace SnackerEngine
 
 	GuiButton& GuiButton::operator=(GuiButton&& other) noexcept
 	{
-		GuiDynamicTextBox::operator=(other);
+		GuiDynamicTextBox::operator=(std::move(other));
 		eventHandle = other.eventHandle;
 		backgroundColor = other.backgroundColor;
 		hoverColor = other.hoverColor;

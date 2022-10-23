@@ -63,6 +63,8 @@ namespace SnackerEngine
 		Vec2f getMouseOffset(const GuiID& guiID);
 		void setSize(const GuiID& guiID, const Vec2f& size);
 		void setPosition(const GuiID& guiID, const Vec2f& position);
+		void setWidth(const GuiID& guiID, const int width);
+		void setHeight(const GuiID& guiID, const int height);
 		void setPreferredSize(const GuiID& guiID, const Vec2f& preferredSize);
 		void setPreferredMinSize(const GuiID& guiID, const Vec2f& preferredMinSize);
 		void setPreferredMaxSize(const GuiID& guiID, const Vec2f& preferredMaxSize);
