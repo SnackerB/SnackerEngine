@@ -23,6 +23,18 @@ namespace SnackerEngine
 	public:
 		using LayoutReference = ListLayoutReference;
 		using LayoutOptions = ListLayoutOptions;
+		/// enum class that holds different modes that the layout can have regarding
+		/// how and when it resizes children
+		enum class ListLayoutResizeMode
+		{
+			DONT_RESIZE,					/// Does not resize children
+			RESIZE_WIDTH_IF_POSSIBLE,		/// Resizes width of children to fit in 
+											/// the window If there preferred min 
+											/// and max size allows
+			RESIZE_WIDTH,					/// Resizes width of children to fit in 
+											/// the window regardless of there 
+											/// preferred sizes
+		};
 	private:
 		friend class GuiManager;
 		friend class GuiElement;
@@ -65,6 +77,8 @@ namespace SnackerEngine
 		unsigned lastVisibleElement;
 		/// Vector of stored layoutOptions
 		std::vector<LayoutOptions> layoutOptions;
+		/// Resize mode
+		ListLayoutResizeMode resizeMode;
 		/// Adds a new element to the layout
 		void addChild(const GuiID& guiID, const LayoutOptions& options);
 		/// Removes the given child guiElement from this layout

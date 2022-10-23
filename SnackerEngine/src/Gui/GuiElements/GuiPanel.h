@@ -33,6 +33,14 @@ namespace SnackerEngine
 		/// Setter and Getter for the background color
 		void setBackgroundColor(const Color3f& backgroundColor);
 		Color3f getBackgroundColor() const;
+		/// Copy constructor
+		GuiPanel(const GuiPanel& other) noexcept;
+		/// Copy assignment operator
+		GuiPanel& operator=(const GuiPanel& other) noexcept;
+		/// Move constructor
+		GuiPanel(GuiPanel&& other) noexcept;
+		/// Move assignment operator
+		GuiPanel& operator=(GuiPanel&& other) noexcept;
 	};
 	//--------------------------------------------------------------------------------------------------
 }

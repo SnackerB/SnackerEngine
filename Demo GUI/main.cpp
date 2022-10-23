@@ -15,11 +15,13 @@
 #include "Gui/Text/Unicode.h"
 #include "Graphics/Renderer.h"
 #include "Gui/Layouts/HorizontalLayout.h"
+#include "Gui/GuiElements/GuiInputVariable.h"
 
 SnackerEngine::GuiVariableHandleInt intHandle(2);
 SnackerEngine::GuiVariableHandleFloat floatHandle(2.5f);
 SnackerEngine::GuiVariableHandleDouble doubleHandle(10.3333);
 SnackerEngine::GuiVariableHandle<SnackerEngine::Vec2f> vec2fHandle(SnackerEngine::Vec2f(1.0f, 2.0f));
+SnackerEngine::GuiVariableHandle<unsigned int> unsignedIntHandle(42);
 
 class IncreaseVariableEventHandle : public SnackerEngine::GuiEventHandle
 {
@@ -40,12 +42,14 @@ class TextureDemo : public SnackerEngine::Scene
 	SnackerEngine::GuiManager guiManager;
 	SnackerEngine::GuiEventHandle increaseIntHandle;
 	SnackerEngine::GuiEventHandle decreaseIntHandle;
+	SnackerEngine::GuiEventHandle logTextFromTextBox;
+	SnackerEngine::GuiEditTextBox textBox;
 	unsigned int counter;
 
 public:
 
 	TextureDemo()
-		: guiManager(3), increaseIntHandle{}, decreaseIntHandle{}, counter(0)
+		: guiManager(3), increaseIntHandle{}, decreaseIntHandle{}, counter(0), textBox{}
 	{
 		SnackerEngine::Renderer::setClearColor(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned char>(253, 152, 51)));
 
@@ -81,16 +85,21 @@ public:
 		auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(style));
 
 		SnackerEngine::GuiTextVariable<int> intVariable(SnackerEngine::encodeUTF8(u8"test int: "), intHandle, style);
-		guiManager.registerElement<SnackerEngine::GuiTextVariable<int>, SnackerEngine::ListLayout>(parentWindow, std::move(intVariable), listLayoutRef, {});
+		guiManager.registerAndMoveElement<SnackerEngine::GuiTextVariable<int>, SnackerEngine::ListLayout>(parentWindow, std::move(intVariable), listLayoutRef, {});
 		SnackerEngine::GuiTextVariable<float> floatVariable(SnackerEngine::encodeUTF8(u8"test float: "), floatHandle, style);
-		guiManager.registerElement<SnackerEngine::GuiTextVariable<float>, SnackerEngine::ListLayout>(parentWindow, std::move(floatVariable), listLayoutRef, {});
+		guiManager.registerAndMoveElement<SnackerEngine::GuiTextVariable<float>, SnackerEngine::ListLayout>(parentWindow, std::move(floatVariable), listLayoutRef, {});
 		SnackerEngine::GuiTextVariable<double> doubleVariable(SnackerEngine::encodeUTF8(u8"test double: "), doubleHandle, style);
-		guiManager.registerElement<SnackerEngine::GuiTextVariable<double>, SnackerEngine::ListLayout>(parentWindow, std::move(doubleVariable), listLayoutRef, {});
+		guiManager.registerAndMoveElement<SnackerEngine::GuiTextVariable<double>, SnackerEngine::ListLayout>(parentWindow, std::move(doubleVariable), listLayoutRef, {});
 
 		SnackerEngine::GuiButton increaseButton(increaseIntHandle, "increase variables (WARNING: this will increase all variables!)", style);
-		guiManager.registerElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(increaseButton), listLayoutRef, {});
+		guiManager.registerAndMoveElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(increaseButton), listLayoutRef, {});
 		SnackerEngine::GuiButton decreaseButton(decreaseIntHandle, "decrease variables", style);
-		guiManager.registerElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(decreaseButton), listLayoutRef, {});
+		guiManager.registerAndMoveElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(decreaseButton), listLayoutRef, {});
+		SnackerEngine::GuiButton textButton(logTextFromTextBox, "log text from EditTextBox", style);
+		guiManager.registerAndMoveElement<SnackerEngine::GuiButton, SnackerEngine::ListLayout>(parentWindow, std::move(textButton), listLayoutRef, {});
+
+		SnackerEngine::GuiInputUnsignedInt inputUnsignedInt("input unsigned int: ", unsignedIntHandle, style);
+		guiManager.registerAndMoveElement<SnackerEngine::GuiInputUnsignedInt, SnackerEngine::ListLayout>(parentWindow, std::move(inputUnsignedInt), listLayoutRef, {});
 
 
 		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 1", style)), listLayoutRef, {});
@@ -106,19 +115,21 @@ public:
 		guiManager.registerElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 1", style)), listLayoutRef, {});
 		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow));
 
+		/*
 		SnackerEngine::GuiWindow parentWindow2(style);
 		parentWindow2.setPosition({ 500, 500 });
 		parentWindow2.setSize({ 700, 300 });
 		auto horizontalLayoutRef = guiManager.registerLayout(parentWindow2, SnackerEngine::HorizontalLayout(true));
 
 		SnackerEngine::GuiPanel childPanel1({ 0, 0 }, { 0, 0 }, { 1.0f, 0.0f, 0.0f });
-		guiManager.registerElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel1), horizontalLayoutRef, { 1.0f });
-		SnackerEngine::GuiPanel childPanel2({ 0, 0 }, { 0, 0 }, { 0.0f, 1.0f, 0.0f });
-		guiManager.registerElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel2), horizontalLayoutRef, { 2.0f });
-		SnackerEngine::GuiPanel childPanel3({ 0, 0 }, { 0, 0 }, { 0.0f, 0.0f, 1.0f });
-		guiManager.registerElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel3), horizontalLayoutRef, { 0.5f });
+		guiManager.registerAndMoveElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel1), horizontalLayoutRef, { 1.0f });
+		textBox = SnackerEngine::GuiEditTextBox("Hello Textbox!", style);
+		guiManager.registerElement<SnackerEngine::HorizontalLayout>(parentWindow2, textBox, horizontalLayoutRef, { 2.0f });
+		SnackerEngine::GuiPanel childPanel2({ 0, 0 }, { 0, 0 }, { 0.0f, 0.0f, 1.0f });
+		guiManager.registerAndMoveElement<SnackerEngine::GuiPanel, SnackerEngine::HorizontalLayout>(parentWindow2, std::move(childPanel2), horizontalLayoutRef, { 0.5f });
 
-		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
+		guiManager.registerAndMoveElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
+		*/
 
 		//SnackerEngine::GuiWindow parentWindow({ 500, 500 }, { 500, 300 }, { 1.0f, 0.5f, 0.5f });
 		//auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(20.0, 20.0));
@@ -183,6 +194,12 @@ public:
 			floatHandle = floatHandle / 2.0f;
 			doubleHandle = sqrt(doubleHandle);
 			decreaseIntHandle.reset();
+		}
+		if (logTextFromTextBox.isActive())
+		{
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "text from textBox: \""
+				<< textBox.getText() << SnackerEngine::LOGGER::ENDL;
+			logTextFromTextBox.reset();
 		}
 		guiManager.update(dt);
 	}

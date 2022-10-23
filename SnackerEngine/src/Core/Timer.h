@@ -17,6 +17,8 @@ namespace SnackerEngine
 		/// Constructor implicitly computing the timeStep = 1.0 / framesPerSecond
 		/// framesPerSeconds == 0 means the update function should be called as often as possible
 		explicit Timer(const unsigned int& framesPerSecond = 0);
+		/// Resets the timer to zero
+		void reset();
 		/// Getters and setters
 		double getTimeStep() const;
 		double getFramesPerSecond() const;

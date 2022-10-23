@@ -18,12 +18,12 @@ namespace SnackerEngine
 		result.fontSizeBig = static_cast<unsigned int>(1.5 * static_cast<float>(result.fontSizeNormal));
 		result.fontSizeHuge = 2 * result.fontSizeNormal;
 		/// GuiTextBox
-		result.guiTextBoxSize = screenDims * 0.1;
+		result.guiTextBoxSize = Vec2i(static_cast<int>(static_cast<double>(screenDims.x) * 0.2), static_cast<int>(static_cast<double>(screenDims.y) * 0.2));
 		result.guiTextBoxTextColor = Color4f(1.0f);
 		result.guiTextBoxBackgroundColor = Color4f(0.0f, 0.0f);
 		result.guiTextBoxParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiTextBoxAlignment = StaticText::Alignment::LEFT;
-		result.guiTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextBoxMode = GuiDynamicTextBox::TextBoxMode::FORCE_SIZE;
 		/// GuiTextVariable
 		result.guiTextVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiTextVariableTextColor = result.guiTextBoxTextColor;
@@ -31,6 +31,10 @@ namespace SnackerEngine
 		result.guiTextVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
 		result.guiTextVariableAlignment = StaticText::Alignment::LEFT;
 		result.guiTextVariableTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		/// GuiEditTextBox
+		result.guiEditTextBoxCursorWidth = 0.1; // TODO
+		result.guiEditTextBoxBlinkTime = 0.5;
+		result.guiEditTextBoxBackgroundColor = Color4f(0.0f, 1.0f);
 		/// GuiButton
 		result.guiButtonSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiButtonTextColor = Color4f(1.0f);
@@ -43,7 +47,7 @@ namespace SnackerEngine
 		result.guiButtonTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
 		/// GuiWindow
 		result.guiWindowSize = Vec2i(800, 1400);
-		result.guiWindowBackgroundColor = Color3f(0.1f, 0.1f, 0.1f);
+		result.guiWindowBackgroundColor = Color3f(0.2f, 0.2f, 0.2f);
 		result.guiWindowResizeButtonColor = Color3f::fromColor256(Color3<unsigned char>(23, 70, 162));
 		result.guiWindowResizeButtonSize = screenDims.y * 0.04;
 		/// ListLayout

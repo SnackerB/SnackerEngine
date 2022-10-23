@@ -137,7 +137,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiWindow& GuiWindow::operator=(GuiWindow&& other) noexcept
 	{
-		GuiPanel::operator=(other);
+		GuiPanel::operator=(std::move(other));
 		resizeButtonSize = other.resizeButtonSize;
 		resizeButtonColor = other.resizeButtonColor;
 		resizeButtonModelMatrix = other.resizeButtonModelMatrix;

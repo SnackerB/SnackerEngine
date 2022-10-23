@@ -41,12 +41,10 @@ namespace SnackerEngine
 		};
 		GuiInteractableType type;
 		/// tells this guiInteractable object that the guiManager was deleted
-		virtual void signOff();
+		void signOff();
 		/// Draws this guiInteractable object relative to its parent element
 		/// parentPosition:		position of the upper left corner of the parent element
 		virtual void draw(const Vec2i& parentPosition) {};
-		/// Update function
-		virtual void update(const float dt) {};
 		/// This function is called by the guiManager after registering this guiInteractable object.
 		/// When this function is called, the guiManager pointer is set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -142,7 +140,7 @@ namespace SnackerEngine
 		/// Dimensions of the bounding rectangle in pixels. The origin is at the upper left corner
 		Vec2i size;
 		/// Preferred sizes are just hints to the layout and not a guarantee.
-		/// A preferred size of zero means that the element does not has size preferences at all.
+		/// A preferred size of zero means that the element does not have size preferences at all.
 		Vec2i preferredSize;
 		Vec2i preferredMinSize;
 		Vec2i preferredMaxSize;
@@ -151,7 +149,10 @@ namespace SnackerEngine
 		/// Map that can be used to get an index into the layout vector
 		std::unordered_map<GuiID, std::size_t> layoutIDToIndex;
 		/// tells this guiElement that the guiManager was deleted
-		void signOff() override;
+		void signOffElement();
+		/// Draws this guiInteractable object relative to its parent element
+		/// parentPosition:		position of the upper left corner of the parent element
+		virtual void draw(const Vec2i& parentPosition) override;
 		/// Calls the draw function on all layouts.
 		/// parentPosition:		position of the upper left corner of the parent element
 		void drawChildren(const Vec2i& parentPosition);
@@ -232,6 +233,9 @@ namespace SnackerEngine
 		/// Sets the size of this element. Calls OnPositionChange() and enforces the layouts of the parent
 		/// element, this element, and child elements
 		virtual void setSize(const Vec2i& size);
+		/// Getter
+		const Vec2i& getPosition() const { return position; }
+		const Vec2i& getSize() const { return size; }
 		/// Destructor
 		~GuiElement();
 	};
@@ -239,8 +243,8 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiElement::setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value)
 	{
-		variableHandle->val = value;
-		variableHandle->activate();
+		variableHandle.val = value;
+		variableHandle.activate();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename LayoutType>

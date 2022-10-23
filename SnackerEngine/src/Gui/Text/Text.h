@@ -119,7 +119,7 @@ namespace SnackerEngine
 		const Font& getFont() const;
 		const double& getFontSize() const;
 		const double& getTextWidth() const;
-		const std::string& getText() const;
+		virtual const std::string& getText();
 		const Model& getModel() const;
 		const ParseMode& getParseMode() const;
 		const Alignment& getAlignment() const;
@@ -129,6 +129,10 @@ namespace SnackerEngine
 		/// Returns the y coordinate of the bottom of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
 		const double& getBottom();
+		/// Returns the x coordinate of the left-most point in the text (in pt)
+		const double& getLeft();
+		/// Returns the x coordinate of the right-most point in the text (in pt)
+		const double& getRight();
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
@@ -136,21 +140,21 @@ namespace SnackerEngine
 		/// Sets the textwidth. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
-		void setTextWidth(const double& textWidth, bool recompute = true);
+		virtual void setTextWidth(const double& textWidth, bool recompute = true);
 		/// Sets the font size. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
-		void setFontSize(const double& fontSize, bool recompute = true);
+		virtual void setFontSize(const double& fontSize, bool recompute = true);
 		/// Sets the font. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
-		void setFont(const Font& font, bool recompute = true);
+		virtual void setFont(const Font& font, bool recompute = true);
 		/// Sets the parse mode. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
-		void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true);
+		virtual void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true);
 		/// Sets the alignment.
-		void setAlignment(const StaticText::Alignment& alignment, bool recompute = true);
+		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true);
 	};
 	//--------------------------------------------------------------------------------------------------
 	/// A EditableText object does everything a DynamicText object does, but has functions that can be used
@@ -186,6 +190,8 @@ namespace SnackerEngine
 		void constructModelFrom(const unsigned int& lineIndex);
 		/// Constructs the model from the text member variable
 		void constructModel() override;
+		/// Helper function to construct the text variable from the characters vector
+		void constructTextFromCharacters();
 	public:
 		/// Default constructor
 		EditableText();
@@ -223,6 +229,26 @@ namespace SnackerEngine
 		void deleteWordBeforeCursor();
 		/// Returns the size of the cursor
 		const Vec2f& getCursorSize() const;
+		/// Returns the text
+		const std::string& getText() override;
+		/// Sets the textwidth. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		virtual void setTextWidth(const double& textWidth, bool recompute = true) override;
+		/// Sets the font size. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		virtual void setFontSize(const double& fontSize, bool recompute = true) override;
+		/// Sets the font. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		virtual void setFont(const Font& font, bool recompute = true) override;
+		/// Sets the parse mode. May need to recompute the text model
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		virtual void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true) override;
+		/// Sets the alignment.
+		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true) override;
 	};
 	//--------------------------------------------------------------------------------------------------
 }

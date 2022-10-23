@@ -19,7 +19,7 @@ namespace SnackerEngine
 		shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
 		shader.setUniform<Color3f>("u_color", backgroundColor);
 		Renderer::draw(guiManager->getModelSquare());
-		drawChildren(parentPosition);
+		GuiElement::draw(parentPosition);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::onPositionChange()
@@ -60,6 +60,30 @@ namespace SnackerEngine
 	Color3f GuiPanel::getBackgroundColor() const
 	{
 		return backgroundColor;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiPanel::GuiPanel(const GuiPanel& other) noexcept
+		: GuiElement(other), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader) {}
+	//--------------------------------------------------------------------------------------------------
+	GuiPanel& GuiPanel::operator=(const GuiPanel& other) noexcept
+	{
+		GuiElement::operator=(other);
+		backgroundColor = other.backgroundColor;
+		modelMatrix = other.modelMatrix;
+		shader = other.shader;
+		return *this;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiPanel::GuiPanel(GuiPanel&& other) noexcept
+		: GuiElement(std::move(other)), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader) {}
+	//--------------------------------------------------------------------------------------------------
+	GuiPanel& GuiPanel::operator=(GuiPanel&& other) noexcept
+	{
+		GuiElement::operator=(std::move(other));
+		backgroundColor = other.backgroundColor;
+		modelMatrix = other.modelMatrix;
+		shader = other.shader;
+		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 }

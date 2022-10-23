@@ -330,6 +330,8 @@ namespace SnackerEngine
 		// Insert as child into parent element (in the back of the children vector)
 		parentElement.addChild(childElement.guiID);
 		guiElementPtrArray[childElement.guiID]->parentID = parentElement.guiID;
+		// Update layouts and children
+		handleLayoutsOnGuiElementRegister(childElement);
 		// Call onRegister()
 		childElement.onRegister();
 	}

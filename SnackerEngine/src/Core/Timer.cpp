@@ -11,6 +11,11 @@ namespace SnackerEngine
 	Timer::Timer(const unsigned int& framesPerSecond)
 		: timeStep(framesPerSecond == 0 ? 0.0 : 1.0 / double(framesPerSecond)), timeSinceLastUpdate(0.0) {}
 	//------------------------------------------------------------------------------------------------------
+	void Timer::reset()
+	{
+		timeSinceLastUpdate = 0.0;
+	}
+	//------------------------------------------------------------------------------------------------------
 	double Timer::getTimeStep() const
 	{
 		return timeStep;

@@ -68,11 +68,15 @@ namespace SnackerEngine
 		return guiManager != nullptr;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::signOff()
+	void GuiElement::signOffElement()
 	{
-		GuiInteractable::signOff();
 		guiID = 0;
 		layouts.clear();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::draw(const Vec2i& parentPosition)
+	{
+		drawChildren(parentPosition);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::drawChildren(const Vec2i& parentPosition)
@@ -186,16 +190,18 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
-		: GuiInteractable(other), parentLayoutID(other.parentLayoutID), nextLayoutID(other.nextLayoutID), position(other.position), size(other.size),
+		: GuiInteractable(std::move(other)), parentLayoutID(other.parentLayoutID), nextLayoutID(other.nextLayoutID), position(other.position), size(other.size),
 		preferredSize(other.preferredSize), preferredMinSize(other.preferredMinSize), preferredMaxSize(other.preferredMaxSize),
 		layouts(std::move(other.layouts)), layoutIDToIndex(std::move(other.layoutIDToIndex)) 
 	{
+		other.signOffElement();
 		if (guiManager) guiManager->updateMoved(*this);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(GuiElement&& other) noexcept
 	{
-		GuiInteractable::operator=(other);
+		GuiInteractable::operator=(std::move(other));
+		signOffElement();
 		parentLayoutID = other.parentLayoutID;
 		nextLayoutID = other.nextLayoutID;
 		position = other.position;
@@ -206,6 +212,7 @@ namespace SnackerEngine
 		parentID = other.parentID;
 		layouts = std::move(other.layouts);
 		layoutIDToIndex = std::move(other.layoutIDToIndex);
+		other.signOffElement();
 		if (guiManager) guiManager->updateMoved(*this);
 		return *this;
 	}

@@ -10,6 +10,7 @@ namespace SnackerEngine
 		for (auto& childID : children) {
 			guiManager->getElement(childID).parentID = parentID;
 			guiManager->getElement(childID).parentLayoutID = guiID;
+			guiManager->handleLayoutsOnGuiElementRegister(guiManager->getElement(childID));
 		}
 		onRegister();
 		enforceLayout();
@@ -96,6 +97,16 @@ namespace SnackerEngine
 	void GuiLayout::setSize(const GuiID& guiID, const Vec2f& size)
 	{
 		guiManager->getElement(guiID).size = size;
+	}
+
+	void GuiLayout::setWidth(const GuiID& guiID, const int width)
+	{
+		guiManager->getElement(guiID).size.x = width;
+	}
+
+	void GuiLayout::setHeight(const GuiID& guiID, const int height)
+	{
+		guiManager->getElement(guiID).size.y = height;
 	}
 
 	void GuiLayout::setPosition(const GuiID& guiID, const Vec2f& position)

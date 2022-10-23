@@ -131,11 +131,35 @@ namespace SnackerEngine
 	{
 		if (!guiManager) return;
 		float currentYOffset = verticalOffset;
+		double parentWidth = getSize(parentID).x;
+		parentWidth -= 2 * border;
 		for (unsigned int i = 0; i < children.size(); ++i) {
 			int height = getSize(children[i]).y;
 			// Set position
-			setPosition(children[i], Vec2i(leftBorder, currentYOffset));
+			setPosition(children[i], Vec2i(border, currentYOffset));
 			notifyPositionChange(children[i]);
+			// Resize
+			switch (resizeMode)
+			{
+			case SnackerEngine::ListLayout::ListLayoutResizeMode::DONT_RESIZE:
+			{
+				break;
+			}
+			case SnackerEngine::ListLayout::ListLayoutResizeMode::RESIZE_WIDTH_IF_POSSIBLE:
+			{
+				if (parentWidth >= getPreferredMinSize(children[i]).x &&
+					parentWidth <= getPreferredMaxSize(children[i]).x) {
+					setWidth(children[i], static_cast<int>(parentWidth));
+				}
+				break;
+			}
+			case SnackerEngine::ListLayout::ListLayoutResizeMode::RESIZE_WIDTH:
+			{
+				setWidth(children[i], static_cast<int>(parentWidth));
+			}
+			default:
+				break;
+			}
 			// Advance to next element
 			currentYOffset += height + verticalOffset;
 		}
