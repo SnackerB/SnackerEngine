@@ -146,7 +146,7 @@ namespace SnackerEngine
 		GuiElement::onRegister();
 		guiManager->registerElement(*this, labelText);
 		guiManager->registerElement(*this, inputTextBox);
-		//inputTextBox.setSize(Vec2i(position.x + labelText.getSize().x, position.y));
+		setSize(Vec2i(size.x, labelText.getSize().y));
 	}
 
 	template<typename T>
@@ -199,6 +199,7 @@ namespace SnackerEngine
 		inputTextBox(Vec2i(position.x + labelText.getSize().x, position.y), Vec2i(std::max(0, size.x - (position.x + labelText.getSize().x)), size.y), "", font, fontSize, cursorWidth, textColor, backgroundColorInputBox, parseMode, alignment, GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT, true, cursorBlinkTime) 
 	{
 		inputTextBox.setEventHandleTextWasEdited(inputVariableEventHandle);
+		setSize(Vec2i(size.x, labelText.getSize().y));
 	}
 
 	template<typename T>
@@ -210,19 +211,19 @@ namespace SnackerEngine
 
 	template<typename T>
 	inline GuiInputVariable<T>::GuiInputVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiInputVariable<T>(handle, Vec2i(0, 0), style.guiTextBoxSize, label, style.defaultFont, style.fontSizeNormal, style.guiTextBoxTextColor, style.guiTextBoxBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiTextBoxParseMode, style.guiTextBoxAlignment, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
+		: GuiInputVariable<T>(handle, Vec2i(0, 0), style.guiInputVariableSize, label, style.defaultFont, style.fontSizeNormal, style.guiTextBoxTextColor, style.guiInputVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiInputVariableParseMode, style.guiInputVariableAlignment, style.guiInputVariableTextBoxMode, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
 
 	template<typename T>
 	inline GuiInputVariable<T>::GuiInputVariable(const std::string& label, const GuiStyle& style)
-		: GuiInputVariable<T>(Vec2i(0, 0), style.guiTextBoxSize, label, style.defaultFont, style.fontSizeNormal, style.guiTextBoxTextColor, style.guiTextBoxBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiTextBoxParseMode, style.guiTextBoxAlignment, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
+		: GuiInputVariable<T>(Vec2i(0, 0), style.guiInputVariableSize, label, style.defaultFont, style.fontSizeNormal, style.guiTextBoxTextColor, style.guiInputVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiInputVariableParseMode, style.guiInputVariableAlignment, style.guiInputVariableTextBoxMode, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
 
 	template<typename T>
 	inline GuiInputVariable<T>::GuiInputVariable(const std::string& label, const double& fontSize, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiInputVariable<T>(handle, Vec2i(0, 0), style.guiTextBoxSize, label, style.defaultFont, fontSize, style.guiTextBoxTextColor, style.guiTextBoxBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiTextBoxParseMode, style.guiTextBoxAlignment, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
+		: GuiInputVariable<T>(handle, Vec2i(0, 0), style.guiInputVariableSize, label, style.defaultFont, fontSize, style.guiTextBoxTextColor, style.guiInputVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiInputVariableParseMode, style.guiInputVariableAlignment, style.guiInputVariableTextBoxMode, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
 
 	template<typename T>
 	inline GuiInputVariable<T>::GuiInputVariable(const std::string& label, const double& fontSize, const GuiStyle& style)
-		: GuiInputVariable<T>(Vec2i(0, 0), style.guiTextBoxSize, label, style.defaultFont, fontSize, style.guiTextBoxTextColor, style.guiTextBoxBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiTextBoxParseMode, style.guiTextBoxAlignment, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
+		: GuiInputVariable<T>(Vec2i(0, 0), style.guiInputVariableSize, label, style.defaultFont, fontSize, style.guiTextBoxTextColor, style.guiInputVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiInputVariableParseMode, style.guiInputVariableAlignment, style.guiInputVariableTextBoxMode, style.guiEditTextBoxCursorWidth, style.guiEditTextBoxBlinkTime) {}
 
 	template<typename T>
 	inline void GuiInputVariable<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)

@@ -52,7 +52,8 @@ namespace SnackerEngine
 		virtual IsCollidingResult isColliding(const Vec2i& position) override;
 		/// Returns the first colliding child element, if it exists.
 		/// position:	position vector (relative to the top left corner of the parent element)
-		virtual std::optional<std::pair<GuiID, IsCollidingResult>> getFirstCollidingChild(const Vec2i& position);
+		/// Returns:    <<GuiID of colliding child, IsCollidingResult>, new offset vector>
+		virtual std::optional<std::pair<std::pair<GuiID, IsCollidingResult>, Vec2i>> getFirstCollidingChild(const Vec2i& position);
 		/// Constructor using the parent guiElement 
 		GuiLayout();
 

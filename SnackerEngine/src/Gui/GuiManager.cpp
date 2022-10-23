@@ -117,13 +117,13 @@ namespace SnackerEngine
 							// Check if any of the children are colliding
 							auto childResult = (*it2)->getFirstCollidingChild(currentPosition);
 							if (childResult) {
-								if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
+								if (childResult.value().first.second == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
 									foundCollidingChild = true;
-									currentGuiID = childResult.value().first;
-									currentPosition -= guiElementPtrArray[currentGuiID]->position;
+									currentGuiID = childResult.value().first.first;
+									currentPosition = childResult.value().second;
 								}
-								else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-									return { childResult.value().first, 0 };
+								else if (childResult.value().first.second == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
+									return { childResult.value().first.first, 0 };
 								}
 							}
 						}

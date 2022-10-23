@@ -36,6 +36,13 @@ namespace SnackerEngine
 		double guiEditTextBoxCursorWidth{};
 		double guiEditTextBoxBlinkTime{};
 		Color4f guiEditTextBoxBackgroundColor{};
+		/// GuiInputVariable
+		Vec2i guiInputVariableSize{};
+		Color4f guiInputVariableTextColor{};
+		Color4f guiInputVariableBackgroundColor{};
+		StaticText::ParseMode guiInputVariableParseMode{};
+		StaticText::Alignment guiInputVariableAlignment{};
+		GuiDynamicTextBox::TextBoxMode guiInputVariableTextBoxMode{};
 		/// GuiButton
 		Vec2i guiButtonSize{};
 		Color4f guiButtonTextColor{};

@@ -50,12 +50,12 @@ namespace SnackerEngine
 		return IsCollidingResult::WEAK_COLLIDING;
 	}
 
-	std::optional<std::pair<GuiLayout::GuiID, GuiLayout::IsCollidingResult>> GuiLayout::getFirstCollidingChild(const Vec2i& position)
+	std::optional<std::pair<std::pair<GuiLayout::GuiID, GuiLayout::IsCollidingResult>, Vec2i>> GuiLayout::getFirstCollidingChild(const Vec2i& position)
 	{
 		for (auto it = children.rbegin(); it != children.rend(); it++) {
 			auto result = guiManager->getGuiInteractable({ *it, 0 }).isColliding(position);
 			if (result != GuiElement::IsCollidingResult::NOT_COLLIDING) {
-				return { { *it, result } };
+				return { { { *it, result }, position - (static_cast<GuiElement&>(guiManager->getGuiInteractable({ *it, 0 }))).getPosition() }};
 			}
 		}
 		return {};

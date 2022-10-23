@@ -107,7 +107,7 @@ namespace SnackerEngine
 		}
 	}
 
-	std::optional<std::pair<ListLayout::GuiID, ListLayout::IsCollidingResult>> ListLayout::getFirstCollidingChild(const Vec2i& position)
+	std::optional<std::pair<std::pair<ListLayout::GuiID, ListLayout::IsCollidingResult>, Vec2i>> ListLayout::getFirstCollidingChild(const Vec2i& position)
 	{
 		return GuiLayout::getFirstCollidingChild(Vec2i(position.x, position.y - currentVerticalOffset));
 	}
@@ -132,11 +132,11 @@ namespace SnackerEngine
 		if (!guiManager) return;
 		float currentYOffset = verticalOffset;
 		double parentWidth = getSize(parentID).x;
-		parentWidth -= 2 * border;
+		parentWidth -= 2 * leftBorder;
 		for (unsigned int i = 0; i < children.size(); ++i) {
 			int height = getSize(children[i]).y;
 			// Set position
-			setPosition(children[i], Vec2i(border, currentYOffset));
+			setPosition(children[i], Vec2i(leftBorder, currentYOffset));
 			notifyPositionChange(children[i]);
 			// Resize
 			switch (resizeMode)
