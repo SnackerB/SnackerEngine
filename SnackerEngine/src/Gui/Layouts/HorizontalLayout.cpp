@@ -2,6 +2,7 @@
 #include "Core/Log.h"
 #include "Gui/GuiManager.h"
 #include "Core/Keys.h"
+#include "HorizontalLayout2.h"
 
 namespace SnackerEngine
 {

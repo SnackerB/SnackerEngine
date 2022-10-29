@@ -17,6 +17,11 @@
 #include "Gui/Layouts/HorizontalLayout.h"
 #include "Gui/GuiElements/GuiInputVariable.h"
 
+#include "Gui/GuiManager2.h"
+#include "Gui/GuiElements/GuiPanel2.h"
+#include "Gui/Layouts/HorizontalLayout2.h"
+#include "Gui/Layouts/VerticalLayout2.h"
+
 SnackerEngine::GuiVariableHandleInt intHandle(2);
 SnackerEngine::GuiVariableHandleFloat floatHandle(2.5f);
 SnackerEngine::GuiVariableHandleDouble doubleHandle(10.3333);
@@ -39,7 +44,8 @@ protected:
 
 class TextureDemo : public SnackerEngine::Scene
 {
-	SnackerEngine::GuiManager guiManager;
+	SnackerEngine::GuiManager2 guiManager;
+	SnackerEngine::GuiPanel2 parentPanel;
 	SnackerEngine::GuiEventHandle increaseIntHandle;
 	SnackerEngine::GuiEventHandle decreaseIntHandle;
 	SnackerEngine::GuiEventHandle logTextFromTextBox;
@@ -80,6 +86,95 @@ public:
 		//guiManager.registerElement<SnackerEngine::GuiStaticTextBox>(parentWindow2, SnackerEngine::GuiStaticTextBox({ 10, 410 }, { 1000, 100 }, u8"Hello Textbox!", SnackerEngine::Font("fonts/arial.ttf"), 11, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.2f, 0.2, 0.2f, 1.0f }, SnackerEngine::TextParseMode::CHARACTERS, SnackerEngine::Alignment::CENTER));
 		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
 		*/
+
+		parentPanel = SnackerEngine::GuiPanel2({ 100, 100 }, { 2000, 900 }, SnackerEngine::GuiElement2::ResizeMode::RESIZE_RANGE, { 0.25f, 0.25f, 0.25f });
+		guiManager.registerElement(parentPanel);
+
+		SnackerEngine::HorizontalLayout2 layout;
+		parentPanel.registerChild(layout);
+		{
+			// main horizontal layout
+			SnackerEngine::GuiPanel2 tempPanel;
+
+			tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 1.0f, 1.0f, 1.0f });
+			layout.registerChild(tempPanel, 1.0);
+			guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+			
+			SnackerEngine::VerticalLayout2 verticalLayout;
+			layout.registerChild(verticalLayout, 1.0);
+			{
+				// vertical layout
+				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 1.0f, 0.0f, 0.0f });
+				verticalLayout.registerChild(tempPanel, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.8f, 0.0f, 0.0f });
+				verticalLayout.registerChild(tempPanel, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.6f, 0.0f, 0.0f });
+				verticalLayout.registerChild(tempPanel, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+				verticalLayout.registerChild(tempPanel, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+			}
+			guiManager.moveElement<SnackerEngine::VerticalLayout2>(std::move(verticalLayout));
+
+			tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.5f, 0.5f, 0.5f });
+			layout.registerChild(tempPanel, 1.0);
+			guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+
+			SnackerEngine::VerticalLayout2 verticalLayout2;
+			layout.registerChild(verticalLayout2, 1.0);
+			{
+				// second vertical layout
+				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.3f, 0.3f, 0.8f });
+				verticalLayout2.registerChild(tempPanel, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+
+				SnackerEngine::ListLayout2 listLayout(style);
+				verticalLayout2.registerChild(listLayout, 1.0);
+				SnackerEngine::infoLogger << "list layout has guiID " << listLayout.getGuiID() << SnackerEngine::LOGGER::ENDL;
+				{
+					// List layout
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 50, 60 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 1.0f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 200, 100 }, SnackerEngine::GuiPanel2::ResizeMode::DO_NOT_RESIZE, { 0.8f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 100, 300 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.6f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 20, 40 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 50, 100 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 50, 100 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 50, 100 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 50, 100 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+					tempPanel = SnackerEngine::GuiPanel2({ 0, 0 }, { 50, 100 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
+					listLayout.registerChild(tempPanel);
+					guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+				}
+				guiManager.moveElement<SnackerEngine::ListLayout2>(std::move(listLayout));
+			}
+			guiManager.moveElement<SnackerEngine::VerticalLayout2>(std::move(verticalLayout2));
+
+		}
+		guiManager.moveElement<SnackerEngine::HorizontalLayout2>(std::move(layout));
+		guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(parentPanel));
+
+		//guiManager.registerAndMoveElement(std::move(parentPanel));
+		
+		/*
 		SnackerEngine::GuiWindow parentWindow(style);
 		parentWindow.setSize({ 100, 100 });
 		auto listLayoutRef = guiManager.registerLayout(parentWindow, SnackerEngine::ListLayout(style));
@@ -114,6 +209,7 @@ public:
 
 		guiManager.registerAndMoveElement<SnackerEngine::GuiDynamicTextBox, SnackerEngine::ListLayout>(parentWindow, std::move(SnackerEngine::GuiDynamicTextBox("text box 1", style)), listLayoutRef, {});
 		guiManager.registerAndMoveElement<SnackerEngine::GuiWindow>(std::move(parentWindow));
+		*/
 
 		/*
 		SnackerEngine::GuiWindow parentWindow2(style);

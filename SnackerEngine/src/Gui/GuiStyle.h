@@ -6,6 +6,8 @@
 #include "Gui/Text/Text.h"
 #include "Gui/GuiElements/GuiTextBox.h"
 
+#include "Gui/Layouts/ListLayout2.h"
+
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
@@ -68,6 +70,7 @@ namespace SnackerEngine
 		float listLayoutScrollBarOffsetTop{};
 		float listLayoutScrollBarOffsetBottom{};
 		float listLayoutScrollBarOffsetRight{};
+		ListLayout2::ListLayoutResizeMode listLayoutResizeMode{};
 	};
 	//--------------------------------------------------------------------------------------------------
 	GuiStyle getDefaultStyle();

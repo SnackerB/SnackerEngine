@@ -28,51 +28,68 @@ namespace SnackerEngine
 
 	void GuiPanel2::onPositionChange()
 	{
+		GuiElement2::onPositionChange();
+		computeModelMatrix();
 	}
 
 	void GuiPanel2::onSizeChange()
 	{
+		GuiElement2::onSizeChange();
+		computeModelMatrix();
 	}
 
 	GuiPanel2::IsCollidingResult GuiPanel2::isColliding(const Vec2i& position)
 	{
-		return IsCollidingResult();
+		const Vec2i& myPosition = getPosition();
+		const Vec2i& mySize = getSize();
+		return (position.x > myPosition.x && position.x < myPosition.x + mySize.x
+			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) ?
+			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 
 	const Shader& GuiPanel2::getPanelShader() const
 	{
-		// TODO: insert return statement here
+		return shader;
 	}
 
 	GuiPanel2::GuiPanel2(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color3f& backgroundColor)
+		: GuiElement2(position, size, resizeMode), backgroundColor(backgroundColor), modelMatrix{}, shader("shaders/gui/simpleColor.shader")
 	{
+		computeModelMatrix();
 	}
 
 	void GuiPanel2::setBackgroundColor(const Color3f& backgroundColor)
 	{
+		this->backgroundColor = backgroundColor;
 	}
 
 	Color3f GuiPanel2::getBackgroundColor() const
 	{
-		return Color3f();
+		return backgroundColor;
 	}
 
 	GuiPanel2::GuiPanel2(const GuiPanel2& other) noexcept
-	{
-	}
+		: GuiElement2(other), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader) {}
 
 	GuiPanel2& GuiPanel2::operator=(const GuiPanel2& other) noexcept
 	{
-		// TODO: insert return statement here
+		GuiElement2::operator=(other);
+		backgroundColor = other.backgroundColor;
+		modelMatrix = other.modelMatrix;
+		shader = other.shader;
+		return *this;
 	}
 
 	GuiPanel2::GuiPanel2(GuiPanel2&& other) noexcept
-	{
-	}
+		: GuiElement2(std::move(other)), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader) {}
 
 	GuiPanel2& GuiPanel2::operator=(GuiPanel2&& other) noexcept
 	{
-		// TODO: insert return statement here
+		GuiElement2::operator=(std::move(other));
+		backgroundColor = other.backgroundColor;
+		modelMatrix = other.modelMatrix;
+		shader = other.shader;
+		return *this;
 	}
 
 }

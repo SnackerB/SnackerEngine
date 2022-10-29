@@ -29,6 +29,7 @@ namespace SnackerEngine
 
 	void GuiManager2::signUpEvent(const GuiElement2& guiElement, const GuiElement2::CallbackType& callbackType)
 	{
+		processSignOffQueue();
 		if (guiElement.guiID <= 0) return;
 		switch (callbackType)
 		{
@@ -115,7 +116,6 @@ namespace SnackerEngine
 			return;
 		}
 		registeredGuiElements[element.parentID]->removeChild(element);
-		signOffWithoutNotifyingParent(guiElement);
 	}
 
 	void GuiManager2::signOffWithoutNotifyingParent(const GuiID& guiElement)
@@ -153,6 +153,9 @@ namespace SnackerEngine
 
 	GuiElement2& GuiManager2::getElement(const GuiID& guiID)
 	{
+		if (guiID < 0 || guiID >= registeredGuiElements.size() || !registeredGuiElements[guiID]) {
+			errorLogger << LOGGER::BEGIN << "Tried to access invalid guiElement with guiID " << guiID << LOGGER::ENDL;
+		}
 		return *registeredGuiElements[guiID];
 	}
 
@@ -160,6 +163,7 @@ namespace SnackerEngine
 	{
 		GuiID newGuiID = getNewGuiID();
 		registeredGuiElements[newGuiID] = &guiElement;
+		registeredGuiElementsCount++;
 		guiElement.guiID = newGuiID;
 		guiElement.guiManager = this;
 		guiElement.parentID = -1;
@@ -182,32 +186,67 @@ namespace SnackerEngine
 		}
 		// Compute view and projection matrix
 		computeViewAndProjection();
+		// Initialize parent GuiElement
+		ownedGuiElements[parentElement] = new GuiElement2(Vec2i(0, 0), Renderer::getScreenDimensions(), GuiElement2::ResizeMode::DO_NOT_RESIZE);
+		ownedGuiElements[parentElement]->guiID = 0;
+		ownedGuiElements[parentElement]->parentID = -1;
+		ownedGuiElements[parentElement]->guiManager = this;
+		registeredGuiElements[parentElement] = ownedGuiElements[parentElement];
+	}
+
+	GuiManager2::~GuiManager2()
+	{
+		for (unsigned int i = 0; i < ownedGuiElements.size(); ++i) {
+			if (ownedGuiElements[i] != nullptr) {
+				signOff(ownedGuiElements[i]->guiID);
+			}
+		}
+		for (unsigned int i = 0; i < registeredGuiElements.size(); ++i) {
+			if (registeredGuiElements[i] != nullptr) {
+				signOff(registeredGuiElements[i]->guiID);
+			}
+		}
+		signOff(parentElement);
+		ownedGuiElements.clear();
 	}
 
 	void GuiManager2::registerElement(GuiElement2& guiElement)
 	{
 		GuiID newGuiID = getNewGuiID();
 		registeredGuiElements[newGuiID] = &guiElement;
+		registeredGuiElementsCount++;
 		guiElement.guiID = newGuiID;
 		guiElement.guiManager = this;
 		guiElement.parentID = 0;
-		registeredGuiElements[parentElement]->addChild(guiElement);
+		registeredGuiElements[parentElement]->children.push_back(guiElement.guiID);
 		guiElement.onRegister();
 	}
 
-	void GuiManager2::registerElementAsChild(GuiElement2& parent, GuiElement2& child)
+	bool GuiManager2::registerElementAsChild(GuiElement2& parent, GuiElement2& child)
 	{
 		if (!parent.isValid()) {
 			warningLogger << LOGGER::BEGIN << "Tried to set guiElement as child of an invalid guiElement!" << LOGGER::ENDL;
-			return;
+			return false;
 		}
 		GuiID newGuiID = getNewGuiID();
 		registeredGuiElements[newGuiID] = &child;
+		registeredGuiElementsCount++;
 		child.guiID = newGuiID;
 		child.guiManager = this;
 		child.parentID = parent.guiID;
-		parent.addChild(child);
 		child.onRegister();
+		return true;
+	}
+
+	Vec2i GuiManager2::getMouseOffset(GuiID guiID)
+	{
+		Vec2f mouseOffset = currentMousePosition;
+		while (guiID >= 0) {
+			mouseOffset -= registeredGuiElements[guiID]->position;
+			guiID = registeredGuiElements[guiID]->parentID;
+		}
+		return mouseOffset;
+		return mouseOffset;
 	}
 
 	void GuiManager2::setUniformViewAndProjectionMatrices(const Shader& shader)
@@ -244,6 +283,7 @@ namespace SnackerEngine
 
 	void GuiManager2::callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods)
 	{
+		processSignOffQueue();
 		for (const auto& guiID: eventSetKeyboard) {
 			getElement(guiID).callbackKeyboard(key, scancode, action, mods);
 		}
@@ -251,11 +291,12 @@ namespace SnackerEngine
 
 	void GuiManager2::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
+		processSignOffQueue();
 		// Go from the lastMouseHoverElement to the parent elements, until an element is found which 
 		// is registered for mouseButtonOnElement
 		GuiID guiID = lastMouseHoverElement;
 		while (guiID != 0) {
-			if (eventSetMouseButtonOnElement.find(lastMouseHoverElement) != eventSetMouseButtonOnElement.end()) {
+			if (eventSetMouseButtonOnElement.find(guiID) != eventSetMouseButtonOnElement.end()) {
 				getElement(guiID).callbackMouseButtonOnElement(button, action, mods);
 				break;
 			}
@@ -268,6 +309,7 @@ namespace SnackerEngine
 
 	void GuiManager2::callbackMouseMotion(const Vec2d& position)
 	{
+		processSignOffQueue();
 		currentMousePosition = position;
 		auto newMouseHoverElement = getCollidingElement();
 		if (newMouseHoverElement != lastMouseHoverElement) {
@@ -289,11 +331,12 @@ namespace SnackerEngine
 
 	void GuiManager2::callbackMouseScroll(const Vec2d& offset)
 	{
+		processSignOffQueue();
 		// Go from the lastMouseHoverElement to the parent elements, until an element is found which 
 		// is registered for mouseScroll
 		GuiID guiID = lastMouseHoverElement;
 		while (guiID != 0) {
-			if (eventSetMouseScrollOnElement.find(lastMouseHoverElement) != eventSetMouseScrollOnElement.end()) {
+			if (eventSetMouseScrollOnElement.find(guiID) != eventSetMouseScrollOnElement.end()) {
 				getElement(guiID).callbackMouseScrollOnElement(offset);
 				return;
 			}
@@ -303,6 +346,7 @@ namespace SnackerEngine
 
 	void GuiManager2::callbackCharacterInput(const unsigned int& codepoint)
 	{
+		processSignOffQueue();
 		for (auto& guiID : eventSetCharacterInput) {
 			getElement(guiID).callbackCharacterInput(codepoint);
 		}

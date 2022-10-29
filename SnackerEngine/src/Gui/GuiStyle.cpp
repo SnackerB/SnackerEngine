@@ -11,7 +11,7 @@ namespace SnackerEngine
 		Vec2<unsigned int> dpi = Engine::getDPI();
 		Vec2i screenDims = Renderer::getNativeScreenDimensions();
 		/// Fonts and font sizes
-		result.defaultFont = Font("fonts/Arial.ttf");
+		//result.defaultFont = Font("fonts/Arial.ttf"); TODO: Uncomment
 		result.fontSizeNormal = 16;
 		result.fontSizeTiny = static_cast<unsigned int>(0.5 * static_cast<float>(result.fontSizeNormal));
 		result.fontSizeSmall = static_cast<unsigned int>(0.75 * static_cast<float>(result.fontSizeNormal));
@@ -65,8 +65,9 @@ namespace SnackerEngine
 		result.listLayoutScrollBarColor = result.guiWindowResizeButtonColor;
 		result.listLayoutScrollBarWidth = 25.0f;
 		result.listLayoutScrollBarOffsetTop = 0.0f;
-		result.listLayoutScrollBarOffsetBottom = result.guiWindowResizeButtonSize;
+		result.listLayoutScrollBarOffsetBottom = 20.0f;
 		result.listLayoutScrollBarOffsetRight = 20.0f;
+		result.listLayoutResizeMode = ListLayout2::ListLayoutResizeMode::RESIZE_WIDTH_IF_POSSIBLE;
 		// Return the result
 		return result;
 	}

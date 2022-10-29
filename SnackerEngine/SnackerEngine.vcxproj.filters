@@ -222,6 +222,18 @@
     <ClInclude Include="src\Gui\GuiElements\GuiPanel2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\HorizontalLayout2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiLayout2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\VerticalLayout2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\ListLayout2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -396,6 +408,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\GuiElements\GuiPanel2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Layouts\HorizontalLayout2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiLayout2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Layouts\VerticalLayout2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Layouts\ListLayout2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
