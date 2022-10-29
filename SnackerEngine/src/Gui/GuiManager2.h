@@ -1,0 +1,210 @@
+#pragma once
+
+#include "Gui/GuiElement2.h"
+#include "Math/Mat.h"
+#include "Graphics/Model.h"
+#include "Graphics/Shader.h"
+
+#include <queue>
+#include <memory>
+#include <unordered_set>
+
+namespace SnackerEngine
+{
+	//--------------------------------------------------------------------------------------------------
+	class GuiManager2
+	{
+	private:
+		friend class GuiElement2;
+		using GuiID = int;
+		/// Vectors with pointers to all GuiElement objects. GuiIDs are indices into this vector. If no
+		/// element with a given GuiID is known, nullptr is stored instead
+		std::vector<GuiElement2*> registeredGuiElements;
+		/// Vectors with pointers to all GuiElements that are owned by the guiManager. The guiManager is
+		/// responsible for deleting these elements!
+		std::vector<std::unique_ptr<GuiElement2>> ownedGuiElements;
+		/// Queue of available (unused) GuiIDs
+		std::queue<GuiID> availableGuiIDs;
+		/// Current maximal amount of GuiElement objects that we can have before we have to resize
+		GuiID maxGuiElements;
+		/// Current count of GuiElements registered
+		GuiID registeredGuiElementsCount;
+		/// Current count of GuiElements that are owned by this guiManager
+		GuiID ownedGuiElementsCount;
+		/// View matrix of this guiManager
+		Mat4f viewMatrix;
+		/// Projection matrix of this guiManager
+		Mat4f projectionMatrix;
+		/// The guiID of the parentElement (in most cases this will be 0)
+		GuiID parentElement;
+		/// The current mouse position
+		Vec2i currentMousePosition;
+		/// The guiID of the element the mouse was over last
+		GuiID lastMouseHoverElement;
+
+		//==============================================================================================
+		// Events
+		//==============================================================================================
+
+		/// Event sets for all types of events that a GuiElement object can register for
+		std::unordered_set<GuiID> eventSetMouseButton;
+		std::unordered_set<GuiID> eventSetMouseMotion;
+		std::unordered_set<GuiID> eventSetKeyboard;
+		std::unordered_set<GuiID> eventSetCharacterInput;
+		std::unordered_set<GuiID> eventSetMouseButtonOnElement;
+		std::unordered_set<GuiID> eventSetMouseScrollOnElement;
+		std::unordered_set<GuiID> eventSetMouseEnter;
+		std::unordered_set<GuiID> eventSetMouseLeave;
+		std::unordered_set<GuiID> eventSetUpdate;
+		/// After an event happens, the signoff queue will be processed. This is necessary, as 
+		/// modifying a set while it is iterated through can lead to crashes
+		std::vector<std::pair<GuiID, GuiElement2::CallbackType>> signOffQueue;
+		/// processes the signoff queue by signing off elements from the event sets
+		void processSignOffQueue();
+	protected:
+		/// This function can be called by GuiElement objects to register themselves for getting 
+		/// notified when events happen
+		void signUpEvent(const GuiElement2& guiElement, const GuiElement2::CallbackType& callbackType);
+		/// This function can be called by GuiElement objects to sign off getting notified when 
+		/// certain events happen
+		void signOffEvent(const GuiElement2& guiElement, const GuiElement2::CallbackType& callbackType);
+		/// Returns the GuiID of the element currently colliding with the mouse button, which will be 
+		/// used for mouse enter/leave and mouse button events. 
+		/// If zero is returned, this means that no element is colliding
+		GuiID getCollidingElement();
+
+		//==============================================================================================
+		// Special Models, Textures etc. stored by the guiManager
+		//==============================================================================================
+		
+	private:
+		Model squareModel;
+		Model triangleModel;
+
+		//==============================================================================================
+		// Helper functions
+		//==============================================================================================
+		
+		/// Returns a new GuiID. The slot in the registeredGuiElements and the ownedGuiElements vectors
+		/// can then be used for registering/storing a new GuiElement object
+		GuiID getNewGuiID();
+		/// Computes this guiManagers view and projection matrices
+		void computeViewAndProjection();
+		/// Helper function that clears all event queues of a given GuiElement object
+		void clearEventQueues(const GuiID& guiID);
+	protected:
+		/// Called by GuiElement objects when they want to be signed off from this GuiManager
+		void signOff(const GuiID& guiElement);
+		/// Helper function that signs off a guiElement without notifying the parent 
+		/// (called ny guiManager when doing a cascading sign off starting at some element)
+		void signOffWithoutNotifyingParent(const GuiID& guiElement);
+		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
+		void updateMoved(GuiElement2& guiElement);
+		/// Returns a reference to the guiElement with a given guiID
+		GuiElement2& getElement(const GuiID& guiID);
+		/// Registers an element but does not set it as a parent element nor adds is as a child.
+		void registerElementWithoutParent(GuiElement2& guiElement);
+		/// Registers an element but does not set it as a parent element nor adds is as a child.
+		/// Also moves it to the guiManager. Returns the new guiID of the element
+		template<typename GuiElementType>
+		GuiID registerElementWithoutParent(GuiElementType&& guiElement);
+
+		//==============================================================================================
+		// Constructors and public functionality
+		//==============================================================================================
+
+	public:
+		/// Constructor
+		GuiManager2(const unsigned int& startingSize = 20);
+		/// Registers the given element as a parent element
+		void registerElement(GuiElement2& element);
+		/// Registers the given element as a parent element and moves it to the guiManager.
+		template<typename GuiElementType>
+		void registerElement(GuiElementType&& element);
+		/// Registers the given element as a child of a different element
+		void registerElementAsChild(GuiElement2& parent, GuiElement2& child);
+		/// Registers the given element as a child of a different element and moves it to the guiManager.
+		template<typename GuiElementType>
+		void registerElementAsChild(GuiElement2& parent, GuiElementType&& child);
+
+		/// Sets the view and projection matrix uniform of the given shader
+		void setUniformViewAndProjectionMatrices(const Shader& shader);
+		/// Returns the view matrix
+		const Mat4f& getViewMatrix() const;
+		/// Returns the projection matrix
+		const Mat4f& getProjectionMatrix() const;
+		/// Returns a model of a square, with positions and texture coordinates
+		Model getModelSquare();
+		/// Returns a model of a triangle, with positions and texture coordinates
+		Model getModelTriangle();
+
+		//==============================================================================================
+		// Callback functions
+		//==============================================================================================
+
+		// callback function for keyboard input. Parameters the same as in Scene.h
+		void callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods);
+		/// Callback function for mouse button input. Parameters the same as in Scene.h
+		void callbackMouseButton(const int& button, const int& action, const int& mods);
+		/// Callback function for mouse motion. Parameter the same as in Scene.h
+		void callbackMouseMotion(const Vec2d& position);
+		/// Callback function for resizing the window. Parameter the same as in Scene.h
+		void callbackWindowResize(const Vec2i& screenDims);
+		/// Callback function for scrolling the mouse wheel. Parameter the same as in Scene.h
+		void callbackMouseScroll(const Vec2d& offset);
+		/// Callback function for the input of unicode characters. Parameter the same as in Scene.h
+		void callbackCharacterInput(const unsigned int& codepoint);
+		/// This function get calls regularly by the Engine class.
+		void update(const double& dt);
+		// Draws the GUI
+		void draw();
+	};
+
+	template<typename GuiElementType>
+	inline GuiManager2::GuiID GuiManager2::registerElementWithoutParent(GuiElementType&& guiElement)
+	{
+		GuiID newGuiID = getNewGuiID();
+		ownedGuiElements[newGuiID] = std::make_unique<GuiElementType>(std::move(guiElement));
+		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID].get();
+		auto& element = *ownedGuiElements[newGuiID];
+		element.guiID = newGuiID;
+		element.guiManager = this;
+		element.parentID = 0;
+		element.onRegister();
+	}
+
+	template<typename GuiElementType>
+	inline void GuiManager2::registerElement(GuiElementType&& element)
+	{
+		GuiID newGuiID = getNewGuiID();
+		ownedGuiElements[newGuiID] = std::make_unique<GuiElementType>(std::move(guiElement));
+		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID].get();
+		auto& element = *ownedGuiElements[newGuiID];
+		element.guiID = newGuiID;
+		element.guiManager = this;
+		element.parentID = 0;
+		registeredGuiElements[parentElement]->addChild(element);
+		element.onRegister();
+	}
+
+	template<typename GuiElementType>
+	inline void GuiManager2::registerElementAsChild(GuiElement2& parent, GuiElementType&& child)
+	{
+		if (!parent.isValid()) {
+			warningLogger << LOGGER::BEGIN << "Tried to set guiElement as child of an invalid guiElement!" << LOGGER::ENDL;
+			return;
+		}
+		GuiID newGuiID = getNewGuiID();
+		ownedGuiElements[newGuiID] = std::make_unique<GuiElementType>(std::move(guiElement));
+		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID].get();
+		auto& element = *ownedGuiElements[newGuiID];
+		element.guiID = newGuiID;
+		element.guiManager = this;
+		element.parentID = parent.guiID;
+		parent.addChild(element);
+		element.onRegister();
+	}
+
+
+
+}

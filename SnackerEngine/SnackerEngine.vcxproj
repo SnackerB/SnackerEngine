@@ -195,9 +195,11 @@
     <ClInclude Include="src\Graphics\VertexBuffer.h" />
     <ClInclude Include="src\Graphics\VertexBufferLayout.h" />
     <ClInclude Include="src\Gui\GuiElement.h" />
+    <ClInclude Include="src\Gui\GuiElement2.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiButton.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiInputVariable.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiPanel.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiPanel2.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiTextVariable.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiWindow.h" />
@@ -206,6 +208,7 @@
     <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle.h" />
     <ClInclude Include="src\Gui\GuiManager.h" />
     <ClInclude Include="src\Gui\GuiLayout.h" />
+    <ClInclude Include="src\Gui\GuiManager2.h" />
     <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
     <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\ListLayout.h" />
@@ -258,14 +261,17 @@
     <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\VertexBufferLayout.cpp" />
     <ClCompile Include="src\Gui\GuiElement.cpp" />
+    <ClCompile Include="src\Gui\GuiElement2.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiInputVariable.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiPanel2.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp" />
     <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp" />
     <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp" />
     <ClCompile Include="src\Gui\GuiManager.cpp" />
+    <ClCompile Include="src\Gui\GuiManager2.cpp" />
     <ClCompile Include="src\Gui\GuiStyle.cpp" />
     <ClCompile Include="src\Gui\GuiLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />

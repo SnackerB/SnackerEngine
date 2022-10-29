@@ -213,6 +213,15 @@
     <ClInclude Include="src\Gui\GuiElements\GuiInputVariable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\GuiElement2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiManager2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiPanel2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -378,6 +387,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\GuiElements\GuiInputVariable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiElement2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiManager2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiElements\GuiPanel2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
