@@ -7,6 +7,7 @@
 
 #include <queue>
 #include <unordered_set>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -112,6 +113,9 @@ namespace SnackerEngine
 		bool registerElementAsChild(GuiElement2& parent, GuiElement2& child);
 		/// returns the current mouse offset to a given GuiElement
 		Vec2i getMouseOffset(GuiID guiID);
+		/// Returns the lowest currently colliding child in a given event set. In this context
+		/// "colliding" means != IsCollidingResult::NOT_COLLIDING.
+		std::optional<GuiID> getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet);
 
 		//==============================================================================================
 		// Constructors and public functionality

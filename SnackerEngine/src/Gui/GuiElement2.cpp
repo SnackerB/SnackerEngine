@@ -76,7 +76,7 @@ namespace SnackerEngine
 					return childCollision;
 				}
 				else {
-					return childCollision;
+					return childID;
 				}
 			}
 			case IsCollidingResult::COLLIDE_STRONG:

@@ -249,6 +249,13 @@ namespace SnackerEngine
 		return mouseOffset;
 	}
 
+	std::optional<GuiManager2::GuiID> GuiManager2::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
+	{
+		if (eventSet.empty()) return {};
+		GuiID currentLowestCollidingElement = -1;
+		std::vector<GuiID> elementStack;
+	}
+
 	void GuiManager2::setUniformViewAndProjectionMatrices(const Shader& shader)
 	{
 		shader.setUniform<Mat4f>("u_view", viewMatrix);

@@ -21,6 +21,7 @@
 #include "Gui/GuiElements/GuiPanel2.h"
 #include "Gui/Layouts/HorizontalLayout2.h"
 #include "Gui/Layouts/VerticalLayout2.h"
+#include "Gui/GuiElements/GuiWindow2.h"
 
 SnackerEngine::GuiVariableHandleInt intHandle(2);
 SnackerEngine::GuiVariableHandleFloat floatHandle(2.5f);
@@ -45,7 +46,7 @@ protected:
 class TextureDemo : public SnackerEngine::Scene
 {
 	SnackerEngine::GuiManager2 guiManager;
-	SnackerEngine::GuiPanel2 parentPanel;
+	SnackerEngine::GuiWindow2 parentWindow;
 	SnackerEngine::GuiEventHandle increaseIntHandle;
 	SnackerEngine::GuiEventHandle decreaseIntHandle;
 	SnackerEngine::GuiEventHandle logTextFromTextBox;
@@ -87,11 +88,12 @@ public:
 		guiManager.registerElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
 		*/
 
-		parentPanel = SnackerEngine::GuiPanel2({ 100, 100 }, { 2000, 900 }, SnackerEngine::GuiElement2::ResizeMode::RESIZE_RANGE, { 0.25f, 0.25f, 0.25f });
-		guiManager.registerElement(parentPanel);
+		parentWindow = SnackerEngine::GuiWindow2(style);
+		guiManager.registerElement(parentWindow);
+		parentWindow.setPosition({ 200, 200 });
 
 		SnackerEngine::HorizontalLayout2 layout;
-		parentPanel.registerChild(layout);
+		parentWindow.registerChild(layout);
 		{
 			// main horizontal layout
 			SnackerEngine::GuiPanel2 tempPanel;
@@ -170,7 +172,7 @@ public:
 
 		}
 		guiManager.moveElement<SnackerEngine::HorizontalLayout2>(std::move(layout));
-		guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(parentPanel));
+		guiManager.moveElement<SnackerEngine::GuiWindow2>(std::move(parentWindow));
 
 		//guiManager.registerAndMoveElement(std::move(parentPanel));
 		
