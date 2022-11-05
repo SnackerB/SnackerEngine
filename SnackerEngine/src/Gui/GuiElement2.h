@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Math/Vec.h"
+#include "Gui/GuiEventHandles/GuiHandle2.h"
+#include "Gui/GuiEventHandles/GuiVariableHandle2.h"
 
 #include <vector>
 
@@ -19,14 +21,15 @@ namespace SnackerEngine
 		enum class ResizeMode
 		{
 			SAME_AS_PARENT,		/// Always have the same size as the parent element. Usually the
-			/// go-to mode for Layout objects
+								/// go-to mode for Layout objects
 			DO_NOT_RESIZE,		/// Size is set by this element, should not be resized
 			RESIZE_RANGE,		/// Size can be set to anything in between the member variables 
-			/// minSize and maxSize
+								/// minSize and maxSize
 		};
 
 	protected:
 		friend class GuiManager2;
+		friend class GuiHandle2;
 		using GuiID = int;
 		/// Pointer to the parent guiManager
 		GuiManager2* guiManager;
@@ -80,12 +83,35 @@ namespace SnackerEngine
 		/// layout rules, if there are any. May recursively call setLayout() on the
 		/// children as well
 		virtual void enforceLayout();
+		/// Registers an element at the guiManager without pushing it to the children
+		/// vector (Used for registering guiElements that are part of other
+		/// guiElements, eg. the window bar of a window element)
+		void registerElementAsChild(GuiElement2& guiElement);
 
 		//==============================================================================================
 		// GuiHandles
 		//==============================================================================================
 
-		/// TODO: IMPLEMENT
+		/// Overwrite this function if the guiElement owns handles. This function should update the
+		/// handle pointer when the handle is moved. Called by the handle after it is moved.
+		virtual void onHandleMove(GuiHandle2& guiHandle) {};
+		/// This function should be called by the guiElement to sign up a new handle
+		void signUpHandle(GuiHandle2& guiHandle, const GuiHandle2::GuiHandleID& handleID);
+		/// This function should be called to sign off a given eventHandle if it is no longer needed
+		/// (e.g. destruction of a guiElement) 
+		void signOffHandle(GuiHandle2& guiHandle);
+		/// This function should be called when moving a guiElement that owns a guiHandle
+		void notifyHandleOnGuiElementMove(GuiHandle2& guiHandle);
+		/// This function is called by a handle right before the handle is destroyed
+		virtual void onHandleDestruction(GuiHandle2& guiHandle) {};
+		/// This function calls activate() on the given GuiEventHandle
+		void activate(GuiEventHandle2& guiEventHandle);
+		/// This function can be called by a handle if something occurs/changes with the handle
+		/// example: value of a variable handle changes!
+		virtual void onHandleUpdate(GuiHandle2& guiHandle) {};
+		/// template function used to change a value of a variable handle
+		template<typename T>
+		void setVariableHandleValue(GuiVariableHandle2<T>& variableHandle, const T& value);
 
 		//==============================================================================================
 		// Collisions
@@ -103,6 +129,9 @@ namespace SnackerEngine
 		/// Returns how the given position vector (relative to the top left corner of the parent element)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& position);
+		/// Helper function used in getCollidingChild(const Vec2i& position): Based on the collision mode
+		/// returns either the child element or a child of the child element!
+		GuiID getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& position);
 		/// Returns the first colliding child which collides with the given position vector. The position
 		/// vector is relative to the top left corner of the parent. If zero is returned, this means that
 		/// none of this elements children is colliding. This function will call isColliding() on its children
@@ -170,8 +199,15 @@ namespace SnackerEngine
 		const ResizeMode& getResizeMode(const GuiID& guiID);
 		const Vec2i& getMinSize(const GuiID& guiID);
 		const Vec2i& getMaxSize(const GuiID& guiID);
+		const IsCollidingResult& isColliding(const GuiID& guiID, const Vec2i& parentPosition);
 		void setPosition(const GuiID& guiID, const Vec2i& position);
 		void setSize(const GuiID& guiID, const Vec2i& size);
+		/// Sets position directly without calling OnPositionChange()
+		/// Should only be used during construction!
+		void setPositionInternal(const Vec2i& position);
+		/// Sets size directly without calling OnPositionChange()
+		/// Should only be used during construction!
+		void setSizeInternal(const Vec2i& size);
 		void setPositionAndSize(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
 		void setPositionWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& position);
 		void setPositionXWithoutEnforcingLayouts(const GuiID& guiID, const int& x);
@@ -226,5 +262,12 @@ namespace SnackerEngine
 		const Vec2i& getMaxSize() const { return maxSize; }
 		const std::vector<GuiID>& getChildren() const { return children; }
 	};
+
+	template<typename T>
+	inline void GuiElement2::setVariableHandleValue(GuiVariableHandle2<T>& variableHandle, const T& value)
+	{
+		variableHandle.val = value;
+		variableHandle.activate();
+	}
 
 }

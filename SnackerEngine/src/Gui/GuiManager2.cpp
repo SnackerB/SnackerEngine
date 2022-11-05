@@ -115,7 +115,7 @@ namespace SnackerEngine
 			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement with invalid parent element" << LOGGER::ENDL;
 			return;
 		}
-		registeredGuiElements[element.parentID]->removeChild(element);
+		if (registeredGuiElements[element.parentID]) registeredGuiElements[element.parentID]->removeChild(element);
 	}
 
 	void GuiManager2::signOffWithoutNotifyingParent(const GuiID& guiElement)
@@ -157,17 +157,6 @@ namespace SnackerEngine
 			errorLogger << LOGGER::BEGIN << "Tried to access invalid guiElement with guiID " << guiID << LOGGER::ENDL;
 		}
 		return *registeredGuiElements[guiID];
-	}
-
-	void GuiManager2::registerElementWithoutParent(GuiElement2& guiElement)
-	{
-		GuiID newGuiID = getNewGuiID();
-		registeredGuiElements[newGuiID] = &guiElement;
-		registeredGuiElementsCount++;
-		guiElement.guiID = newGuiID;
-		guiElement.guiManager = this;
-		guiElement.parentID = -1;
-		guiElement.onRegister();
 	}
 
 	GuiManager2::GuiManager2(const unsigned int& startingSize)
@@ -345,15 +334,15 @@ namespace SnackerEngine
 	{
 		processSignOffQueue();
 		currentMousePosition = position;
+		for (const auto& guiID : eventSetMouseMotion) {
+			getElement(guiID).callbackMouseMotion(position);
+		}
 		auto newMouseHoverElement = getCollidingElement();
 		if (newMouseHoverElement != lastMouseHoverElement) {
-			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
-				getElement(newMouseHoverElement).callbackMouseEnter(position);
 			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end())
 				getElement(lastMouseHoverElement).callbackMouseLeave(position);
-		}
-		for (const auto& guiID: eventSetMouseMotion) {
-			getElement(guiID).callbackMouseMotion(position);
+			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
+				getElement(newMouseHoverElement).callbackMouseEnter(position);
 		}
 		lastMouseHoverElement = newMouseHoverElement;
 	}

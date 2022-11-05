@@ -152,7 +152,7 @@ namespace SnackerEngine
 	void Engine::startup()
 	{
 		// Create timer for capping draw fps TODO: Make this variable
-		Timer drawTimer((unsigned int)0);
+		Timer drawTimer((unsigned int)100);
 		lastUpdateTime = std::chrono::high_resolution_clock::now();
 		// Main loop
 		while (!glfwWindowShouldClose(Renderer::activeWindow))

@@ -154,4 +154,49 @@ namespace SnackerEngine
 		}
 	}
 	//------------------------------------------------------------------------------------------------------
+	void Renderer::setCursorShape(const CursorShape& cursorShape)
+	{
+		switch (cursorShape)
+		{
+		case CursorShape::DEFAULT:
+		{
+			GLCall(glfwSetCursor(activeWindow, NULL));
+			return;
+		}
+		case CursorShape::ARROW:
+		{
+			GLCall(currentCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR));
+			break;
+		}
+		case CursorShape::IBEAM:
+		{
+			GLCall(currentCursor = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR));
+			break;
+		}
+		case CursorShape::CROSSHAIR:
+		{
+			GLCall(currentCursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR));
+			break;
+		}
+		case CursorShape::HAND:
+		{
+			GLCall(currentCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR));
+			break;
+		}
+		case CursorShape::HRESIZE:
+		{
+			GLCall(currentCursor = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR));
+			break;
+		}
+		case CursorShape::VRESIZE:
+		{
+			GLCall(currentCursor = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR));
+			break;
+		}
+		default:
+			break;
+		}
+		GLCall(glfwSetCursor(activeWindow, currentCursor));
+	}
+	//------------------------------------------------------------------------------------------------------
 }

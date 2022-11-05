@@ -48,6 +48,12 @@ namespace SnackerEngine
 		virtual void callbackMouseMotion(const Vec2d& position) override;
 		/// Callback function for mouse button input on this guiInteractable object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
+		/// Callback function for the mouse entering the element. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseEnter(const Vec2d& position) override;
+		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseLeave(const Vec2d& position) override;
 	public:
 		/// Constructor
 		HorizontalLayout2(const bool& forceHeight = true);

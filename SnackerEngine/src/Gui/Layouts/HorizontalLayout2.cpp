@@ -1,5 +1,6 @@
 #include "Gui/Layouts/HorizontalLayout2.h"
 #include "Core/Keys.h"
+#include "Graphics/Renderer.h"
 
 namespace SnackerEngine
 {
@@ -15,12 +16,13 @@ namespace SnackerEngine
 				weights[i] = percentages[i] * totalWeight;
 			}
 			totalWeight -= weights[result - children.begin()];
-			weights.erase(weights.begin() + (result - children.end()));
-			percentages.erase(weights.begin() + (result - children.end()));
+			weights.erase(weights.begin() + (result - children.begin()));
+			percentages.erase(weights.begin() + (result - children.begin()));
 			// Compute percentages from weights for all children
 			for (unsigned int i = 0; i < weights.size(); ++i) {
 				percentages[i] = weights[i] / totalWeight;
 			}
+			enforceLayout();
 		}
 	}
 	
@@ -64,6 +66,8 @@ namespace SnackerEngine
 	{
 		GuiLayout2::onRegister();
 		signUpEvent(SnackerEngine::GuiElement2::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+		signUpEvent(SnackerEngine::GuiElement2::CallbackType::MOUSE_ENTER);
+		signUpEvent(SnackerEngine::GuiElement2::CallbackType::MOUSE_LEAVE);
 	}
 
 	void HorizontalLayout2::callbackMouseButton(const int& button, const int& action, const int& mods)
@@ -113,6 +117,16 @@ namespace SnackerEngine
 				signUpEvent(SnackerEngine::GuiElement2::CallbackType::MOUSE_BUTTON);
 			}
 		}
+	}
+
+	void HorizontalLayout2::callbackMouseEnter(const Vec2d& position)
+	{
+		Renderer::setCursorShape(Renderer::CursorShape::HRESIZE);
+	}
+
+	void HorizontalLayout2::callbackMouseLeave(const Vec2d& position)
+	{
+		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
 	}
 
 	HorizontalLayout2::HorizontalLayout2(const bool& forceHeight)

@@ -6,6 +6,7 @@
 #include "Gui/Text/Text.h"
 #include "Graphics/Material.h"
 #include "Core/Timer.h"
+#include "Gui/GuiEventHandles/GuiEventHandle2.h"
 
 namespace SnackerEngine
 {
@@ -128,7 +129,7 @@ namespace SnackerEngine
 		Mat4f modelMatrixCursor;
 		/// The event that happens when the text was edited (isActive is set to true and enter
 		/// or escape is pressed or the user clicks outside the textBox)
-		// GuiEventHandle* eventHandleTextWasEdited; TODO: Implement
+		GuiEventHandle2* eventHandleTextWasEdited;
 		/// Computes the model matrix of the cursor
 		void computeModelMatrixCursor();
 	protected:
@@ -154,16 +155,19 @@ namespace SnackerEngine
 		virtual void callbackCharacterInput(const unsigned int& codepoint) override;
 		/// Callback function for mouse button input on this guiInteractable object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
+		/// Callback function for the mouse entering the element. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseEnter(const Vec2d& position) override;
+		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseLeave(const Vec2d& position) override;
 		/// Update function
 		virtual void update(const double& dt) override;
 		/// This function is called by a handle right before the handle is destroyed
-		// virtual void onHandleDestruction(GuiHandle& guiHandle) override; // TODO: Implement
+		virtual void onHandleDestruction(GuiHandle2& guiHandle) override;
 		/// Overwrite this function if the guiElement owns handles. This function should update the
 		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		// virtual void onHandleMove(GuiHandle& guiHandle) override; // TODO: Implement
-		/// This function is called by the guiManager after registering this guiElement.
-		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
-		/// This function can e.g. be used for registering callbacks at the guiManager
+		virtual void onHandleMove(GuiHandle2& guiHandle) override;
 	public:
 		/// Constructor
 		GuiEditTextBox2(const Vec2i& position = {}, const Vec2i& size = {}, const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE,
@@ -188,7 +192,7 @@ namespace SnackerEngine
 		/// (isActive is set to true and enter or escape is pressed or the user clicks 
 		/// outside the textBox). Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
-		// void setEventHandleTextWasEdited(GuiEventHandle& eventHandle); TODO: Implement
+		void setEventHandleTextWasEdited(GuiEventHandle2& eventHandle);
 		/// Setters
 		void setCursorWidth(const double& cursorWidth);
 		void setCursorBlinkTime(const double& cursorBlinkTime);

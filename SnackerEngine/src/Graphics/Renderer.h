@@ -10,6 +10,7 @@
 //----------------------------------------------------------------------------------------------------------
 /// Forward declaration of GLFWindow class
 struct GLFWwindow;
+struct GLFWcursor;
 //----------------------------------------------------------------------------------------------------------
 namespace SnackerEngine
 {
@@ -25,6 +26,8 @@ namespace SnackerEngine
 		inline static Vec2i currentViewPort{};
 		/// Pointer to the active GLFWwindow
 		inline static GLFWwindow* activeWindow = nullptr;
+		/// Pointer to the current cursor
+		inline static GLFWcursor* currentCursor = nullptr;
 		/// Clear color
 		inline static Color3f clearColor{};
 	protected:
@@ -61,6 +64,18 @@ namespace SnackerEngine
 		static void draw(const Model& model, const Material& material);
 		/// Draws a given model, with shaders, textures etc. already bound
 		static void draw(const Model& model);
+		/// Enum for different cursor shapes
+		enum class CursorShape {
+			DEFAULT,
+			ARROW,
+			IBEAM,
+			CROSSHAIR,
+			HAND,
+			HRESIZE,
+			VRESIZE,
+		};
+		/// Sets the cursor to the given shape
+		static void setCursorShape(const CursorShape& cursorShape);
 		/// Deleted constructor: this is a static class!
 		Renderer() = delete;
 	};

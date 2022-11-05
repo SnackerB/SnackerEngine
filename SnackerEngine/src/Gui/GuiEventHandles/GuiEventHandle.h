@@ -14,6 +14,7 @@ namespace SnackerEngine
 	protected:
 		/// GuiElement needs to be able to set the boolean
 		friend class GuiElement;
+		friend class GuiElement2;
 		/// Function that is called when the event happens. Can be overwritten
 		virtual void onEvent() {}
 		/// Sets the boolean to active and executes the event function. This is called by guiElement

@@ -102,12 +102,6 @@ namespace SnackerEngine
 		void updateMoved(GuiElement2& guiElement);
 		/// Returns a reference to the guiElement with a given guiID
 		GuiElement2& getElement(const GuiID& guiID);
-		/// Registers an element but does not set it as a parent element nor adds is as a child.
-		void registerElementWithoutParent(GuiElement2& guiElement);
-		/// Registers an element but does not set it as a parent element nor adds is as a child.
-		/// Also moves it to the guiManager. Returns the new guiID of the element
-		template<typename GuiElementType>
-		GuiID registerAndMoveElementWithoutParent(GuiElementType&& guiElement);
 		/// Registers the given element as a child of a different element
 		/// Returns true on success
 		bool registerElementAsChild(GuiElement2& parent, GuiElement2& child);
@@ -173,21 +167,6 @@ namespace SnackerEngine
 	};
 
 	template<typename GuiElementType>
-	inline GuiManager2::GuiID GuiManager2::registerAndMoveElementWithoutParent(GuiElementType&& guiElement)
-	{
-		GuiID newGuiID = getNewGuiID();
-		ownedGuiElements[newGuiID] = std::make_unique<GuiElementType>(std::move(guiElement));
-		ownedGuiElementsCount++;
-		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID];
-		ownedGuiElementsCount++;
-		auto& element = *ownedGuiElements[newGuiID];
-		element.guiID = newGuiID;
-		element.guiManager = this;
-		element.parentID = 0;
-		element.onRegister();
-	}
-
-	template<typename GuiElementType>
 	inline void GuiManager2::registerAndMoveElement(GuiElementType&& guiElement)
 	{
 		if (guiElement.isValid()) {
@@ -231,6 +210,7 @@ namespace SnackerEngine
 		}
 		GuiID guiID = guiElement.guiID;
 		ownedGuiElements[guiID] = new GuiElementType(std::move(guiElement));
+		registeredGuiElements[guiID] = ownedGuiElements[guiID];
 		ownedGuiElementsCount++;
 	}
 

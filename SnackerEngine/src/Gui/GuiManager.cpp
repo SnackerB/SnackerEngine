@@ -395,10 +395,10 @@ namespace SnackerEngine
 		currentMousePosition = position;
 		auto newMouseHoverElement = getCollidingInteractable(position);
 		if (newMouseHoverElement != lastMouseHoverElement) {
-			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
-				getGuiInteractable(newMouseHoverElement).callbackMouseEnter(position);
 			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end())
 				getGuiInteractable(lastMouseHoverElement).callbackMouseLeave(position);
+			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
+				getGuiInteractable(newMouseHoverElement).callbackMouseEnter(position);
 		}
 		for (const auto& identifier : eventSetMouseMotion) {
 			getGuiInteractable(identifier).callbackMouseMotion(position);

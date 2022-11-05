@@ -897,6 +897,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	const double& DynamicText::getRight()
 	{
+		if (characters.empty()) return 0.0;
 		switch (alignment)
 		{
 		case SnackerEngine::StaticText::Alignment::RIGHT:

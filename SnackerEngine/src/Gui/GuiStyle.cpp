@@ -34,6 +34,9 @@ namespace SnackerEngine
 		result.guiTextVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
 		result.guiTextVariableAlignment = StaticText::Alignment::LEFT;
 		result.guiTextVariableTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextVariableTextBoxMode2 = GuiDynamicTextBox2::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextVariableSingleLine = true;
+		result.guiTextVariableResizeMode = GuiElement2::ResizeMode::DO_NOT_RESIZE;
 		/// GuiEditTextBox
 		result.guiEditTextBoxCursorWidth = 0.1; // TODO
 		result.guiEditTextBoxBlinkTime = 0.5;
@@ -46,6 +49,10 @@ namespace SnackerEngine
 		result.guiInputVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
 		result.guiInputVariableAlignment = StaticText::Alignment::LEFT;
 		result.guiInputVariableTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		/// GuiEditVariable
+		result.guiEditVariableSize = result.guiInputVariableSize;
+		result.guiEditVariableResizeMode = GuiElement2::ResizeMode::RESIZE_RANGE;
+		result.guiEditVariableEditTextAlignment = StaticText::Alignment::CENTER;
 		/// GuiButton
 		result.guiButtonSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiButtonTextColor = Color4f(1.0f);

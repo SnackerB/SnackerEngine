@@ -38,6 +38,9 @@ namespace SnackerEngine
 		StaticText::ParseMode guiTextVariableParseMode{};
 		StaticText::Alignment guiTextVariableAlignment{};
 		GuiDynamicTextBox::TextBoxMode guiTextVariableTextBoxMode{};
+		GuiDynamicTextBox2::TextBoxMode guiTextVariableTextBoxMode2{};
+		bool guiTextVariableSingleLine{};
+		GuiElement2::ResizeMode guiTextVariableResizeMode{};
 		/// GuiEditTextBox
 		double guiEditTextBoxCursorWidth{};
 		double guiEditTextBoxBlinkTime{};
@@ -50,6 +53,10 @@ namespace SnackerEngine
 		StaticText::ParseMode guiInputVariableParseMode{};
 		StaticText::Alignment guiInputVariableAlignment{};
 		GuiDynamicTextBox::TextBoxMode guiInputVariableTextBoxMode{};
+		/// GuiEditVariable
+		Vec2i guiEditVariableSize{};
+		GuiElement2::ResizeMode guiEditVariableResizeMode{};
+		StaticText::Alignment guiEditVariableEditTextAlignment{};
 		/// GuiButton
 		Vec2i guiButtonSize{};
 		Color4f guiButtonTextColor{};

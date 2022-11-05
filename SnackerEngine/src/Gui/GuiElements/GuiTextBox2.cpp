@@ -159,6 +159,18 @@ namespace SnackerEngine
 		backgroundColor(backgroundColor), textColor(textColor), backgroundShader("shaders/gui/simpleColor.shader"),
 		modelMatrixText{}, modelMatrixBackground{}, textBoxMode(textBoxMode), singleLine(singleLine)
 	{
+		// Check if the size needs to be adjusted
+		switch (textBoxMode)
+		{
+		case SnackerEngine::GuiDynamicTextBox2::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
+		case SnackerEngine::GuiDynamicTextBox2::TextBoxMode::SHRINK_WIDTH_TO_FIT:
+		case SnackerEngine::GuiDynamicTextBox2::TextBoxMode::SHRINK_TO_FIT:
+		{
+			resizeToText(); break;
+		}
+		default:
+			break;
+		}
 		computeModelMatrices();
 	}
 
@@ -369,6 +381,8 @@ namespace SnackerEngine
 	{
 		GuiDynamicTextBox2::onRegister();
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+		signUpEvent(CallbackType::MOUSE_ENTER);
+		signUpEvent(CallbackType::MOUSE_LEAVE);
 	}
 
 	void GuiEditTextBox2::callbackMouseButton(const int& button, const int& action, const int& mods)
@@ -381,6 +395,7 @@ namespace SnackerEngine
 				signOffEvent(CallbackType::KEYBOARD);
 				signOffEvent(CallbackType::UPDATE);
 				signOffEvent(CallbackType::MOUSE_BUTTON);
+				if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
 			}
 		}
 	}
@@ -438,7 +453,7 @@ namespace SnackerEngine
 					signOffEvent(CallbackType::KEYBOARD);
 					signOffEvent(CallbackType::UPDATE);
 					signOffEvent(CallbackType::MOUSE_BUTTON);
-					// if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited); TODO: Uncomment
+					if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
 				}
 				else {
 					static_cast<EditableText&>(*text).inputNewlineAtCursor();
@@ -482,6 +497,16 @@ namespace SnackerEngine
 		}
 	}
 
+	void GuiEditTextBox2::callbackMouseEnter(const Vec2d& position)
+	{
+		Renderer::setCursorShape(Renderer::CursorShape::IBEAM);
+	}
+
+	void GuiEditTextBox2::callbackMouseLeave(const Vec2d& position)
+	{
+		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
+	}
+
 	void GuiEditTextBox2::update(const double& dt)
 	{
 		if (active) {
@@ -489,6 +514,17 @@ namespace SnackerEngine
 				cursorIsVisible = !cursorIsVisible;
 			}
 		}
+	}
+
+	void GuiEditTextBox2::onHandleDestruction(GuiHandle2& guiHandle)
+	{
+		eventHandleTextWasEdited = nullptr;
+	}
+
+	void GuiEditTextBox2::onHandleMove(GuiHandle2& guiHandle)
+	{
+		// Update pointer
+		eventHandleTextWasEdited = static_cast<GuiEventHandle2*>(&guiHandle);
 	}
 
 	GuiEditTextBox2::GuiEditTextBox2(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, const double& cursorWidth, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine, const double& cursorBlinkTime)
@@ -509,14 +545,19 @@ namespace SnackerEngine
 			style.guiTextBoxParseMode, style.guiTextBoxAlignment, style.guiTextBoxMode2,
 			style.guiEditTextBoxSingleLine, style.guiEditTextBoxBlinkTime) {}
 
-	// TODO: Edit copy/move constructor/assignment operators when adding support for handles!
 	GuiEditTextBox2::GuiEditTextBox2(const GuiEditTextBox2& other) noexcept
 		: GuiDynamicTextBox2(other), active(false), cursorIsVisible(false), 
-		cursorBlinkingTimer(other.cursorBlinkingTimer) {}
+		cursorBlinkingTimer(other.cursorBlinkingTimer),
+		eventHandleTextWasEdited(nullptr) {}
 
 	GuiEditTextBox2::GuiEditTextBox2(GuiEditTextBox2&& other) noexcept
 		: GuiDynamicTextBox2(std::move(other)), active(false), cursorIsVisible(false),
-		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)) {}
+		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), 
+		eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)) 
+	{
+		other.eventHandleTextWasEdited = nullptr;
+		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(*eventHandleTextWasEdited);
+	}
 
 	GuiEditTextBox2& GuiEditTextBox2::operator=(const GuiEditTextBox2& other) noexcept
 	{
@@ -524,6 +565,7 @@ namespace SnackerEngine
 		active = false;
 		cursorIsVisible = false;
 		cursorBlinkingTimer = other.cursorBlinkingTimer;
+		eventHandleTextWasEdited = nullptr;
 		return *this;
 	}
 
@@ -533,9 +575,18 @@ namespace SnackerEngine
 		active = false;
 		cursorIsVisible = false;
 		cursorBlinkingTimer = std::move(other.cursorBlinkingTimer);
-		//eventHandleTextWasEdited = std::move(other.eventHandleTextWasEdited);
-		//other.eventHandleTextWasEdited = nullptr;
+		eventHandleTextWasEdited = std::move(other.eventHandleTextWasEdited);
+		other.eventHandleTextWasEdited = nullptr;
+		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(*eventHandleTextWasEdited);
 		return *this;
+	}
+
+	void GuiEditTextBox2::setEventHandleTextWasEdited(GuiEventHandle2& eventHandle)
+	{
+		if (!eventHandleTextWasEdited) {
+			this->eventHandleTextWasEdited = &eventHandle;
+			signUpHandle(eventHandle, 0);
+		}
 	}
 
 	void GuiEditTextBox2::setCursorWidth(const double& cursorWidth)

@@ -49,9 +49,70 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::registerElementAsChild(GuiElement2& guiElement)
+	{
+		if (guiManager) guiManager->registerElementAsChild(*this, guiElement);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::signUpHandle(GuiHandle2& guiHandle, const GuiHandle2::GuiHandleID& handleID)
+	{
+		guiHandle.registerHandle(handleID, *this);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::signOffHandle(GuiHandle2& guiHandle)
+	{
+		guiHandle.signOff();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::notifyHandleOnGuiElementMove(GuiHandle2& guiHandle)
+	{
+		guiHandle.onMove(*this);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::activate(GuiEventHandle2& guiEventHandle)
+	{
+		guiEventHandle.activate();
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement2::IsCollidingResult GuiElement2::isColliding(const Vec2i& position)
 	{
 		return IsCollidingResult::NOT_COLLIDING;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiElement2::GuiID GuiElement2::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& position)
+	{
+		switch (collidingResult)
+		{
+		case IsCollidingResult::COLLIDE_CHILD:
+		{
+			const auto& childCollision = guiManager->getElement(childID).getCollidingChild(position - this->position);
+			if (childCollision != 0) {
+				return childCollision;
+			}
+			break;
+		}
+		case IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
+		{
+			const auto& childCollision = guiManager->getElement(childID).getCollidingChild(position - this->position);
+			if (childCollision != 0) {
+				return childCollision;
+			}
+			else {
+				return childID;
+			}
+		}
+		case IsCollidingResult::COLLIDE_STRONG:
+		{
+			return childID;
+		}
+		case IsCollidingResult::NOT_COLLIDING:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+		return -1;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement2::GuiID GuiElement2::getCollidingChild(const Vec2i& position)
@@ -59,37 +120,8 @@ namespace SnackerEngine
 		if (!guiManager) return 0;
 		for (const auto& childID : children) {
 			const auto& result = guiManager->getElement(childID).isColliding(position - this->position);
-			switch (result)
-			{
-			case IsCollidingResult::COLLIDE_CHILD:
-			{
-				const auto& childCollision = guiManager->getElement(childID).getCollidingChild(position - this->position);
-				if (childCollision != 0) {
-					return childCollision;
-				}
-				break;
-			}
-			case IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
-			{
-				const auto& childCollision = guiManager->getElement(childID).getCollidingChild(position - this->position);
-				if (childCollision != 0) {
-					return childCollision;
-				}
-				else {
-					return childID;
-				}
-			}
-			case IsCollidingResult::COLLIDE_STRONG:
-			{
-				return childID;
-			}
-			case IsCollidingResult::NOT_COLLIDING:
-			{
-				break;
-			}
-			default:
-				break;
-			}
+			const auto& childCollision = getCollidingChild(result, childID, position);
+			if (childCollision >= 0) return childCollision;
 		}
 		return 0;
 	}
@@ -169,6 +201,12 @@ namespace SnackerEngine
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
+	const GuiElement2::IsCollidingResult& GuiElement2::isColliding(const GuiID& guiID, const Vec2i& parentPosition)
+	{
+		if (guiManager) return guiManager->getElement(guiID).isColliding(parentPosition);
+		return IsCollidingResult::NOT_COLLIDING;
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement2::setPosition(const GuiID& guiID, const Vec2i& position)
 	{
 		if (guiManager) guiManager->getElement(guiID).setPosition(position);
@@ -177,6 +215,16 @@ namespace SnackerEngine
 	void GuiElement2::setSize(const GuiID& guiID, const Vec2i& size)
 	{
 		if (guiManager) guiManager->getElement(guiID).setSize(size);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::setPositionInternal(const Vec2i& position)
+	{
+		this->position = position;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement2::setSizeInternal(const Vec2i& size)
+	{
+		this->size = size;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement2::setPositionAndSize(const GuiID& guiID, const Vec2i& position, const Vec2i& size)
@@ -340,7 +388,7 @@ namespace SnackerEngine
 	{
 		this->position = position;
 		onPositionChange();
-		if (parentID && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
 		else enforceLayout();
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -348,7 +396,7 @@ namespace SnackerEngine
 	{
 		this->size = size;
 		onSizeChange();
-		if (parentID && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
 		else enforceLayout();
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -358,7 +406,7 @@ namespace SnackerEngine
 		onPositionChange();
 		this->size = size;
 		onSizeChange();
-		if (parentID && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
 		else enforceLayout();
 	}
 	//--------------------------------------------------------------------------------------------------
