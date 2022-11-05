@@ -36,11 +36,13 @@ namespace SnackerEngine
 		/// guiID of the parent GuiElement object. If this is zero, this GuiElement object does not 
 		/// have a parent object.
 		GuiID parentID;
+	protected:
 		/// Position of this GuiElement object relative to its parent. The position vector points
 		///  to the upper left corner of the bounding rectangle.
 		Vec2i position;
 		/// Dimensions of the bounding rectangle in pixels. The origin is at the upper left corner
 		Vec2i size;
+	private:
 		/// The resize mode of this element. For more explanation see the definition of
 		/// the enum class above
 		ResizeMode resizeMode;

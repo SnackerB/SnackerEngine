@@ -113,9 +113,13 @@ namespace SnackerEngine
 		bool registerElementAsChild(GuiElement2& parent, GuiElement2& child);
 		/// returns the current mouse offset to a given GuiElement
 		Vec2i getMouseOffset(GuiID guiID);
-		/// Returns the lowest currently colliding child in a given event set. In this context
+		/// Returns the lowest currently colliding element in a given event set. In this context
 		/// "colliding" means != IsCollidingResult::NOT_COLLIDING.
 		std::optional<GuiID> getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet);
+		/// Helper function for getLowestCollidingElementInEventSet() function. Returns the lowest colliding
+		/// child in a given event set, if it exists
+		/// offset: offset from the top left corner of the parent element
+		std::optional<GuiID> getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet);
 
 		//==============================================================================================
 		// Constructors and public functionality

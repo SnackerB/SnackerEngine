@@ -246,14 +246,41 @@ namespace SnackerEngine
 			guiID = registeredGuiElements[guiID]->parentID;
 		}
 		return mouseOffset;
-		return mouseOffset;
 	}
 
 	std::optional<GuiManager2::GuiID> GuiManager2::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
 	{
 		if (eventSet.empty()) return {};
-		GuiID currentLowestCollidingElement = -1;
-		std::vector<GuiID> elementStack;
+		return getLowestCollidingChildInEventSet(parentElement, currentMousePosition, eventSet);
+	}
+
+	std::optional<GuiManager2::GuiID> GuiManager2::getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet)
+	{
+		GuiElement2& parent = getElement(parentID);
+		for (const auto& childID : parent.children) {
+			GuiElement2& child = getElement(childID);
+			switch (child.isColliding(offset)) {
+			case GuiElement2::IsCollidingResult::COLLIDE_CHILD:
+			case GuiElement2::IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
+			{
+				auto result = getLowestCollidingChildInEventSet(childID, offset - child.getPosition(), eventSet);
+				if (result) return result;
+				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				break;
+			}
+			case GuiElement2::IsCollidingResult::COLLIDE_STRONG:
+			{
+				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				return {};
+			}
+			case GuiElement2::IsCollidingResult::NOT_COLLIDING:
+			default:
+			{
+				break;
+			}
+			}
+		}
+		return {};
 	}
 
 	void GuiManager2::setUniformViewAndProjectionMatrices(const Shader& shader)
@@ -339,15 +366,9 @@ namespace SnackerEngine
 	void GuiManager2::callbackMouseScroll(const Vec2d& offset)
 	{
 		processSignOffQueue();
-		// Go from the lastMouseHoverElement to the parent elements, until an element is found which 
-		// is registered for mouseScroll
-		GuiID guiID = lastMouseHoverElement;
-		while (guiID != 0) {
-			if (eventSetMouseScrollOnElement.find(guiID) != eventSetMouseScrollOnElement.end()) {
-				getElement(guiID).callbackMouseScrollOnElement(offset);
-				return;
-			}
-			guiID = getElement(guiID).parentID;
+		auto result = getLowestCollidingElementInEventSet(eventSetMouseScrollOnElement);
+		if (result) {
+			getElement(result.value()).callbackMouseScrollOnElement(offset);
 		}
 	}
 

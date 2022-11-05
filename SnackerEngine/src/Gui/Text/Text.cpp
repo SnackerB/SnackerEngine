@@ -930,6 +930,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::setTextWidth(const double& textWidth, bool recompute)
 	{
+		if (this->textWidth == textWidth) return;
 		this->textWidth = textWidth;
 		if (recompute) constructModel();
 	}
@@ -1286,6 +1287,11 @@ namespace SnackerEngine
 			this->alignment = alignment;
 			if (recompute) constructModelFrom(0);
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setCursorWidth(const double& cursorWidth)
+	{
+		cursorSize.x = cursorWidth;
 	}
 	//--------------------------------------------------------------------------------------------------
 }

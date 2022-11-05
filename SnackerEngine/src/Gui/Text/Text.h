@@ -249,6 +249,8 @@ namespace SnackerEngine
 		virtual void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true) override;
 		/// Sets the alignment.
 		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true) override;
+		/// Sets the cursor width
+		void setCursorWidth(const double& cursorWidth);
 	};
 	//--------------------------------------------------------------------------------------------------
 }

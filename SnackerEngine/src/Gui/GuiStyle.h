@@ -5,6 +5,7 @@
 #include "Gui/Text/Font.h"
 #include "Gui/Text/Text.h"
 #include "Gui/GuiElements/GuiTextBox.h"
+#include "Gui/GuiElements/GuiTextBox2.h"
 
 #include "Gui/Layouts/ListLayout2.h"
 
@@ -26,7 +27,10 @@ namespace SnackerEngine
 		Color4f guiTextBoxBackgroundColor{};
 		StaticText::ParseMode guiTextBoxParseMode{};
 		StaticText::Alignment guiTextBoxAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiTextBoxMode{};
+		GuiDynamicTextBox::TextBoxMode guiTextBoxMode{}; // TODO: Delete
+		GuiDynamicTextBox2::TextBoxMode guiTextBoxMode2{}; 
+		GuiElement2::ResizeMode guiTextBoxResizeMode{};
+		bool guiTextBoxSingleLine{};
 		/// GuiTextVariable
 		Vec2i guiTextVariableSize{};
 		Color4f guiTextVariableTextColor{};
@@ -38,6 +42,7 @@ namespace SnackerEngine
 		double guiEditTextBoxCursorWidth{};
 		double guiEditTextBoxBlinkTime{};
 		Color4f guiEditTextBoxBackgroundColor{};
+		bool guiEditTextBoxSingleLine{};
 		/// GuiInputVariable
 		Vec2i guiInputVariableSize{};
 		Color4f guiInputVariableTextColor{};

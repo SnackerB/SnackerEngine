@@ -11,7 +11,7 @@ namespace SnackerEngine
 		Vec2<unsigned int> dpi = Engine::getDPI();
 		Vec2i screenDims = Renderer::getNativeScreenDimensions();
 		/// Fonts and font sizes
-		//result.defaultFont = Font("fonts/Arial.ttf"); TODO: Uncomment
+		result.defaultFont = Font("fonts/Arial.ttf");
 		result.fontSizeNormal = 16;
 		result.fontSizeTiny = static_cast<unsigned int>(0.5 * static_cast<float>(result.fontSizeNormal));
 		result.fontSizeSmall = static_cast<unsigned int>(0.75 * static_cast<float>(result.fontSizeNormal));
@@ -24,6 +24,9 @@ namespace SnackerEngine
 		result.guiTextBoxParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiTextBoxAlignment = StaticText::Alignment::LEFT;
 		result.guiTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextBoxMode2 = GuiDynamicTextBox2::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextBoxResizeMode = GuiElement2::ResizeMode::DO_NOT_RESIZE;
+		result.guiTextBoxSingleLine = true;
 		/// GuiTextVariable
 		result.guiTextVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiTextVariableTextColor = result.guiTextBoxTextColor;
@@ -35,6 +38,7 @@ namespace SnackerEngine
 		result.guiEditTextBoxCursorWidth = 0.1; // TODO
 		result.guiEditTextBoxBlinkTime = 0.5;
 		result.guiEditTextBoxBackgroundColor = Color4f(0.0f, 1.0f);
+		result.guiEditTextBoxSingleLine = true;
 		/// GuiInputVariable
 		result.guiInputVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiInputVariableTextColor = result.guiTextBoxTextColor;

@@ -237,6 +237,9 @@
     <ClInclude Include="src\Gui\GuiElements\GuiWindow2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiTextBox2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -426,6 +429,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\GuiElements\GuiWindow2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiElements\GuiTextBox2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -22,6 +22,7 @@
 #include "Gui/Layouts/HorizontalLayout2.h"
 #include "Gui/Layouts/VerticalLayout2.h"
 #include "Gui/GuiElements/GuiWindow2.h"
+#include "Gui/GuiElements/GuiTextBox2.h"
 
 SnackerEngine::GuiVariableHandleInt intHandle(2);
 SnackerEngine::GuiVariableHandleFloat floatHandle(2.5f);
@@ -109,12 +110,17 @@ public:
 				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 1.0f, 0.0f, 0.0f });
 				verticalLayout.registerChild(tempPanel, 1.0);
 				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
-				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.8f, 0.0f, 0.0f });
-				verticalLayout.registerChild(tempPanel, 1.0);
-				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
-				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.6f, 0.0f, 0.0f });
-				verticalLayout.registerChild(tempPanel, 1.0);
-				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
+
+				SnackerEngine::GuiEditTextBox2 editBox("Edit me!", style);
+				editBox.setSingleLine(false);
+				editBox.setTextBoxMode(SnackerEngine::GuiDynamicTextBox2::TextBoxMode::FORCE_SIZE);
+				verticalLayout.registerChild(editBox, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiEditTextBox2>(std::move(editBox));
+				
+				SnackerEngine::GuiDynamicTextBox2 textBox("Hello TexBox!", style);
+				verticalLayout.registerChild(textBox, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiDynamicTextBox2>(std::move(textBox));
+
 				tempPanel = SnackerEngine::GuiPanel2({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel2::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
 				verticalLayout.registerChild(tempPanel, 1.0);
 				guiManager.moveElement<SnackerEngine::GuiPanel2>(std::move(tempPanel));
