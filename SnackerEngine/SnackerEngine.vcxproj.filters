@@ -461,6 +461,9 @@
     <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Gui\GuiElements\GuiEditVariable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\gui\simpleColor.shader" />

@@ -161,9 +161,9 @@ public:
 				SnackerEngine::infoLogger << "list layout has guiID " << listLayout.getGuiID() << SnackerEngine::LOGGER::ENDL;
 				{
 					// List layout
-					SnackerEngine::GuiTextVariable2<int> textVariable("test int: ", intHandle2, style);
+					SnackerEngine::GuiEditInt textVariable("test int: ", intHandle2, style);
 					listLayout.registerChild(textVariable);
-					guiManager.moveElement<SnackerEngine::GuiTextVariable2<int>>(std::move(textVariable));
+					guiManager.moveElement<SnackerEngine::GuiEditInt>(std::move(textVariable));
 					SnackerEngine::GuiEditVariable<int>editVariable("edit int: ", style);
 					listLayout.registerChild(editVariable);
 					guiManager.moveElement<SnackerEngine::GuiEditVariable<int>>(std::move(editVariable));

@@ -15,7 +15,7 @@ namespace SnackerEngine
 		T val;
 	protected:
 		/// GuiElement needs to be able to modify the value
-		friend class GuiElement;
+		friend class GuiElement2;
 	public:
 		/// Default Constructor
 		GuiVariableHandle2();

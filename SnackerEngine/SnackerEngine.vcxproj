@@ -275,6 +275,7 @@
     <ClCompile Include="src\Gui\GuiElement.cpp" />
     <ClCompile Include="src\Gui\GuiElement2.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiEditVariable.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiInputVariable.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiPanel2.cpp" />
