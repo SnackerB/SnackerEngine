@@ -26,7 +26,9 @@ namespace SnackerEngine
 		/// Computes the model matrices
 		void computeResizeButtonModelMatrix();
 	protected:
-		// Draws this GuiWindow
+		/// Draws this GuiWindow object relative to its parent element. Will also recursively
+		/// draw all children of this element.
+		/// parentPosition:		position of the upper left corner of the parent element
 		virtual void draw(const Vec2i& parentPosition) override;
 		/// This function gets called when the position changes. Not called by the constructor!
 		virtual void onPositionChange() override;
@@ -44,7 +46,7 @@ namespace SnackerEngine
 		/// This function can e.g. be used for registering callbacks at the guiManager
 		virtual void onRegister() override;
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
-		virtual void callbackMouseButton(const int& button, const int& action, const int& mods);
+		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
 		/// Callback function for mouse button input on this guiElement. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
 		/// Callback function for mouse motion. Parameter the same as in Scene.h

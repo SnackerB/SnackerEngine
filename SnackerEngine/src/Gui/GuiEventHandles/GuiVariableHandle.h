@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 
 #include "Gui/GuiEventHandles/GuiEventHandle.h"
 
@@ -68,9 +69,9 @@ namespace SnackerEngine
 		return val;
 	}
 	//--------------------------------------------------------------------------------------------------
-	using GuiVariableHandleInt = GuiVariableHandle<int>;
-	using GuiVariableHandleUnsignedInt = GuiVariableHandle<unsigned int>;
-	using GuiVariableHandleFloat = GuiVariableHandle<float>;
-	using GuiVariableHandleDouble = GuiVariableHandle<double>;
+	using GuiVariableHandleInt2 = GuiVariableHandle<int>;
+	using GuiVariableHandleUnsignedInt2 = GuiVariableHandle<unsigned int>;
+	using GuiVariableHandleFloat2 = GuiVariableHandle<float>;
+	using GuiVariableHandleDouble2 = GuiVariableHandle<double>;
 	//--------------------------------------------------------------------------------------------------
 }

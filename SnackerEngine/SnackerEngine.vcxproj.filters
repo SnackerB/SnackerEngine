@@ -141,24 +141,6 @@
     <ClInclude Include="src\Core\Keys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\GuiManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiEventHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Gui\Text\Font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -168,25 +150,7 @@
     <ClInclude Include="src\Gui\Text\Glyph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\GridLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\VerticalLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Meshes\Triangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Gui\Text\TextMaterial.h">
@@ -195,67 +159,64 @@
     <ClInclude Include="src\Gui\Text\Text.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\Text\Unicode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiStyle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\VerticalLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\ListLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\GridLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiEventHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Gui\GuiElements\GuiTextVariable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\Text\Unicode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\ListLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiStyle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiInputVariable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElement2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiManager2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiPanel2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\HorizontalLayout2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiLayout2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\VerticalLayout2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\ListLayout2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiWindow2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiTextBox2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\Layouts\GridLayout2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiEventHandle2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Gui\GuiElements\GuiTextVariable2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Gui\GuiElements\GuiEditVariable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiButton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Math\Conversions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiSlider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -359,24 +320,6 @@
     <ClCompile Include="src\Graphics\Materials\MaterialPBR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiElement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Gui\Text\Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -386,25 +329,7 @@
     <ClCompile Include="src\Gui\Text\Glyph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\GridLayout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiLayout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Meshes\Triangle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\Text\TextMaterial.cpp">
@@ -413,55 +338,49 @@
     <ClCompile Include="src\Gui\Text\Text.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\ListLayout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Gui\GuiStyle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\Text\Unicode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiInputVariable.cpp">
+    <ClCompile Include="src\Gui\GuiElement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiElement2.cpp">
+    <ClCompile Include="src\Gui\GuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiManager2.cpp">
+    <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiPanel2.cpp">
+    <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\HorizontalLayout2.cpp">
+    <ClCompile Include="src\Gui\GuiLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiLayout2.cpp">
+    <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\VerticalLayout2.cpp">
+    <ClCompile Include="src\Gui\Layouts\ListLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\ListLayout2.cpp">
+    <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiWindow2.cpp">
+    <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiTextBox2.cpp">
+    <ClCompile Include="src\Gui\Layouts\GridLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\Layouts\GridLayout2.cpp">
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle2.cpp">
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Gui\GuiElements\GuiEditVariable.cpp">
+    <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -3,24 +3,12 @@
 #include "Gui/GuiLayout.h"
 
 #include <vector>
-#include <algorithm>
 
 namespace SnackerEngine
 {
 
-	class GridLayoutReference : public GuiLayoutReference {};
-
-	struct GridLayoutOptions
-	{
-		unsigned column;
-		unsigned row;
-	};
-
 	class GridLayout : public GuiLayout
 	{
-	public:
-		using LayoutReference = GridLayoutReference;
-		using LayoutOptions = GridLayoutOptions;
 	private:
 		friend class GuiManager;
 		friend class GuiElement;
@@ -28,17 +16,30 @@ namespace SnackerEngine
 		unsigned totalColumns;
 		/// Total number of rows in the grid
 		unsigned totalRows;
+		/// struct that stores information where an element is positioned in this layout
+		struct LayoutOptions {
+			unsigned row;
+			unsigned column;
+		};
 		// Vector of stored layoutOptions
 		std::vector<LayoutOptions> layoutOptions;
-		/// Adds a new element to the layout
-		void addChild(const GuiID& guiID, const LayoutOptions& options);
 		/// Removes the given child guiElement from this layout
-		std::size_t removeChild(GuiElement& guiElement) override;
+		void removeChild(GuiElement& guiElement) override;
 		/// Enforces this layout by possibly changing position and size of the children guiElements
 		void enforceLayout() override;
 	public:
 		/// Constructor
 		GridLayout(unsigned totalColumns, unsigned totalRows);
+		/// Adds a child to this guiElement. Returns true on success
+		bool registerChild(GuiElement& guiElement, const unsigned& row, const unsigned& column);
+		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
+		bool registerChild(GuiElement& guiElement) override;
+		// Copy constructor and assignment operator
+		GridLayout(const GridLayout& other) noexcept;
+		GridLayout& operator=(const GridLayout& other) noexcept;
+		/// Move constructor and assignment operator
+		GridLayout(GridLayout&& other) noexcept;
+		GridLayout& operator=(GridLayout&& other) noexcept;
 	};
 
 }

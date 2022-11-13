@@ -1,40 +1,70 @@
 #include "Gui/GuiManager.h"
+#include "Graphics/Renderer.h"
 #include "Graphics/Meshes/Square.h"
 #include "Graphics/Meshes/Triangle.h"
-#include "Graphics/Renderer.h"
-#include "core/Engine.h"
-#include "Gui/GuiLayout.h"
 
 namespace SnackerEngine
 {
+
 	void GuiManager::processSignOffQueue()
 	{
-		for (auto& element : signOffQueue) {
+		for (const auto& element : signOffQueue) {
 			switch (element.second)
 			{
-			case GuiInteractable::CallbackType::MOUSE_BUTTON: eventSetMouseButton.erase(element.first); break;
-			case GuiInteractable::CallbackType::MOUSE_MOTION: eventSetMouseMotion.erase(element.first); break;
-			case GuiInteractable::CallbackType::KEYBOARD: eventSetKeyboard.erase(element.first); break;
-			case GuiInteractable::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.erase(element.first); break;
-			case GuiInteractable::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.erase(element.first); break;
-			case GuiInteractable::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.erase(element.first); break;
-			case GuiInteractable::CallbackType::MOUSE_ENTER: eventSetMouseEnter.erase(element.first); break;
-			case GuiInteractable::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.erase(element.first); break;
-			case GuiInteractable::CallbackType::UPDATE: eventSetUpdate.erase(element.first); break;
+			case GuiElement::CallbackType::MOUSE_BUTTON: eventSetMouseButton.erase(element.first); break;
+			case GuiElement::CallbackType::MOUSE_MOTION: eventSetMouseMotion.erase(element.first); break;
+			case GuiElement::CallbackType::KEYBOARD: eventSetKeyboard.erase(element.first); break;
+			case GuiElement::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.erase(element.first); break;
+			case GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.erase(element.first); break;
+			case GuiElement::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.erase(element.first); break;
+			case GuiElement::CallbackType::MOUSE_ENTER: eventSetMouseEnter.erase(element.first); break;
+			case GuiElement::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.erase(element.first); break;
+			case GuiElement::CallbackType::UPDATE: eventSetUpdate.erase(element.first); break;
 			default:
 				break;
 			}
 		}
 		signOffQueue.clear();
 	}
-	//--------------------------------------------------------------------------------------------------
+
+	void GuiManager::signUpEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType)
+	{
+		processSignOffQueue();
+		if (guiElement.guiID <= 0) return;
+		switch (callbackType)
+		{
+		case GuiElement::CallbackType::MOUSE_BUTTON: eventSetMouseButton.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::MOUSE_MOTION: eventSetMouseMotion.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::KEYBOARD: eventSetKeyboard.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::MOUSE_ENTER: eventSetMouseEnter.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.insert(guiElement.guiID); break;
+		case GuiElement::CallbackType::UPDATE: eventSetUpdate.insert(guiElement.guiID); break;
+		default:
+			break;
+		}
+	}
+
+	void GuiManager::signOffEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType)
+	{
+		// push into signOffQueue. Event will be signed off the next time update() is called.
+		signOffQueue.push_back(std::make_pair(guiElement.guiID, callbackType));
+	}
+
+	GuiManager::GuiID GuiManager::getCollidingElement()
+	{
+		return registeredGuiElements[parentElement]->getCollidingChild(currentMousePosition);
+	}
+
 	GuiManager::GuiID GuiManager::getNewGuiID()
 	{
 		if (registeredGuiElementsCount >= maxGuiElements)
 		{
 			// Resize vector and add new available GuiID slots accordingly. For now: double size everytime this happens and send warning!
-			guiElementPtrArray.resize(maxGuiElements * 2 + 1, nullptr);
-			guiElementPtrOwnedArray.resize(maxGuiElements * 2 + 1, nullptr);
+			registeredGuiElements.resize(maxGuiElements * 2 + 1, nullptr);
+			ownedGuiElements.resize(maxGuiElements * 2 + 1, nullptr);
 			for (GuiID id = maxGuiElements + 1; id <= 2 * maxGuiElements; ++id)
 			{
 				availableGuiIDs.push(id);
@@ -48,239 +78,95 @@ namespace SnackerEngine
 		availableGuiIDs.pop();
 		return id;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::computeViewAndProjection()
 	{
 		const Vec2i& screenDims = Renderer::getScreenDimensions();
 		viewMatrix = Mat4f::Identity();
-		projectionMatrix = Mat4f::TranslateAndScale({ -1.0f, 1.0f, 0.0f }, { 2.0f / static_cast<float>(screenDims.x), 2.0f / static_cast<float>(screenDims.y), 0.0f});
+		projectionMatrix = Mat4f::TranslateAndScale({ -1.0f, 1.0f, 0.0f }, { 2.0f / static_cast<float>(screenDims.x), 2.0f / static_cast<float>(screenDims.y), 0.0f });
 		// TODO: For now this is only for GUI on screen. Later adapt this so that gui can be displayed anywhere!
 	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::signOffWithoutNotifyingParent(GuiElement& guiElement)
+
+	void GuiManager::clearEventQueues(const GuiID& guiID)
 	{
-		if (guiElement.guiID == 0) return;
-		if (guiElement.guiID > maxGuiElements)
+		eventSetMouseButton.erase(guiID);
+		eventSetMouseMotion.erase(guiID);
+		eventSetKeyboard.erase(guiID);
+		eventSetCharacterInput.erase(guiID);
+		eventSetMouseButtonOnElement.erase(guiID);
+		eventSetMouseScrollOnElement.erase(guiID);
+		eventSetMouseEnter.erase(guiID);
+		eventSetMouseLeave.erase(guiID);
+		eventSetUpdate.erase(guiID);
+	}
+
+	void GuiManager::signOff(const GuiID& guiElement)
+	{
+		if (guiElement <= 0) return;
+		if (guiElement > maxGuiElements)
 		{
 			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement that was not valid!" << LOGGER::ENDL;
 			return;
 		}
-		guiElementPtrArray[guiElement.guiID] = nullptr;
+		GuiElement& element = *registeredGuiElements[guiElement];
+		/// Remove element from parent
+		if (element.parentID > maxGuiElements)
+		{
+			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement with invalid parent element" << LOGGER::ENDL;
+			return;
+		}
+		if (registeredGuiElements[element.parentID]) registeredGuiElements[element.parentID]->removeChild(element);
+	}
+
+	void GuiManager::signOffWithoutNotifyingParent(const GuiID& guiElement)
+	{
+		if (guiElement <= 0) return;
+		if (guiElement > maxGuiElements)
+		{
+			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement that was not valid!" << LOGGER::ENDL;
+			return;
+		}
+		GuiElement& element = *registeredGuiElements[guiElement];
+		// Sign off element which will in turn sign off its children
+		element.signOff();
+		registeredGuiElements[guiElement] = nullptr;
 		registeredGuiElementsCount--;
-		guiElement.parentID = 0;
-		// Clear layouts (which will sign off their children)
-		guiElement.layouts.clear();
 		// Clear event queues
 		clearEventQueues(guiElement);
 		// Delete element if it is stored by guiManager
-		if (guiElementPtrOwnedArray[guiElement.guiID]) {
-			GuiID tempGuiID = guiElement.guiID;
-			guiElementPtrOwnedArray[tempGuiID]->guiID = 0;
-			guiElementPtrOwnedArray[tempGuiID] = nullptr;
+		if (ownedGuiElements[guiElement]) {
+			ownedGuiElements[guiElement] = nullptr;
 			ownedGuiElementsCount--;
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::clearEventQueues(GuiInteractable& guiInteractable)
-	{
-		std::pair<GuiID, GuiID> temp;
-		if (guiInteractable.type == GuiInteractable::GUI_ELEMENT) temp = { guiInteractable.guiID, 0 };
-		else temp = { guiInteractable.guiID, guiInteractable.parentID };
-		eventSetMouseButton.erase(temp);
-		eventSetMouseMotion.erase(temp);
-		eventSetKeyboard.erase(temp);
-		eventSetCharacterInput.erase(temp);
-		eventSetMouseButtonOnElement.erase(temp);
-		eventSetMouseScrollOnElement.erase(temp);
-		eventSetMouseEnter.erase(temp);
-		eventSetMouseLeave.erase(temp);
-		eventSetUpdate.erase(temp);
-	}
-	//--------------------------------------------------------------------------------------------------
-	std::pair<GuiManager::GuiID, GuiManager::GuiID> GuiManager::getCollidingInteractable(const Vec2i& position)
-	{
-		// TODO: There could be a more efficient implementation for some special layouts/guiElements.
-		// Maybe we can do this with recursive function calls?
-		for (auto it1 = parentGuiElements.rbegin(); it1 != parentGuiElements.rend(); it1++) {
-			GuiElement::IsCollidingResult result = guiElementPtrArray[*it1]->isColliding(position);
-			if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
-				GuiID currentGuiID = *it1;
-				Vec2i currentPosition = position - guiElementPtrArray[currentGuiID]->position;
-				while (true) {
-					bool foundCollidingChild = false;
-					// Go through all layouts
-					for (auto it2 = guiElementPtrArray[currentGuiID]->layouts.rbegin();
-						it2 != guiElementPtrArray[currentGuiID]->layouts.rend(); it2++) {
-						// First check if the layout is colliding
-						result = (*it2)->isColliding(currentPosition);
-						if (result == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
-							// Check if any of the children are colliding
-							auto childResult = (*it2)->getFirstCollidingChild(currentPosition);
-							if (childResult) {
-								if (childResult.value().first.second == GuiElement::IsCollidingResult::WEAK_COLLIDING) {
-									foundCollidingChild = true;
-									currentGuiID = childResult.value().first.first;
-									currentPosition = childResult.value().second;
-								}
-								else if (childResult.value().first.second == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-									return { childResult.value().first.first, 0 };
-								}
-							}
-						}
-						else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-							return { (*it2)->guiID, (*it2)->parentID };
-						}
-						if (foundCollidingChild)
-							break;
-					}
-					if (!foundCollidingChild)
-						return { currentGuiID, 0 };
-				}
-			}
-			else if (result == GuiElement::IsCollidingResult::STRONG_COLLIDING) {
-				return { *it1, 0 };
-			}
-		}
-		return { 0, 0 };
-	}
-	//--------------------------------------------------------------------------------------------------
-	Vec2f GuiManager::getMouseOffset(GuiID guiID)
-	{
-		Vec2f mouseOffset = currentMousePosition;
-		while (guiID != 0) {
-			mouseOffset -= guiElementPtrArray[guiID]->position;
-			guiID = guiElementPtrArray[guiID]->parentID;
-		}
-		return mouseOffset;
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::handleLayoutsOnGuiElementRegister(GuiElement& guiElement)
-	{
-		for (auto& layout : guiElement.layouts) {
-			layout->guiManager = this;
-			layout->parentID = guiElement.guiID;
-			layout->handleLayoutOnParentRegister(guiElement.guiID);
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiInteractable& GuiManager::getGuiInteractable(std::pair<GuiID, GuiID> identifier)
-	{
-		if (identifier.second == 0) {
-			return *guiElementPtrArray[identifier.first];
-		}
-		else {
-			return guiElementPtrArray[identifier.second]->getLayout(identifier.first);
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::signOff(GuiElement& guiElement)
-	{
-		if (guiElement.guiID == 0) return;
-		if (guiElement.guiID > maxGuiElements)
-		{
-			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement that was not valid!" << LOGGER::ENDL;
-			return;
-		}
-		if (guiElement.parentID == 0) {
-			// Remove element from parentElements
-			auto result = std::find(parentGuiElements.begin(), parentGuiElements.end(), guiElement.guiID);
-			if (result == parentGuiElements.end()) {
-				warningLogger << LOGGER::BEGIN << "signed off element with no parent that was not in parentGuiElements!" << LOGGER::ENDL;
-			}
-			else {
-				parentGuiElements.erase(result);
-			}
-		}
-		else {
-			guiElementPtrArray[guiElement.parentID]->removeChild(guiElement);
-		}
-		signOffWithoutNotifyingParent(guiElement);
-	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::updateMoved(GuiElement& guiElement)
 	{
-		if (guiElement.guiID == 0) return;
+		if (guiElement.guiID <= 0) return;
 		if (guiElement.guiID > maxGuiElements)
 		{
 			warningLogger << LOGGER::BEGIN << "Tried to update guiElement that was not valid!" << LOGGER::ENDL;
 			return;
 		}
-		guiElementPtrArray[guiElement.guiID] = &guiElement;
+		registeredGuiElements[guiElement.guiID] = &guiElement;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	GuiElement& GuiManager::getElement(const GuiID& guiID)
 	{
-		return *guiElementPtrArray[guiID];
+		if (guiID < 0 || guiID >= registeredGuiElements.size() || !registeredGuiElements[guiID]) {
+			errorLogger << LOGGER::BEGIN << "Tried to access invalid guiElement with guiID " << guiID << LOGGER::ENDL;
+		}
+		return *registeredGuiElements[guiID];
 	}
-	//--------------------------------------------------------------------------------------------------
-	std::pair<GuiManager::GuiID, GuiManager::GuiID> GuiManager::getParentInteractable(std::pair<GuiID, GuiID> interactable)
-	{
-		if (interactable.first == 0) {
-			return { 0, 0 };
-		}
-		if (interactable.second == 0) {
-			// interactable is of type GuiElement
-			const GuiElement& element = static_cast<GuiElement&>(getGuiInteractable(interactable));
-			return { element.parentLayoutID, element.parentID };
-		}
-		else {
-			// interactable is of type GuiLayout
-			return { getGuiInteractable(interactable).parentID, 0 };
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::signUpEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType)
-	{
-		if (guiInteractable.guiID == 0) return;
-		std::pair<GuiID, GuiID> insertID;
-		if (guiInteractable.type == GuiInteractable::GuiInteractableType::GUI_ELEMENT) {
-			if (guiInteractable.guiID > maxGuiElements) {
-				warningLogger << LOGGER::BEGIN << "Tried to sign up guiElement that was not valid to event!" << LOGGER::ENDL;
-				return;
-			}
-			insertID = std::make_pair(guiInteractable.guiID, 0);
-		}
-		else {
-			insertID = std::make_pair(guiInteractable.guiID, guiInteractable.parentID);
-		}
-		switch (callbackType)
-		{
-		case GuiElement::CallbackType::MOUSE_BUTTON: eventSetMouseButton.insert(insertID); break;
-		case GuiElement::CallbackType::MOUSE_MOTION: eventSetMouseMotion.insert(insertID); break;
-		case GuiElement::CallbackType::KEYBOARD: eventSetKeyboard.insert(insertID); break;
-		case GuiElement::CallbackType::CHARACTER_INPUT: eventSetCharacterInput.insert(insertID); break;
-		case GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT: eventSetMouseButtonOnElement.insert(insertID); break;
-		case GuiElement::CallbackType::MOUSE_SCROLL_ON_ELEMENT: eventSetMouseScrollOnElement.insert(insertID); break;
-		case GuiElement::CallbackType::MOUSE_ENTER: eventSetMouseEnter.insert(insertID); break;
-		case GuiElement::CallbackType::MOUSE_LEAVE: eventSetMouseLeave.insert(insertID); break;
-		case GuiElement::CallbackType::UPDATE: eventSetUpdate.insert(insertID); break;
-		default:
-			break;
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::signOffEvent(const GuiInteractable& guiInteractable, const GuiElement::CallbackType& callbackType)
-	{
-		if (guiInteractable.guiID == 0) return;
-		std::pair<GuiID, GuiID> removeID;
-		if (guiInteractable.type == GuiInteractable::GuiInteractableType::GUI_ELEMENT) {
-			if (guiInteractable.guiID > maxGuiElements) {
-				warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement that was not valid to event!" << LOGGER::ENDL;
-				return;
-			}
-			removeID = std::make_pair(guiInteractable.guiID, 0);
-		}
-		else {
-			removeID = std::make_pair(guiInteractable.guiID, guiInteractable.parentID);
-		}
-		// push into signOffQueue. Event will be signed off the next time update() is called.
-		signOffQueue.push_back(std::make_pair(removeID, callbackType));
-	}
-	//--------------------------------------------------------------------------------------------------
+
 	GuiManager::GuiManager(const unsigned int& startingSize)
-		: guiElementPtrArray(startingSize + 1, nullptr), guiElementPtrOwnedArray(startingSize + 1, nullptr),
+		: registeredGuiElements(startingSize + 1, nullptr), ownedGuiElements(startingSize + 1, nullptr),
 		availableGuiIDs{}, maxGuiElements(startingSize), registeredGuiElementsCount(0),
-		ownedGuiElementsCount(0), viewMatrix{}, projectionMatrix{}, squareModel{}
+		ownedGuiElementsCount(0), viewMatrix{}, projectionMatrix{}, parentElement(0), currentMousePosition{},
+		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
+		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
+		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, signOffQueue{}, squareModel{},
+		triangleModel{}
 	{
 		// Initializes queue with all possible GuiIDs. GuiID = 0 is reserved for invalid guiElements.
 		for (GuiID id = 1; id <= startingSize; ++id)
@@ -289,69 +175,119 @@ namespace SnackerEngine
 		}
 		// Compute view and projection matrix
 		computeViewAndProjection();
-		// Compute DPI
-		DPI = Engine::getDPI().y;
+		// Initialize parent GuiElement
+		ownedGuiElements[parentElement] = new GuiElement(Vec2i(0, 0), Renderer::getScreenDimensions(), GuiElement::ResizeMode::DO_NOT_RESIZE);
+		ownedGuiElements[parentElement]->guiID = 0;
+		ownedGuiElements[parentElement]->parentID = -1;
+		ownedGuiElements[parentElement]->guiManager = this;
+		registeredGuiElements[parentElement] = ownedGuiElements[parentElement];
 	}
-	//--------------------------------------------------------------------------------------------------
+
+	GuiManager::~GuiManager()
+	{
+		for (unsigned int i = 0; i < ownedGuiElements.size(); ++i) {
+			if (ownedGuiElements[i] != nullptr) {
+				signOff(ownedGuiElements[i]->guiID);
+			}
+		}
+		for (unsigned int i = 0; i < registeredGuiElements.size(); ++i) {
+			if (registeredGuiElements[i] != nullptr) {
+				signOff(registeredGuiElements[i]->guiID);
+			}
+		}
+		signOff(parentElement);
+		ownedGuiElements.clear();
+	}
+
 	void GuiManager::registerElement(GuiElement& guiElement)
 	{
-		if (guiElement.guiID != 0) {
-			warningLogger << LOGGER::BEGIN << "Tried to register already registered guiElement!" << LOGGER::ENDL;
-			return;
-		}
-		/// Get new GuiID
-		guiElement.guiID = getNewGuiID();
-		guiElement.guiManager = this;
+		GuiID newGuiID = getNewGuiID();
+		registeredGuiElements[newGuiID] = &guiElement;
 		registeredGuiElementsCount++;
-		guiElementPtrArray[guiElement.guiID] = &guiElement;
-		// Put into back of parent array
-		parentGuiElements.push_back(guiElement.guiID);
-		// Update layouts
-		handleLayoutsOnGuiElementRegister(*guiElementPtrArray[guiElement.guiID]);
-		// Call onRegister()
+		guiElement.guiID = newGuiID;
+		guiElement.guiManager = this;
+		guiElement.parentID = 0;
+		registeredGuiElements[parentElement]->children.push_back(guiElement.guiID);
 		guiElement.onRegister();
 	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiManager::registerElement(GuiElement& parentElement, GuiElement& childElement)
+
+	bool GuiManager::registerElementAsChild(GuiElement& parent, GuiElement& child)
 	{
-		if (childElement.guiID != 0) {
-			warningLogger << LOGGER::BEGIN << "Tried to register already registered guiElement!" << LOGGER::ENDL;
-			return;
+		if (!parent.isValid()) {
+			warningLogger << LOGGER::BEGIN << "Tried to set guiElement as child of an invalid guiElement!" << LOGGER::ENDL;
+			return false;
 		}
-		if (childElement.parentID != 0) {
-			warningLogger << LOGGER::BEGIN << "Tried to set element as child that already has a parent!" << LOGGER::ENDL;
-			return; // TODO: Maybe dont display warning but just change parent!
-		}
-		/// Get new GuiID
-		childElement.guiID = getNewGuiID();
-		childElement.guiManager = this;
+		GuiID newGuiID = getNewGuiID();
+		registeredGuiElements[newGuiID] = &child;
 		registeredGuiElementsCount++;
-		guiElementPtrArray[childElement.guiID] = &childElement;
-		// Insert as child into parent element (in the back of the children vector)
-		parentElement.addChild(childElement.guiID);
-		guiElementPtrArray[childElement.guiID]->parentID = parentElement.guiID;
-		// Update layouts and children
-		handleLayoutsOnGuiElementRegister(childElement);
-		// Call onRegister()
-		childElement.onRegister();
+		child.guiID = newGuiID;
+		child.guiManager = this;
+		child.parentID = parent.guiID;
+		child.onRegister();
+		return true;
 	}
-	//--------------------------------------------------------------------------------------------------
+
+	Vec2i GuiManager::getMouseOffset(GuiID guiID)
+	{
+		Vec2f mouseOffset = currentMousePosition;
+		while (guiID >= 0) {
+			mouseOffset -= registeredGuiElements[guiID]->position;
+			guiID = registeredGuiElements[guiID]->parentID;
+		}
+		return mouseOffset;
+	}
+
+	std::optional<GuiManager::GuiID> GuiManager::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
+	{
+		if (eventSet.empty()) return {};
+		return getLowestCollidingChildInEventSet(parentElement, currentMousePosition, eventSet);
+	}
+
+	std::optional<GuiManager::GuiID> GuiManager::getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet)
+	{
+		GuiElement& parent = getElement(parentID);
+		for (const auto& childID : parent.children) {
+			GuiElement& child = getElement(childID);
+			switch (child.isColliding(offset)) {
+			case GuiElement::IsCollidingResult::COLLIDE_CHILD:
+			case GuiElement::IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
+			{
+				auto result = getLowestCollidingChildInEventSet(childID, offset - child.getPosition(), eventSet);
+				if (result) return result;
+				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				break;
+			}
+			case GuiElement::IsCollidingResult::COLLIDE_STRONG:
+			{
+				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				return {};
+			}
+			case GuiElement::IsCollidingResult::NOT_COLLIDING:
+			default:
+			{
+				break;
+			}
+			}
+		}
+		return {};
+	}
+
 	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader)
 	{
 		shader.setUniform<Mat4f>("u_view", viewMatrix);
 		shader.setUniform<Mat4f>("u_projection", projectionMatrix);
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	const Mat4f& GuiManager::getViewMatrix() const
 	{
 		return viewMatrix;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	const Mat4f& GuiManager::getProjectionMatrix() const
 	{
 		return projectionMatrix;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	Model GuiManager::getModelSquare()
 	{
 		if (squareModel.isValid())
@@ -359,7 +295,7 @@ namespace SnackerEngine
 		squareModel = Model(createMeshSquare());
 		return squareModel;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	Model GuiManager::getModelTriangle()
 	{
 		if (triangleModel.isValid())
@@ -367,100 +303,85 @@ namespace SnackerEngine
 		triangleModel = Model(createMeshTriangle());
 		return triangleModel;
 	}
-	//--------------------------------------------------------------------------------------------------
-	unsigned int GuiManager::getDPI()
-	{
-		return DPI;
-	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods)
 	{
-		for (const auto& identifier : eventSetKeyboard) {
-			getGuiInteractable(identifier).callbackKeyboard(key, scancode, action, mods);
+		processSignOffQueue();
+		for (const auto& guiID: eventSetKeyboard) {
+			getElement(guiID).callbackKeyboard(key, scancode, action, mods);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
-		if (eventSetMouseButtonOnElement.find(lastMouseHoverElement) != eventSetMouseButtonOnElement.end()) {
-			getGuiInteractable(lastMouseHoverElement).callbackMouseButtonOnElement(button, action, mods);
+		processSignOffQueue();
+		// Go from the lastMouseHoverElement to the parent elements, until an element is found which 
+		// is registered for mouseButtonOnElement
+		GuiID guiID = lastMouseHoverElement;
+		while (guiID != 0) {
+			if (eventSetMouseButtonOnElement.find(guiID) != eventSetMouseButtonOnElement.end()) {
+				getElement(guiID).callbackMouseButtonOnElement(button, action, mods);
+				break;
+			}
+			guiID = getElement(guiID).parentID;
 		}
-		for (const auto& identifier : eventSetMouseButton) {
-			getGuiInteractable(identifier).callbackMouseButton(button, action, mods);
+		for (const auto& guiID : eventSetMouseButton) {
+			getElement(guiID).callbackMouseButton(button, action, mods);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::callbackMouseMotion(const Vec2d& position)
 	{
+		processSignOffQueue();
 		currentMousePosition = position;
-		auto newMouseHoverElement = getCollidingInteractable(position);
+		for (const auto& guiID : eventSetMouseMotion) {
+			getElement(guiID).callbackMouseMotion(position);
+		}
+		auto newMouseHoverElement = getCollidingElement();
 		if (newMouseHoverElement != lastMouseHoverElement) {
 			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end())
-				getGuiInteractable(lastMouseHoverElement).callbackMouseLeave(position);
+				getElement(lastMouseHoverElement).callbackMouseLeave(position);
 			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
-				getGuiInteractable(newMouseHoverElement).callbackMouseEnter(position);
-		}
-		for (const auto& identifier : eventSetMouseMotion) {
-			getGuiInteractable(identifier).callbackMouseMotion(position);
+				getElement(newMouseHoverElement).callbackMouseEnter(position);
 		}
 		lastMouseHoverElement = newMouseHoverElement;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::callbackWindowResize(const Vec2i& screenDims)
 	{
 		computeViewAndProjection();
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::callbackMouseScroll(const Vec2d& offset)
 	{
-		std::pair<GuiID, GuiID> currentInteractable = lastMouseHoverElement;
-		/// If lastMouseHoverElement is of type GuiElement, first check the layouts if they need mouseScroll callback TODO: Smarter solution?
-		if (lastMouseHoverElement.first == 0) {
-			return;
-		}
-		if (lastMouseHoverElement.second == 0) {
-			Vec2i mouseOffset = getMouseOffset(lastMouseHoverElement.first);
-			for (auto& layout : static_cast<GuiElement&>(getGuiInteractable(lastMouseHoverElement)).layouts) {
-				if (layout->isColliding(mouseOffset) != GuiInteractable::IsCollidingResult::NOT_COLLIDING &&
-					eventSetMouseScrollOnElement.find({ layout->guiID, layout->parentID }) != eventSetMouseScrollOnElement.end()) {
-					layout->callbackMouseScrollOnElement(offset);
-					return;
-				}
-			}
-		}
-		while (currentInteractable.first != 0) {
-			if (eventSetMouseScrollOnElement.find(currentInteractable) != eventSetMouseScrollOnElement.end()) {
-				getGuiInteractable(currentInteractable).callbackMouseScrollOnElement(offset);
-				return;
-			}
-			currentInteractable = getParentInteractable(currentInteractable);
+		processSignOffQueue();
+		auto result = getLowestCollidingElementInEventSet(eventSetMouseScrollOnElement);
+		if (result) {
+			getElement(result.value()).callbackMouseScrollOnElement(offset);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::callbackCharacterInput(const unsigned int& codepoint)
 	{
-		for (auto& identifier : eventSetCharacterInput) {
-			getGuiInteractable(identifier).callbackCharacterInput(codepoint);
+		processSignOffQueue();
+		for (auto& guiID : eventSetCharacterInput) {
+			getElement(guiID).callbackCharacterInput(codepoint);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::update(const double& dt)
 	{
 		processSignOffQueue();
-		for (auto& identifier : eventSetUpdate) {
-			getGuiInteractable(identifier).update(dt);
+		for (auto& guiID: eventSetUpdate) {
+			getElement(guiID).update(dt);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	void GuiManager::draw()
 	{
-		// Draw all elements
 		Renderer::disableDepthTesting();
-		for (const GuiID& guiID : parentGuiElements) 
-		{
-			guiElementPtrArray[guiID]->draw({0, 0});
-		}
+		registeredGuiElements[parentElement]->draw(Vec2i(0, 0));
 		Renderer::enableDepthTesting();
 	}
-	//--------------------------------------------------------------------------------------------------
+
 }

@@ -1052,8 +1052,10 @@ namespace SnackerEngine
 		{
 		case SnackerEngine::StaticText::ParseMode::WORD_BY_WORD: model = parseTextWordByWordFrom(lineIndex); break;
 		case SnackerEngine::StaticText::ParseMode::CHARACTERS: model = parseTextCharactersFrom(lineIndex); break;
+		case SnackerEngine::StaticText::ParseMode::SINGLE_LINE: model = parseTextSingleLineFrom(lineIndex); break;
 		default: break;
 		}
+		setCursorPos(cursorPosIndex);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::constructModel()
@@ -1062,8 +1064,10 @@ namespace SnackerEngine
 		{
 		case SnackerEngine::StaticText::ParseMode::WORD_BY_WORD: model = parseTextWordByWord(); break;
 		case SnackerEngine::StaticText::ParseMode::CHARACTERS: model = parseTextCharacters(); break;
+		case SnackerEngine::StaticText::ParseMode::SINGLE_LINE: model = parseTextSingleLine(); break;
 		default: break;
 		}
+		setCursorPos(cursorPosIndex);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::constructTextFromCharacters()
@@ -1138,6 +1142,37 @@ namespace SnackerEngine
 		cursorPos.x -= cursorSize.x;
 		cursorPos.y += font.getDescender();
 		cursorPosIndex = characterIndex;
+		// Special care needs to be taken if the alignment is CENTER or RIGHT
+		if (alignment == Alignment::CENTER) {
+			if (characters.empty()) cursorPos.x = textWidth / fontSize / 2.0f - cursorSize.x / 2.0f;
+			else {
+				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
+				double horizontalOffset = (textWidth / fontSize - lineWidth) / 2.0;
+				cursorPos.x += horizontalOffset;
+			}
+		}
+		else if (alignment == Alignment::RIGHT) {
+			if (characters.empty()) cursorPos.x = textWidth;
+			else {
+				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
+				cursorPos.x += textWidth - lineWidth;
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::computeCursorPosFromMousePos(const Vec2i& mousePos)
+	{
+		// Find the correct line
+		double descender = font.getDescender() * fontSize;
+		int lineNumber = -1;
+		for (unsigned int tempLineNumber = 0; tempLineNumber < lines.size() - 1; tempLineNumber++) {
+			if (mousePos.y >= lines[tempLineNumber].baselineY + descender) {
+				lineNumber = tempLineNumber;
+				break;
+			}
+		}
+		if (lineNumber == -1) lineNumber = lines.size() - 1;
+		setCursorPos(lines[lineNumber].endIndex);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::moveCursorToLeft()

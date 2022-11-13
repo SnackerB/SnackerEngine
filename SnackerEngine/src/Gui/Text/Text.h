@@ -200,13 +200,11 @@ namespace SnackerEngine
 		/// Copy and Move constructors
 		EditableText(const EditableText& other) noexcept;
 		EditableText(EditableText&& other) noexcept;
-		/// Sets the contents of the text. Needs to recompute the text model.
-		/// If you want to set multiple parameters and not yet want to recompute the text model,
-		/// set recompute to false
-		void setText(const std::string& text, bool recompute = true) override;
 		/// Sets the cursor position
 		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
 		void setCursorPos(unsigned int characterIndex);
+		/// Sets the cursor position to be as close as possible to the given 2D (mouse) position
+		void computeCursorPosFromMousePos(const Vec2i& mousePos);
 		/// Moves the cursor one character to the left
 		void moveCursorToLeft();
 		/// Moves the cursor one character to the right
@@ -231,6 +229,10 @@ namespace SnackerEngine
 		const Vec2f& getCursorSize() const;
 		/// Returns the text
 		const std::string& getText() override;
+		/// Sets the contents of the text. Needs to recompute the text model.
+		/// If you want to set multiple parameters and not yet want to recompute the text model,
+		/// set recompute to false
+		virtual void setText(const std::string& text, bool recompute = true) override;
 		/// Sets the textwidth. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false

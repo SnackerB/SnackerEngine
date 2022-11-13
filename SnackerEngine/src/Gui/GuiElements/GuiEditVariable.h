@@ -1,25 +1,26 @@
 #pragma once
 
-#include "Gui/GuiElement2.h"
-#include "Gui/GuiElements/GuiTextBox2.h"
+#include "Gui/GuiElement.h"
+#include "Gui/GuiElements/GuiTextBox.h"
 #include "Gui/GuiStyle.h"
-#include "Gui/GuiManager2.h"
-#include "Gui/GuiEventHandles/GuiEventHandle2.h"
+#include "Gui/GuiManager.h"
+#include "Gui/GuiEventHandles/GuiEventHandle.h"
+#include "Math/Conversions.h"
 
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	class GuiEditVariable : public GuiElement2
+	class GuiEditVariable : public GuiElement
 	{
 		/// The handle to the variable that is shown in this textBox
-		GuiVariableHandle2<T>* variableHandle;
+		GuiVariableHandle<T>* variableHandle;
 		/// The GuiTextBox that shows the label
-		std::unique_ptr<GuiDynamicTextBox2> label;
+		std::unique_ptr<GuiDynamicTextBox> label;
 		/// The GuiEditBox that is used to edit the variable
-		std::unique_ptr<GuiEditTextBox2> editBox;
+		std::unique_ptr<GuiEditTextBox> editBox;
 		/// EventHandle that is used to detect when the text is edited
-		struct EditTextEventHandle : public GuiEventHandle2
+		struct EditTextEventHandle : public GuiEventHandle
 		{
 			friend class GuiEditVariable<T>;
 			GuiEditVariable<T>* guiEditVariable;
@@ -29,8 +30,8 @@ namespace SnackerEngine
 				if (guiEditVariable) guiEditVariable->checkEditBoxAndSetVariable();
 			}
 			/// Constructor
-			EditTextEventHandle(GuiEditVariable<T>* guiEditVariable)
-				: guiEditVariable(guiEditVariable) {}
+			EditTextEventHandle(GuiEditVariable<T>& guiEditVariable)
+				: guiEditVariable(&guiEditVariable) {}
 		};
 		/// The EditTextEventHandle of this GuiEditVariableObject
 		EditTextEventHandle editTextEventHandle;
@@ -57,15 +58,15 @@ namespace SnackerEngine
 		/// recursively.
 		virtual GuiID getCollidingChild(const Vec2i& position) override;
 		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle2& guiHandle) override;
+		virtual void onHandleDestruction(GuiHandle& guiHandle) override;
 		/// Overwrite this function if the guiElement owns handles. This function should update the
 		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle2& guiHandle) override;
+		virtual void onHandleMove(GuiHandle& guiHandle) override;
 		/// Transforms the value to a UTF8 encoded string. May apply additional rounding operation.
 		virtual std::string toText(const T& value);
 		/// This function can be called by a handle if something occurs/changes with the handle
 		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle2& guiHandle) override;
+		virtual void onHandleUpdate(GuiHandle& guiHandle) override;
 		/// Sets the value in the variable handle to a given value and updates the text
 		void setVariable(const T& value);
 		/// Returns a const reference to the value of the variable handle
@@ -77,25 +78,25 @@ namespace SnackerEngine
 		virtual std::optional<T> toValue(const std::string& text);
 	public:
 		/// Constructor
-		GuiEditVariable(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement2::ResizeMode& resizeMode = GuiElement2::ResizeMode::DO_NOT_RESIZE,
+		GuiEditVariable(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE,
 			const std::string& label = "", const Font& font = Font(), const double& fontSize = 0,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& editTextColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const Color4f& editTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::Alignment& editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0);
 		/// Constructor that already registers variable handle
-		GuiEditVariable(GuiVariableHandle2<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement2::ResizeMode& resizeMode,
+		GuiEditVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
 			const std::string& label, const Font& font, const double& fontSize,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& editTextColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const Color4f& editTextBackgroundColor = = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::Alignment & editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0);
 		/// Constructors using GuiStyle
-		GuiEditVariable(const std::string& label, GuiVariableHandle2<T>& handle, const GuiStyle& style);
+		GuiEditVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style);
 		GuiEditVariable(const std::string& label, const GuiStyle& style);
-		GuiEditVariable(const std::string& label, const double& fontSize, GuiVariableHandle2<T>& handle, const GuiStyle& style);
+		GuiEditVariable(const std::string& label, const double& fontSize, GuiVariableHandle<T>& handle, const GuiStyle& style);
 		GuiEditVariable(const std::string& label, const double& fontSize, const GuiStyle& style);
 		/// Sets the event handle. Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
-		void setVariableHandle(GuiVariableHandle2<T>& variableHandle);
+		void setVariableHandle(GuiVariableHandle<T>& variableHandle);
 		/// Copy constructor and assignment operator
 		GuiEditVariable(const GuiEditVariable<T>& other) noexcept;
 		GuiEditVariable& operator=(const GuiEditVariable<T>& other) noexcept;
@@ -113,7 +114,7 @@ namespace SnackerEngine
 		Vec2i nextPosition = parentPosition + position;
 		drawElement(label->getGuiID(), nextPosition);
 		drawElement(editBox->getGuiID(), nextPosition);
-		GuiElement2::draw(parentPosition);
+		GuiElement::draw(parentPosition);
 	}
 
 	template<typename T>
@@ -146,7 +147,6 @@ namespace SnackerEngine
 	{
 		if (variableHandle) {
 			setVariableHandleValue<T>(*variableHandle, value);
-			label->setText(toText(variableHandle->get()));
 		}
 	}
 
@@ -175,30 +175,29 @@ namespace SnackerEngine
 	template<typename T>
 	inline std::optional<T> GuiEditVariable<T>::toValue(const std::string& text)
 	{
-		return {};
+		return convertFromString<T>(text);
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(const Vec2i& position, const Vec2i& size, const GuiElement2::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth)
-		: GuiElement2(position, size, resizeMode),
-		label(std::make_unique<GuiDynamicTextBox2>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelTextBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::LEFT, GuiDynamicTextBox2::TextBoxMode::SHRINK_TO_FIT, true)),
-		editBox(std::make_unique<GuiEditTextBox2>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, "", font, fontSize, cursorWidth, editTextColor, editTextBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::CENTER, GuiDynamicTextBox2::TextBoxMode::FORCE_SIZE, true)),
-		variableHandle(nullptr), editTextEventHandle(nullptr)
+	inline GuiEditVariable<T>::GuiEditVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth)
+		: GuiElement(position, size, resizeMode),
+		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelTextBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::LEFT, GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT, true)),
+		editBox(std::make_unique<GuiEditTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, "", font, fontSize, cursorWidth, editTextColor, editTextBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::CENTER, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, true)),
+		variableHandle(nullptr), editTextEventHandle(*this)
 	{
 		setSizeInternal(Vec2i(size.x, this->label->getHeight()));
-		editTextEventHandle.guiEditVariable = this;
 		editBox->setEventHandleTextWasEdited(editTextEventHandle);
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(GuiVariableHandle2<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement2::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth)
+	inline GuiEditVariable<T>::GuiEditVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth)
 		: GuiEditVariable<T>(position, size, resizeMode, label, font, fontSize, labelTextColor, editTextColor, labelTextBackgroundColor, editTextBackgroundColor, editTextAlignment, cursorWidth)
 	{
 		setVariableHandle(handle);
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, GuiVariableHandle2<T>& handle, const GuiStyle& style)
+	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style)
 		: GuiEditVariable<T>(handle, Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
 
 	template<typename T>
@@ -206,7 +205,7 @@ namespace SnackerEngine
 		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, const double& fontSize, GuiVariableHandle2<T>& handle, const GuiStyle& style)
+	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, const double& fontSize, GuiVariableHandle<T>& handle, const GuiStyle& style)
 		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
 
 	template<typename T>
@@ -214,7 +213,7 @@ namespace SnackerEngine
 		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
 
 	template<typename T>
-	inline void GuiEditVariable<T>::setVariableHandle(GuiVariableHandle2<T>& variableHandle)
+	inline void GuiEditVariable<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)
 	{
 		if (!this->variableHandle) {
 			this->variableHandle = &variableHandle;
@@ -225,8 +224,8 @@ namespace SnackerEngine
 
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(const GuiEditVariable<T>& other) noexcept
-		: GuiElement2(other), variableHandle(nullptr), label(std::make_unique<GuiDynamicTextBox2>(*other.label)), 
-		editBox(std::make_unique<GuiEditTextBox2>(*other.editBox)), editTextEventHandle(*this) 
+		: GuiElement(other), variableHandle(nullptr), label(std::make_unique<GuiDynamicTextBox>(*other.label)), 
+		editBox(std::make_unique<GuiEditTextBox>(*other.editBox)), editTextEventHandle(*this) 
 	{
 		editBox->setEventHandleTextWasEdited(editTextEventHandle);
 	}
@@ -234,10 +233,10 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiEditVariable<T>& GuiEditVariable<T>::operator=(const GuiEditVariable<T>& other) noexcept
 	{
-		GuiElement2::operator=(other);
+		GuiElement::operator=(other);
 		variableHandle = nullptr;
-		label = std::make_unique<GuiDynamicTextBox2>(*other.label);
-		editBox = std::make_unique<GuiEditTextBox2>(*other.editBox);
+		label = std::make_unique<GuiDynamicTextBox>(*other.label);
+		editBox = std::make_unique<GuiEditTextBox>(*other.editBox);
 		editTextEventHandle = EditTextEventHandle(*this);
 		editBox->setEventHandleTextWasEdited(editTextEventHandle);
 		return this;
@@ -245,7 +244,7 @@ namespace SnackerEngine
 
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(GuiEditVariable<T>&& other) noexcept
-		: GuiElement2(std::move(other)), variableHandle(nullptr), label(std::move(other.label)), editBox(std::move(other.editBox)), 
+		: GuiElement(std::move(other)), variableHandle(other.variableHandle), label(std::move(other.label)), editBox(std::move(other.editBox)), 
 		editTextEventHandle(std::move(other.editTextEventHandle))
 	{
 		editTextEventHandle.guiEditVariable = this;
@@ -258,7 +257,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiEditVariable<T>& GuiEditVariable<T>::operator=(GuiEditVariable<T>&& other) noexcept
 	{
-		GuiElement2::operator=(std::move(other));
+		GuiElement::operator=(std::move(other));
 		variableHandle = other.variableHandle;
 		label = std::move(other.label);
 		editBox = std::move(other.editBox);
@@ -282,30 +281,30 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiEditVariable<T>::GuiID GuiEditVariable<T>::getCollidingChild(const Vec2i& position)
 	{
-		IsCollidingResult result = GuiElement2::isColliding(editBox->getGuiID(), position - getPosition());
+		IsCollidingResult result = GuiElement::isColliding(editBox->getGuiID(), position - getPosition());
 		if (result != IsCollidingResult::NOT_COLLIDING) {
-			GuiID childCollision = GuiElement2::getCollidingChild(result, editBox->getGuiID(), position);
+			GuiID childCollision = GuiElement::getCollidingChild(result, editBox->getGuiID(), position);
 			if (childCollision > 0) return childCollision;
 		}
-		result = GuiElement2::isColliding(label->getGuiID(), position - getPosition());
+		result = GuiElement::isColliding(label->getGuiID(), position - getPosition());
 		if (result != IsCollidingResult::NOT_COLLIDING) {
-			GuiID childCollision = GuiElement2::getCollidingChild(result, label->getGuiID(), position);
+			GuiID childCollision = GuiElement::getCollidingChild(result, label->getGuiID(), position);
 			if (childCollision > 0) return childCollision;
 		}
-		return GuiElement2::getCollidingChild(position);
+		return GuiElement::getCollidingChild(position);
 	}
 
 	template<typename T>
-	inline void GuiEditVariable<T>::onHandleDestruction(GuiHandle2& guiHandle)
+	inline void GuiEditVariable<T>::onHandleDestruction(GuiHandle& guiHandle)
 	{
 		variableHandle = nullptr;
 	}
 
 	template<typename T>
-	inline void GuiEditVariable<T>::onHandleMove(GuiHandle2& guiHandle)
+	inline void GuiEditVariable<T>::onHandleMove(GuiHandle& guiHandle)
 	{
 		// Update pointer
-		variableHandle = static_cast<GuiVariableHandle2<T>*>(&guiHandle);
+		variableHandle = static_cast<GuiVariableHandle<T>*>(&guiHandle);
 	}
 
 	template<typename T>
@@ -315,33 +314,9 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline void GuiEditVariable<T>::onHandleUpdate(GuiHandle2& guiHandle)
+	inline void GuiEditVariable<T>::onHandleUpdate(GuiHandle& guiHandle)
 	{
 		editBox->setText(toText(variableHandle->get()));
 	}
-
-	class GuiEditInt : public GuiEditVariable<int>
-	{
-		/// Takes a string and returns the value it represents, if possible
-		std::optional<int> toValue(const std::string& text) override;
-	public:
-		/// Constructor
-		GuiEditInt(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement2::ResizeMode& resizeMode = GuiElement2::ResizeMode::DO_NOT_RESIZE,
-			const std::string& label = "", const Font& font = Font(), const double& fontSize = 0,
-			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& editTextColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const Color4f& editTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
-			const StaticText::Alignment& editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0);
-		/// Constructor that already registers variable handle
-		GuiEditInt(GuiVariableHandle2<int>& handle, const Vec2i& position, const Vec2i& size, const GuiElement2::ResizeMode& resizeMode,
-			const std::string& label, const Font& font, const double& fontSize,
-			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& editTextColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const Color4f& editTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
-			const StaticText::Alignment & editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0);
-		/// Constructors using GuiStyle
-		GuiEditInt(const std::string& label, GuiVariableHandle2<int>& handle, const GuiStyle& style);
-		GuiEditInt(const std::string& label, const GuiStyle& style);
-		GuiEditInt(const std::string& label, const double& fontSize, GuiVariableHandle2<int>& handle, const GuiStyle& style);
-		GuiEditInt(const std::string& label, const double& fontSize, const GuiStyle& style);
-	};
 
 }

@@ -5,9 +5,9 @@
 #include "Gui/Text/Font.h"
 #include "Gui/Text/Text.h"
 #include "Gui/GuiElements/GuiTextBox.h"
-#include "Gui/GuiElements/GuiTextBox2.h"
+#include "Gui/GuiElements/GuiButton.h"
 
-#include "Gui/Layouts/ListLayout2.h"
+#include "Gui/Layouts/ListLayout.h"
 
 namespace SnackerEngine
 {
@@ -27,9 +27,8 @@ namespace SnackerEngine
 		Color4f guiTextBoxBackgroundColor{};
 		StaticText::ParseMode guiTextBoxParseMode{};
 		StaticText::Alignment guiTextBoxAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiTextBoxMode{}; // TODO: Delete
-		GuiDynamicTextBox2::TextBoxMode guiTextBoxMode2{}; 
-		GuiElement2::ResizeMode guiTextBoxResizeMode{};
+		GuiDynamicTextBox::TextBoxMode guiTextBoxMode2{}; 
+		GuiElement::ResizeMode guiTextBoxResizeMode{};
 		bool guiTextBoxSingleLine{};
 		/// GuiTextVariable
 		Vec2i guiTextVariableSize{};
@@ -37,25 +36,23 @@ namespace SnackerEngine
 		Color4f guiTextVariableBackgroundColor{};
 		StaticText::ParseMode guiTextVariableParseMode{};
 		StaticText::Alignment guiTextVariableAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiTextVariableTextBoxMode{};
-		GuiDynamicTextBox2::TextBoxMode guiTextVariableTextBoxMode2{};
+		GuiDynamicTextBox::TextBoxMode guiTextVariableTextBoxMode2{};
 		bool guiTextVariableSingleLine{};
-		GuiElement2::ResizeMode guiTextVariableResizeMode{};
+		GuiElement::ResizeMode guiTextVariableResizeMode{};
 		/// GuiEditTextBox
 		double guiEditTextBoxCursorWidth{};
 		double guiEditTextBoxBlinkTime{};
 		Color4f guiEditTextBoxBackgroundColor{};
 		bool guiEditTextBoxSingleLine{};
 		/// GuiInputVariable
-		Vec2i guiInputVariableSize{};
-		Color4f guiInputVariableTextColor{};
-		Color4f guiInputVariableBackgroundColor{};
-		StaticText::ParseMode guiInputVariableParseMode{};
-		StaticText::Alignment guiInputVariableAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiInputVariableTextBoxMode{};
+		//Vec2i guiInputVariableSize{};
+		//Color4f guiInputVariableTextColor{};
+		//Color4f guiInputVariableBackgroundColor{};
+		//StaticText::ParseMode guiInputVariableParseMode{};
+		//StaticText::Alignment guiInputVariableAlignment{};
 		/// GuiEditVariable
 		Vec2i guiEditVariableSize{};
-		GuiElement2::ResizeMode guiEditVariableResizeMode{};
+		GuiElement::ResizeMode guiEditVariableResizeMode{};
 		StaticText::Alignment guiEditVariableEditTextAlignment{};
 		/// GuiButton
 		Vec2i guiButtonSize{};
@@ -66,7 +63,9 @@ namespace SnackerEngine
 		Color4f guiButtonPressedHoverColor{};
 		StaticText::ParseMode guiButtonParseMode{};
 		StaticText::Alignment guiButtonAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiButtonTextBoxMode{};
+		GuiElement::ResizeMode guiButtonResizeMode{};
+		GuiButton::TextBoxMode guiButtonTextBoxMode2{};
+		bool guiButtonSingleLine{};
 		/// GuiWindow
 		Vec2i guiWindowSize{};
 		Color3f guiWindowBackgroundColor{};
@@ -82,7 +81,16 @@ namespace SnackerEngine
 		float listLayoutScrollBarOffsetTop{};
 		float listLayoutScrollBarOffsetBottom{};
 		float listLayoutScrollBarOffsetRight{};
-		ListLayout2::ListLayoutResizeMode listLayoutResizeMode{};
+		ListLayout::ListLayoutResizeMode listLayoutResizeMode{};
+		/// Slider
+		Vec2i guiSliderSize{}; 
+		GuiElement::ResizeMode guiSliderResizeMode{};
+		Color4f guiSliderLabelTextColor{};
+		Color4f guiSliderLabelBackgroundColor{};
+		Color4f guiSliderVariableBoxTextColor{};
+		Color4f guiSliderVariableBoxBackgroundColor{};
+		Color4f guiSliderButtonColor{}; 
+		double guiSliderButtonWidth{};
 	};
 	//--------------------------------------------------------------------------------------------------
 	GuiStyle getDefaultStyle();

@@ -23,9 +23,8 @@ namespace SnackerEngine
 		result.guiTextBoxBackgroundColor = Color4f(0.0f, 0.0f);
 		result.guiTextBoxParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiTextBoxAlignment = StaticText::Alignment::LEFT;
-		result.guiTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
-		result.guiTextBoxMode2 = GuiDynamicTextBox2::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
-		result.guiTextBoxResizeMode = GuiElement2::ResizeMode::DO_NOT_RESIZE;
+		result.guiTextBoxMode2 = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextBoxResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
 		result.guiTextBoxSingleLine = true;
 		/// GuiTextVariable
 		result.guiTextVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
@@ -33,25 +32,23 @@ namespace SnackerEngine
 		result.guiTextVariableBackgroundColor = result.guiTextBoxBackgroundColor;
 		result.guiTextVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
 		result.guiTextVariableAlignment = StaticText::Alignment::LEFT;
-		result.guiTextVariableTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
-		result.guiTextVariableTextBoxMode2 = GuiDynamicTextBox2::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextVariableTextBoxMode2 = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
 		result.guiTextVariableSingleLine = true;
-		result.guiTextVariableResizeMode = GuiElement2::ResizeMode::DO_NOT_RESIZE;
+		result.guiTextVariableResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
 		/// GuiEditTextBox
 		result.guiEditTextBoxCursorWidth = 0.1; // TODO
 		result.guiEditTextBoxBlinkTime = 0.5;
 		result.guiEditTextBoxBackgroundColor = Color4f(0.0f, 1.0f);
 		result.guiEditTextBoxSingleLine = true;
 		/// GuiInputVariable
-		result.guiInputVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
-		result.guiInputVariableTextColor = result.guiTextBoxTextColor;
-		result.guiInputVariableBackgroundColor = result.guiTextBoxBackgroundColor;
-		result.guiInputVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
-		result.guiInputVariableAlignment = StaticText::Alignment::LEFT;
-		result.guiInputVariableTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		//result.guiInputVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
+		//result.guiInputVariableTextColor = result.guiTextBoxTextColor;
+		//result.guiInputVariableBackgroundColor = result.guiTextBoxBackgroundColor;
+		//result.guiInputVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
+		//result.guiInputVariableAlignment = StaticText::Alignment::CENTER;
 		/// GuiEditVariable
-		result.guiEditVariableSize = result.guiInputVariableSize;
-		result.guiEditVariableResizeMode = GuiElement2::ResizeMode::RESIZE_RANGE;
+		result.guiEditVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
+		result.guiEditVariableResizeMode = GuiElement::ResizeMode::RESIZE_RANGE;
 		result.guiEditVariableEditTextAlignment = StaticText::Alignment::CENTER;
 		/// GuiButton
 		result.guiButtonSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
@@ -62,9 +59,11 @@ namespace SnackerEngine
 		result.guiButtonPressedHoverColor = Color4f(result.guiButtonBackgroundColor.r * 0.7f, result.guiButtonBackgroundColor.g * 0.7f, result.guiButtonBackgroundColor.b * 0.7f, 1.0f);
 		result.guiButtonParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiButtonAlignment = StaticText::Alignment::CENTER;
-		result.guiButtonTextBoxMode = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiButtonResizeMode = GuiButton::ResizeMode::RESIZE_RANGE;
+		result.guiButtonTextBoxMode2 = GuiButton::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiButtonSingleLine = false;
 		/// GuiWindow
-		result.guiWindowSize = Vec2i(800, 1400);
+		result.guiWindowSize = Vec2i(800, 900);
 		result.guiWindowBackgroundColor = Color3f(0.2f, 0.2f, 0.2f);
 		result.guiWindowResizeButtonColor = Color3f::fromColor256(Color3<unsigned char>(23, 70, 162));
 		result.guiWindowResizeButtonSize = screenDims.y * 0.04;
@@ -78,7 +77,16 @@ namespace SnackerEngine
 		result.listLayoutScrollBarOffsetTop = 0.0f;
 		result.listLayoutScrollBarOffsetBottom = 20.0f;
 		result.listLayoutScrollBarOffsetRight = 20.0f;
-		result.listLayoutResizeMode = ListLayout2::ListLayoutResizeMode::RESIZE_WIDTH_IF_POSSIBLE;
+		result.listLayoutResizeMode = ListLayout::ListLayoutResizeMode::RESIZE_WIDTH_IF_POSSIBLE;
+		/// Slider
+		result.guiSliderSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
+		result.guiSliderResizeMode = GuiElement::ResizeMode::RESIZE_RANGE;
+		result.guiSliderLabelTextColor = Color4f(1.0f);
+		result.guiSliderLabelBackgroundColor = Color4f(0.0f, 0.0f);
+		result.guiSliderVariableBoxTextColor = Color4f(1.0f);
+		result.guiSliderVariableBoxBackgroundColor = Color4f(0.0f, 1.0f);
+		result.guiSliderButtonColor = Color4f(1.0f, 0.0f, 0.0f, 0.5f);
+		result.guiSliderButtonWidth = 10.0;
 		// Return the result
 		return result;
 	}

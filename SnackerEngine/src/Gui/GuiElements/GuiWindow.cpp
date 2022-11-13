@@ -1,8 +1,7 @@
 #include "Gui/GuiElements/GuiWindow.h"
-#include "Core/Log.h"
-#include "Core/Keys.h"
 #include "Gui/GuiManager.h"
 #include "Graphics/Renderer.h"
+#include "core/Keys.h"
 #include "Gui/GuiStyle.h"
 
 namespace SnackerEngine
@@ -10,7 +9,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::computeResizeButtonModelMatrix()
 	{
-		resizeButtonModelMatrix = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(position.x + size.x - resizeButtonSize), static_cast<float>(-position.y - size.y), 0.0f), Vec3f(static_cast<float>(resizeButtonSize), static_cast<float>(resizeButtonSize), 0.0f));
+		resizeButtonModelMatrix = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(getPositionX() + getWidth() - resizeButtonSize), static_cast<float>(-getPositionY() - getHeight()), 0.0f), Vec3f(static_cast<float>(resizeButtonSize), static_cast<float>(resizeButtonSize), 0.0f));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::draw(const Vec2i& parentPosition)
@@ -40,18 +39,18 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	bool GuiWindow::isCollidingWithResizeButton(const Vec2i& offset)
 	{
-		return offset.x >= size.x - resizeButtonSize && offset.y >= size.y - offset.x + size.x - resizeButtonSize;
+		return offset.x >= getWidth() - resizeButtonSize && offset.y >= getHeight() - offset.x + getWidth() - resizeButtonSize;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiWindow::IsCollidingResult GuiWindow::isColliding(const Vec2i& position)
 	{
-		if (GuiPanel::isColliding(position) == IsCollidingResult::WEAK_COLLIDING) {
+		if (GuiPanel::isColliding(position) != IsCollidingResult::NOT_COLLIDING) {
 			// Check if the resize button was hit
-			if (isCollidingWithResizeButton(position - this->position)) {
-				return IsCollidingResult::STRONG_COLLIDING;
+			if (isCollidingWithResizeButton(position - getPosition())) {
+				return IsCollidingResult::COLLIDE_STRONG;
 			}
 			else {
-				return IsCollidingResult::WEAK_COLLIDING;
+				return IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT;
 			}
 		}
 		return IsCollidingResult::NOT_COLLIDING;
@@ -76,11 +75,11 @@ namespace SnackerEngine
 	{
 		if (button == MOUSE_BUTTON_LEFT && action == ACTION_PRESS) {
 			// Figure out if the user clicked on the resize button or on the window
-			mouseOffset = getMouseOffset();
+			mouseOffset = getMouseOffset(getGuiID());
 			if (isCollidingWithResizeButton(mouseOffset)) {
 				isResizing = true;
 				// When were resizing the mouse offset is relative to the top left corner of the resize button
-				mouseOffset = mouseOffset - size + Vec2f(resizeButtonSize);
+				mouseOffset = mouseOffset - getSize() + Vec2f(resizeButtonSize);
 			}
 			else {
 				isMoving = true;
@@ -93,11 +92,11 @@ namespace SnackerEngine
 	void GuiWindow::callbackMouseMotion(const Vec2d& position)
 	{
 		if (isMoving) {
-			Vec2f newPosition = getParentMouseOffset() - mouseOffset;
+			Vec2f newPosition = getMouseOffset(getParentID()) - mouseOffset;
 			setPosition(newPosition);
 		}
 		else if (isResizing) {
-			Vec2f newSize = getMouseOffset() + Vec2f(resizeButtonSize, resizeButtonSize) - mouseOffset;
+			Vec2f newSize = getMouseOffset(getGuiID()) + Vec2f(resizeButtonSize, resizeButtonSize) - mouseOffset;
 			// Clip size
 			if (newSize.x < resizeButtonSize) newSize.x = resizeButtonSize;
 			if (newSize.y < resizeButtonSize) newSize.y = resizeButtonSize;
@@ -106,7 +105,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiWindow::GuiWindow(const Vec2i& position, const Vec2i& size, const Color3f& backgroundColor, const double& resizeButtonSize, const Color3f& resizeButtonColor)
-		: GuiPanel(position, size, backgroundColor), resizeButtonSize(resizeButtonSize), resizeButtonColor(resizeButtonColor),
+		: GuiPanel(position, size, ResizeMode::DO_NOT_RESIZE, backgroundColor), resizeButtonSize(resizeButtonSize), resizeButtonColor(resizeButtonColor),
 		resizeButtonModelMatrix{}, isMoving(false), isResizing(false), mouseOffset(Vec2f())
 	{
 		computeResizeButtonModelMatrix();
@@ -116,7 +115,7 @@ namespace SnackerEngine
 		: GuiWindow(Vec2i(), style.guiWindowSize, style.guiWindowBackgroundColor, style.guiWindowResizeButtonSize, style.guiWindowResizeButtonColor) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiWindow::GuiWindow(const GuiWindow& other) noexcept
-		: GuiPanel(other), resizeButtonSize(other.resizeButtonSize), resizeButtonColor(other.resizeButtonColor) ,
+		: GuiPanel(other), resizeButtonSize(other.resizeButtonSize), resizeButtonColor(other.resizeButtonColor),
 		resizeButtonModelMatrix(other.resizeButtonModelMatrix), isMoving(false), isResizing(false), mouseOffset(Vec2f()) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiWindow& GuiWindow::operator=(const GuiWindow& other) noexcept

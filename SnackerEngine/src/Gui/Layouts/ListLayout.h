@@ -2,11 +2,8 @@
 
 #include "Gui/GuiLayout.h"
 #include "Math/Mat.h"
-#include "Graphics/Color.h"
 #include "Graphics/Shader.h"
-
-#include <vector>
-#include <algorithm>
+#include "Graphics/Color.h"
 
 namespace SnackerEngine
 {
@@ -14,15 +11,9 @@ namespace SnackerEngine
 	/// Forward declaration of class GuiStyle
 	struct GuiStyle;
 
-	class ListLayoutReference : public GuiLayoutReference {};
-
-	struct ListLayoutOptions {};
-
 	class ListLayout : public GuiLayout
 	{
 	public:
-		using LayoutReference = ListLayoutReference;
-		using LayoutOptions = ListLayoutOptions;
 		/// enum class that holds different modes that the layout can have regarding
 		/// how and when it resizes children
 		enum class ListLayoutResizeMode
@@ -36,8 +27,6 @@ namespace SnackerEngine
 											/// preferred sizes
 		};
 	private:
-		friend class GuiManager;
-		friend class GuiElement;
 		/// vertical offset between consecutive elements in pixels
 		float verticalOffset;
 		/// Horizontal offset from the left border and the elements in pixels
@@ -75,14 +64,8 @@ namespace SnackerEngine
 		/// The first and last visible element in the children vector
 		unsigned firstVisibleElement;
 		unsigned lastVisibleElement;
-		/// Vector of stored layoutOptions
-		std::vector<LayoutOptions> layoutOptions;
 		/// Resize mode
-		ListLayoutResizeMode resizeMode;
-		/// Adds a new element to the layout
-		void addChild(const GuiID& guiID, const LayoutOptions& options);
-		/// Removes the given child guiElement from this layout
-		std::size_t removeChild(GuiElement& guiElement) override;
+		ListLayoutResizeMode listLayoutResizeMode;
 		/// Enforces this layout by possibly changing position and size of the children guiElements
 		void enforceLayout() override;
 		/// Computes the percentages and wether the scroll bar should be visible
@@ -100,22 +83,24 @@ namespace SnackerEngine
 		/// Returns true if the given position vector (relative to the top left corner of the parent element)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& position) override;
-		/// Callback function for mouse button input on this guiInteractable object. Parameters the same as in Scene.h
+		/// Callback function for mouse button input on this guiElement object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
 		/// Callback function for mouse motion. Parameter the same as in Scene.h
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseMotion(const Vec2d& position) override;
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
-		/// Returns the first colliding child element, if it exists.
-		/// position:	position vector (relative to the top left corner of the parent element)
-		/// Returns:    <<GuiID of colliding child, IsCollidingResult>, new offset vector>
-		virtual std::optional<std::pair<std::pair<GuiID, IsCollidingResult>, Vec2i>> getFirstCollidingChild(const Vec2i& position);
+		/// Returns the first colliding child which collides with the given position vector. The position
+		/// vector is relative to the top left corner of the parent. If zero is returned, this means that
+		/// none of this elements children is colliding. This function will call isColliding() on its children
+		/// recursively.
+		GuiID getCollidingChild(const Vec2i& position) override;
 	public:
 		/// Constructor
-		ListLayout(const float& verticalOffset, const float& leftBorder, const float& scrollSpeed, 
+		ListLayout(const float& verticalOffset, const float& leftBorder, const float& scrollSpeed,
 			const Color3f& scrollBarBackgroundColor, const Color3f& scrollBarColor,
-			const float& scrollBarWidth, const float& scrollBarOffsetTop, const float& scrollBarOffsetBottom, const float& scrollBarOffsetRight);
+			const float& scrollBarWidth, const float& scrollBarOffsetTop, const float& scrollBarOffsetBottom, 
+			const float& scrollBarOffsetRight, const ListLayoutResizeMode& resizeMode);
 		/// Constructor using GuiStyle
 		ListLayout(const GuiStyle& style);
 	};

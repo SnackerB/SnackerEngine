@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Gui/GuiElement.h"
+#include "Graphics/Color.h"
+#include "Math/Mat.h"
 #include "Gui/Text/Text.h"
 #include "Graphics/Material.h"
-#include "Graphics/Color.h"
 #include "Core/Timer.h"
 #include "Gui/GuiEventHandles/GuiEventHandle.h"
 
@@ -47,9 +48,9 @@ namespace SnackerEngine
 		/// Model matrices of the text and the background box
 		Mat4f modelMatrixText;
 		Mat4f modelMatrixBackground;
-		/// The textBoxMode
+		/// text box mode
 		TextBoxMode textBoxMode;
-		/// Wether the text should be placed in a single line
+		/// If this is set to true, the text is displayed in a single line
 		bool singleLine;
 		/// Computes the modelMatrix of the text and the background box
 		void computeModelMatrices();
@@ -67,15 +68,20 @@ namespace SnackerEngine
 		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
 		virtual void onRegister() override;
+		/// Helper function that shrinks the size to the text size according to the textBoxMode
+		void resizeToText();
+		/// Helper function that changes the size according to the textBoxMode and recomputes the text
+		void resizeAndRecomputeText();
 		/// Protected constructor that can be used to create a TextBox with differen types of GuiText, eg.
 		/// GuiDynamicText or GuiEditableText
-		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, std::unique_ptr<DynamicText>&& text, const Font& font, 
+		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text,
 			const Color4f& textColor, const Color4f& backgroundColor, const TextBoxMode& textBoxMode, const double& singleLine);
-		
+
 	public:
 		/// Constructor
-		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font,
-			const double& fontSize, Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
+		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
+			const std::string& text, const Font& font, const double& fontSize, 
+			Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
 			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE, const double& singleLine = false);
@@ -89,22 +95,25 @@ namespace SnackerEngine
 		GuiDynamicTextBox& operator=(const GuiDynamicTextBox& other) noexcept;
 		GuiDynamicTextBox& operator=(GuiDynamicTextBox&& other) noexcept;
 		/// Setter and Getters
-		void setText(const std::string& text);
-		void setFont(const Font& font);
-		void setFontSize(const double& fontSize);
-		void setTextColor(const Color4f& textColor);
-		void setBackgroundColor(const Color4f& backgroundColor);
-		void setTextParseMode(const StaticText::ParseMode& parseMode);
-		void setAlignment(const StaticText::Alignment& alignment);
-		void setTextBoxMode(const TextBoxMode& textBoxMode);
+		virtual void setText(const std::string& text);
+		virtual void setFont(const Font& font);
+		virtual void setFontSize(const double& fontSize);
+		virtual void setTextColor(const Color4f& textColor);
+		virtual void setBackgroundColor(const Color4f& backgroundColor);
+		virtual void setTextParseMode(const StaticText::ParseMode& parseMode);
+		virtual void setAlignment(const StaticText::Alignment& alignment);
+		virtual void setTextBoxMode(const TextBoxMode& textBoxMode);
+		virtual void setSingleLine(const bool& singleLine);
 		const std::string& getText() { return text->getText(); }
 		const Font& getFont() const { return text->getFont(); }
 		const double& getFontSize() const { return text->getFontSize(); }
 		const Color4f& getTextColor() const { return textColor; }
+		const Vec2i& getTextSize() const;
 		const Color4f& getBackgroundColor() const { return backgroundColor; };
 		const StaticText::ParseMode& getParseMode() const { return text->getParseMode(); }
 		const StaticText::Alignment& getAlignment() const { return text->getAlignment(); }
 		const TextBoxMode& getTextBoxMode() const { return textBoxMode; }
+		const bool& isSingleLine() const { return singleLine; };
 	};
 	//--------------------------------------------------------------------------------------------------
 	class GuiEditTextBox : public GuiDynamicTextBox
@@ -132,6 +141,9 @@ namespace SnackerEngine
 		virtual void onPositionChange() override;
 		/// This function gets called when the size changes. Not called by the constructor!
 		virtual void onSizeChange() override;
+		/// Returns true if the given position vector (relative to the top left corner of the parent element)
+		/// collides with this element
+		virtual IsCollidingResult isColliding(const Vec2i& position) override;
 		/// This function is called by the guiManager after registering this guiInteractable object.
 		/// When this function is called, the guiManager pointer is set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -144,6 +156,12 @@ namespace SnackerEngine
 		virtual void callbackCharacterInput(const unsigned int& codepoint) override;
 		/// Callback function for mouse button input on this guiInteractable object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
+		/// Callback function for the mouse entering the element. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseEnter(const Vec2d& position) override;
+		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseLeave(const Vec2d& position) override;
 		/// Update function
 		virtual void update(const double& dt) override;
 		/// This function is called by a handle right before the handle is destroyed
@@ -151,17 +169,15 @@ namespace SnackerEngine
 		/// Overwrite this function if the guiElement owns handles. This function should update the
 		/// handle pointer when the handle is moved. Called by the handle after it is moved.
 		virtual void onHandleMove(GuiHandle& guiHandle) override;
-		/// This function is called by the guiManager after registering this guiElement.
-		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
-		/// This function can e.g. be used for registering callbacks at the guiManager
 	public:
 		/// Constructor
-		GuiEditTextBox(const Vec2i& position = {}, const Vec2i& size = {}, const std::string& text = "", const Font& font = Font(),
+		GuiEditTextBox(const Vec2i& position = {}, const Vec2i& size = {}, const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE,
+			const std::string& text = "", const Font& font = Font(),
 			const double& fontSize = 0, const double& cursorWidth = 0, Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
-			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE, 
-			const double& singleLine = false, const double& cursorBlinkTime = 0.5);
+			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE,
+			const double& singleLine = true, const double& cursorBlinkTime = 0.5);
 		/// Constructors using GuiStyle
 		GuiEditTextBox(const std::string& text, const GuiStyle& style);
 		GuiEditTextBox(const std::string& text, const double& fontSize, const GuiStyle& style);
@@ -172,11 +188,21 @@ namespace SnackerEngine
 		GuiEditTextBox& operator=(const GuiEditTextBox& other) noexcept;
 		GuiEditTextBox& operator=(GuiEditTextBox&& other) noexcept;
 		/// Returns true if the text is currently being edited
-		bool isActive() const;
+		bool isActive() const { return active; }
 		/// Sets the event handle for the event that happens when the text was edited 
 		/// (isActive is set to true and enter or escape is pressed or the user clicks 
 		/// outside the textBox). Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
 		void setEventHandleTextWasEdited(GuiEventHandle& eventHandle);
+		/// Setters
+		void setCursorWidth(const double& cursorWidth);
+		void setCursorBlinkTime(const double& cursorBlinkTime);
+		void setText(const std::string& text) override;
+		void setFont(const Font& font) override;
+		void setFontSize(const double& fontSize) override;
+		void setTextParseMode(const StaticText::ParseMode& parseMode) override;
+		void setAlignment(const StaticText::Alignment& alignment) override;
+		void setTextBoxMode(const TextBoxMode& textBoxMode) override;
+		void setSingleLine(const bool& singleLine) override;
 	};
 }
