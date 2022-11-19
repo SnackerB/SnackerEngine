@@ -25,6 +25,7 @@ namespace SnackerEngine
 		T operator*(const Vec2<T>& other) const { return x * other.x + y * other.y; }
 		Vec2<T> operator*(const T& scalar) const { return Vec2<T>(x * scalar, y * scalar); }
 		void operator*=(const T& scalar) { x *= scalar; y *= scalar; }
+		Vec2<T> operator/(const Vec2<T>& other) const { return Vec2<T>(x / other.x, y / other.y); }
 		Vec2<T> operator/(const T& scalar) const { return Vec2<T>(x / scalar, y / scalar); }
 		void operator/=(const T& scalar) { x /= scalar; y /= scalar; }
 		bool operator==(const Vec2<T>& other) const { return x == other.x && y == other.y; }

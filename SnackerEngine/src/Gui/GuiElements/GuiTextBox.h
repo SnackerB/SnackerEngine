@@ -72,11 +72,12 @@ namespace SnackerEngine
 		void resizeToText();
 		/// Helper function that changes the size according to the textBoxMode and recomputes the text
 		void resizeAndRecomputeText();
+		/// Helper function that computes the the text position
+		Vec2f computeTextPosition();
 		/// Protected constructor that can be used to create a TextBox with differen types of GuiText, eg.
 		/// GuiDynamicText or GuiEditableText
 		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text,
 			const Color4f& textColor, const Color4f& backgroundColor, const TextBoxMode& textBoxMode, const double& singleLine);
-
 	public:
 		/// Constructor
 		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
@@ -128,11 +129,15 @@ namespace SnackerEngine
 		Timer cursorBlinkingTimer;
 		/// The model matrix of the cursor
 		Mat4f modelMatrixCursor;
+		/// The model matrices of the selection boxes
+		std::vector<Mat4f> modelMatricesSelectionBoxes;
 		/// The event that happens when the text was edited (isActive is set to true and enter
 		/// or escape is pressed or the user clicks outside the textBox)
 		GuiEventHandle* eventHandleTextWasEdited;
 		/// Computes the model matrix of the cursor
 		void computeModelMatrixCursor();
+		/// Computes the model matrices of the selection boxes
+		void computeModelMatricesSelectionBoxes();
 	protected:
 		/// Draws this guiInteractable object relative to its parent element
 		/// parentPosition:		position of the upper left corner of the parent element

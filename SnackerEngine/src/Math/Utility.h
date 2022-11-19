@@ -37,6 +37,7 @@ namespace SnackerEngine
 	{
 		return points / T(72);
 	}
+
 	//------------------------------------------------------------------------------------------------------
 	/// Struct that can be used for standard library templates using hasing when one wants to hash pairs of integers
 	struct Pairhash final {

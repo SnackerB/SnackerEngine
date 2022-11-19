@@ -170,6 +170,8 @@ namespace SnackerEngine
 		std::vector<unsigned int> indices;
 		/// index of the character which currently comes after the cursor
 		unsigned cursorPosIndex;
+		/// index of one end of a text selection. Text selection goes from selectionIndex to cursorPosIndex
+		unsigned selectionIndex;
 		/// Position of the cursor
 		Vec2f cursorPos;
 		/// Size of the cursor
@@ -192,6 +194,8 @@ namespace SnackerEngine
 		void constructModel() override;
 		/// Helper function to construct the text variable from the characters vector
 		void constructTextFromCharacters();
+		/// Helper function that computes the cursorPosIndex and cursorPosition from a given characterIndex
+		std::pair<unsigned int, Vec2f> computeCursorIndexAndPosition(unsigned int characterIndex);
 	public:
 		/// Default constructor
 		EditableText();
@@ -204,7 +208,7 @@ namespace SnackerEngine
 		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
 		void setCursorPos(unsigned int characterIndex);
 		/// Sets the cursor position to be as close as possible to the given 2D (mouse) position
-		void computeCursorPosFromMousePos(const Vec2d& mousePos);
+		void computeCursorPosFromMousePos(Vec2d mousePos);
 		/// Moves the cursor one character to the left
 		void moveCursorToLeft();
 		/// Moves the cursor one character to the right
@@ -213,6 +217,18 @@ namespace SnackerEngine
 		void moveCursorToLeftWordBeginning();
 		/// Moves the cursor to the end of the current/next word
 		void moveCursorToRightWordEnd();
+		/// Sets the selectionIndex to the cursorPosIndex
+		void setSelectionIndexToCursor();
+		/// Struct that is used as a return type for getSelectionBoxes().
+		struct SelectionBox
+		{
+			/// position of the lower left corner of the selection box
+			Vec2f position;
+			/// size of the selection box
+			Vec2f size;
+		};
+		/// Computes and returns a vector of selection boxes using the current selection.
+		std::vector<SelectionBox> getSelectionBoxes();
 		/// Returns the cursor position
 		const Vec2f& getCursorPos() const;
 		/// Inputs a unicode character at the current cursor position

@@ -130,7 +130,7 @@ namespace SnackerEngine
 	}
 
 	VerticalLayout::VerticalLayout(const bool& forceWidth)
-		: GuiLayout(), totalWeight(0.0), forceWidth(forceWidth), resizeAreaHeight(20), mouseOffset(0),
+		: GuiLayout(), totalWeight(0.0), forceWidth(forceWidth), resizeAreaHeight(5), mouseOffset(0),
 		resizeBorder(0), weights(0.0), percentages(0.0) {}
 
 	bool VerticalLayout::registerChild(GuiElement& guiElement, const double& weight)

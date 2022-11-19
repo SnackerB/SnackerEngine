@@ -17,18 +17,8 @@ namespace SnackerEngine
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f), Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 		unsigned int DPI = Engine::getDPI().y;
-		// Compute offset due to centering
-		double textOffsetY;
-		if (text->getAlignment() == StaticText::Alignment::CENTER) {
-			// Align to the center of the text box
-			// TODO: Why is this *1.0 necessary? Does not work if i remove it. Compiler bug?
-			textOffsetY = -pointsToInches((text->getTop() * 1.0 + text->getBottom()) / 2.0) * DPI - size.y / 2.0;
-		}
-		else {
-			// Align to the top of the text box
-			textOffsetY = -pointsToInches(text->getTop()) * DPI;
-		}
-		modelMatrixText = Mat4f::TranslateAndScale(Vec3f(position.x, -position.y + textOffsetY, 0), pointsToInches(text->getFontSize()) * DPI);
+		Vec2f textPosition = computeTextPosition();
+		modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), pointsToInches(text->getFontSize()) * DPI);
 	}
 
 	void GuiDynamicTextBox::draw(const Vec2i& parentPosition)
@@ -147,6 +137,22 @@ namespace SnackerEngine
 		}
 	}
 
+	Vec2f GuiDynamicTextBox::computeTextPosition()
+	{
+		unsigned int DPI = Engine::getDPI().y;
+		// Compute offset due to centering
+		double textOffsetY;
+		if (text->getAlignment() == StaticText::Alignment::CENTER) {
+			// Align to the center of the text box
+			textOffsetY = -pointsToInches((text->getTop() * text->getBottom()) / 2.0) * DPI - size.y / 2.0;
+		}
+		else {
+			// Align to the top of the text box
+			textOffsetY = -pointsToInches(text->getTop()) * DPI;
+		}
+		return Vec2f(position.x, -position.y + textOffsetY);
+	}
+
 	/// Helper function for constructing the text material
 	static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor)
 	{
@@ -157,7 +163,7 @@ namespace SnackerEngine
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text, const Color4f& textColor, const Color4f& backgroundColor, const TextBoxMode& textBoxMode, const double& singleLine)
 		: GuiElement(position, size, resizeMode), text(std::move(text)),
-		material(constructTextMaterial(this->text->getFont(), textColor, backgroundColor)),
+		material(constructTextMaterial(this->text->getFont(), textColor, Color4f(0.0f, 0.0f))),
 		backgroundColor(backgroundColor), textColor(textColor), backgroundShader("shaders/gui/simpleColor.shader"),
 		modelMatrixText{}, modelMatrixBackground{}, textBoxMode(textBoxMode), singleLine(singleLine)
 	{
@@ -353,10 +359,45 @@ namespace SnackerEngine
 		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(position.x + cursorOffset.x + cursorSize.x, -position.y + cursorOffset.y - additionalOffset, 0.0f), cursorSize);
 	}
 
+	void GuiEditTextBox::computeModelMatricesSelectionBoxes()
+	{
+		// TODO
+		modelMatricesSelectionBoxes.clear();
+		auto result = static_cast<EditableText&>(*text).getSelectionBoxes();
+		if (result.empty()) return;
+		Vec2f textPosition = computeTextPosition();
+		unsigned int DPI = Engine::getDPI().y;
+		for (const auto& selectionBox : result) {
+			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position) * DPI, pointsToInches(selectionBox.size) * DPI));
+		}
+	}
+
 	void GuiEditTextBox::draw(const Vec2i& parentPosition)
 	{
-		GuiDynamicTextBox::draw(parentPosition);
+		if (!guiManager) return;
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		// Draw background
+		if (backgroundColor.alpha != 0.0f) {
+			backgroundShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
+			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b)); // TODO: Transparent background
+			Renderer::draw(guiManager->getModelSquare());
+		}
+		// Draw selection boxes
+		for (const auto& modelMatrixSelectionBox : modelMatricesSelectionBoxes) {
+			backgroundShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixSelectionBox);
+			backgroundShader.setUniform<Color3f>("u_color", Color3f(0.0f, 0.0f, 1.0f)); // TODO: Transparent background TODO: Correct color
+			Renderer::draw(guiManager->getModelSquare());
+		}
+		// Draw text
+		material.bind();
+		guiManager->setUniformViewAndProjectionMatrices(material.getShader());
+		material.getShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixText);
+		material.getShader().setUniform<float>("u_pxRange", text->getFont().getPixelRange());
+		SnackerEngine::Renderer::draw(text->getModel(), material);
 		// Draw cursor
 		if (cursorIsVisible) {
 			backgroundShader.bind();
@@ -365,6 +406,8 @@ namespace SnackerEngine
 			backgroundShader.setUniform<Color3f>("u_color", Color3f(textColor.r, textColor.g, textColor.b)); // TODO: Transparent background
 			Renderer::draw(guiManager->getModelSquare());
 		}
+		// Draw children
+		GuiElement::draw(parentPosition);
 	}
 
 	void GuiEditTextBox::onPositionChange()
@@ -420,42 +463,52 @@ namespace SnackerEngine
 					static_cast<EditableText&>(*text).moveCursorToLeftWordBeginning();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatrixCursor();
 				}
 				else {
 					static_cast<EditableText&>(*text).moveCursorToLeft();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatrixCursor();
 				}
+				if (!(mods & MOD_SHIFT)) {
+					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+				}
+				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_RIGHT) {
 				if (mods & MOD_CONTROL) {
 					static_cast<EditableText&>(*text).moveCursorToRightWordEnd();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatrixCursor();
 				}
 				else {
 					static_cast<EditableText&>(*text).moveCursorToRight();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatrixCursor();
 				}
+				if (!(mods & MOD_SHIFT)) {
+					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+				}
+				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_BACKSPACE) {
 				if (mods & MOD_CONTROL) {
 					static_cast<EditableText&>(*text).deleteWordBeforeCursor();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatrixCursor();
 				}
 				else {
 					static_cast<EditableText&>(*text).deleteCharacterBeforeCursor();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatrixCursor();
 				}
+				static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_ENTER) {
 				if (singleLine) {
@@ -472,8 +525,10 @@ namespace SnackerEngine
 					static_cast<EditableText&>(*text).inputNewlineAtCursor();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					setSize(size);
+					computeModelMatricesSelectionBoxes();
 				}
+				static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_ESCAPE) {
 				active = false;
@@ -482,6 +537,8 @@ namespace SnackerEngine
 				signOffEvent(CallbackType::KEYBOARD);
 				signOffEvent(CallbackType::UPDATE);
 				signOffEvent(CallbackType::MOUSE_BUTTON);
+				static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+				computeModelMatricesSelectionBoxes();
 			}
 		}
 	}
@@ -506,8 +563,10 @@ namespace SnackerEngine
 			signUpEvent(CallbackType::UPDATE);
 			signUpEvent(CallbackType::MOUSE_BUTTON);
 			Vec2d mousePos = getMouseOffsetToText();
-			static_cast<EditableText&>(*text).computeCursorPosFromMousePos(mousePos); // TODO: Multiply by DPI?
+			static_cast<EditableText&>(*text).computeCursorPosFromMousePos(mousePos);
 			computeModelMatrixCursor();
+			static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+			computeModelMatricesSelectionBoxes();
 			cursorBlinkingTimer.reset();
 			cursorIsVisible = true;
 		}
@@ -545,13 +604,13 @@ namespace SnackerEngine
 
 	Vec2d GuiEditTextBox::getMouseOffsetToText()
 	{
-		Vec2<unsigned int> DPI = Engine::getDPI();
+		Vec2d DPI = Engine::getDPI();
 		// Compute offset due to centering
 		double textOffsetY;
 		if (text->getAlignment() == StaticText::Alignment::CENTER) {
 			// Align to the center of the text box
 			// TODO: Why is this *1.0 necessary? Does not work if i remove it. Compiler bug?
-			textOffsetY = -pointsToInches((text->getTop() * 1.0 + text->getBottom()) / 2.0) * DPI.y - size.y / 2.0;
+			textOffsetY = -pointsToInches((text->getTop() * 1.0 + text->getBottom()) / 2.0) * DPI.y - static_cast<double>(size.y) / 2.0;
 		}
 		else {
 			// Align to the top of the text box
@@ -570,7 +629,7 @@ namespace SnackerEngine
 		: GuiDynamicTextBox(position, size, resizeMode, 
 			std::move(std::make_unique<EditableText>(text, font, fontSize, computeTextwidth(textBoxMode, size, singleLine), cursorWidth, parseMode, alignment)),
 			textColor, backgroundColor, textBoxMode, singleLine),
-		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, eventHandleTextWasEdited(nullptr) {}
+		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, modelMatricesSelectionBoxes{}, eventHandleTextWasEdited(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(const std::string& text, const GuiStyle& style)
 		: GuiEditTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text, style.defaultFont, style.fontSizeNormal,
@@ -586,13 +645,13 @@ namespace SnackerEngine
 
 	GuiEditTextBox::GuiEditTextBox(const GuiEditTextBox& other) noexcept
 		: GuiDynamicTextBox(other), active(false), cursorIsVisible(false), 
-		cursorBlinkingTimer(other.cursorBlinkingTimer),
-		eventHandleTextWasEdited(nullptr) {}
+		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor(other.modelMatrixCursor),
+		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(GuiEditTextBox&& other) noexcept
 		: GuiDynamicTextBox(std::move(other)), active(false), cursorIsVisible(false),
-		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), 
-		eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)) 
+		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), modelMatrixCursor(other.modelMatrixCursor),
+		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)) 
 	{
 		other.eventHandleTextWasEdited = nullptr;
 		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(*eventHandleTextWasEdited);
@@ -604,6 +663,8 @@ namespace SnackerEngine
 		active = false;
 		cursorIsVisible = false;
 		cursorBlinkingTimer = other.cursorBlinkingTimer;
+		modelMatrixCursor = other.modelMatrixCursor;
+		modelMatricesSelectionBoxes = other.modelMatricesSelectionBoxes;
 		eventHandleTextWasEdited = nullptr;
 		return *this;
 	}
@@ -615,6 +676,8 @@ namespace SnackerEngine
 		cursorIsVisible = false;
 		cursorBlinkingTimer = std::move(other.cursorBlinkingTimer);
 		eventHandleTextWasEdited = std::move(other.eventHandleTextWasEdited);
+		modelMatrixCursor = other.modelMatrixCursor;
+		modelMatricesSelectionBoxes = other.modelMatricesSelectionBoxes;
 		other.eventHandleTextWasEdited = nullptr;
 		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(*eventHandleTextWasEdited);
 		return *this;

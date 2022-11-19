@@ -130,7 +130,7 @@ namespace SnackerEngine
 	}
 
 	HorizontalLayout::HorizontalLayout(const bool& forceHeight)
-		: GuiLayout(), totalWeight(0.0), forceHeight(forceHeight), resizeAreaWidth(20), mouseOffset(0),
+		: GuiLayout(), totalWeight(0.0), forceHeight(forceHeight), resizeAreaWidth(5), mouseOffset(0),
 		resizeBorder(0), weights(0.0), percentages(0.0) {}
 
 	bool HorizontalLayout::registerChild(GuiElement& guiElement, const double& weight)

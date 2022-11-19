@@ -547,7 +547,7 @@ namespace SnackerEngine
 				{
 					// 2.)	The word fits inside a single line, but not on the current line -> we have to move to the next line!
 					characters.resize(charactersSize);
-					goToNextLine(previousIndexIntoCharactersVector - 1);
+					goToNextLine(previousIndexIntoCharactersVector);
 					lastCodepoint = 0;
 					// Now we can read in the word again, but this time it will fit.
 					indexIntoCharactersVector = previousIndexIntoCharactersVector;
@@ -1081,14 +1081,58 @@ namespace SnackerEngine
 		textIsUpToDate = true;
 	}
 	//--------------------------------------------------------------------------------------------------
+	std::pair<unsigned int, Vec2f> EditableText::computeCursorIndexAndPosition(unsigned int characterIndex)
+	{
+		auto result = std::make_pair(0, Vec2f());
+		if (characterIndex > characters.size()) {
+			characterIndex = characters.size();
+		}
+		unsigned int lineNumber = getLineNumber(characterIndex);
+		if (characterIndex == 0) result.second = Vec2f(0.0f, lines[lineNumber].baselineY);
+		else if (characterIndex == characters.size()) {
+			// Cursor is at the end of the text
+			const Unicode& codepoint = characters.back().codepoint;
+			if (isNewline(codepoint)) {
+				result.second = Vec2f(0.0f, lines[lineNumber].baselineY);
+			}
+			else {
+				result.second = Vec2f(characters.back().left
+					+ font.getGlyph(codepoint).advance, lines[getLineNumber(characters.size() - 1)].baselineY);
+			}
+		}
+		else {
+			result.second = Vec2f(characters[characterIndex].left, lines[lineNumber].baselineY);
+		}
+		result.second.x -= cursorSize.x;
+		result.second.y += font.getDescender();
+		result.first = characterIndex;
+		// Special care needs to be taken if the alignment is CENTER or RIGHT
+		if (alignment == Alignment::CENTER) {
+			if (characters.empty()) result.second.x = textWidth / fontSize / 2.0f - cursorSize.x / 2.0f;
+			else {
+				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
+				double horizontalOffset = (textWidth / fontSize - lineWidth) / 2.0;
+				result.second.x += horizontalOffset;
+			}
+		}
+		else if (alignment == Alignment::RIGHT) {
+			if (characters.empty()) result.second.x = textWidth;
+			else {
+				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
+				result.second.x += textWidth - lineWidth;
+			}
+		}
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText()
-		: DynamicText(), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), cursorPos{}, cursorSize{} 
+		: DynamicText(), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize{}
 	{
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const double& cursorWidth, const ParseMode& parseMode, const Alignment& alignment)
-		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), cursorPos{}, cursorSize(cursorWidth, font.getAscender() - font.getDescender())
+		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, font.getAscender() - font.getDescender())
 	{
 		constructModel();
 		setCursorPos(0);
@@ -1096,13 +1140,13 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(const EditableText& other) noexcept
 		: DynamicText(other), textIsUpToDate(other.textIsUpToDate), vertices(other.vertices), indices(other.indices),
-		cursorPosIndex(other.cursorPosIndex), cursorPos(other.cursorPos), cursorSize(other.cursorSize)
+		cursorPosIndex(other.cursorPosIndex), cursorPos(other.cursorPos), selectionIndex(other.selectionIndex), cursorSize(other.cursorSize)
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(EditableText&& other) noexcept
 		: DynamicText(other), textIsUpToDate(other.textIsUpToDate), vertices(other.vertices), indices(other.indices),
-		cursorPosIndex(other.cursorPosIndex), cursorPos(other.cursorPos), cursorSize(other.cursorSize)
+		cursorPosIndex(other.cursorPosIndex), cursorPos(other.cursorPos), selectionIndex(other.selectionIndex), cursorSize(other.cursorSize)
 	{
 		other.textIsUpToDate = true;
 		other.vertices.clear();
@@ -1123,57 +1167,74 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::setCursorPos(unsigned int characterIndex)
 	{
-		if (characterIndex > characters.size()) {
-			characterIndex = characters.size();
-		}
-		unsigned int lineNumber = getLineNumber(characterIndex);
-		if (characterIndex == 0) cursorPos = Vec2f(0.0f, lines[lineNumber].baselineY);
-		else if (characterIndex == characters.size()) {
-			// Cursor is at the end of the text
-			const Unicode& codepoint = characters.back().codepoint;
-			if (isNewline(codepoint)) {
-				cursorPos = Vec2f(0.0f, lines[lineNumber].baselineY);
-			}
-			else {
-				cursorPos = Vec2f(characters.back().left
-					+ font.getGlyph(codepoint).advance, lines[getLineNumber(characters.size() - 1)].baselineY);
-			}
-		}
-		else cursorPos = Vec2f(characters[characterIndex].left, lines[lineNumber].baselineY);
-		cursorPos.x -= cursorSize.x;
-		cursorPos.y += font.getDescender();
-		cursorPosIndex = characterIndex;
-		// Special care needs to be taken if the alignment is CENTER or RIGHT
-		if (alignment == Alignment::CENTER) {
-			if (characters.empty()) cursorPos.x = textWidth / fontSize / 2.0f - cursorSize.x / 2.0f;
-			else {
-				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
-				double horizontalOffset = (textWidth / fontSize - lineWidth) / 2.0;
-				cursorPos.x += horizontalOffset;
-			}
-		}
-		else if (alignment == Alignment::RIGHT) {
-			if (characters.empty()) cursorPos.x = textWidth;
-			else {
-				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
-				cursorPos.x += textWidth - lineWidth;
-			}
-		}
+		auto result = computeCursorIndexAndPosition(characterIndex);
+		cursorPosIndex = result.first;
+		cursorPos = result.second;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::computeCursorPosFromMousePos(const Vec2d& mousePos)
+	void EditableText::computeCursorPosFromMousePos(Vec2d mousePos)
 	{
 		// Find the correct line
-		double descender = font.getDescender() * fontSize;
+		mousePos = mousePos / fontSize;
+		double descender = font.getDescender();
 		int lineNumber = -1;
-		for (unsigned int tempLineNumber = 0; tempLineNumber < lines.size() - 1; tempLineNumber++) {
+		for (unsigned int tempLineNumber = 0; tempLineNumber < lines.size(); tempLineNumber++) {
 			if (mousePos.y >= lines[tempLineNumber].baselineY + descender) {
 				lineNumber = tempLineNumber;
 				break;
 			}
 		}
-		if (lineNumber == -1) lineNumber = lines.size() - 1;
-		setCursorPos(lines[lineNumber].endIndex);
+		if (lineNumber == -1) {
+			setCursorPos(characters.size() + 1);
+			return;
+		}
+		const auto& line = lines[lineNumber];
+		// Find the correct character in the line
+		double textOffsetX = 0.0;
+		switch (alignment)
+		{
+		case SnackerEngine::StaticText::Alignment::LEFT:
+			break;
+		case SnackerEngine::StaticText::Alignment::CENTER:
+		{
+			double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
+			textOffsetX = (textWidth / fontSize - lineWidth) / 2.0;
+			break;
+		}
+		case SnackerEngine::StaticText::Alignment::RIGHT:
+		{
+			double lineWidth = characters[line.endIndex].right;
+			textOffsetX = textWidth / fontSize - lineWidth;
+			break;
+		}
+		default:
+			break;
+		}
+		int characterIndex = -1;
+		for (unsigned int tempCharacterIndex = line.beginIndex; tempCharacterIndex <= line.endIndex; ++tempCharacterIndex) {
+			if (mousePos.x <= characters[tempCharacterIndex].right + textOffsetX) {
+				characterIndex = tempCharacterIndex;
+				break;
+			}
+		}
+		if (characterIndex == -1) {
+			if (lines[lineNumber].endIndex < characters.size() && (isSpaceCharacter(characters[lines[lineNumber].endIndex].codepoint) ||
+																   isNewline(characters[lines[lineNumber].endIndex].codepoint))) {
+				setCursorPos(lines[lineNumber].endIndex);
+			}
+			else {
+				setCursorPos(lines[lineNumber].endIndex + 1);
+			}
+		}
+		else {
+			// Check if the mouse is more to the left or more to the right of the character
+			if (mousePos.x >= textOffsetX + (characters[characterIndex].right + characters[characterIndex].left) / 2.0) {
+				setCursorPos(characterIndex + 1);
+			}
+			else {
+				setCursorPos(characterIndex);
+			}
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::moveCursorToLeft()
@@ -1217,6 +1278,29 @@ namespace SnackerEngine
 			}
 		}
 		setCursorPos(newIndex);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::setSelectionIndexToCursor()
+	{
+		selectionIndex = cursorPosIndex;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::vector<EditableText::SelectionBox> EditableText::getSelectionBoxes()
+	{
+		std::vector<SelectionBox> result;
+		// Start with the lower of the two indices
+		unsigned startIndex = std::min(static_cast<unsigned>(characters.size()), std::min(cursorPosIndex, selectionIndex));
+		unsigned endIndex = std::min(static_cast<unsigned>(characters.size()), std::max(cursorPosIndex, selectionIndex));
+		if (startIndex == endIndex) return result;
+		unsigned startLine = getLineNumber(startIndex);
+		unsigned endLine = getLineNumber(endIndex);
+		if (startLine == endLine) {
+			result.push_back({ computeCursorIndexAndPosition(startIndex).second * fontSize, Vec2f() });
+			auto temp = computeCursorIndexAndPosition(endIndex);
+			float endX = temp.second.x * fontSize;
+			result.back().size = Vec2f(endX - result.back().position.x, (font.getAscender() - font.getDescender()) * fontSize);
+		}
+		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
 	const Vec2f& EditableText::getCursorPos() const
