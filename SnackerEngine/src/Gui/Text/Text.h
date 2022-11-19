@@ -125,14 +125,14 @@ namespace SnackerEngine
 		const Alignment& getAlignment() const;
 		/// Returns the y coordinate of the top of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
-		const double& getTop();
+		double getTop();
 		/// Returns the y coordinate of the bottom of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
-		const double& getBottom();
+		double getBottom();
 		/// Returns the x coordinate of the left-most point in the text (in pt)
-		const double& getLeft();
+		double getLeft();
 		/// Returns the x coordinate of the right-most point in the text (in pt)
-		const double& getRight();
+		double getRight();
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
@@ -204,7 +204,7 @@ namespace SnackerEngine
 		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
 		void setCursorPos(unsigned int characterIndex);
 		/// Sets the cursor position to be as close as possible to the given 2D (mouse) position
-		void computeCursorPosFromMousePos(const Vec2i& mousePos);
+		void computeCursorPosFromMousePos(const Vec2d& mousePos);
 		/// Moves the cursor one character to the left
 		void moveCursorToLeft();
 		/// Moves the cursor one character to the right

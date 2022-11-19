@@ -169,6 +169,8 @@ namespace SnackerEngine
 		/// Overwrite this function if the guiElement owns handles. This function should update the
 		/// handle pointer when the handle is moved. Called by the handle after it is moved.
 		virtual void onHandleMove(GuiHandle& guiHandle) override;
+		/// Returns mouse offset to the (0, 0) point of the text object in pt
+		Vec2d getMouseOffsetToText();
 	public:
 		/// Constructor
 		GuiEditTextBox(const Vec2i& position = {}, const Vec2i& size = {}, const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE,

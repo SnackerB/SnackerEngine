@@ -88,18 +88,18 @@ namespace SnackerEngine
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
 		{
-			size.y = static_cast<int>(std::ceil((text->getTop() * 1.0 - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
+			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
 		{
-			size.x = static_cast<int>(std::ceil((text->getRight() * 1.0 - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
+			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
 		{
-			size.y = static_cast<int>(std::ceil((text->getTop()*1.0 - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
-			size.x = static_cast<int>(std::ceil((text->getRight()*1.0 - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
+			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
+			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
 			break;
 		}
 		default:
@@ -406,8 +406,6 @@ namespace SnackerEngine
 				signOffEvent(CallbackType::KEYBOARD);
 				signOffEvent(CallbackType::UPDATE);
 				signOffEvent(CallbackType::MOUSE_BUTTON);
-				Vec2i mousePos = getMouseOffset(getGuiID());
-				static_cast<EditableText&>(*text).computeCursorPosFromMousePos(mousePos); // TODO: Multiply by DPI?
 				if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
 			}
 		}
@@ -507,6 +505,9 @@ namespace SnackerEngine
 			signUpEvent(CallbackType::KEYBOARD);
 			signUpEvent(CallbackType::UPDATE);
 			signUpEvent(CallbackType::MOUSE_BUTTON);
+			Vec2d mousePos = getMouseOffsetToText();
+			static_cast<EditableText&>(*text).computeCursorPosFromMousePos(mousePos); // TODO: Multiply by DPI?
+			computeModelMatrixCursor();
 			cursorBlinkingTimer.reset();
 			cursorIsVisible = true;
 		}
@@ -542,11 +543,34 @@ namespace SnackerEngine
 		eventHandleTextWasEdited = static_cast<GuiEventHandle*>(&guiHandle);
 	}
 
+	Vec2d GuiEditTextBox::getMouseOffsetToText()
+	{
+		Vec2<unsigned int> DPI = Engine::getDPI();
+		// Compute offset due to centering
+		double textOffsetY;
+		if (text->getAlignment() == StaticText::Alignment::CENTER) {
+			// Align to the center of the text box
+			// TODO: Why is this *1.0 necessary? Does not work if i remove it. Compiler bug?
+			textOffsetY = -pointsToInches((text->getTop() * 1.0 + text->getBottom()) / 2.0) * DPI.y - size.y / 2.0;
+		}
+		else {
+			// Align to the top of the text box
+			textOffsetY = -pointsToInches(text->getTop()) * DPI.y;
+		}
+		// Get mouse offset to upper left corner of element
+		Vec2d mousePos = getMouseOffset(getGuiID());
+		mousePos.y = - textOffsetY - mousePos.y;
+		mousePos.x /= DPI.x;
+		mousePos.y /= DPI.y;
+		mousePos /= pointsToInches(1.0);
+		return mousePos;
+	}
+
 	GuiEditTextBox::GuiEditTextBox(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, const double& cursorWidth, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine, const double& cursorBlinkTime)
 		: GuiDynamicTextBox(position, size, resizeMode, 
 			std::move(std::make_unique<EditableText>(text, font, fontSize, computeTextwidth(textBoxMode, size, singleLine), cursorWidth, parseMode, alignment)),
 			textColor, backgroundColor, textBoxMode, singleLine),
-		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{} {}
+		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, eventHandleTextWasEdited(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(const std::string& text, const GuiStyle& style)
 		: GuiEditTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text, style.defaultFont, style.fontSizeNormal,

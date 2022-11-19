@@ -861,17 +861,17 @@ namespace SnackerEngine
 		return alignment;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const double& DynamicText::getTop()
+	double DynamicText::getTop()
 	{
 		return font.getAscender() * fontSize;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const double& DynamicText::getBottom()
+	double DynamicText::getBottom()
 	{
 		return (lines.back().baselineY + font.getDescender()) * fontSize;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const double& DynamicText::getLeft()
+	double DynamicText::getLeft()
 	{
 		switch (alignment)
 		{
@@ -895,7 +895,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	const double& DynamicText::getRight()
+	double DynamicText::getRight()
 	{
 		if (characters.empty()) return 0.0;
 		switch (alignment)
@@ -921,6 +921,7 @@ namespace SnackerEngine
 		default:
 			break;
 		}
+		return 0.0;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::setText(const std::string& text, bool recompute)
@@ -1160,7 +1161,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::computeCursorPosFromMousePos(const Vec2i& mousePos)
+	void EditableText::computeCursorPosFromMousePos(const Vec2d& mousePos)
 	{
 		// Find the correct line
 		double descender = font.getDescender() * fontSize;
