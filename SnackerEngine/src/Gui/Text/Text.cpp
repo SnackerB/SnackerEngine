@@ -1081,6 +1081,18 @@ namespace SnackerEngine
 		textIsUpToDate = true;
 	}
 	//--------------------------------------------------------------------------------------------------
+	EditableText::SelectionBox EditableText::computeSelectionBox(const unsigned& startCharacterIndex, const unsigned& endCharacterIndex)
+	{
+		SelectionBox result;
+		result.position = computeCursorIndexAndPosition(startCharacterIndex).second * fontSize;
+		float endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x;
+		if (endCharacterIndex < characters.size()) {
+			endPosition = (endPosition + characters[endCharacterIndex].right - characters[endCharacterIndex].left);
+		}
+		result.size = Vec2f(endPosition * fontSize - result.position.x, (font.getAscender() - font.getDescender()) * fontSize);
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
 	std::pair<unsigned int, Vec2f> EditableText::computeCursorIndexAndPosition(unsigned int characterIndex)
 	{
 		auto result = std::make_pair(0, Vec2f());
@@ -1295,10 +1307,14 @@ namespace SnackerEngine
 		unsigned startLine = getLineNumber(startIndex);
 		unsigned endLine = getLineNumber(endIndex);
 		if (startLine == endLine) {
-			result.push_back({ computeCursorIndexAndPosition(startIndex).second * fontSize, Vec2f() });
-			auto temp = computeCursorIndexAndPosition(endIndex);
-			float endX = temp.second.x * fontSize;
-			result.back().size = Vec2f(endX - result.back().position.x, (font.getAscender() - font.getDescender()) * fontSize);
+			result.push_back(computeSelectionBox(startIndex, endIndex - 1));
+			//result.push_back({ computeCursorIndexAndPosition(startIndex).second * fontSize, Vec2f() });
+			//auto temp = computeCursorIndexAndPosition(endIndex);
+			//float endX = temp.second.x * fontSize;
+			//result.back().size = Vec2f(endX - result.back().position.x, (font.getAscender() - font.getDescender()) * fontSize);
+		}
+		else {
+			// First line is special
 		}
 		return result;
 	}

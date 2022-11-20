@@ -161,6 +161,15 @@ namespace SnackerEngine
 	/// to control the cursor position and add/remove characters
 	class EditableText : public DynamicText
 	{
+	public:
+		/// Struct that is used as a return type for getSelectionBoxes().
+		struct SelectionBox
+		{
+			/// position of the lower left corner of the selection box
+			Vec2f position;
+			/// size of the selection box
+			Vec2f size;
+		};
 	protected:
 		/// If this bool is set to true, the UTF-8 encoded variable text is up-to-date
 		bool textIsUpToDate;
@@ -194,6 +203,9 @@ namespace SnackerEngine
 		void constructModel() override;
 		/// Helper function to construct the text variable from the characters vector
 		void constructTextFromCharacters();
+		/// Helper function used in getSelectionBoxes(), which computes the selection box for two
+		/// characters [startCharacterIndex, endCharacterIndex] (inclusive) in the same line. 
+		SelectionBox computeSelectionBox(const unsigned& startCharacterIndex, const unsigned& endCharacterIndex);
 		/// Helper function that computes the cursorPosIndex and cursorPosition from a given characterIndex
 		std::pair<unsigned int, Vec2f> computeCursorIndexAndPosition(unsigned int characterIndex);
 	public:
@@ -219,14 +231,6 @@ namespace SnackerEngine
 		void moveCursorToRightWordEnd();
 		/// Sets the selectionIndex to the cursorPosIndex
 		void setSelectionIndexToCursor();
-		/// Struct that is used as a return type for getSelectionBoxes().
-		struct SelectionBox
-		{
-			/// position of the lower left corner of the selection box
-			Vec2f position;
-			/// size of the selection box
-			Vec2f size;
-		};
 		/// Computes and returns a vector of selection boxes using the current selection.
 		std::vector<SelectionBox> getSelectionBoxes();
 		/// Returns the cursor position

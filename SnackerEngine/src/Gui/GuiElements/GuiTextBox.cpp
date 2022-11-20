@@ -144,7 +144,7 @@ namespace SnackerEngine
 		double textOffsetY;
 		if (text->getAlignment() == StaticText::Alignment::CENTER) {
 			// Align to the center of the text box
-			textOffsetY = -pointsToInches((text->getTop() * text->getBottom()) / 2.0) * DPI - size.y / 2.0;
+			textOffsetY = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI - size.y / 2.0;
 		}
 		else {
 			// Align to the top of the text box
