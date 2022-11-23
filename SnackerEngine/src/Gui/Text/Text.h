@@ -205,7 +205,7 @@ namespace SnackerEngine
 		void constructTextFromCharacters();
 		/// Helper function used in getSelectionBoxes(), which computes the selection box for two
 		/// characters [startCharacterIndex, endCharacterIndex] (inclusive) in the same line. 
-		SelectionBox computeSelectionBox(const unsigned& startCharacterIndex, const unsigned& endCharacterIndex);
+		SelectionBox computeSelectionBox(const unsigned& startCharacterIndex, const unsigned& endCharacterIndex, const unsigned& lineIndex);
 		/// Helper function that computes the cursorPosIndex and cursorPosition from a given characterIndex
 		std::pair<unsigned int, Vec2f> computeCursorIndexAndPosition(unsigned int characterIndex);
 	public:
@@ -218,32 +218,44 @@ namespace SnackerEngine
 		EditableText(EditableText&& other) noexcept;
 		/// Sets the cursor position
 		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
-		void setCursorPos(unsigned int characterIndex);
+		/// If moveSelection is set to false, a selection will be made/changed (eg. use when pressing shift)
+		void setCursorPos(unsigned int characterIndex, const bool& moveSelection = true);
 		/// Sets the cursor position to be as close as possible to the given 2D (mouse) position
-		void computeCursorPosFromMousePos(Vec2d mousePos);
+		/// If moveSelection is set to false, a selection will be made/changed (eg. use when holding down the mouse)
+		void computeCursorPosFromMousePos(Vec2d mousePos, const bool& moveSelection = true);
 		/// Moves the cursor one character to the left
-		void moveCursorToLeft();
+		/// If moveSelection is set to false, a selection will be made/changed (eg. use when pressing shift)
+		void moveCursorToLeft(const bool& moveSelection = true);
 		/// Moves the cursor one character to the right
-		void moveCursorToRight();
+		/// If moveSelection is set to false, a selection will be made/changed (eg. use when pressing shift)
+		void moveCursorToRight(const bool& moveSelection = true);
 		/// Moves the cursor to the beginning of the current/last word
-		void moveCursorToLeftWordBeginning();
-		/// Moves the cursor to the end of the current/next word
-		void moveCursorToRightWordEnd();
+		/// If moveSelection is set to false, a selection will be made/changed (eg. use when pressing shift)
+		void moveCursorToLeftWordBeginning(const bool& moveSelection = true);
+		/// Moves the cursor to the end of the current/next word. 
+		/// If moveSelection is set to false, a selection will be made/changed (eg. use when pressing shift)
+		void moveCursorToRightWordEnd(const bool& moveSelection = true);
 		/// Sets the selectionIndex to the cursorPosIndex
 		void setSelectionIndexToCursor();
 		/// Computes and returns a vector of selection boxes using the current selection.
 		std::vector<SelectionBox> getSelectionBoxes();
 		/// Returns the cursor position
 		const Vec2f& getCursorPos() const;
-		/// Inputs a unicode character at the current cursor position
+		/// Inputs a unicode character at the current cursor position. If a selection
+		/// was made, it is replaced by the character instead.
 		void inputAtCursor(const Unicode& codepoint);
+		/// Inputs the given UTF-8 encoded string at the current cursor position. If a selection
+		/// was made, it is replaced by the string instead.
+		void inputAtCursor(const std::string& text);
 		/// Inputs the 'line break' or 'newline' unicode character at the current cursor position
 		void inputNewlineAtCursor();
 		/// Deletes all characters in [beginIndex, endIndex] (inclusive)
 		void deleteCharacters(unsigned int beginIndex, unsigned int endIndex);
-		/// Deletes the character before the current cursor pos
+		/// Deletes the character before the current cursor pos. 
+		/// If something is selected, this is deleted instead
 		void deleteCharacterBeforeCursor();
-		/// Deletes the complete word before the current cursor pos
+		/// Deletes the complete word before the current cursor pos.
+		/// If something is selected, this is deleted instead
 		void deleteWordBeforeCursor();
 		/// Returns the size of the cursor
 		const Vec2f& getCursorSize() const;
@@ -273,6 +285,9 @@ namespace SnackerEngine
 		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true) override;
 		/// Sets the cursor width
 		void setCursorWidth(const double& cursorWidth);
+		/// Returns true if the selectionIndex is different from the cursor index, ie. if a selection
+		/// selecting > 0 characters is currently active
+		bool isSelecting() const;
 	};
 	//--------------------------------------------------------------------------------------------------
 }

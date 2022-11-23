@@ -420,6 +420,7 @@ namespace SnackerEngine
 	{
 		GuiDynamicTextBox::onSizeChange();
 		computeModelMatrixCursor();
+		computeModelMatricesSelectionBoxes();
 	}
 
 	GuiEditTextBox::IsCollidingResult GuiEditTextBox::isColliding(const Vec2i& position)
@@ -441,15 +442,23 @@ namespace SnackerEngine
 
 	void GuiEditTextBox::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
-		if (active && button == MOUSE_BUTTON_LEFT && action == ACTION_PRESS) {
-			if (isColliding(getMouseOffset(getParentID())) == IsCollidingResult::NOT_COLLIDING) {
-				active = false;
-				cursorIsVisible = false;
-				signOffEvent(CallbackType::CHARACTER_INPUT);
-				signOffEvent(CallbackType::KEYBOARD);
-				signOffEvent(CallbackType::UPDATE);
-				signOffEvent(CallbackType::MOUSE_BUTTON);
-				if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
+		if (active && button == MOUSE_BUTTON_LEFT) {
+			if (action == ACTION_PRESS) {
+				if (isColliding(getMouseOffset(getParentID())) == IsCollidingResult::NOT_COLLIDING) {
+					active = false;
+					cursorIsVisible = false;
+					signOffEvent(CallbackType::CHARACTER_INPUT);
+					signOffEvent(CallbackType::KEYBOARD);
+					signOffEvent(CallbackType::UPDATE);
+					signOffEvent(CallbackType::MOUSE_BUTTON);
+					signOffEvent(CallbackType::MOUSE_MOTION);
+					if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
+					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
+					computeModelMatricesSelectionBoxes();
+				}
+			}
+			else if (action == ACTION_RELEASE) {
+				signOffEvent(CallbackType::MOUSE_MOTION);
 			}
 		}
 	}
@@ -460,39 +469,31 @@ namespace SnackerEngine
 		{
 			if (key == KEY_LEFT) {
 				if (mods & MOD_CONTROL) {
-					static_cast<EditableText&>(*text).moveCursorToLeftWordBeginning();
+					static_cast<EditableText&>(*text).moveCursorToLeftWordBeginning(!(mods & MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
 				else {
-					static_cast<EditableText&>(*text).moveCursorToLeft();
+					static_cast<EditableText&>(*text).moveCursorToLeft(!(mods & MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
-				if (!(mods & MOD_SHIFT)) {
-					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
-				}
-				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_RIGHT) {
 				if (mods & MOD_CONTROL) {
-					static_cast<EditableText&>(*text).moveCursorToRightWordEnd();
+					static_cast<EditableText&>(*text).moveCursorToRightWordEnd(!(mods & MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
 				else {
-					static_cast<EditableText&>(*text).moveCursorToRight();
+					static_cast<EditableText&>(*text).moveCursorToRight(!(mods & MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
-				if (!(mods & MOD_SHIFT)) {
-					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
-				}
-				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_BACKSPACE) {
 				if (mods & MOD_CONTROL) {
@@ -507,8 +508,6 @@ namespace SnackerEngine
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
-				static_cast<EditableText&>(*text).setSelectionIndexToCursor();
-				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_ENTER) {
 				if (singleLine) {
@@ -519,16 +518,17 @@ namespace SnackerEngine
 					signOffEvent(CallbackType::KEYBOARD);
 					signOffEvent(CallbackType::UPDATE);
 					signOffEvent(CallbackType::MOUSE_BUTTON);
+					signOffEvent(CallbackType::MOUSE_MOTION);
 					if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
+					// Kill selection
+					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
 				}
 				else {
 					static_cast<EditableText&>(*text).inputNewlineAtCursor();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
-					computeModelMatricesSelectionBoxes();
+					computeModelMatrixCursor();
 				}
-				static_cast<EditableText&>(*text).setSelectionIndexToCursor();
-				computeModelMatricesSelectionBoxes();
 			}
 			else if (key == KEY_ESCAPE) {
 				active = false;
@@ -537,9 +537,12 @@ namespace SnackerEngine
 				signOffEvent(CallbackType::KEYBOARD);
 				signOffEvent(CallbackType::UPDATE);
 				signOffEvent(CallbackType::MOUSE_BUTTON);
+				signOffEvent(CallbackType::MOUSE_MOTION);
+				// Kill selection
 				static_cast<EditableText&>(*text).setSelectionIndexToCursor();
-				computeModelMatricesSelectionBoxes();
 			}
+			// Compute selection boxes
+			computeModelMatricesSelectionBoxes();
 		}
 	}
 
@@ -551,6 +554,8 @@ namespace SnackerEngine
 			cursorBlinkingTimer.reset();
 			cursorIsVisible = true;
 			setSize(size);
+			// Compute selection boxes
+			computeModelMatricesSelectionBoxes();
 		}
 	}
 
@@ -562,10 +567,10 @@ namespace SnackerEngine
 			signUpEvent(CallbackType::KEYBOARD);
 			signUpEvent(CallbackType::UPDATE);
 			signUpEvent(CallbackType::MOUSE_BUTTON);
+			signUpEvent(CallbackType::MOUSE_MOTION);
 			Vec2d mousePos = getMouseOffsetToText();
 			static_cast<EditableText&>(*text).computeCursorPosFromMousePos(mousePos);
 			computeModelMatrixCursor();
-			static_cast<EditableText&>(*text).setSelectionIndexToCursor();
 			computeModelMatricesSelectionBoxes();
 			cursorBlinkingTimer.reset();
 			cursorIsVisible = true;
@@ -580,6 +585,16 @@ namespace SnackerEngine
 	void GuiEditTextBox::callbackMouseLeave(const Vec2d& position)
 	{
 		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
+	}
+
+	void GuiEditTextBox::callbackMouseMotion(const Vec2d& position)
+	{
+		Vec2d mousePos = getMouseOffsetToText();
+		static_cast<EditableText&>(*text).computeCursorPosFromMousePos(mousePos, false);
+		computeModelMatrixCursor();
+		computeModelMatricesSelectionBoxes();
+		cursorBlinkingTimer.reset();
+		cursorIsVisible = true;
 	}
 
 	void GuiEditTextBox::update(const double& dt)

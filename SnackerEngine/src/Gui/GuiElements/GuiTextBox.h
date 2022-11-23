@@ -167,6 +167,9 @@ namespace SnackerEngine
 		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseLeave(const Vec2d& position) override;
+		/// Callback function for mouse motion. Parameter the same as in Scene.h
+		/// position:	position relative to this elements top left corner
+		virtual void callbackMouseMotion(const Vec2d& position) override;
 		/// Update function
 		virtual void update(const double& dt) override;
 		/// This function is called by a handle right before the handle is destroyed

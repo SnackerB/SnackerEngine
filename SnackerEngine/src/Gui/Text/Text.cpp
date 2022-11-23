@@ -1081,13 +1081,32 @@ namespace SnackerEngine
 		textIsUpToDate = true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	EditableText::SelectionBox EditableText::computeSelectionBox(const unsigned& startCharacterIndex, const unsigned& endCharacterIndex)
+	EditableText::SelectionBox EditableText::computeSelectionBox(const unsigned& startCharacterIndex, const unsigned& endCharacterIndex, const unsigned& lineIndex)
 	{
+		if (characters.empty()) return SelectionBox{};
 		SelectionBox result;
 		result.position = computeCursorIndexAndPosition(startCharacterIndex).second * fontSize;
-		float endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x;
-		if (endCharacterIndex < characters.size()) {
-			endPosition = (endPosition + characters[endCharacterIndex].right - characters[endCharacterIndex].left);
+		float endPosition;
+		if (endCharacterIndex < lines[lineIndex].endIndex) {
+			endPosition = computeCursorIndexAndPosition(endCharacterIndex + 1).second.x;
+		}
+		else {
+			if (endCharacterIndex < characters.size()) {
+				if (isNewline(characters[endCharacterIndex].codepoint)) {
+					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x;
+				}
+				else {
+					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x + font.getGlyph(characters[endCharacterIndex].codepoint).advance;
+				}
+			}
+			else {
+				if (isNewline(characters.back().codepoint)) {
+					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x;
+				}
+				else {
+					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x + font.getGlyph(characters.back().codepoint).advance;
+				}
+			}
 		}
 		result.size = Vec2f(endPosition * fontSize - result.position.x, (font.getAscender() - font.getDescender()) * fontSize);
 		return result;
@@ -1177,17 +1196,29 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::setCursorPos(unsigned int characterIndex)
+	void EditableText::setCursorPos(unsigned int characterIndex, const bool& moveSelection)
 	{
 		auto result = computeCursorIndexAndPosition(characterIndex);
 		cursorPosIndex = result.first;
 		cursorPos = result.second;
+		if (moveSelection) {
+			setSelectionIndexToCursor();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::computeCursorPosFromMousePos(Vec2d mousePos)
+	void EditableText::computeCursorPosFromMousePos(Vec2d mousePos, const bool& moveSelection)
 	{
+		if (characters.empty() || lines.empty()) {
+			setCursorPos(0, moveSelection);
+			return;
+		}
 		// Find the correct line
 		mousePos = mousePos / fontSize;
+		// If the mouse is above the text, set cursorPos to text beginning
+		if (mousePos.y > lines[0].baselineY + font.getAscender()) {
+			setCursorPos(0, moveSelection);
+			return;
+		}
 		double descender = font.getDescender();
 		int lineNumber = -1;
 		for (unsigned int tempLineNumber = 0; tempLineNumber < lines.size(); tempLineNumber++) {
@@ -1197,7 +1228,7 @@ namespace SnackerEngine
 			}
 		}
 		if (lineNumber == -1) {
-			setCursorPos(characters.size() + 1);
+			setCursorPos(characters.size() + 1, moveSelection);
 			return;
 		}
 		const auto& line = lines[lineNumber];
@@ -1232,34 +1263,34 @@ namespace SnackerEngine
 		if (characterIndex == -1) {
 			if (lines[lineNumber].endIndex < characters.size() && (isSpaceCharacter(characters[lines[lineNumber].endIndex].codepoint) ||
 																   isNewline(characters[lines[lineNumber].endIndex].codepoint))) {
-				setCursorPos(lines[lineNumber].endIndex);
+				setCursorPos(lines[lineNumber].endIndex, moveSelection);
 			}
 			else {
-				setCursorPos(lines[lineNumber].endIndex + 1);
+				setCursorPos(lines[lineNumber].endIndex + 1, moveSelection);
 			}
 		}
 		else {
 			// Check if the mouse is more to the left or more to the right of the character
 			if (mousePos.x >= textOffsetX + (characters[characterIndex].right + characters[characterIndex].left) / 2.0) {
-				setCursorPos(characterIndex + 1);
+				setCursorPos(characterIndex + 1, moveSelection);
 			}
 			else {
-				setCursorPos(characterIndex);
+				setCursorPos(characterIndex, moveSelection);
 			}
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::moveCursorToLeft()
+	void EditableText::moveCursorToLeft(const bool& moveSelection)
 	{
-		if (cursorPosIndex != 0) setCursorPos(cursorPosIndex - 1);
+		if (cursorPosIndex != 0) setCursorPos(cursorPosIndex - 1, moveSelection);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::moveCursorToRight()
+	void EditableText::moveCursorToRight(const bool& moveSelection)
 	{
-		if (cursorPosIndex != characters.size()) setCursorPos(cursorPosIndex + 1);
+		if (cursorPosIndex != characters.size()) setCursorPos(cursorPosIndex + 1, moveSelection);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::moveCursorToLeftWordBeginning()
+	void EditableText::moveCursorToLeftWordBeginning(const bool& moveSelection)
 	{
 		if (cursorPosIndex == 0) return;
 		unsigned int newIndex = cursorPosIndex - 1;
@@ -1271,10 +1302,10 @@ namespace SnackerEngine
 				newIndex--;
 			}
 		}
-		setCursorPos(newIndex);
+		setCursorPos(newIndex, moveSelection);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::moveCursorToRightWordEnd()
+	void EditableText::moveCursorToRightWordEnd(const bool& moveSelection)
 	{
 		if (cursorPosIndex == characters.size()) return;
 		unsigned int newIndex = cursorPosIndex;
@@ -1289,7 +1320,7 @@ namespace SnackerEngine
 				newIndex++;
 			}
 		}
-		setCursorPos(newIndex);
+		setCursorPos(newIndex, moveSelection);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::setSelectionIndexToCursor()
@@ -1307,14 +1338,17 @@ namespace SnackerEngine
 		unsigned startLine = getLineNumber(startIndex);
 		unsigned endLine = getLineNumber(endIndex);
 		if (startLine == endLine) {
-			result.push_back(computeSelectionBox(startIndex, endIndex - 1));
-			//result.push_back({ computeCursorIndexAndPosition(startIndex).second * fontSize, Vec2f() });
-			//auto temp = computeCursorIndexAndPosition(endIndex);
-			//float endX = temp.second.x * fontSize;
-			//result.back().size = Vec2f(endX - result.back().position.x, (font.getAscender() - font.getDescender()) * fontSize);
+			result.push_back(computeSelectionBox(startIndex, endIndex - 1, startLine));
 		}
 		else {
-			// First line is special
+			// First line
+			result.push_back(computeSelectionBox(startIndex, lines[startLine].endIndex, startLine));
+			// full lines in between
+			for (unsigned int lineIndex = startLine + 1; lineIndex < endLine; ++lineIndex) {
+				result.push_back(computeSelectionBox(lines[lineIndex].beginIndex, lines[lineIndex].endIndex, lineIndex));
+			}
+			// Last line
+			result.push_back(computeSelectionBox(lines[endLine].beginIndex, endIndex - 1, endLine));
 		}
 		return result;
 	}
@@ -1326,10 +1360,16 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::inputAtCursor(const Unicode& codepoint)
 	{
+		if (isSelecting()) {
+			// If we have a selection, delete characters first
+			unsigned endIndex = std::max(cursorPosIndex, selectionIndex) - 1;
+			deleteCharacters(std::min(cursorPosIndex, selectionIndex), endIndex);
+		}
 		characters.insert(characters.begin() + cursorPosIndex, { codepoint, 0.0, 0.0 });
 		constructModelFrom(getLineNumber(cursorPosIndex));
 		textIsUpToDate = false;
 		setCursorPos(cursorPosIndex + 1);
+		setSelectionIndexToCursor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::inputNewlineAtCursor()
@@ -1341,7 +1381,7 @@ namespace SnackerEngine
 	{
 		if (characters.empty()) return;
 		if (beginIndex > endIndex) return;
-		if (endIndex > characters.size()) endIndex = characters.size() - 1;
+		if (endIndex >= characters.size()) endIndex = characters.size() - 1;
 		characters.erase(characters.begin() + beginIndex, characters.begin() + endIndex + 1);
 		constructModelFrom(getLineNumber(beginIndex));
 		textIsUpToDate = false;
@@ -1353,26 +1393,41 @@ namespace SnackerEngine
 				setCursorPos(cursorPosIndex + beginIndex - endIndex - 1);
 			}
 		}
+		setSelectionIndexToCursor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::deleteCharacterBeforeCursor()
 	{
-		if (cursorPosIndex > 0) deleteCharacters(cursorPosIndex - 1, cursorPosIndex - 1);
+		if (isSelecting()) {
+			// If we have a selection, delete characters first
+			unsigned endIndex = std::max(cursorPosIndex, selectionIndex) - 1;
+			deleteCharacters(std::min(cursorPosIndex, selectionIndex), endIndex);
+		}
+		else if (cursorPosIndex > 0) {
+			deleteCharacters(cursorPosIndex - 1, cursorPosIndex - 1);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::deleteWordBeforeCursor()
 	{
-		if (cursorPosIndex == 0) return;
-		unsigned int beginIndex = cursorPosIndex - 1;
-		if (!isNewline(characters[beginIndex].codepoint)) {
-			while (beginIndex > 0 && isWhiteSpace(characters[beginIndex].codepoint) && !isNewline(characters[beginIndex].codepoint)) {
-				beginIndex--;
-			}
-			while (beginIndex > 0 && !isWhiteSpace(characters[beginIndex - 1].codepoint)) {
-				beginIndex--;
-			}
+		if (isSelecting()) {
+			// If we have a selection, delete characters first
+			unsigned endIndex = std::max(cursorPosIndex, selectionIndex) - 1;
+			deleteCharacters(std::min(cursorPosIndex, selectionIndex), endIndex);
 		}
-		deleteCharacters(beginIndex, cursorPosIndex - 1);
+		else {
+			if (cursorPosIndex == 0) return;
+			unsigned int beginIndex = cursorPosIndex - 1;
+			if (!isNewline(characters[beginIndex].codepoint)) {
+				while (beginIndex > 0 && isWhiteSpace(characters[beginIndex].codepoint) && !isNewline(characters[beginIndex].codepoint)) {
+					beginIndex--;
+				}
+				while (beginIndex > 0 && !isWhiteSpace(characters[beginIndex - 1].codepoint)) {
+					beginIndex--;
+				}
+			}
+			deleteCharacters(beginIndex, cursorPosIndex - 1);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	const Vec2f& EditableText::getCursorSize() const
@@ -1429,6 +1484,11 @@ namespace SnackerEngine
 	void EditableText::setCursorWidth(const double& cursorWidth)
 	{
 		cursorSize.x = cursorWidth;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool EditableText::isSelecting() const
+	{
+		return cursorPosIndex != selectionIndex;
 	}
 	//--------------------------------------------------------------------------------------------------
 }
