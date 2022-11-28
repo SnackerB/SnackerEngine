@@ -24,7 +24,7 @@ namespace SnackerEngine
 		unsigned int resizeBorder;
 		/// Vector of stored weights
 		std::vector<double> weights;
-		/// Vector of stored width percentages
+		/// Vector of stored width percentages, starting from the top of the screen
 		std::vector<double> percentages;
 
 		/// Removes the given child guiElement from this layout

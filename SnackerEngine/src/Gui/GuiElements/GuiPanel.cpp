@@ -23,7 +23,9 @@ namespace SnackerEngine
 		shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
 		shader.setUniform<Color3f>("u_color", backgroundColor);
 		Renderer::draw(guiManager->getModelSquare());
+		pushClippingBox(parentPosition);
 		GuiElement::draw(parentPosition);
+		popClippingBox();
 	}
 
 	void GuiPanel::onPositionChange()

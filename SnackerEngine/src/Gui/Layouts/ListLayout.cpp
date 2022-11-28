@@ -138,6 +138,7 @@ namespace SnackerEngine
 	void ListLayout::draw(const Vec2i& parentPosition)
 	{
 		if (!guiManager) return;
+		pushClippingBox(parentPosition);
 		// Draw children
 		const auto& children = getChildren();
 		Vec2i newParentPosition = parentPosition + getPosition();
@@ -156,6 +157,7 @@ namespace SnackerEngine
 			shaderScrollBar.setUniform<Color3f>("u_color", scrollBarColor);
 			Renderer::draw(guiManager->getModelSquare());
 		}
+		popClippingBox();
 	}
 	
 	ListLayout::IsCollidingResult ListLayout::isColliding(const Vec2i& position)
@@ -214,6 +216,13 @@ namespace SnackerEngine
 	ListLayout::GuiID ListLayout::getCollidingChild(const Vec2i& position)
 	{
 		return GuiLayout::getCollidingChild(Vec2i(position.x, position.y - currentVerticalOffset));
+	}
+
+	Vec2i ListLayout::getChildOffset(const GuiID& childID)
+	{
+		Vec2i result = getPosition(childID);
+		result.y += currentVerticalOffset;
+		return result;
 	}
 
 	ListLayout::ListLayout(const float& verticalOffset, const float& leftBorder, const float& scrollSpeed, const Color3f& scrollBarBackgroundColor, const Color3f& scrollBarColor, const float& scrollBarWidth, const float& scrollBarOffsetTop, const float& scrollBarOffsetBottom, const float& scrollBarOffsetRight, const ListLayoutResizeMode& resizeMode)

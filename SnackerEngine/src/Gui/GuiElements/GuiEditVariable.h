@@ -251,7 +251,7 @@ namespace SnackerEngine
 		other.variableHandle = nullptr;
 		other.label = nullptr;
 		other.editBox = nullptr;
-		if (variableHandle) notifyHandleOnGuiElementMove(*variableHandle);
+		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
 	}
 
 	template<typename T>

@@ -95,6 +95,10 @@ namespace SnackerEngine
 		/// none of this elements children is colliding. This function will call isColliding() on its children
 		/// recursively.
 		GuiID getCollidingChild(const Vec2i& position) override;
+		/// Returns the mouse offset of a child element from this element. Can be
+		/// overwritten if the children are displayed at a different place than they
+		/// are (eg. in a scrolling list etc)
+		Vec2i getChildOffset(const GuiID& childID) override;
 	public:
 		/// Constructor
 		ListLayout(const float& verticalOffset, const float& leftBorder, const float& scrollSpeed,

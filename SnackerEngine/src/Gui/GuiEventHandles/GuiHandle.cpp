@@ -6,54 +6,80 @@ namespace SnackerEngine
     //--------------------------------------------------------------------------------------------------
     void GuiHandle::registerHandle(const GuiHandleID& guiHandleID, GuiElement& guiElement)
     {
-        this->guiHandleID = guiHandleID;
-        this->guiElement = &guiElement;
+        this->guiHandleIDs.push_back(guiHandleID);
+        this->guiElements.push_back(&guiElement);
     }
     //--------------------------------------------------------------------------------------------------
     void GuiHandle::signOff()
     {
-        guiHandleID = 0;
-        guiElement = nullptr;
+        guiHandleIDs.clear();
+        guiElements.clear();
     }
     //--------------------------------------------------------------------------------------------------
-    void GuiHandle::onMove(GuiElement& guiElement)
+    void GuiHandle::onMove(GuiElement* oldElement, GuiElement* newElement)
     {
-        this->guiElement = &guiElement;
+        auto result = std::find(guiElements.begin(), guiElements.end(), oldElement);
+        if (result != guiElements.end()) {
+            *result = newElement;
+        }
     }
     //--------------------------------------------------------------------------------------------------
     void GuiHandle::onHandleUpdate()
     {
-        if (guiElement) guiElement->onHandleUpdate(*this);
+        for (auto& element : guiElements) {
+            element->onHandleUpdate(*this);
+        }
+    }
+    //--------------------------------------------------------------------------------------------------
+    void GuiHandle::onHandleUpdateFromElement(GuiElement& element)
+    {
+        for (auto& it : guiElements) {
+            if (it != &element) it->onHandleUpdate(*this);
+        }
+    }
+    //--------------------------------------------------------------------------------------------------
+    void GuiHandle::signOff(GuiElement& element)
+    {
+        auto result = std::find(guiElements.begin(), guiElements.end(), &element);
+        if (result != guiElements.end()) {
+            guiHandleIDs.erase(guiHandleIDs.begin() + (result - guiElements.begin()));
+            guiElements.erase(result);
+        }
     }
     //--------------------------------------------------------------------------------------------------
     GuiHandle::GuiHandle()
-        : guiHandleID(0), guiElement(nullptr) {}
+        : guiHandleIDs{}, guiElements{} {}
     //--------------------------------------------------------------------------------------------------
-    const GuiHandle::GuiHandleID& GuiHandle::getGuiHandleID() const
+    const std::vector<GuiHandle::GuiHandleID>& GuiHandle::getGuiHandleIDs() const
     {
-        return guiHandleID;
+        return guiHandleIDs;
     }
     //--------------------------------------------------------------------------------------------------
     GuiHandle::GuiHandle(GuiHandle&& other) noexcept
-        : guiHandleID(other.guiHandleID), guiElement(other.guiElement)
+        : guiHandleIDs(other.guiHandleIDs), guiElements(other.guiElements)
     {
         other.signOff();
-        guiElement->onHandleMove(*this);
+        for (auto& element : guiElements) {
+            element->onHandleMove(*this);
+        }
     }
     //--------------------------------------------------------------------------------------------------
     GuiHandle& GuiHandle::operator=(GuiHandle&& other) noexcept
     {
-        guiHandleID = other.guiHandleID;
-        guiElement = other.guiElement;
+        guiHandleIDs = other.guiHandleIDs;
+        guiElements = other.guiElements;
         other.signOff();
-        guiElement->onHandleMove(*this);
+        for (auto& element : guiElements) {
+            element->onHandleMove(*this);
+        }
         return *this;
     }
     //--------------------------------------------------------------------------------------------------
     GuiHandle::~GuiHandle()
     {
-        if (guiElement)
-            guiElement->onHandleDestruction(*this);
+        for (auto& element : guiElements) {
+            element->onHandleDestruction(*this);
+        }
     }
     //--------------------------------------------------------------------------------------------------
 }

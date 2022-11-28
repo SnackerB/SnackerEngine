@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
@@ -13,10 +15,10 @@ namespace SnackerEngine
 		/// If a guiElement has multiple handles, it can distinguish between them by their handle ID
 		using GuiHandleID = unsigned int;
 	private:
-		/// GuiHandleID of this handle
-		GuiHandleID guiHandleID;
-		/// Pointer to the guiElement this handle belongs to
-		GuiElement* guiElement;
+		/// GuiHandleIDs of this handle
+		std::vector<GuiHandleID> guiHandleIDs;
+		/// Pointer to the guiElements this handle belongs to
+		std::vector<GuiElement*> guiElements;
 	protected:
 		/// Function that is called by guiElement to register handle
 		void registerHandle(const GuiHandleID& guiHandleID, GuiElement& guiElement);
@@ -24,15 +26,21 @@ namespace SnackerEngine
 		/// (e.g. on destruction of the guiElement)
 		void signOff();
 		/// Function that is called by the guiElement after it is moved
-		void onMove(GuiElement& guiElement);
-		/// Function that can be called by the handle to notify to the guiElement 
+		void onMove(GuiElement* oldElement, GuiElement* newElement);
+		/// Function that can be called by the handle to notify to the guiElements
 		/// that something has occured/changed!
 		void onHandleUpdate();
+		/// Similar to onHandleUpdate(), but notifies only elements other than the given
+		/// guiElement instance.
+		void onHandleUpdateFromElement(GuiElement& element);
+		/// Function that should be called if a guiElement no longer needs this handle,
+		/// i.e. on destruction!
+		void signOff(GuiElement& element);
 		/// Constructor
 		GuiHandle();
 	public:
 		/// Returns the handle ID
-		const GuiHandleID& getGuiHandleID() const;
+		const std::vector<GuiHandleID>& getGuiHandleIDs() const;
 		/// Deleted copy constructor and assignment operator
 		GuiHandle(const GuiHandle& other) = delete;
 		GuiHandle& operator=(const GuiHandle& other) = delete;

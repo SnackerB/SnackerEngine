@@ -87,6 +87,10 @@ namespace SnackerEngine
 		/// vector (Used for registering guiElements that are part of other
 		/// guiElements, eg. the window bar of a window element)
 		void registerElementAsChild(GuiElement& guiElement);
+		/// Returns the mouse offset of a child element from this element. Can be
+		/// overwritten if the children are displayed at a different place than they
+		/// are (eg. in a scrolling list etc)
+		virtual Vec2i getChildOffset(const GuiID& childID);
 
 		//==============================================================================================
 		// GuiHandles
@@ -101,7 +105,7 @@ namespace SnackerEngine
 		/// (e.g. destruction of a guiElement) 
 		void signOffHandle(GuiHandle& guiHandle);
 		/// This function should be called when moving a guiElement that owns a guiHandle
-		void notifyHandleOnGuiElementMove(GuiHandle& guiHandle);
+		void notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle);
 		/// This function is called by a handle right before the handle is destroyed
 		virtual void onHandleDestruction(GuiHandle& guiHandle) {};
 		/// This function calls activate() on the given GuiEventHandle
@@ -183,6 +187,17 @@ namespace SnackerEngine
 		virtual void callbackMouseLeave(const Vec2d& position) {};
 		/// Update function
 		virtual void update(const double& dt) {};
+
+		//==============================================================================================
+		// ClippingBoxes (Scissor test) for rendering
+		//==============================================================================================
+		
+		/// Pushes a clipping box to the stack and enables the scissor test
+		void pushClippingBox(const Vec4i& clippingBox);
+		/// Computes a clipping box from the parentPosition and pushes it to the stack
+		void pushClippingBox(const Vec2i& parentPosition);
+		/// pops a clipping box from the stack
+		void popClippingBox();
 
 		//==============================================================================================
 		// Access to (some) functionalities of child elements for derived guiElements
@@ -270,6 +285,7 @@ namespace SnackerEngine
 	{
 		variableHandle.val = value;
 		variableHandle.activate();
+		variableHandle.onHandleUpdateFromElement(*this);
 	}
 
 }

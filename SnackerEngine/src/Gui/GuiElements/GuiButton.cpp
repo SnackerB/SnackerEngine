@@ -170,7 +170,7 @@ namespace SnackerEngine
 		isBeingPressed(other.isBeingPressed), isBeingHovered(other.isBeingHovered)
 	{
 		other.eventHandle = nullptr;
-		if (eventHandle) notifyHandleOnGuiElementMove(*eventHandle);
+		if (eventHandle) notifyHandleOnGuiElementMove(&other, *eventHandle);
 	}
 
 	GuiButton& GuiButton::operator=(GuiButton&& other) noexcept
@@ -184,7 +184,7 @@ namespace SnackerEngine
 		isBeingPressed = other.isBeingPressed;
 		isBeingHovered = other.isBeingHovered;
 		other.eventHandle = nullptr;
-		if (eventHandle) notifyHandleOnGuiElementMove(*eventHandle);
+		if (eventHandle) notifyHandleOnGuiElementMove(&other, *eventHandle);
 		return *this;
 	}
 

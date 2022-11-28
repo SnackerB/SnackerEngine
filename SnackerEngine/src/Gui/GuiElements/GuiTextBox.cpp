@@ -33,6 +33,7 @@ namespace SnackerEngine
 			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b)); // TODO: Transparent background
 			Renderer::draw(guiManager->getModelSquare());
 		}
+		pushClippingBox(parentPosition);
 		// Draw text
 		material.bind();
 		guiManager->setUniformViewAndProjectionMatrices(material.getShader());
@@ -41,6 +42,7 @@ namespace SnackerEngine
 		SnackerEngine::Renderer::draw(text->getModel(), material);
 		// Draw children
 		GuiElement::draw(parentPosition);
+		popClippingBox();
 	}
 
 	void GuiDynamicTextBox::onPositionChange()
@@ -385,6 +387,7 @@ namespace SnackerEngine
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw selection boxes
+		pushClippingBox(parentPosition);
 		for (const auto& modelMatrixSelectionBox : modelMatricesSelectionBoxes) {
 			backgroundShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
@@ -408,6 +411,7 @@ namespace SnackerEngine
 		}
 		// Draw children
 		GuiElement::draw(parentPosition);
+		popClippingBox();
 	}
 
 	void GuiEditTextBox::onPositionChange()
@@ -669,7 +673,7 @@ namespace SnackerEngine
 		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)) 
 	{
 		other.eventHandleTextWasEdited = nullptr;
-		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(*eventHandleTextWasEdited);
+		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
 	}
 
 	GuiEditTextBox& GuiEditTextBox::operator=(const GuiEditTextBox& other) noexcept
@@ -694,7 +698,7 @@ namespace SnackerEngine
 		modelMatrixCursor = other.modelMatrixCursor;
 		modelMatricesSelectionBoxes = other.modelMatricesSelectionBoxes;
 		other.eventHandleTextWasEdited = nullptr;
-		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(*eventHandleTextWasEdited);
+		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
 		return *this;
 	}
 

@@ -131,6 +131,23 @@ namespace SnackerEngine
 		GLCall(glDisable(GL_BLEND));
 	}
 	//------------------------------------------------------------------------------------------------------
+	void Renderer::enableScissorTest(const Vec2i& position, const Vec2i& size)
+	{
+		GLCall(glEnable(GL_SCISSOR_TEST));
+		GLCall(glScissor(position.x, position.y, size.x, size.y));
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Renderer::enableScissorTest(const Vec4i& clippingBox)
+	{
+		GLCall(glEnable(GL_SCISSOR_TEST));
+		GLCall(glScissor(clippingBox.x, clippingBox.y, clippingBox.z, clippingBox.w));
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Renderer::disableScissorTest()
+	{
+		GLCall(glDisable(GL_SCISSOR_TEST));
+	}
+	//------------------------------------------------------------------------------------------------------
 	void Renderer::draw(const Model& model, const Material& material)
 	{
 		material.bind();

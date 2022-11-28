@@ -41,6 +41,8 @@ namespace SnackerEngine
 		Vec2i currentMousePosition;
 		/// The guiID of the element the mouse was over last
 		GuiID lastMouseHoverElement;
+		/// The current screen dimensions
+		Vec2i screenDims;
 
 		//==============================================================================================
 		// Events
@@ -82,9 +84,22 @@ namespace SnackerEngine
 		Model triangleModel;
 
 		//==============================================================================================
+		// Rectangle clipping (scissor testing)
+		//==============================================================================================
+	protected:
+		/// Clipping boxes are pushed onto this stack when a parent is rendered and removed
+		/// when children finished rendering.
+		std::vector<Vec4i> clippingBoxStack;
+		/// Adds a clipping box to the stack and enables the scissor test
+		void pushClippingBox(const Vec4i& clippingBox);
+		/// Pops the top clipping box from the stack and updates the scissor test
+		void popClippingBox();
+
+		//==============================================================================================
 		// Helper functions
 		//==============================================================================================
 		
+	private:
 		/// Returns a new GuiID. The slot in the registeredGuiElements and the ownedGuiElements vectors
 		/// can then be used for registering/storing a new GuiElement object
 		GuiID getNewGuiID();

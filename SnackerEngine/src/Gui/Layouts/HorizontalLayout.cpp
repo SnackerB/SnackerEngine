@@ -12,16 +12,13 @@ namespace SnackerEngine
 		if (result != children.end()) {
 			GuiLayout::removeChild(guiElement);
 			// Compute weights from percentages for all children
-			for (unsigned int i = 0; i < weights.size(); ++i) {
-				weights[i] = percentages[i] * totalWeight;
-			}
+			computeWeightsFromPercentages();
+			// Delete child
 			totalWeight -= weights[result - children.begin()];
 			weights.erase(weights.begin() + (result - children.begin()));
 			percentages.erase(weights.begin() + (result - children.begin()));
 			// Compute percentages from weights for all children
-			for (unsigned int i = 0; i < weights.size(); ++i) {
-				percentages[i] = weights[i] / totalWeight;
-			}
+			computePercentagesFromWeights();
 			enforceLayout();
 		}
 	}
@@ -30,14 +27,19 @@ namespace SnackerEngine
 	{
 		if (!guiManager) return;
 		Vec2i mySize = getSize();
-		unsigned int remainder = mySize.x;
 		const auto& children = getChildren();
 		for (unsigned int i = 0; i < children.size(); ++i) {
-			Vec2i position = Vec2i(mySize.x - remainder, 0);
-			Vec2i size = (i == children.size() - 1) ? Vec2i(remainder, mySize.y)
-				: Vec2i(static_cast<int>(static_cast<double>(mySize.x) * percentages[i]), mySize.y);
-			remainder -= size.x;
-			setPositionAndSizeWithoutEnforcingLayouts(children[i], position, size);
+			int positionX = i > 0 ? static_cast<int>(static_cast<double>(mySize.x) * percentages[i - 1])
+				: 0;
+			int width = i == 0 ? static_cast<int>(static_cast<double>(mySize.x) * percentages[0])
+				: static_cast<int>(static_cast<double>(mySize.x) * (percentages[i] - percentages[i - 1]));
+			if (forceHeight) {
+				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positionX, 0), Vec2i(width, mySize.y));
+			}
+			else {
+				setPositionXWithoutEnforcingLayouts(children[i], positionX);
+				setWidthWithoutEnforcingLayouts(children[i], width);
+			}
 			enforceLayoutOnElement(children[i]);
 		}
 	}
@@ -46,9 +48,8 @@ namespace SnackerEngine
 	{
 		int width = getSize().x;
 		// Start from the left
-		int currentX = 0;
 		for (unsigned int i = 0; i < percentages.size() - 1; ++i) {
-			currentX += static_cast<int>(static_cast<float>(width) * percentages[i]);
+			int currentX = static_cast<int>(static_cast<double>(width) * percentages[i]);
 			if (((currentX - static_cast<int>(resizeAreaWidth)) <= position.x) && (position.x <= (currentX + static_cast<int>(resizeAreaWidth)))) {
 				return std::make_pair(i, position.x - currentX);
 			}
@@ -91,17 +92,8 @@ namespace SnackerEngine
 		else if (borderPos > getSize().x) {
 			borderPos = getSize().x;
 		}
-		// Compute new percentages. We only need to change the percentage of the element left and right of the resize border
-		int totalWidth = resizeBorder >= children.size() - 2 ? getSize().x
-			: getPosition(children[resizeBorder + 2]).x;
-		totalWidth -= getPosition(children[resizeBorder]).x;
-		percentages[resizeBorder] = static_cast<double>(borderPos - getPosition(children[resizeBorder]).x) / static_cast<double>(getSize(getParentID()).x);
-		if (resizeBorder + 2 < children.size()) {
-			percentages[resizeBorder + 1] = static_cast<double>(getPosition(children[resizeBorder + 2]).x - borderPos) / static_cast<double>(getSize(getParentID()).x);
-		}
-		else {
-			percentages[resizeBorder + 1] = static_cast<double>(getSize(getParentID()).x - getPosition(children[resizeBorder + 1]).x - borderPos) / static_cast<double>(getSize(getParentID()).x);
-		}
+		// Compute new percentages. We only need to change the percentage of the element in front of the resize border
+		percentages[resizeBorder] = getSize().x == 0 ? 0.0 : static_cast<double>(borderPos) / static_cast<double>(getSize().x);
 		enforceLayout();
 	}
 
@@ -129,6 +121,23 @@ namespace SnackerEngine
 		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
 	}
 
+	void HorizontalLayout::computePercentagesFromWeights()
+	{
+		double cumulativePercentage = 0.0;
+		for (unsigned int i = 0; i < weights.size(); ++i) {
+			cumulativePercentage += weights[0] / totalWeight;
+			percentages[i] = cumulativePercentage;
+		}
+	}
+
+	void HorizontalLayout::computeWeightsFromPercentages()
+	{
+		if (!weights.empty()) weights[0] = percentages[0] * totalWeight;
+		for (unsigned int i = 1; i < weights.size(); ++i) {
+			weights[i] = (percentages[i] - percentages[i - 1]) * totalWeight;
+		}
+	}
+
 	HorizontalLayout::HorizontalLayout(const bool& forceHeight)
 		: GuiLayout(), totalWeight(0.0), forceHeight(forceHeight), resizeAreaWidth(5), mouseOffset(0),
 		resizeBorder(0), weights(0.0), percentages(0.0) {}
@@ -137,16 +146,13 @@ namespace SnackerEngine
 	{
 		if (GuiLayout::registerChildWithoutEnforcingLayouts(guiElement)) {
 			// Compute weights from percentages for all children
-			for (unsigned int i = 0; i < weights.size(); ++i) {
-				weights[i] = percentages[i] * totalWeight;
-			}
+			computeWeightsFromPercentages();
+			// push back new weight
 			weights.push_back(weight);
 			percentages.push_back(0.0);
 			totalWeight += weight;
 			// Compute percentages from weights for all children
-			for (unsigned int i = 0; i < weights.size(); ++i) {
-				percentages[i] = weights[i] / totalWeight;
-			}
+			computePercentagesFromWeights();
 			enforceLayout();
 			return true;
 		}

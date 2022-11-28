@@ -54,6 +54,11 @@ namespace SnackerEngine
 		if (guiManager) guiManager->registerElementAsChild(*this, guiElement);
 	}
 	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiElement::getChildOffset(const GuiID& childID)
+	{
+		return getPosition(childID);
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signUpHandle(GuiHandle& guiHandle, const GuiHandle::GuiHandleID& handleID)
 	{
 		guiHandle.registerHandle(handleID, *this);
@@ -64,9 +69,9 @@ namespace SnackerEngine
 		guiHandle.signOff();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::notifyHandleOnGuiElementMove(GuiHandle& guiHandle)
+	void GuiElement::notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle)
 	{
-		guiHandle.onMove(*this);
+		guiHandle.onMove(oldElement, this);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::activate(GuiEventHandle& guiEventHandle)
@@ -134,6 +139,21 @@ namespace SnackerEngine
 	void GuiElement::signOffEvent(const CallbackType& callbackType)
 	{
 		if (guiManager) guiManager->signOffEvent(*this, callbackType);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::pushClippingBox(const Vec4i& clippingBox)
+	{
+		if (guiManager) guiManager->pushClippingBox(clippingBox);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::pushClippingBox(const Vec2i& parentPosition)
+	{
+		pushClippingBox(Vec4i(parentPosition.x + position.x, parentPosition.y + position.y, size.x, size.y));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::popClippingBox()
+	{
+		if (guiManager) guiManager->popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	const Vec2i& GuiElement::getPosition(const GuiID& guiID)

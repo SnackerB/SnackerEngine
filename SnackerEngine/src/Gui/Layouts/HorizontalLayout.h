@@ -54,6 +54,10 @@ namespace SnackerEngine
 		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseLeave(const Vec2d& position) override;
+		/// Computes percentages from weights
+		void computePercentagesFromWeights();
+		/// Computes weights from percentages
+		void computeWeightsFromPercentages();
 	public:
 		/// Constructor
 		HorizontalLayout(const bool& forceHeight = true);

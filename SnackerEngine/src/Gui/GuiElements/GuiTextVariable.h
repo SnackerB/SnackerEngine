@@ -169,7 +169,7 @@ namespace SnackerEngine
 		: GuiDynamicTextBox(std::move(other)), variableHandle(other.variableHandle), label(other.label)
 	{
 		other.variableHandle = nullptr;
-		if (variableHandle) notifyHandleOnGuiElementMove(*variableHandle);
+		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
 	}
 
 	template<typename T>

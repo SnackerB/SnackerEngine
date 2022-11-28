@@ -42,7 +42,6 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiVariableHandle<T>::set(const T& value)
 	{
-		reset();
 		val = value;
 		onHandleUpdate();
 	}
@@ -50,7 +49,6 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiVariableHandle<T>::operator=(const T& value)
 	{
-		reset();
 		val = value;
 		onHandleUpdate();
 	}
@@ -58,20 +56,18 @@ namespace SnackerEngine
 	template<typename T>
 	inline const T& GuiVariableHandle<T>::get()
 	{
-		reset();
 		return val;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiVariableHandle<T>::operator const T& ()
 	{
-		reset();
 		return val;
 	}
 	//--------------------------------------------------------------------------------------------------
-	using GuiVariableHandleInt2 = GuiVariableHandle<int>;
-	using GuiVariableHandleUnsignedInt2 = GuiVariableHandle<unsigned int>;
-	using GuiVariableHandleFloat2 = GuiVariableHandle<float>;
-	using GuiVariableHandleDouble2 = GuiVariableHandle<double>;
+	using GuiVariableHandleInt = GuiVariableHandle<int>;
+	using GuiVariableHandleUnsignedInt = GuiVariableHandle<unsigned int>;
+	using GuiVariableHandleFloat = GuiVariableHandle<float>;
+	using GuiVariableHandleDouble = GuiVariableHandle<double>;
 	//--------------------------------------------------------------------------------------------------
 }

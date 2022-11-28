@@ -60,6 +60,11 @@ namespace SnackerEngine
 		static void enableBlending();
 		/// Disables blending
 		static void disableBlending();
+		/// Enables the scissor test (rectangle clipping)
+		static void enableScissorTest(const Vec2i& position, const Vec2i& size);
+		static void enableScissorTest(const Vec4i& clippingBox);
+		/// Disables scissor test
+		static void disableScissorTest();
 		/// Draws a given model with the given material
 		static void draw(const Model& model, const Material& material);
 		/// Draws a given model, with shaders, textures etc. already bound

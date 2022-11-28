@@ -58,6 +58,43 @@ namespace SnackerEngine
 		return registeredGuiElements[parentElement]->getCollidingChild(currentMousePosition);
 	}
 
+	void GuiManager::pushClippingBox(const Vec4i& clippingBox)
+	{
+		Vec4i alteredClippingBox = clippingBox;
+		alteredClippingBox.y = screenDims.y - clippingBox.y - clippingBox.w;
+		if (!clippingBoxStack.empty()) {
+			const Vec4i& previousClippingBox = clippingBoxStack.back();
+			if (alteredClippingBox.x < previousClippingBox.x) {
+				alteredClippingBox.z -= (previousClippingBox.x - alteredClippingBox.x);
+				alteredClippingBox.x = previousClippingBox.x;
+			}
+			if (alteredClippingBox.y < previousClippingBox.y) {
+				alteredClippingBox.w -= (previousClippingBox.y - alteredClippingBox.y);
+				alteredClippingBox.y = previousClippingBox.y;
+			}
+			alteredClippingBox.z = std::max(0, std::min(alteredClippingBox.z, previousClippingBox.x + previousClippingBox.z - alteredClippingBox.x));
+			alteredClippingBox.w = std::max(0, std::min(alteredClippingBox.w, previousClippingBox.y + previousClippingBox.w - alteredClippingBox.y));
+		}
+		clippingBoxStack.push_back(alteredClippingBox); 
+		Renderer::enableScissorTest(alteredClippingBox);
+	}
+
+	void GuiManager::popClippingBox()
+	{
+		if (!clippingBoxStack.empty()) {
+			clippingBoxStack.pop_back();
+			if (!clippingBoxStack.empty()) {
+				Renderer::enableScissorTest(clippingBoxStack.back());
+			}
+			else {
+				Renderer::disableScissorTest();
+			}
+		}
+		else {
+			Renderer::disableScissorTest();
+		}
+	}
+
 	GuiManager::GuiID GuiManager::getNewGuiID()
 	{
 		if (registeredGuiElementsCount >= maxGuiElements)
@@ -81,7 +118,7 @@ namespace SnackerEngine
 
 	void GuiManager::computeViewAndProjection()
 	{
-		const Vec2i& screenDims = Renderer::getScreenDimensions();
+		screenDims = Renderer::getScreenDimensions();
 		viewMatrix = Mat4f::Identity();
 		projectionMatrix = Mat4f::TranslateAndScale({ -1.0f, 1.0f, 0.0f }, { 2.0f / static_cast<float>(screenDims.x), 2.0f / static_cast<float>(screenDims.y), 0.0f });
 		// TODO: For now this is only for GUI on screen. Later adapt this so that gui can be displayed anywhere!
@@ -166,7 +203,7 @@ namespace SnackerEngine
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, signOffQueue{}, squareModel{},
-		triangleModel{}
+		triangleModel{}, screenDims{}
 	{
 		// Initializes queue with all possible GuiIDs. GuiID = 0 is reserved for invalid guiElements.
 		for (GuiID id = 1; id <= startingSize; ++id)
@@ -181,6 +218,8 @@ namespace SnackerEngine
 		ownedGuiElements[parentElement]->parentID = -1;
 		ownedGuiElements[parentElement]->guiManager = this;
 		registeredGuiElements[parentElement] = ownedGuiElements[parentElement];
+		// Computes screen dims
+		screenDims = Renderer::getScreenDimensions();
 	}
 
 	GuiManager::~GuiManager()
@@ -229,9 +268,15 @@ namespace SnackerEngine
 
 	Vec2i GuiManager::getMouseOffset(GuiID guiID)
 	{
-		Vec2f mouseOffset = currentMousePosition;
+		Vec2i mouseOffset = currentMousePosition;
 		while (guiID >= 0) {
-			mouseOffset -= registeredGuiElements[guiID]->position;
+			const GuiID& parentID = registeredGuiElements[guiID]->parentID;
+			if (parentID >= 0) {
+				mouseOffset -= registeredGuiElements[parentID]->getChildOffset(guiID);
+			}
+			else {
+				mouseOffset -= registeredGuiElements[guiID]->position;
+			}
 			guiID = registeredGuiElements[guiID]->parentID;
 		}
 		return mouseOffset;
@@ -382,6 +427,7 @@ namespace SnackerEngine
 		Renderer::disableDepthTesting();
 		registeredGuiElements[parentElement]->draw(Vec2i(0, 0));
 		Renderer::enableDepthTesting();
+		Renderer::disableScissorTest();
 	}
 
 }

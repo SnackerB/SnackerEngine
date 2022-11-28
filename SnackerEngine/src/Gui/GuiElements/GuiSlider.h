@@ -76,7 +76,7 @@ namespace SnackerEngine
 		void computeValueFromSliderButtonPosition();
 		/// Computes the Slider button position from the current value of the variableHandle.
 		/// Also clips the variableHandle to the allowed range
-		void computeSliderButtonPositionFromVariableHandle();
+		void computeSliderButtonPositionFromVariableHandle(bool clipVariableHandle = false);
 
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
@@ -117,6 +117,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiSlider<T>::draw(const Vec2i& parentPosition)
 	{
+		pushClippingBox(parentPosition);
 		Vec2i nextPosition = parentPosition + position;
 		drawElement(label->getGuiID(), nextPosition);
 		drawElement(variableBox->getGuiID(), nextPosition);
@@ -125,10 +126,11 @@ namespace SnackerEngine
 		guiManager->setUniformViewAndProjectionMatrices(sliderButtonShader);
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
 		sliderButtonShader.setUniform<Mat4f>("u_model", translationMatrix * sliderButtonModelMatrix);
-		sliderButtonShader.setUniform<Color3f>("u_color", Color3f(sliderButtonColor.r, sliderButtonColor.g, sliderButtonColor.b));
+		sliderButtonShader.setUniform<Color4f>("u_color", sliderButtonColor);
 		Renderer::draw(guiManager->getModelSquare());
 		// Draw children
 		GuiElement::draw(parentPosition);
+		popClippingBox();
 	}
 
 	template<typename T>
@@ -145,7 +147,7 @@ namespace SnackerEngine
 		int variableBoxWidth = getWidth() - label->getWidth();
 		if (variableBoxWidth < 0) variableBoxWidth = 0;
 		variableBox->setPositionAndSize(Vec2i(label->getWidth(), 0), Vec2i(variableBoxWidth, label->getHeight()));
-		computeSliderButtonPositionFromVariableHandle();
+		computeSliderButtonPositionFromVariableHandle(false);
 	}
 
 	template<typename T>
@@ -187,13 +189,15 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiSlider<T>::onHandleUpdate(GuiHandle& guiHandle)
 	{
-		// TODO
+		computeSliderButtonPositionFromVariableHandle(false);
 	}
 
 	template<typename T>
 	inline void GuiSlider<T>::setVariable(const T& value)
 	{
-		// TODO
+		if (variableHandle) {
+			variableHandle->set(value);
+		}
 	}
 
 	template<typename T>
@@ -227,17 +231,17 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline void GuiSlider<T>::computeSliderButtonPositionFromVariableHandle()
+	inline void GuiSlider<T>::computeSliderButtonPositionFromVariableHandle(bool clipVariableHandle)
 	{
 		if (!variableHandle) return;
 		T value = variableHandle->get();
+		variableBox->setText(toText(value));
 		value = std::max(minValue, std::min(maxValue, value));
-		if (value != variableHandle->get()) {
+		if (value != variableHandle->get() && clipVariableHandle) {
 			setVariableHandleValue(*variableHandle, value);
 		}
 		double percentage = static_cast<double>(value - minValue) / (static_cast<double>(maxValue - minValue));
 		sliderButtonOffsetX = std::max(0, static_cast<int>(std::lround(static_cast<double>(variableBox->getWidth() - sliderButtonWidth) * percentage)));
-		variableBox->setText(toText(value));
 		computeSliderButtonModelMatrix();
 	}
 
@@ -248,7 +252,7 @@ namespace SnackerEngine
 			signOffEvent(CallbackType::MOUSE_MOTION);
 			signOffEvent(CallbackType::MOUSE_BUTTON);
 			computeValueFromSliderButtonPosition();
-			computeSliderButtonPositionFromVariableHandle();
+			computeSliderButtonPositionFromVariableHandle(true);
 		}
 	}
 
@@ -289,7 +293,7 @@ namespace SnackerEngine
 		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::LEFT, GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT, true)),
 		variableBox(std::make_unique<GuiDynamicTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, toText(minValue), font, fontSize, sliderBoxTextColor, SliderBoxBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::CENTER, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, true)),
 		sliderButtonOffsetX(0), sliderButtonWidth(sliderButtonWidth), sliderButtonColor(sliderButtonColor), 
-		sliderButtonShader(Shader("shaders/gui/simpleColor.shader")), sliderButtonModelMatrix{}, minValue(minValue), maxValue(maxValue),
+		sliderButtonShader(Shader("shaders/gui/simpleTransparentColor.shader")), sliderButtonModelMatrix{}, minValue(minValue), maxValue(maxValue),
 		mouseOffset(0)
 	{
 		setSizeInternal(Vec2i(size.x, this->label->getHeight()));
@@ -309,7 +313,7 @@ namespace SnackerEngine
 		if (!this->variableHandle) {
 			this->variableHandle = &variableHandle;
 			signUpHandle(variableHandle, 0);
-			computeSliderButtonPositionFromVariableHandle();
+			computeSliderButtonPositionFromVariableHandle(false);
 		}
 	}
 
@@ -363,7 +367,7 @@ namespace SnackerEngine
 		other.label = nullptr;
 		other.variableBox = nullptr;
 		// update variable handle
-		if (variableHandle) notifyHandleOnGuiElementMove(*variableHandle);
+		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
 	}
 
 	template<typename T>
