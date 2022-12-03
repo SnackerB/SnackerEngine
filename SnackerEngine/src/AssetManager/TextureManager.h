@@ -45,6 +45,8 @@ namespace SnackerEngine
 			void bind(const unsigned int& slot = 0) const;
 			/// sets the variable textureDataFormat accordingly to the number of entries per pixel
 			void determineTextureDataFormat(const int& nrComponents);
+			/// Computes the number of components (channels)
+			int determineNumberComponents() const;
 		};
 		/// We just use unsigned ints as TextureIDs. The IDs are also indices into the textureDataArray!
 		using TextureID = unsigned int;
@@ -99,7 +101,12 @@ namespace SnackerEngine
 		/// Terminates the TextureManager
 		static void terminate();
 		/// Tries to load a texture from a given path. Looks relative to the resources directory
-		static Texture loadTexture2D(const std::string& path, const bool& persistent = false);
+		/// Returns the texture and true if successfull, and the missingTexture and false if not.
+		static std::pair<Texture, bool> loadTexture2D(const std::string& path, const bool& persistent = false);
+		/// Tries to load texture data from the GPU and store it in a TextureBufferObject
+		static TextureDataBuffer getTextureDataFromGPU(Texture& texture, const int& mipLevel = 0);
+		/// Tries to save a texture at a given path. Returns true on success
+		static bool saveTexture2D(Texture& texture, const std::string& path, const bool& relativeToResourceDir = true);
 		/// Creates a new texture with the given parameters
 		static Texture createTexture(const Vec2i& dimensions, const Texture::TextureType& type = Texture::TextureType::TEXTURE2D,
 			const Texture::TextureDataType& dataType = Texture::TextureDataType::UNSIGNED_BYTE, const Texture::TextureDataFormat& dataFormat = Texture::TextureDataFormat::RGB,

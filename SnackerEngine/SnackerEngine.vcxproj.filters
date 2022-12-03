@@ -219,6 +219,15 @@
     <ClInclude Include="src\Gui\GuiElements\GuiSlider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\External\stb_image_write.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\External\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\External\json_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">

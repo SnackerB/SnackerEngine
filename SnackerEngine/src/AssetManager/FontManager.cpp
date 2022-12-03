@@ -10,12 +10,12 @@
 #include <msdfgen.h>
 #include <msdfgen-ext.h>
 #include <msdf-atlas-gen.h>
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <External/json.hpp>
+#include <fstream>
 
 namespace SnackerEngine
 {
@@ -66,7 +66,7 @@ namespace SnackerEngine
         if (loadedFontsCount >= maxFonts)
         {
             // Resize vector and add new available shaderID slots accordingly. For now: double size everytime this happens and send warning!
-            fontDataArray.resize(maxFonts * 2 + 1);
+            fontDataArray.resize(static_cast<std::size_t>(maxFonts) * 2 + 1);
             for (FontID id = maxFonts + 1; id <= 2 * maxFonts; ++id)
             {
                 availableFontIDs.push(id);
@@ -93,37 +93,44 @@ namespace SnackerEngine
         // fontDataArray[fontID].glyphs
         // FontGeometry is a helper class that loads a set of glyphs from a single font.
         // It can also be used to get additional font metrics, kerning information, etc.
+        fontDataArray[fontID].glyphs.clear();
         fontDataArray[fontID].fontGeometry = msdf_atlas::FontGeometry(&fontDataArray[fontID].glyphs);
-        // Load a set of character glyphs:
-        // The second argument can be ignored unless you mix different font sizes in one atlas.
-        // In the last argument, you can specify a charset other than ASCII.
-        // To load specific glyph indices, use loadGlyphs instead.
-        fontDataArray[fontID].fontGeometry.loadCharset(fontHandles[fontID], 1.0f, msdf_atlas::Charset::ASCII);
-        double temp = fontDataArray[fontID].fontGeometry.getGeometryScale();
+        fontDataArray[fontID].dynamicAtlas = DynamicAtlas();
         // specifies the maximum angle to be considered a corner in radians
         fontDataArray[fontID].maxCornerAngle = 3.0;
-
+        // glyph scale
         fontDataArray[fontID].glyphScale = 64.0;
         // specifies the width of the range around the shape between the minimum and maximum representable signed 
         // distance in shape units or distance field pixels, respectivelly
         fontDataArray[fontID].pixelRange = 2.0;
         // limits the extension of each glyph's bounding box due to very sharp corners (
         fontDataArray[fontID].miterLimit = 1.0;
+        // Temporarily set the default texture as msdf texture
+        fontDataArray[fontID].msdfTexture = Texture();
+        // Success! We can set the font to valid!
+        fontDataArray[fontID].valid = true;
+        return true;
+    }
+    //------------------------------------------------------------------------------------------------------
+    void FontManager::loadDefaultCharset(const FontID& fontID)
+    {
+        // Load a set of character glyphs:
+        // The second argument can be ignored unless you mix different font sizes in one atlas.
+        // In the last argument, you can specify a charset other than ASCII.
+        // To load specific glyph indices, use loadGlyphs instead.
+        fontDataArray[fontID].fontGeometry.loadCharset(fontHandles[fontID], 1.0f, msdf_atlas::Charset::ASCII);
         // Apply MSDF edge coloring. See edge-coloring.h for other coloring strategies.
         for (msdf_atlas::GlyphGeometry& glyph : fontDataArray[fontID].glyphs) {
             glyph.edgeColoring(&msdfgen::edgeColoringInkTrap, fontDataArray[fontID].maxCornerAngle, 0);
             glyph.wrapBox(fontDataArray[fontID].glyphScale, fontDataArray[fontID].pixelRange / fontDataArray[fontID].glyphScale, fontDataArray[fontID].miterLimit);
         }
-        fontDataArray[fontID].dynamicAtlas.add(fontDataArray[fontID].glyphs.data(), fontDataArray[fontID].glyphs.size());
+        fontDataArray[fontID].dynamicAtlas.add(fontDataArray[fontID].glyphs.data(), static_cast<int>(fontDataArray[fontID].glyphs.size()));
 
         msdfgen::BitmapConstRef<msdf_atlas::byte, 3>& storageRef = (msdfgen::BitmapConstRef<msdf_atlas::byte, 3>&)fontDataArray[fontID].dynamicAtlas.atlasGenerator().atlasStorage();
         fontDataArray[fontID].msdfTexture = Texture::Create2D(Vec2i(storageRef.width, storageRef.height));
         GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1)); // disable byte-alignment restriction
         TextureManager::fillTexture2D(fontDataArray[fontID].msdfTexture, storageRef.pixels);
         GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 4)); // enable byte-alignment restriction
-        // Success! We can set the font to valid!
-        fontDataArray[fontID].valid = true;
-        return true;
     }
     //------------------------------------------------------------------------------------------------------
     bool FontManager::addNewGlyph(const Unicode& codepoint, const FontID& fontID)
@@ -153,8 +160,8 @@ namespace SnackerEngine
             // TODO: Update all texts using this font ...
         }
         else {
-            Vec2i offset;
-            Vec2i size;
+            Vec2i offset{};
+            Vec2i size{};
             glyph.getBoxRect(offset.x, offset.y, size.x, size.y);
             msdfgen::Bitmap<msdf_atlas::byte, 3> subBitmap(size.x, size.y);
             fontDataArray[fontID].dynamicAtlas.atlasGenerator().atlasStorage().get(offset.x, offset.y, subBitmap);
@@ -184,6 +191,69 @@ namespace SnackerEngine
         return Glyph(*glyph, Vec2i(bitmap.width, bitmap.height));
     }
     //------------------------------------------------------------------------------------------------------
+    bool FontManager::loadFontDataFromFile(const std::string& path, const FontID& fontID)
+    {
+        auto& fontData = fontDataArray[fontID];
+        std::string fullpath = Engine::getResourcePath();
+        fullpath.append(path);
+        std::ifstream f(fullpath);
+        if (!f) {
+            return false;
+        }
+        // Load metrics & kerning
+        fontData.fontGeometry.loadMetrics(fontHandles[fontID], 1.0);
+        fontData.fontGeometry.loadKerning(fontHandles[fontID]);
+        try {
+            // Parse JSON file
+            nlohmann::json data = nlohmann::json::parse(f);
+            // Resize font atlas
+            fontData.dynamicAtlas.atlasGenerator().resize(data["atlas"]["width"], data["atlas"]["height"]);
+            // Add glyphs one by one
+            for (const auto& it : data["glyphs"]) {
+                // Load the glyph
+                Unicode codepoint = it["unicode"];
+                msdf_atlas::GlyphGeometry glyph;
+                if (!glyph.load(fontHandles[fontID], fontDataArray[fontID].fontGeometry.getGeometryScale(), codepoint)) {
+                    warningLogger << LOGGER::BEGIN << "Could not load glyph with codepoint " << codepoint << LOGGER::ENDL;
+                    return false;
+                }
+                msdf_atlas::Rectangle rec{};
+                if (it.contains("atlasBounds")) {
+                    rec.x = it["atlasBounds"]["left"];
+                    rec.y = it["atlasBounds"]["bottom"];
+                    rec.x = it["atlasBounds"]["right"] - rec.x;
+                    rec.y = it["atlasBounds"]["top"] - rec.y;
+                    glyph.setBoxRect(rec);
+                }
+                glyph.edgeColoring(&msdfgen::edgeColoringInkTrap, fontData.maxCornerAngle, 0);
+                // Finalize glyph box size based on the parameters
+                glyph.wrapBox(fontData.glyphScale, fontData.pixelRange / fontData.glyphScale, fontData.miterLimit);
+                // Add glyph to fontGeometry as well so that we can look it up in the future
+                fontData.fontGeometry.addGlyph(glyph);
+            }
+        }
+        catch (...) {
+            warningLogger << LOGGER::BEGIN << "Error parsing the JSON file at " << path << ". Falling back to default behaviour." << LOGGER::ENDL;
+            return false;
+        }
+        fontData.dynamicAtlas.add(fontData.glyphs.data(), static_cast<unsigned int>(fontData.glyphs.size()), false, false);
+        // Load texture
+        auto result = Texture::Load2D(path+".png");
+        fontData.msdfTexture = result.first;
+        return result.second;
+    }
+    //------------------------------------------------------------------------------------------------------
+    bool FontManager::saveFontDataInFile(const FontID& fontID, const std::string& path)
+    {
+        auto& fontData = fontDataArray[fontID];
+        std::string filepath = Engine::getResourcePath();
+        filepath = filepath.append(path);
+        bool success = msdf_atlas::exportJSON(&fontData.fontGeometry, 1, 1, fontData.pixelRange, fontData.msdfTexture.getSize().x, fontData.msdfTexture.getSize().y, msdf_atlas::ImageType::MSDF, msdf_atlas::YDirection::TOP_DOWN, filepath.c_str(), true);
+        if (!success) return false;
+        success = fontData.msdfTexture.saveInFile(path+".png", true);
+        return success;
+    }
+    //------------------------------------------------------------------------------------------------------
     void FontManager::initialize(const unsigned int& startingSize)
     {
         // Initializes queue with all possible FontIDs. FontID = 0 is reserved for invalid Fonts.
@@ -192,7 +262,7 @@ namespace SnackerEngine
             availableFontIDs.push(id);
         }
         // FontDataArray[0] stores the default Font, which is just a invalid font
-        fontDataArray.resize(startingSize + 1);
+        fontDataArray.resize(static_cast<std::size_t>(startingSize) + 1);
         fontHandles.resize(startingSize + 1, nullptr);
         maxFonts = startingSize;
         // Initialize freetype
@@ -259,9 +329,9 @@ namespace SnackerEngine
         GLCall(glBindTexture(0, 0));
     }
     //------------------------------------------------------------------------------------------------------
-    FontManager::FontID FontManager::loadFont(const std::string& path)
+    FontManager::FontID FontManager::loadFont(const std::string& path, const std::string& existingFontDataPath)
     {
-        // First look if shader was already valid
+        // First look if font was already valid
         auto it = stringToFontID.find(path);
         if (it != stringToFontID.end()) {
             return it->second;
@@ -270,7 +340,27 @@ namespace SnackerEngine
         FontID fontID = getNewFontID();
         std::string fullPath = Engine::getResourcePath();
         fullPath.append(path);
-        loadNewFont(fullPath, fontID);
+        if (!loadNewFont(fullPath, fontID)) {
+            deleteFont(fontID);
+            return 0;
+        }
+        if (existingFontDataPath != "") {
+            if (!loadFontDataFromFile(existingFontDataPath, fontID)) {
+                // Reset atlas
+                fontDataArray[fontID].glyphs.clear();
+                fontDataArray[fontID].fontGeometry = msdf_atlas::FontGeometry(&fontDataArray[fontID].glyphs);
+                fontDataArray[fontID].dynamicAtlas = DynamicAtlas();
+                // Load default charset
+                loadDefaultCharset(fontID);
+                if (fontDataArray[fontID].valid) {
+                    // Save the font, st. it can be loaded faster next time!
+                    saveFontDataInFile(fontID, existingFontDataPath);
+                }
+            }
+        }
+        else {
+            loadDefaultCharset(fontID);
+        }
         if (fontDataArray[fontID].valid) {
             stringToFontID[path] = fontID;
             return fontID;

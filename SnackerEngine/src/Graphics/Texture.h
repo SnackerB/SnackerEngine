@@ -65,7 +65,7 @@ namespace SnackerEngine
 		/// Special constructors
 		//==================================================================================================
 		/// Loads a 2D texture from a given path
-		static Texture Load2D(const std::string& path, const bool& persistent = false);
+		static std::pair<Texture, bool> Load2D(const std::string& path, const bool& persistent = false);
 		/// Creates a new 2D texture with the given dimensions and dataFormat. 
 		static Texture Create2D(const Vec2i& dimensions,
 			const TextureDataFormat& dataFormat = TextureDataFormat::RGB, const bool& mip = true);
@@ -84,6 +84,10 @@ namespace SnackerEngine
 		void fill2D(TextureDataBuffer& textureDataBuffer, const Vec2i& offset, const bool& mip = true);
 		/// Copies one texture to another one with a given offset
 		static void copyTexture2D(const Texture& source, Texture& target, const Vec2i& offset = Vec2i{});
+		//==================================================================================================
+		// Miscellaneous
+		//==================================================================================================
+		bool saveInFile(const std::string& path, const bool& relativeToResourcePath = true);
 	};
 	//------------------------------------------------------------------------------------------------------
 }

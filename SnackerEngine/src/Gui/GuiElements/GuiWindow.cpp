@@ -79,7 +79,7 @@ namespace SnackerEngine
 			if (isCollidingWithResizeButton(mouseOffset)) {
 				isResizing = true;
 				// When were resizing the mouse offset is relative to the top left corner of the resize button
-				mouseOffset = mouseOffset - getSize() + Vec2f(resizeButtonSize);
+				mouseOffset = mouseOffset - getSize() + Vec2f(static_cast<float>(resizeButtonSize));
 			}
 			else {
 				isMoving = true;
@@ -96,10 +96,10 @@ namespace SnackerEngine
 			setPosition(newPosition);
 		}
 		else if (isResizing) {
-			Vec2f newSize = getMouseOffset(getGuiID()) + Vec2f(resizeButtonSize, resizeButtonSize) - mouseOffset;
+			Vec2f newSize = getMouseOffset(getGuiID()) + Vec2f(static_cast<float>(resizeButtonSize)) - mouseOffset;
 			// Clip size
-			if (newSize.x < resizeButtonSize) newSize.x = resizeButtonSize;
-			if (newSize.y < resizeButtonSize) newSize.y = resizeButtonSize;
+			if (newSize.x < resizeButtonSize) newSize.x = static_cast<float>(resizeButtonSize);
+			if (newSize.y < resizeButtonSize) newSize.y = static_cast<float>(resizeButtonSize);
 			setSize(newSize);
 		}
 	}

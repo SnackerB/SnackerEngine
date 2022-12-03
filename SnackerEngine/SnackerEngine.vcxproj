@@ -170,7 +170,10 @@
     <ClInclude Include="src\Core\Timer.h" />
     <ClInclude Include="src\Core\Log.h" />
     <ClInclude Include="src\Core\Scene.h" />
+    <ClInclude Include="src\External\json.hpp" />
+    <ClInclude Include="src\External\json_fwd.hpp" />
     <ClInclude Include="src\External\stb_image.h" />
+    <ClInclude Include="src\External\stb_image_write.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\Graphics\Color.h" />
     <ClInclude Include="src\Graphics\FrameBuffer.h" />

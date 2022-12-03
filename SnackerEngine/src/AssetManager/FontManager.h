@@ -88,12 +88,19 @@ namespace SnackerEngine
 		/// Potentially resizes the fontDataArray, in which case a warning will be printed
 		static FontID getNewFontID();
 		/// Loads a new font from a file and stores it in the given slot in the fontDataArray. Returns true on success.
+		/// If loadDefaultCharset is set to true, a default char set consisting of typical ASCII characters is loaded.
 		static bool loadNewFont(const std::string& path, const FontID& fontID);
+		/// Loads the default, consisting of typical ASCII characters, into the given font
+		static void loadDefaultCharset(const FontID& fontID);
 		/// adds a new glyph with the given codepoint to the font. Does not check if the codepoint was already added before.
 		/// Returns true on success
 		static bool addNewGlyph(const Unicode& codepoint, const FontID& fontID);
 		/// Returns a glyph from the given font. If the glyph wasn't loaded yet it is loaded from the fonr file
 		static Glyph getGlyph(Font& font, const Unicode& codepoint);
+		/// Tries to load a fontData object from a given file path
+		//bool loadFontDataFromFile(const std::string& path);
+		/// Tries to save a fontData object in the given file path
+		//bool saveFontDataInFile(const Font& font, const std::string& path);
 	protected:
 		friend class Font;
 		friend class AssetManager;
@@ -108,7 +115,9 @@ namespace SnackerEngine
 		/// Unbinds all fonts
 		static void unbindAll();
 		/// Loads a font from a file. If the font is already loaded, the fontID of the existing font is returned!
-		static FontID loadFont(const std::string& path);
+		/// If existingFontDataPath is not equal to the empty string, it is attempted to load previously saved 
+		/// font metrics and msdf texture at the given path. If this fails, we fall back to the default routine.
+		static FontID loadFont(const std::string& path, const std::string& existingFontDataPath);
 		/// Terminates the fontManager
 		static void terminate();
 		/// Returns a const refrence to the corresponding FontData object
@@ -118,5 +127,11 @@ namespace SnackerEngine
 	public:
 		/// Deleted constructor: this is a purely virtual class!
 		FontManager() = delete;
+
+		// DEBUG
+		/// Tries to load a fontData object from a given file path
+		static bool loadFontDataFromFile(const std::string& path, const FontID& fontID);
+		/// Tries to save a fontData object in the given file path
+		static bool saveFontDataInFile(const FontID& fontID, const std::string& path);
 	};
 }

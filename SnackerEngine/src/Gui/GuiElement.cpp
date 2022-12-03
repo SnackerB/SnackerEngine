@@ -156,72 +156,73 @@ namespace SnackerEngine
 		if (guiManager) guiManager->popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2i& GuiElement::getPosition(const GuiID& guiID)
+	Vec2i GuiElement::getPosition(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).position;
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
-	const int& GuiElement::getPositionX(const GuiID& guiID)
+	int GuiElement::getPositionX(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).position.x;
 		return 0;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const int& GuiElement::getPositionY(const GuiID& guiID)
+	int GuiElement::getPositionY(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).position.y;
 		return 0;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2i& GuiElement::getSize(const GuiID& guiID)
+	Vec2i GuiElement::getSize(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).size;
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
-	const int& GuiElement::getWidth(const GuiID& guiID)
+	int GuiElement::getWidth(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).size.x;
 		return 0;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const int& GuiElement::getHeight(const GuiID& guiID)
+	int GuiElement::getHeight(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).size.y;
 		return 0;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const GuiElement::GuiID& GuiElement::getParentID(const GuiID& guiID)
+	GuiElement::GuiID GuiElement::getParentID(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).parentID;
 		return -1;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2i& GuiElement::getMouseOffset(const GuiID& guiID)
+	Vec2i GuiElement::getMouseOffset(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getMouseOffset(guiID);
+		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
-	const GuiElement::ResizeMode& GuiElement::getResizeMode(const GuiID& guiID)
+	GuiElement::ResizeMode GuiElement::getResizeMode(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).resizeMode;
 		return ResizeMode::DO_NOT_RESIZE;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2i& GuiElement::getMinSize(const GuiID& guiID)
+	Vec2i GuiElement::getMinSize(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).minSize;
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2i& GuiElement::getMaxSize(const GuiID& guiID)
+	Vec2i GuiElement::getMaxSize(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).maxSize;
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
-	const GuiElement::IsCollidingResult& GuiElement::isColliding(const GuiID& guiID, const Vec2i& parentPosition)
+	GuiElement::IsCollidingResult GuiElement::isColliding(const GuiID& guiID, const Vec2i& parentPosition)
 	{
 		if (guiManager) return guiManager->getElement(guiID).isColliding(parentPosition);
 		return IsCollidingResult::NOT_COLLIDING;

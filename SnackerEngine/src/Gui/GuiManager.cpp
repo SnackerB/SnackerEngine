@@ -100,8 +100,8 @@ namespace SnackerEngine
 		if (registeredGuiElementsCount >= maxGuiElements)
 		{
 			// Resize vector and add new available GuiID slots accordingly. For now: double size everytime this happens and send warning!
-			registeredGuiElements.resize(maxGuiElements * 2 + 1, nullptr);
-			ownedGuiElements.resize(maxGuiElements * 2 + 1, nullptr);
+			registeredGuiElements.resize(static_cast<std::size_t>(maxGuiElements) *2 + 1, nullptr);
+			ownedGuiElements.resize(static_cast<std::size_t>(maxGuiElements) * 2 + 1, nullptr);
 			for (GuiID id = maxGuiElements + 1; id <= 2 * maxGuiElements; ++id)
 			{
 				availableGuiIDs.push(id);
@@ -206,7 +206,7 @@ namespace SnackerEngine
 		triangleModel{}, screenDims{}
 	{
 		// Initializes queue with all possible GuiIDs. GuiID = 0 is reserved for invalid guiElements.
-		for (GuiID id = 1; id <= startingSize; ++id)
+		for (GuiID id = 1; id <= static_cast<int>(startingSize); ++id)
 		{
 			availableGuiIDs.push(id);
 		}

@@ -212,7 +212,7 @@ namespace SnackerEngine
 		/// Default constructor
 		EditableText();
 		/// Constuctor using a string and various parameters
-		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const double& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
 		/// Copy and Move constructors
 		EditableText(const EditableText& other) noexcept;
 		EditableText(EditableText&& other) noexcept;
@@ -240,7 +240,7 @@ namespace SnackerEngine
 		/// Computes and returns a vector of selection boxes using the current selection.
 		std::vector<SelectionBox> getSelectionBoxes();
 		/// Returns the cursor position
-		const Vec2f& getCursorPos() const;
+		const Vec2f getCursorPos() const;
 		/// Inputs a unicode character at the current cursor position. If a selection
 		/// was made, it is replaced by the character instead.
 		void inputAtCursor(const Unicode& codepoint);
@@ -258,7 +258,7 @@ namespace SnackerEngine
 		/// If something is selected, this is deleted instead
 		void deleteWordBeforeCursor();
 		/// Returns the size of the cursor
-		const Vec2f& getCursorSize() const;
+		const Vec2f getCursorSize() const;
 		/// Returns the text
 		const std::string& getText() override;
 		/// Sets the contents of the text. Needs to recompute the text model.
@@ -284,7 +284,7 @@ namespace SnackerEngine
 		/// Sets the alignment.
 		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true) override;
 		/// Sets the cursor width
-		void setCursorWidth(const double& cursorWidth);
+		void setCursorWidth(const float& cursorWidth);
 		/// Returns true if the selectionIndex is different from the cursor index, ie. if a selection
 		/// selecting > 0 characters is currently active
 		bool isSelecting() const;

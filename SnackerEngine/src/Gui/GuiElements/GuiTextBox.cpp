@@ -18,7 +18,7 @@ namespace SnackerEngine
 		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f), Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 		unsigned int DPI = Engine::getDPI().y;
 		Vec2f textPosition = computeTextPosition();
-		modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), pointsToInches(text->getFontSize()) * DPI);
+		modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), pointsToInches<float>(static_cast<float>(text->getFontSize())) * static_cast<float>(DPI));
 	}
 
 	void GuiDynamicTextBox::draw(const Vec2i& parentPosition)
@@ -38,7 +38,7 @@ namespace SnackerEngine
 		material.bind();
 		guiManager->setUniformViewAndProjectionMatrices(material.getShader());
 		material.getShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixText);
-		material.getShader().setUniform<float>("u_pxRange", text->getFont().getPixelRange());
+		material.getShader().setUniform<float>("u_pxRange", static_cast<float>(text->getFont().getPixelRange()));
 		SnackerEngine::Renderer::draw(text->getModel(), material);
 		// Draw children
 		GuiElement::draw(parentPosition);
@@ -152,7 +152,7 @@ namespace SnackerEngine
 			// Align to the top of the text box
 			textOffsetY = -pointsToInches(text->getTop()) * DPI;
 		}
-		return Vec2f(position.x, -position.y + textOffsetY);
+		return Vec2f(static_cast<float>(position.x), -static_cast<float>(position.y) + static_cast<float>(textOffsetY));
 	}
 
 	/// Helper function for constructing the text material
@@ -337,7 +337,7 @@ namespace SnackerEngine
 		computeModelMatrices();
 	}
 
-	const Vec2i& GuiDynamicTextBox::getTextSize() const
+	const Vec2i GuiDynamicTextBox::getTextSize() const
 	{
 		if (!text) return Vec2i();
 		return Vec2i( 
@@ -352,12 +352,12 @@ namespace SnackerEngine
 		Vec2f cursorOffset = static_cast<EditableText&>(*text).getCursorPos();
 		cursorOffset.x = pointsToInches(cursorOffset.x);
 		cursorOffset.y = pointsToInches(cursorOffset.y);
-		cursorOffset *= DPI;
+		cursorOffset *= static_cast<float>(DPI);
 		Vec2f cursorSize = static_cast<EditableText&>(*text).getCursorSize();
 		cursorSize.x = pointsToInches(cursorSize.x);
 		cursorSize.y = pointsToInches(cursorSize.y);
-		cursorSize *= DPI;
-		float additionalOffset = pointsToInches(text->getFont().getAscender()) * DPI * text->getFontSize();
+		cursorSize *= static_cast<float>(DPI);
+		float additionalOffset = pointsToInches<float>(static_cast<float>(text->getFont().getAscender()) * static_cast<float>(DPI) * static_cast<float>(text->getFontSize()));
 		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(position.x + cursorOffset.x + cursorSize.x, -position.y + cursorOffset.y - additionalOffset, 0.0f), cursorSize);
 	}
 
@@ -370,7 +370,7 @@ namespace SnackerEngine
 		Vec2f textPosition = computeTextPosition();
 		unsigned int DPI = Engine::getDPI().y;
 		for (const auto& selectionBox : result) {
-			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position) * DPI, pointsToInches(selectionBox.size) * DPI));
+			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position) * static_cast<float>(DPI), pointsToInches(selectionBox.size) * static_cast<float>(DPI)));
 		}
 	}
 
@@ -399,7 +399,7 @@ namespace SnackerEngine
 		material.bind();
 		guiManager->setUniformViewAndProjectionMatrices(material.getShader());
 		material.getShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixText);
-		material.getShader().setUniform<float>("u_pxRange", text->getFont().getPixelRange());
+		material.getShader().setUniform<float>("u_pxRange", static_cast<float>(text->getFont().getPixelRange()));
 		SnackerEngine::Renderer::draw(text->getModel(), material);
 		// Draw cursor
 		if (cursorIsVisible) {
@@ -710,7 +710,7 @@ namespace SnackerEngine
 		}
 	}
 
-	void GuiEditTextBox::setCursorWidth(const double& cursorWidth)
+	void GuiEditTextBox::setCursorWidth(const float& cursorWidth)
 	{
 		static_cast<EditableText&>(*text).setCursorWidth(cursorWidth);
 	}

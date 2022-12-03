@@ -17,7 +17,7 @@ namespace SnackerEngine
 		for (unsigned int i = 0; i < children.size(); ++i) {
 			int height = getSize(children[i]).y;
 			// Set position
-			setPositionWithoutEnforcingLayouts(children[i], Vec2i(leftBorder, currentYOffset));
+			setPositionWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(leftBorder)), static_cast<int>(std::floor(currentYOffset))));
 			// Resize
 			switch (listLayoutResizeMode)
 			{
@@ -40,7 +40,7 @@ namespace SnackerEngine
 				}
 				case ResizeMode::RESIZE_RANGE:
 				{
-					int newWidth = width;
+					int newWidth = static_cast<int>(std::roundf(width));
 					if (width <= getMinSize(children[i]).x) newWidth = getMinSize(children[i]).x;
 					else if (getMaxSize(children[i]).x != -1 && width >= getMaxSize(children[i]).x) newWidth = getMaxSize(children[i]).x;
 					setWidthWithoutEnforcingLayouts(children[i], static_cast<int>(newWidth));
@@ -73,7 +73,7 @@ namespace SnackerEngine
 		if (currentVerticalSize == 0.0f) {
 			drawScrollBar = false;
 			firstVisibleElement = 0;
-			lastVisibleElement = children.size() - 1;
+			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
 			if (guiManager) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			return;
 		}
@@ -84,7 +84,7 @@ namespace SnackerEngine
 		if (visiblePercentage >= 1.0f) {
 			drawScrollBar = false;
 			firstVisibleElement = 0;
-			lastVisibleElement = children.size() - 1;
+			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
 			if (guiManager) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			currentVerticalOffset = 0.0f;
 			return;
@@ -101,7 +101,7 @@ namespace SnackerEngine
 					break;
 				}
 			}
-			lastVisibleElement = children.size() - 1;
+			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
 			for (unsigned int i = firstVisibleElement + 1; i < children.size(); ++i) {
 				if (getPosition(children[i]).y > size.y - currentVerticalOffset) {
 					lastVisibleElement = i;
@@ -118,7 +118,7 @@ namespace SnackerEngine
 		else {
 			drawScrollBar = false;
 			firstVisibleElement = 0;
-			lastVisibleElement = children.size() - 1;
+			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
 			if (guiManager) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		}
 	}
@@ -131,7 +131,7 @@ namespace SnackerEngine
 	
 	void ListLayout::callbackMouseScrollOnElement(const Vec2d& offset)
 	{
-		currentVerticalOffset += offset.y * scrollSpeed;
+		currentVerticalOffset += static_cast<float>(offset.y) * scrollSpeed;
 		computeScrollBar();
 	}
 	
@@ -143,13 +143,13 @@ namespace SnackerEngine
 		const auto& children = getChildren();
 		Vec2i newParentPosition = parentPosition + getPosition();
 		for (unsigned int i = firstVisibleElement; i <= lastVisibleElement; ++i) {
-			drawElement(children[i], newParentPosition + Vec2i(0, currentVerticalOffset));
+			drawElement(children[i], newParentPosition + Vec2i(0, static_cast<int>(std::floor(currentVerticalOffset))));
 		}
 		// Draw scrollBar
 		if (drawScrollBar) {
 			shaderScrollBar.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shaderScrollBar);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(parentPosition.x + getPositionX(), -parentPosition.y - getPositionY(), 0.0f));
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x + getPositionX()), -static_cast<float>(parentPosition.y - getPositionY()), 0.0f));
 			shaderScrollBar.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixScrollBarBackground);
 			shaderScrollBar.setUniform<Color3f>("u_color", scrollBarBackgroundColor);
 			Renderer::draw(guiManager->getModelSquare());
@@ -177,6 +177,7 @@ namespace SnackerEngine
 			}
 			return IsCollidingResult::COLLIDE_CHILD;
 		}
+		return IsCollidingResult::NOT_COLLIDING;
 	}
 
 	void ListLayout::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)
@@ -215,13 +216,13 @@ namespace SnackerEngine
 
 	ListLayout::GuiID ListLayout::getCollidingChild(const Vec2i& position)
 	{
-		return GuiLayout::getCollidingChild(Vec2i(position.x, position.y - currentVerticalOffset));
+		return GuiLayout::getCollidingChild(Vec2i(position.x, position.y - static_cast<int>(std::floor(currentVerticalOffset))));
 	}
 
 	Vec2i ListLayout::getChildOffset(const GuiID& childID)
 	{
 		Vec2i result = getPosition(childID);
-		result.y += currentVerticalOffset;
+		result.y += static_cast<int>(std::floor(currentVerticalOffset));
 		return result;
 	}
 

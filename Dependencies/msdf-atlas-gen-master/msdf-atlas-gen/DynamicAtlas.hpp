@@ -10,9 +10,9 @@ template <class AtlasGenerator>
 DynamicAtlas<AtlasGenerator>::DynamicAtlas(AtlasGenerator &&generator) : generator((AtlasGenerator &&) generator), glyphCount(0), side(0), totalArea(0), padding(0) { }
 
 template <class AtlasGenerator>
-typename DynamicAtlas<AtlasGenerator>::ChangeFlags DynamicAtlas<AtlasGenerator>::add(GlyphGeometry *glyphs, int count, bool allowRearrange) {
+typename DynamicAtlas<AtlasGenerator>::ChangeFlags DynamicAtlas<AtlasGenerator>::add(GlyphGeometry *glyphs, int count, bool allowRearrange, bool generateBitmap) {
     ChangeFlags changeFlags = 0;
-    int start = rectangles.size();
+    int start = static_cast<unsigned int>(rectangles.size());
     for (int i = 0; i < count; ++i) {
         if (!glyphs[i].isWhitespace()) {
             int w, h;
@@ -60,7 +60,7 @@ typename DynamicAtlas<AtlasGenerator>::ChangeFlags DynamicAtlas<AtlasGenerator>:
             glyphs[remapBuffer[i].index-glyphCount].placeBox(rectangles[i].x, rectangles[i].y);
         }
     }
-    generator.generate(glyphs, count);
+    if (generateBitmap) generator.generate(glyphs, count);
     glyphCount += count;
     return changeFlags;
 }

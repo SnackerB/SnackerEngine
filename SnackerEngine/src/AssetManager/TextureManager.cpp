@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <external/stb_image.h>
+#include <External/stb_image_write.h>
 
 namespace SnackerEngine
 {
@@ -70,6 +71,19 @@ namespace SnackerEngine
 		}
 		}
 	}
+	//------------------------------------------------------------------------------------------------------
+	int TextureManager::TextureData::determineNumberComponents() const
+	{
+		switch (textureDataFormat)
+		{
+		case SnackerEngine::Texture::TextureDataFormat::RGB: return 3;
+		case SnackerEngine::Texture::TextureDataFormat::RGBA: return 4;
+		case SnackerEngine::Texture::TextureDataFormat::RG: return 2;
+		case SnackerEngine::Texture::TextureDataFormat::R: return 1;
+		default: return 0;
+		}
+	}
+	//------------------------------------------------------------------------------------------------------
 	//======================================================================================================
 	// Helper functions for extracting GLenums
 	//======================================================================================================
@@ -478,12 +492,12 @@ namespace SnackerEngine
 		textureDataArray.clear();
 	}
 	//------------------------------------------------------------------------------------------------------
-	Texture TextureManager::loadTexture2D(const std::string& path, const bool& persistent)
+	std::pair<Texture, bool> TextureManager::loadTexture2D(const std::string& path, const bool& persistent)
 	{
 		// First, look if texture is already loaded!
 		auto it = stringToTextureID.find(path);
 		if (it != stringToTextureID.end()) {
-			return Texture(it->second);
+			return std::make_pair(Texture(it->second), true);
 		}
 		// We did not find it, load it from file!
 		std::string fullPath = Engine::getResourcePath(); 
@@ -495,14 +509,36 @@ namespace SnackerEngine
 		TextureData& textureData = textureDataArray[textureID];
 		textureData.textureType = Texture::TextureType::TEXTURE2D;
 		if (!SnackerEngine::loadTexture2D(textureData, fullPath)) {
-			return Texture(defaultTexture);
+			return std::make_pair(Texture(defaultTexture), false);
 		}
 		// Texture was successfully loaded!
 		stringToTextureID[fullPath] = textureID;
-		return Texture(textureID);
+		return std::make_pair(Texture(textureID), true);
 	}
 	//------------------------------------------------------------------------------------------------------
-	Texture TextureManager::createTexture(const const Vec2i& dimensions, const Texture::TextureType& type, const Texture::TextureDataType& dataType, const Texture::TextureDataFormat& dataFormat, const Texture::TextureDataPrecision& dataPrecision, const bool& mip)
+	TextureDataBuffer TextureManager::getTextureDataFromGPU(Texture& texture, const int& mipLevel)
+	{
+		TextureDataBuffer buffer(texture);
+		texture.bind();
+		GLCall(glGetTexImage(GL_TEXTURE_2D, mipLevel, getFormatGL(buffer.textureDataFormat), getTypeGL(buffer.textureDataType), buffer.getDataPointer()));
+		return buffer;
+	}
+	//------------------------------------------------------------------------------------------------------
+	bool TextureManager::saveTexture2D(Texture& texture, const std::string& path, const bool& relativeToResourceDir)
+	{
+		std::string fullpath;
+		if (relativeToResourceDir) {
+			fullpath = Engine::getResourcePath();
+		}
+		fullpath.append(path);
+		TextureDataBuffer buffer = getTextureDataFromGPU(texture);
+		// Important so the image gets saved correctly (OpenGL detail)
+		stbi_flip_vertically_on_write(true);
+		const Vec2i& size = texture.getSize();
+		return stbi_write_png(fullpath.c_str(), size.x, size.y, textureDataArray[texture.textureID].determineNumberComponents(), buffer.getDataPointer(), buffer.stride * size.x) == 1;
+	}
+	//------------------------------------------------------------------------------------------------------
+	Texture TextureManager::createTexture(const Vec2i& dimensions, const Texture::TextureType& type, const Texture::TextureDataType& dataType, const Texture::TextureDataFormat& dataFormat, const Texture::TextureDataPrecision& dataPrecision, const bool& mip)
 	{
 		TextureID textureID = getNewTextureID();
 		TextureData& textureData = textureDataArray[textureID];

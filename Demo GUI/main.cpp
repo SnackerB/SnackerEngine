@@ -142,6 +142,7 @@ public:
 
 		}
 		guiManager.moveElement<SnackerEngine::HorizontalLayout>(std::move(layout));
+
 		guiManager.moveElement<SnackerEngine::GuiWindow>(std::move(parentWindow));
 	}
 

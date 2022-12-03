@@ -203,18 +203,18 @@ namespace SnackerEngine
 		// Access to (some) functionalities of child elements for derived guiElements
 		//==============================================================================================
 
-		const Vec2i& getPosition(const GuiID& guiID);
-		const int& getPositionX(const GuiID& guiID);
-		const int& getPositionY(const GuiID& guiID);
-		const Vec2i& getSize(const GuiID& guiID);
-		const int& getWidth(const GuiID& guiID);
-		const int& getHeight(const GuiID& guiID);
-		const GuiID& getParentID(const GuiID& guiID);
-		const Vec2i& getMouseOffset(const GuiID& guiID);
-		const ResizeMode& getResizeMode(const GuiID& guiID);
-		const Vec2i& getMinSize(const GuiID& guiID);
-		const Vec2i& getMaxSize(const GuiID& guiID);
-		const IsCollidingResult& isColliding(const GuiID& guiID, const Vec2i& parentPosition);
+		Vec2i getPosition(const GuiID& guiID);
+		int getPositionX(const GuiID& guiID);
+		int getPositionY(const GuiID& guiID);
+		Vec2i getSize(const GuiID& guiID);
+		int getWidth(const GuiID& guiID);
+		int getHeight(const GuiID& guiID);
+		GuiID getParentID(const GuiID& guiID);
+		Vec2i getMouseOffset(const GuiID& guiID);
+		ResizeMode getResizeMode(const GuiID& guiID);
+		Vec2i getMinSize(const GuiID& guiID);
+		Vec2i getMaxSize(const GuiID& guiID);
+		IsCollidingResult isColliding(const GuiID& guiID, const Vec2i& parentPosition);
 		void setPosition(const GuiID& guiID, const Vec2i& position);
 		void setSize(const GuiID& guiID, const Vec2i& size);
 		/// Sets position directly without calling OnPositionChange()

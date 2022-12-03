@@ -128,7 +128,7 @@ namespace SnackerEngine
 		currentBaseline.x = 0;
 		currentBaseline.y -= font.getLineHeight();
 		// Update the lines vector!
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		lines.push_back(StaticText::Line{ currentBaseline.y, static_cast<unsigned int>(characters.size()),
 			static_cast<unsigned int>(characters.size()) });
 	}
@@ -305,7 +305,7 @@ namespace SnackerEngine
 			pushGlyph(glyph, codepoint.value());
 		}
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size()) - 1;
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -349,7 +349,7 @@ namespace SnackerEngine
 			indexIntoCharactersVector++;
 		}
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -405,7 +405,7 @@ namespace SnackerEngine
 				// Save the last codepoint
 				Unicode previouseLastCodepoint = lastCodepoint;
 				// Save the size of the characters vector
-				unsigned int charactersSize = characters.size();
+				unsigned int charactersSize = static_cast<unsigned int>(characters.size());
 				// Now: place the character we just read in at the correct position
 				if (lastCodepoint != 0) {
 					// Advance to next glyph
@@ -514,7 +514,7 @@ namespace SnackerEngine
 				// Save the last codepoint
 				Unicode previouseLastCodepoint = lastCodepoint;
 				// Save the size of the characters vector
-				unsigned int charactersSize = characters.size();
+				unsigned int charactersSize = static_cast<unsigned int>(characters.size());
 				// Now: place the character we just read in at the correct position
 				if (lastCodepoint != 0) {
 					// Advance to next glyph
@@ -577,8 +577,8 @@ namespace SnackerEngine
 	{
 		if (startAtLine >= lines.size()) return Model();
 		if (startAtLine > 0) {
-			vertices.resize(lines[startAtLine].beginIndex * 4);
-			indices.resize(lines[startAtLine].beginIndex * 6);
+			vertices.resize(static_cast<std::size_t>(lines[startAtLine].beginIndex) * 4);
+			indices.resize(static_cast<std::size_t>(lines[startAtLine].beginIndex) * 6);
 		}
 		else
 		{
@@ -617,15 +617,15 @@ namespace SnackerEngine
 				if (!isWhiteSpace(c.codepoint)) {
 					// Push indices for two triangles
 					indices.push_back(static_cast<unsigned int>(vertices.size())); indices.push_back(static_cast<unsigned int>(vertices.size() + 1)); indices.push_back(static_cast<unsigned int>(vertices.size() + 2));
-					indices.push_back(vertices.size() + 2); indices.push_back(vertices.size() + 3); indices.push_back(vertices.size());
+					indices.push_back(static_cast<unsigned int>(vertices.size()) + 2); indices.push_back(static_cast<unsigned int>(vertices.size()) + 3); indices.push_back(static_cast<unsigned int>(vertices.size()));
 					// Push four vertices
 					Glyph glyph = font.getGlyph(c.codepoint);
 					glyph.bottom += line.baselineY;
 					glyph.top += line.baselineY;
-					vertices.push_back(Vec4f(c.left + horizontalOffset, glyph.bottom, glyph.texLeft, glyph.texBottom));
-					vertices.push_back(Vec4f(c.left + horizontalOffset, glyph.top, glyph.texLeft, glyph.texTop));
-					vertices.push_back(Vec4f(c.right + horizontalOffset, glyph.top, glyph.texRight, glyph.texTop));
-					vertices.push_back(Vec4f(c.right + horizontalOffset, glyph.bottom, glyph.texRight, glyph.texBottom));
+					vertices.push_back(Vec4f(static_cast<float>(c.left + horizontalOffset), static_cast<float>(glyph.bottom), static_cast<float>(glyph.texLeft), static_cast<float>(glyph.texBottom)));
+					vertices.push_back(Vec4f(static_cast<float>(c.left + horizontalOffset), static_cast<float>(glyph.top), static_cast<float>(glyph.texLeft), static_cast<float>(glyph.texTop)));
+					vertices.push_back(Vec4f(static_cast<float>(c.right + horizontalOffset), static_cast<float>(glyph.top), static_cast<float>(glyph.texRight), static_cast<float>(glyph.texTop)));
+					vertices.push_back(Vec4f(static_cast<float>(c.right + horizontalOffset), static_cast<float>(glyph.bottom), static_cast<float>(glyph.texRight), static_cast<float>(glyph.texBottom)));
 				}
 				else
 				{
@@ -633,7 +633,7 @@ namespace SnackerEngine
 					// the resizing of the indices and vertices vector reliable
 					// Push indices for two triangles
 					indices.push_back(static_cast<unsigned int>(vertices.size())); indices.push_back(static_cast<unsigned int>(vertices.size() + 1)); indices.push_back(static_cast<unsigned int>(vertices.size() + 2));
-					indices.push_back(vertices.size() + 2); indices.push_back(vertices.size() + 3); indices.push_back(vertices.size());
+					indices.push_back(static_cast<unsigned int>(vertices.size()) + 2); indices.push_back(static_cast<unsigned int>(vertices.size()) + 3); indices.push_back(static_cast<unsigned int>(vertices.size()));
 					// Push four vertices
 					vertices.push_back(Vec4f(0.0f));
 					vertices.push_back(Vec4f(0.0f));
@@ -659,9 +659,9 @@ namespace SnackerEngine
 		Font tempFont(font);
 		ParseData data{ tempFont, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseCharacterByCharacter(0, text.size(), text);
+		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
@@ -677,9 +677,9 @@ namespace SnackerEngine
 		Font tempFont(font);
 		ParseData data{ tempFont, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseWordByWord(0, text.size(), text);
+		data.parseWordByWord(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
@@ -695,9 +695,9 @@ namespace SnackerEngine
 		Font tempFont(font);
 		ParseData data{ tempFont, Vec2d{}, Unicode{0}, 0.0, fontSize, characters, lines };
 		// Parse the text
-		data.parseCharacterByCharacter(0, text.size(), text);
+		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
@@ -742,9 +742,9 @@ namespace SnackerEngine
 		lines.push_back({ 0.0, 0, 0 });
 		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseCharacterByCharacter(0, text.size(), text);
+		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
@@ -759,9 +759,9 @@ namespace SnackerEngine
 		lines.push_back({ 0.0, 0, 0 });
 		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseWordByWord(0, text.size(), text);
+		data.parseWordByWord(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
@@ -776,9 +776,9 @@ namespace SnackerEngine
 		lines.push_back({ 0.0, 0, 0 });
 		ParseData data{ font, Vec2d{}, Unicode{0}, 0.0, fontSize, characters, lines };
 		// Parse the text
-		data.parseCharacterByCharacter(0, text.size(), text);
+		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
@@ -893,6 +893,7 @@ namespace SnackerEngine
 		default:
 			break;
 		}
+		return 0.0;
 	}
 	//--------------------------------------------------------------------------------------------------
 	double DynamicText::getRight()
@@ -964,8 +965,8 @@ namespace SnackerEngine
 	unsigned int EditableText::getLineNumber(const unsigned int& characterIndex) const
 	{
 		auto result = std::lower_bound(lines.begin(), lines.end(), Line{ 0, characterIndex, characterIndex });
-		if (result < lines.end()) return result - lines.begin();
-		return lines.size() - 1;
+		if (result < lines.end()) return static_cast<unsigned int>(result - lines.begin());
+		return static_cast<unsigned int>(lines.size() - 1);
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextCharacters()
@@ -976,9 +977,9 @@ namespace SnackerEngine
 		lines.push_back({ 0.0, 0, 0 });
 		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseCharacterByCharacter(0, text.size(), text);
+		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		return data.alignAndConstructModel(alignment, vertices, indices);
 	}
@@ -991,9 +992,9 @@ namespace SnackerEngine
 		lines.push_back({ 0.0, 0, 0 });
 		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseWordByWord(0, text.size(), text);
+		data.parseWordByWord(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		return data.alignAndConstructModel(alignment, vertices, indices);
 	}
@@ -1006,9 +1007,9 @@ namespace SnackerEngine
 		else lines.push_back({ lines.back().baselineY - font.getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
 		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, textWidth, fontSize, characters, lines};
 		// Parse the text
-		data.parseCharacterByCharacter(lines.back().beginIndex, characters.size());
+		data.parseCharacterByCharacter(lines.back().beginIndex, static_cast<unsigned int>(characters.size()));
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		return data.alignAndConstructModel(alignment, vertices, indices, lineIndex);
 	}
@@ -1021,9 +1022,9 @@ namespace SnackerEngine
 		else lines.push_back({ lines.back().baselineY - font.getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
 		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, 0.0, fontSize, characters, lines };
 		// Parse the text
-		data.parseCharacterByCharacter(lines.back().beginIndex, characters.size());
+		data.parseCharacterByCharacter(lines.back().beginIndex, static_cast<unsigned int>(characters.size()));
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		data.textWidth = textWidth;
 		return data.alignAndConstructModel(alignment, vertices, indices, lineIndex);
@@ -1040,9 +1041,9 @@ namespace SnackerEngine
 		else lines.push_back({ lines.back().baselineY - font.getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
 		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, textWidth, fontSize, characters, lines };
 		// Parse the text
-		data.parseWordByWord(lines.back().beginIndex, characters.size());
+		data.parseWordByWord(lines.back().beginIndex, static_cast<unsigned int>(characters.size()));
 		// Finalize the lines vector
-		lines.back().endIndex = characters.size() - 1;
+		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		return data.alignAndConstructModel(alignment, vertices, indices, newLineIndex);
 	}
@@ -1085,7 +1086,7 @@ namespace SnackerEngine
 	{
 		if (characters.empty()) return SelectionBox{};
 		SelectionBox result;
-		result.position = computeCursorIndexAndPosition(startCharacterIndex).second * fontSize;
+		result.position = computeCursorIndexAndPosition(startCharacterIndex).second * static_cast<float>(fontSize);
 		float endPosition;
 		if (endCharacterIndex < lines[lineIndex].endIndex) {
 			endPosition = computeCursorIndexAndPosition(endCharacterIndex + 1).second.x;
@@ -1096,7 +1097,7 @@ namespace SnackerEngine
 					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x;
 				}
 				else {
-					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x + font.getGlyph(characters[endCharacterIndex].codepoint).advance;
+					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x + static_cast<float>(font.getGlyph(characters[endCharacterIndex].codepoint).advance);
 				}
 			}
 			else {
@@ -1104,53 +1105,54 @@ namespace SnackerEngine
 					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x;
 				}
 				else {
-					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x + font.getGlyph(characters.back().codepoint).advance;
+					endPosition = computeCursorIndexAndPosition(endCharacterIndex).second.x + static_cast<float>(font.getGlyph(characters.back().codepoint).advance);
 				}
 			}
 		}
-		result.size = Vec2f(endPosition * fontSize - result.position.x, (font.getAscender() - font.getDescender()) * fontSize);
+		result.size = Vec2f(endPosition * static_cast<float>(fontSize) - result.position.x, static_cast<float>((font.getAscender() - font.getDescender()) * fontSize));
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::pair<unsigned int, Vec2f> EditableText::computeCursorIndexAndPosition(unsigned int characterIndex)
 	{
 		auto result = std::make_pair(0, Vec2f());
-		if (characterIndex > characters.size()) {
-			characterIndex = characters.size();
+		if (characterIndex > static_cast<unsigned int>(characters.size())) {
+			characterIndex = static_cast<unsigned int>(characters.size());
 		}
 		unsigned int lineNumber = getLineNumber(characterIndex);
-		if (characterIndex == 0) result.second = Vec2f(0.0f, lines[lineNumber].baselineY);
+		if (characterIndex == 0) result.second = Vec2f(0.0f, static_cast<float>(lines[lineNumber].baselineY));
 		else if (characterIndex == characters.size()) {
 			// Cursor is at the end of the text
 			const Unicode& codepoint = characters.back().codepoint;
 			if (isNewline(codepoint)) {
-				result.second = Vec2f(0.0f, lines[lineNumber].baselineY);
+				result.second = Vec2f(0.0f, static_cast<float>(lines[lineNumber].baselineY));
 			}
 			else {
-				result.second = Vec2f(characters.back().left
-					+ font.getGlyph(codepoint).advance, lines[getLineNumber(characters.size() - 1)].baselineY);
+				result.second = Vec2f(static_cast<float>(characters.back().left + font.getGlyph(codepoint).advance), 
+					static_cast<float>(lines[getLineNumber(static_cast<unsigned int>(characters.size() - 1))].baselineY));
 			}
 		}
 		else {
-			result.second = Vec2f(characters[characterIndex].left, lines[lineNumber].baselineY);
+			result.second = Vec2f(static_cast<float>(characters[characterIndex].left), 
+				static_cast<float>(lines[lineNumber].baselineY));
 		}
 		result.second.x -= cursorSize.x;
-		result.second.y += font.getDescender();
+		result.second.y += static_cast<float>(font.getDescender());
 		result.first = characterIndex;
 		// Special care needs to be taken if the alignment is CENTER or RIGHT
 		if (alignment == Alignment::CENTER) {
-			if (characters.empty()) result.second.x = textWidth / fontSize / 2.0f - cursorSize.x / 2.0f;
+			if (characters.empty()) result.second.x = static_cast<float>(textWidth / fontSize / 2.0) - cursorSize.x / 2.0f;
 			else {
 				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
 				double horizontalOffset = (textWidth / fontSize - lineWidth) / 2.0;
-				result.second.x += horizontalOffset;
+				result.second.x += static_cast<float>(horizontalOffset);
 			}
 		}
 		else if (alignment == Alignment::RIGHT) {
-			if (characters.empty()) result.second.x = textWidth;
+			if (characters.empty()) result.second.x = static_cast<float>(textWidth);
 			else {
 				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
-				result.second.x += textWidth - lineWidth;
+				result.second.x += static_cast<float>(textWidth - lineWidth);
 			}
 		}
 		return result;
@@ -1162,8 +1164,8 @@ namespace SnackerEngine
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
-	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const double& cursorWidth, const ParseMode& parseMode, const Alignment& alignment)
-		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, font.getAscender() - font.getDescender())
+	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode, const Alignment& alignment)
+		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, static_cast<float>(font.getAscender() - font.getDescender()))
 	{
 		constructModel();
 		setCursorPos(0);
@@ -1192,7 +1194,7 @@ namespace SnackerEngine
 		textIsUpToDate = true;
 		constructModel();
 		if (cursorPosIndex > characters.size()) {
-			setCursorPos(characters.size());
+			setCursorPos(static_cast<unsigned int>(characters.size()));
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -1228,7 +1230,7 @@ namespace SnackerEngine
 			}
 		}
 		if (lineNumber == -1) {
-			setCursorPos(characters.size() + 1, moveSelection);
+			setCursorPos(static_cast<unsigned int>(characters.size()) + 1, moveSelection);
 			return;
 		}
 		const auto& line = lines[lineNumber];
@@ -1353,9 +1355,9 @@ namespace SnackerEngine
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2f& EditableText::getCursorPos() const
+	const Vec2f EditableText::getCursorPos() const
 	{
-		return cursorPos * fontSize;
+		return cursorPos * static_cast<float>(fontSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::inputAtCursor(const Unicode& codepoint)
@@ -1381,7 +1383,7 @@ namespace SnackerEngine
 	{
 		if (characters.empty()) return;
 		if (beginIndex > endIndex) return;
-		if (endIndex >= characters.size()) endIndex = characters.size() - 1;
+		if (endIndex >= characters.size()) endIndex = static_cast<unsigned int>(characters.size() - 1);
 		characters.erase(characters.begin() + beginIndex, characters.begin() + endIndex + 1);
 		constructModelFrom(getLineNumber(beginIndex));
 		textIsUpToDate = false;
@@ -1430,9 +1432,9 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Vec2f& EditableText::getCursorSize() const
+	const Vec2f EditableText::getCursorSize() const
 	{
-		return cursorSize * fontSize;
+		return cursorSize * static_cast<float>(fontSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	const std::string& EditableText::getText()
@@ -1481,7 +1483,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::setCursorWidth(const double& cursorWidth)
+	void EditableText::setCursorWidth(const float& cursorWidth)
 	{
 		cursorSize.x = cursorWidth;
 	}

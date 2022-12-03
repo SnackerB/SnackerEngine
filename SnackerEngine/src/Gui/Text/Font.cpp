@@ -22,8 +22,15 @@ namespace SnackerEngine
 	Font::Font()
 		: fontID(0) {}
 	//------------------------------------------------------------------------------------------------------
+	/// Helper function that takes a string in the format "folder1/folder2/folder3/data.suffix" and returns
+	/// a string of the format "folder1/folder2/folder3/loaded/data"
+	static std::string getLoadedFontPath(const std::string& path) {
+		std::string result = path.substr(0, path.find_last_of("/") + 1) + "loaded";
+		return result + path.substr(path.find_last_of("/"), path.find_last_of(".") - path.find_last_of("/"));
+	}
+	//------------------------------------------------------------------------------------------------------
 	Font::Font(const std::string& path)
-		: fontID(FontManager::loadFont(path))
+		: fontID(FontManager::loadFont(path, getLoadedFontPath(path)))
 	{
 		FontManager::increaseReferenceCount(*this);
 	}
@@ -111,6 +118,11 @@ namespace SnackerEngine
 	Font::~Font()
 	{
 		FontManager::decreaseReferenceCount(*this);
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Font::saveFontInFile(const std::string& path)
+	{
+		FontManager::saveFontDataInFile(this->fontID, path);
 	}
 	//------------------------------------------------------------------------------------------------------
 }

@@ -50,6 +50,9 @@ namespace SnackerEngine
 		double getDescender() const;
 		/// Destructor
 		~Font();
+
+		// DEBUG
+		void saveFontInFile(const std::string& path);
 	};
 	//------------------------------------------------------------------------------------------------------
 }

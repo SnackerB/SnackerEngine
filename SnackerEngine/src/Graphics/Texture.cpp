@@ -54,7 +54,7 @@ namespace SnackerEngine
 		TextureManager::decreaseReferenceCount(*this);
 	}
 	//--------------------------------------------------------------------------------------------------
-	Texture Texture::Load2D(const std::string& path, const bool& persistent)
+	std::pair<Texture, bool> Texture::Load2D(const std::string& path, const bool& persistent)
 	{
 		return TextureManager::loadTexture2D(path, persistent);
 	}
@@ -90,6 +90,11 @@ namespace SnackerEngine
 	void Texture::copyTexture2D(const Texture& source, Texture& target, const Vec2i& offset)
 	{
 		TextureManager::copyTexture2D(source, target, offset);
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool Texture::saveInFile(const std::string& path, const bool& relativeToResourcePath)
+	{
+		return TextureManager::saveTexture2D(*this, path, relativeToResourcePath);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

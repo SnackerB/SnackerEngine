@@ -109,7 +109,7 @@ namespace SnackerEngine
 		const Font& getFont() const { return text->getFont(); }
 		const double& getFontSize() const { return text->getFontSize(); }
 		const Color4f& getTextColor() const { return textColor; }
-		const Vec2i& getTextSize() const;
+		const Vec2i getTextSize() const;
 		const Color4f& getBackgroundColor() const { return backgroundColor; };
 		const StaticText::ParseMode& getParseMode() const { return text->getParseMode(); }
 		const StaticText::Alignment& getAlignment() const { return text->getAlignment(); }
@@ -205,7 +205,7 @@ namespace SnackerEngine
 		/// delete the previous event handle first!
 		void setEventHandleTextWasEdited(GuiEventHandle& eventHandle);
 		/// Setters
-		void setCursorWidth(const double& cursorWidth);
+		void setCursorWidth(const float& cursorWidth);
 		void setCursorBlinkTime(const double& cursorBlinkTime);
 		void setText(const std::string& text) override;
 		void setFont(const Font& font) override;

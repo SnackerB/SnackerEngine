@@ -81,7 +81,7 @@ namespace SnackerEngine
 	void Renderer::changeViewPort(const Vec2i& viewPort)
 	{
 		currentViewPort = viewPort;
-		GLCall(glViewport(0.0f, 0.0f, static_cast<GLint>(viewPort.x), static_cast<GLint>(viewPort.y)));
+		GLCall(glViewport(GLint(0), GLint(0), static_cast<GLint>(viewPort.x), static_cast<GLint>(viewPort.y)));
 	}
 	//------------------------------------------------------------------------------------------------------
 	void Renderer::hideCursor()

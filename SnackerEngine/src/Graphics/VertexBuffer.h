@@ -60,7 +60,7 @@ namespace SnackerEngine
 		void setDataAndFinalize(const std::vector<T>& data) {
 			// We need to do a const cast to get rid of const modifier for GLFW. 
 			// However, the data is NOT modified!
-			setDataAndFinalize(const_cast<void*>(static_cast<const void*>(data.data())), data.size() * sizeof(T));
+			setDataAndFinalize(const_cast<void*>(static_cast<const void*>(data.data())), static_cast<unsigned int>(data.size()) * sizeof(T));
 		};
 
 		/// Changes a part of the data on the GPU. Can only be done when the VertexBuffer object is already valid.

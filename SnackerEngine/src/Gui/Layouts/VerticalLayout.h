@@ -6,7 +6,7 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class VerticalLayout : public GuiLayout
 	{
 	private:
@@ -24,8 +24,10 @@ namespace SnackerEngine
 		unsigned int resizeBorder;
 		/// Vector of stored weights
 		std::vector<double> weights;
-		/// Vector of stored width percentages, starting from the top of the screen
+		/// Vector of stored height percentages, starting from the top of the screen
 		std::vector<double> percentages;
+		/// If this is set to true, moving the border with the mouse is possible
+		bool allowMoveBorders;
 
 		/// Removes the given child guiElement from this layout
 		void removeChild(GuiElement& guiElement) override;
@@ -54,9 +56,13 @@ namespace SnackerEngine
 		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseLeave(const Vec2d& position) override;
+		/// Computes percentages from weights
+		void computePercentagesFromWeights();
+		/// Computes weights from percentages
+		void computeWeightsFromPercentages();
 	public:
 		/// Constructor
-		VerticalLayout(const bool& forceWidth = true);
+		VerticalLayout(const bool& forceWidth = true, const bool& allowMoveBorders = true);
 		/// Adds a child to this guiElement. Returns true on success
 		bool registerChild(GuiElement& guiElement, const double& weight);
 		/// Adds a child to this guiElement (using weight = 0.0). Returns true on success
@@ -67,6 +73,10 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		VerticalLayout(VerticalLayout&& other) noexcept;
 		VerticalLayout& operator=(VerticalLayout&& other) noexcept;
+		/// Getters
+		const bool& isAllowMoveBorders() const;
+		/// Setters
+		void setAllowMoveBorders(const bool& allowMoveBorders);
 	};
-
+	//--------------------------------------------------------------------------------------------------
 }

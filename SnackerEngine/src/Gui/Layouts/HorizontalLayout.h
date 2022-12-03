@@ -6,7 +6,7 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class HorizontalLayout : public GuiLayout
 	{
 	private:
@@ -26,6 +26,8 @@ namespace SnackerEngine
 		std::vector<double> weights;
 		/// Vector of stored width percentages
 		std::vector<double> percentages;
+		/// If this is set to true, moving the border with the mouse is possible
+		bool allowMoveBorders;
 
 		/// Removes the given child guiElement from this layout
 		void removeChild(GuiElement& guiElement) override;
@@ -60,7 +62,7 @@ namespace SnackerEngine
 		void computeWeightsFromPercentages();
 	public:
 		/// Constructor
-		HorizontalLayout(const bool& forceHeight = true);
+		HorizontalLayout(const bool& forceHeight = true, const bool& allowMoveBorders = true);
 		/// Adds a child to this guiElement. Returns true on success
 		bool registerChild(GuiElement& guiElement, const double& weight);
 		/// Adds a child to this guiElement (using weight = 0.0). Returns true on success
@@ -71,6 +73,10 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		HorizontalLayout(HorizontalLayout&& other) noexcept;
 		HorizontalLayout& operator=(HorizontalLayout&& other) noexcept;
+		/// Getters
+		const bool& isAllowMoveBorders() const;
+		/// Setters
+		void setAllowMoveBorders(const bool& allowMoveBorders);
 	};
-
+	//--------------------------------------------------------------------------------------------------
 }
