@@ -200,6 +200,7 @@
     <ClInclude Include="src\Gui\GuiElement.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiButton.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiEditVariable.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiImage.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiPanel.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiSlider.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h" />
@@ -264,6 +265,7 @@
     <ClCompile Include="src\Graphics\VertexBufferLayout.cpp" />
     <ClCompile Include="src\Gui\GuiElement.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiImage.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp" />
@@ -286,6 +288,7 @@
   <ItemGroup>
     <None Include="resources\shaders\basic.shader" />
     <None Include="resources\shaders\basicTexture.shader" />
+    <None Include="resources\shaders\gui\basicTexture.shader" />
     <None Include="resources\shaders\gui\simpleColor.shader" />
     <None Include="resources\shaders\basic3DText.shader" />
     <None Include="resources\shaders\gui\basic2DText.shader" />

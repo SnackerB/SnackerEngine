@@ -14,6 +14,7 @@
 #include "Gui/GuiElements/GuiTextVariable.h"
 #include "Gui/GuiElements/GuiEditVariable.h"
 #include "Gui/GuiElements/GuiSlider.h"
+#include "Gui/GuiElements/GuiImage.h"
 
 class HelloEventHandle : public SnackerEngine::GuiEventHandle
 {
@@ -79,10 +80,11 @@ public:
 				SnackerEngine::GuiDynamicTextBox textBox("Hello TexBox!", style);
 				verticalLayout.registerChild(textBox, 1.0);
 				guiManager.moveElement<SnackerEngine::GuiDynamicTextBox>(std::move(textBox));
-
-				tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 0.4f, 0.0f, 0.0f });
-				verticalLayout.registerChild(tempPanel, 1.0);
-				guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
+				
+				SnackerEngine::GuiImage guiImage(style, style.defaultFont.getMsdfTexture());
+				guiImage.setBackgroundColor(SnackerEngine::Color4f(0.0f, 1.0f, 0.0f, 1.0f));
+				verticalLayout.registerChild(guiImage, 1.0);
+				guiManager.moveElement<SnackerEngine::GuiImage>(std::move(guiImage));
 			}
 			guiManager.moveElement<SnackerEngine::VerticalLayout>(std::move(verticalLayout));
 

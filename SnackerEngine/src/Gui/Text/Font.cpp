@@ -117,14 +117,14 @@ namespace SnackerEngine
 		return FontManager::getFontData(*this).fontGeometry.getMetrics().descenderY;
 	}
 	//------------------------------------------------------------------------------------------------------
+	Texture Font::getMsdfTexture() const
+	{
+		return FontManager::getFontData(*this).msdfTexture;
+	}
+	//------------------------------------------------------------------------------------------------------
 	Font::~Font()
 	{
 		FontManager::decreaseReferenceCount(*this);
-	}
-	//------------------------------------------------------------------------------------------------------
-	void Font::saveFontInFile(const std::string& path)
-	{
-		FontManager::saveFontDataInFile(this->fontID, path);
 	}
 	//------------------------------------------------------------------------------------------------------
 }

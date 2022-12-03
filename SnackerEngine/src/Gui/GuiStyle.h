@@ -6,6 +6,7 @@
 #include "Gui/Text/Text.h"
 #include "Gui/GuiElements/GuiTextBox.h"
 #include "Gui/GuiElements/GuiButton.h"
+#include "Gui/GuiElements/GuiImage.h"
 
 #include "Gui/Layouts/ListLayout.h"
 
@@ -91,6 +92,10 @@ namespace SnackerEngine
 		Color4f guiSliderVariableBoxBackgroundColor{};
 		Color4f guiSliderButtonColor{}; 
 		double guiSliderButtonWidth{};
+		/// GuiImage
+		Color4f guiImageBackgroundColor{};
+		GuiImage::GuiImageMode guiImageGuiImageMode{};
+	protected:
 	};
 	//--------------------------------------------------------------------------------------------------
 	GuiStyle getDefaultStyle();

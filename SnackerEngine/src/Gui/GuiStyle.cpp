@@ -87,6 +87,9 @@ namespace SnackerEngine
 		result.guiSliderVariableBoxBackgroundColor = Color4f(0.0f, 1.0f);
 		result.guiSliderButtonColor = Color4f(1.0f, 0.0f, 0.0f, 0.5f);
 		result.guiSliderButtonWidth = 10.0;
+		/// GuiImage
+		result.guiImageBackgroundColor = Color4f(0.0f, 1.0f);
+		result.guiImageGuiImageMode = GuiImage::GuiImageMode::FIT_IMAGE_TO_SIZE;
 		// Return the result
 		return result;
 	}

@@ -149,7 +149,7 @@ namespace SnackerEngine
 		if (drawScrollBar) {
 			shaderScrollBar.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shaderScrollBar);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x + getPositionX()), -static_cast<float>(parentPosition.y - getPositionY()), 0.0f));
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x + getPositionX()), -static_cast<float>(parentPosition.y + getPositionY()), 0.0f));
 			shaderScrollBar.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixScrollBarBackground);
 			shaderScrollBar.setUniform<Color3f>("u_color", scrollBarBackgroundColor);
 			Renderer::draw(guiManager->getModelSquare());

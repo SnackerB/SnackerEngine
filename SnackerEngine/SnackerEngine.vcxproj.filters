@@ -228,6 +228,9 @@
     <ClInclude Include="src\External\json_fwd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\GuiImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -392,6 +395,9 @@
     <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Gui\GuiElements\GuiImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\gui\simpleColor.shader" />
@@ -400,5 +406,6 @@
     <None Include="resources\shaders\basicTexture.shader" />
     <None Include="resources\shaders\gui\basic2DText.shader" />
     <None Include="resources\shaders\gui\simpleTransparentColor.shader" />
+    <None Include="resources\shaders\gui\basicTexture.shader" />
   </ItemGroup>
 </Project>

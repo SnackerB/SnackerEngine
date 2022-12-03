@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Gui/Text/Glyph.h"
+#include "Graphics/Texture.h"
 
 #include <string>
 
@@ -46,11 +47,10 @@ namespace SnackerEngine
 		double getAscender() const;
 		/// Returns the descender height
 		double getDescender() const;
+		/// Returns the msdf texture
+		Texture getMsdfTexture() const;
 		/// Destructor
 		~Font();
-
-		// DEBUG
-		void saveFontInFile(const std::string& path);
 	};
 	//------------------------------------------------------------------------------------------------------
 }
