@@ -1432,6 +1432,40 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void EditableText::deleteCharacterAfterCursor()
+	{
+		if (isSelecting()) {
+			// If we have a selection, delete characters first
+			unsigned endIndex = std::max(cursorPosIndex, selectionIndex) - 1;
+			deleteCharacters(std::min(cursorPosIndex, selectionIndex), endIndex);
+		}
+		else if (cursorPosIndex < characters.size()) {
+			deleteCharacters(cursorPosIndex, cursorPosIndex);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::deleteWordAfterCursor()
+	{
+		if (isSelecting()) {
+			// If we have a selection, delete characters first
+			unsigned endIndex = std::max(cursorPosIndex, selectionIndex) - 1;
+			deleteCharacters(std::min(cursorPosIndex, selectionIndex), endIndex);
+		}
+		else {
+			if (cursorPosIndex >= characters.size()) return;
+			unsigned int endIndex = cursorPosIndex;
+			if (!isNewline(characters[endIndex].codepoint)) {
+				while (endIndex < characters.size() && !isWhiteSpace(characters[endIndex].codepoint)) {
+					endIndex++;
+				}
+				while (endIndex + 1 < characters.size() && isWhiteSpace(characters[endIndex + 1].codepoint) && !isNewline(characters[endIndex + 1].codepoint)) {
+					endIndex++;
+				}
+			}
+			deleteCharacters(cursorPosIndex, endIndex);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	const Vec2f EditableText::getCursorSize() const
 	{
 		return cursorSize * static_cast<float>(fontSize);
