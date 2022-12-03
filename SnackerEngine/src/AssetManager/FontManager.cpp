@@ -6,6 +6,7 @@
 #include "Core/Assert.h"
 #include "AssetManager/FontManager.h"
 #include "Core/Engine.h"
+#include "Gui/Text/Unicode.h"
 
 #include <msdfgen.h>
 #include <msdfgen-ext.h>
@@ -31,6 +32,26 @@ namespace SnackerEngine
     //======================================================================================================
     // Helper functions for loading and updating fonts
     //======================================================================================================
+
+    void FontManager::setupMissingCharacterReplacement(const FontID& fontID)
+    {
+        if (addNewGlyph(0x25a1, fontID)) { // White square
+            fontDataArray[fontID].missingCharacterReplacement = 0x25a1;
+        }
+        else if (addNewGlyph(0xfffd, fontID)) { // Black diamond with question mark
+            fontDataArray[fontID].missingCharacterReplacement = 0xfffd;
+        }
+        else if (addNewGlyph(0x25a1, fontID)) { // White square small
+            fontDataArray[fontID].missingCharacterReplacement = 0x25ab;
+        }
+        else if (addNewGlyph(0x3f, fontID)) { // Question mark
+            fontDataArray[fontID].missingCharacterReplacement = 0x3f;
+        }
+        else {
+            errorLogger << LOGGER::BEGIN << "Could not load a codepoint for replacing invalid codepoints using font " <<
+                fontDataArray[fontID].path << "!" << LOGGER::ENDL;
+        }
+    }
 
     //======================================================================================================
     // FontManager implementation
@@ -131,7 +152,6 @@ namespace SnackerEngine
         // Load the glyph
         msdf_atlas::GlyphGeometry glyph;
         if (!glyph.load(fontHandles[fontID], fontDataArray[fontID].fontGeometry.getGeometryScale(), codepoint)) {
-            warningLogger << LOGGER::BEGIN << "Could not load glyph with codepoint " << codepoint << LOGGER::ENDL;
             return false;
         }
         // Apply MSDF edge coloring. See edge-coloring.h for other coloring strategies.
@@ -176,8 +196,25 @@ namespace SnackerEngine
         const msdf_atlas::GlyphGeometry* glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(codepoint);
         // Add glyph to atlas if necessary
         if (glyph == nullptr) {
-            if (!addNewGlyph(codepoint, font.fontID)) return {};
-            glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(codepoint);
+            if (fontDataArray[font.fontID].missingCharacters.find(codepoint) != fontDataArray[font.fontID].missingCharacters.end()) {
+                // We tried to load this glyph before and it was not possible
+                glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(fontDataArray[font.fontID].missingCharacterReplacement);
+            }
+            // try to add the new codepoint
+            else if (addNewGlyph(codepoint, font.fontID)) {
+                // glyph was added successfully, we need to load it again
+                glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(codepoint);
+            }
+            else {
+                // glyph could not be loaded
+                // Use the missing character replacement symbol instead and print warning
+                glyph = fontDataArray[font.fontID].fontGeometry.getGlyph(fontDataArray[font.fontID].missingCharacterReplacement);
+                fontDataArray[font.fontID].missingCharacters.insert(codepoint);
+                warningLogger << LOGGER::BEGIN << "Could not load codepoint " << codepoint << " from font " << fontDataArray[font.fontID].path << "!" << LOGGER::ENDL;
+            }
+        }
+        if (glyph == nullptr) {
+            return Glyph();
         }
         // Now we have loaded our glyph
         msdfgen::BitmapConstRef<msdfgen::byte, 3> bitmap = fontDataArray[font.fontID].dynamicAtlas.atlasGenerator().atlasStorage();
@@ -273,6 +310,8 @@ namespace SnackerEngine
         loadNewFont(fullPath, fontID);
         if (fontDataArray[fontID].valid) {
             stringToFontID[path] = fontID;
+            fontDataArray[fontID].path = path;
+            setupMissingCharacterReplacement(fontID);
             return fontID;
         }
         else {

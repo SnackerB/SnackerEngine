@@ -63,9 +63,16 @@ namespace SnackerEngine
 		return 0.0f;
 	}
 	//------------------------------------------------------------------------------------------------------
-	double Font::getAdvance(const Unicode& first, const Unicode& second)
+	double Font::getAdvance(Unicode first, Unicode second)
 	{
-		if (!FontManager::isValidGlyph(*this, first) || !FontManager::isValidGlyph(*this, second)) return 0.0;
+		if (!FontManager::isValidGlyph(*this, first)) {
+			first = FontManager::getFontData(*this).missingCharacterReplacement;
+			if (!FontManager::isValidGlyph(*this, first)) return 0.0;
+		}
+		if (!FontManager::isValidGlyph(*this, second)) {
+			second = FontManager::getFontData(*this).missingCharacterReplacement;
+			if (!FontManager::isValidGlyph(*this, second)) return 0.0;
+		}
 		double result;
 		if (FontManager::getFontData(*this).fontGeometry.getAdvance(result, first, second)) {
 			return result;
@@ -101,11 +108,6 @@ namespace SnackerEngine
 	double Font::getDescender() const
 	{
 		return FontManager::getFontData(*this).fontGeometry.getMetrics().descenderY;
-	}
-	//------------------------------------------------------------------------------------------------------
-	void Font::addNewGlyph(const Unicode& codepoint)
-	{
-		FontManager::addNewGlyph(codepoint, fontID);
 	}
 	//------------------------------------------------------------------------------------------------------
 	Font::~Font()

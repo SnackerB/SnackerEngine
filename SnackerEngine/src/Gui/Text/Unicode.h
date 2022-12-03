@@ -79,4 +79,10 @@ namespace SnackerEngine
 	/// Converts a unicode character to UTF8 and appends the characters to the stringstream object
 	void appendUnicodeCharacter(std::stringstream& ss, const Unicode& codepoint);
 	//--------------------------------------------------------------------------------------------------
+	/// Returns true if the given unicode character is an alphabetic character
+	bool isAlpha(const Unicode& codepoint);
+	//--------------------------------------------------------------------------------------------------
+	/// Returns true if the given unicode character is a numeric character
+	bool isNumeric(const Unicode& codepoint);
+	//--------------------------------------------------------------------------------------------------
 }

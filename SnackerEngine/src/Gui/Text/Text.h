@@ -257,6 +257,12 @@ namespace SnackerEngine
 		/// Deletes the complete word before the current cursor pos.
 		/// If something is selected, this is deleted instead
 		void deleteWordBeforeCursor();
+		/// Deletes the character after the current cursor pos. 
+		/// If something is selected, this is deleted instead
+		void deleteCharacterAfterCursor();
+		/// Deletes the complete word after the current cursor pos.
+		/// If something is selected, this is deleted instead
+		void deleteWordAfterCursor();
 		/// Returns the size of the cursor
 		const Vec2f& getCursorSize() const;
 		/// Returns the text

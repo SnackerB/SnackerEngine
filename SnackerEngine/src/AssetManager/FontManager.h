@@ -53,12 +53,17 @@ namespace SnackerEngine
 			double glyphScale{};
 			double pixelRange{};
 			double miterLimit{};
+			/// Unicode symbol that is used as a replacement for missing/unknowns characters
+			Unicode missingCharacterReplacement{};
 			/// msdf atlas
-			DynamicAtlas dynamicAtlas;
+			DynamicAtlas dynamicAtlas{};
 			/// Vector of glyphs, stores important geometry information about each glyph
 			std::vector<msdf_atlas::GlyphGeometry> glyphs{};
 			/// Font geometry object, used to access specific glyphs
 			msdf_atlas::FontGeometry fontGeometry{};
+			/// Set of Unicode symbols that are represented by the "missing" symbol,
+			/// ie. symbols that could not be loaded with this font
+			std::unordered_set<Unicode> missingCharacters{};
 			/// Destructor. Deletes the texture from the GPU if it was loaded.
 			~FontData();
 
@@ -82,6 +87,9 @@ namespace SnackerEngine
 		/// Used to look up Fonts using a path string (to prevent double loading)
 		inline static std::unordered_map<std::string, FontID> stringToFontID;
 
+		/// Helper function to setup the missing character codepoint for a 
+		/// newly loaded font
+		static void setupMissingCharacterReplacement(const FontID& fontID);
 		/// Delete the given font. Is called by decreaseReferenceCount, if the reference count reaches zero
 		static void deleteFont(const FontID& fontID);
 		/// Returns a new fontID. The FontData corresponding to this id can then be used to create a new font.
@@ -92,7 +100,8 @@ namespace SnackerEngine
 		/// adds a new glyph with the given codepoint to the font. Does not check if the codepoint was already added before.
 		/// Returns true on success
 		static bool addNewGlyph(const Unicode& codepoint, const FontID& fontID);
-		/// Returns a glyph from the given font. If the glyph wasn't loaded yet it is loaded from the fonr file
+		/// Returns a glyph from the given font. If the glyph wasn't loaded yet it is loaded from the font file.
+		/// If the glyph can't be loaded, a missing character glyph is returned instead and a warning is printed.
 		static Glyph getGlyph(Font& font, const Unicode& codepoint);
 	protected:
 		friend class Font;

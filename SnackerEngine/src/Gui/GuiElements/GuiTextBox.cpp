@@ -513,6 +513,20 @@ namespace SnackerEngine
 					computeModelMatrixCursor();
 				}
 			}
+			else if (key == KEY_DELETE) {
+				if (mods & MOD_CONTROL) {
+					static_cast<EditableText&>(*text).deleteWordAfterCursor();
+					cursorBlinkingTimer.reset();
+					cursorIsVisible = true;
+					computeModelMatrixCursor();
+				}
+				else {
+					static_cast<EditableText&>(*text).deleteCharacterAfterCursor();
+					cursorBlinkingTimer.reset();
+					cursorIsVisible = true;
+					computeModelMatrixCursor();
+				}
+			}
 			else if (key == KEY_ENTER) {
 				if (singleLine) {
 					// Special single line-mode
