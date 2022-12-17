@@ -70,6 +70,13 @@ namespace SnackerEngine
 		TextBoxMode textBoxMode;
 		/// If this is set to true, the text is displayed in a single line
 		bool singleLine;
+		/// The scale factor of the text, used internally for some textBoxModes
+		double scaleFactor;
+		/// The normal font size of the text (without any rescaling)
+		double fontSize;
+		/// The number of tries that are being made to resize the text when the textBoxMode is set to 
+		/// FORCE_SIZE_RECOMPUTE_SCALE_DOWN or FORCE_SIZE_RECOMPUTE_SCALE
+		unsigned int recomputeTries;
 		/// Computes the modelMatrix of the text and the background box.
 		/// Depending on the textBoxMode the text is scaled appropriately.
 		void computeModelMatrices();

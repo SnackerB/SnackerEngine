@@ -155,6 +155,8 @@ namespace SnackerEngine
 		virtual void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true);
 		/// Sets the alignment.
 		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true);
+		/// Recomputes the text model
+		virtual void recompute();
 	};
 	//--------------------------------------------------------------------------------------------------
 	/// A EditableText object does everything a DynamicText object does, but has functions that can be used
@@ -294,6 +296,8 @@ namespace SnackerEngine
 		/// Returns true if the selectionIndex is different from the cursor index, ie. if a selection
 		/// selecting > 0 characters is currently active
 		bool isSelecting() const;
+		/// Recomputes the text model
+		virtual void recompute() override;
 	};
 	//--------------------------------------------------------------------------------------------------
 }

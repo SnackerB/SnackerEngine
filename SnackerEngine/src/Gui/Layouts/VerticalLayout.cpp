@@ -46,6 +46,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	std::optional<std::pair<unsigned int, int>> VerticalLayout::getCollidingBorderAndOffset(const Vec2i& position)
 	{
+		if (percentages.empty()) return {};
 		int height = getSize().y;
 		// Start from the top
 		int currentY = 0;

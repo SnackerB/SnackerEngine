@@ -108,10 +108,6 @@ namespace SnackerEngine
 		/// Constructs the model from the characters and lines vectors. At this time a last alignment pass
 		/// is made that shifts the text based on the alignment mode
 		Model alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices);
-		/// Constructs the model from the characters and lines vectors. At this time a last alignment pass
-		/// is made that shifts the text based on the alignment mode.
-		/// Starts at the given line.
-		Model alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices, const unsigned int& startAtLine);
 	};
 	//--------------------------------------------------------------------------------------------------
 	ParseData::ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines)
@@ -288,18 +284,20 @@ namespace SnackerEngine
 				// Advance to next glyph
 				advanceBaselineWithKerning(codepoint.value());
 			}
-			// Update lastCodepoint
-			lastCodepoint = codepoint.value();
 			// Obtain glyph
 			Glyph glyph = font.getGlyph(codepoint.value());
 			// Check if we need a new line
-			if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty()) {
+			if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty() && lastCodepoint != 0) {
 				goToNextLine();
 				// Special rule: If the first character on a new line is a space character, we dont 
 				// want to advance the next character!
 				if (isSpaceCharacter(codepoint.value())) {
 					lastCodepoint = 0;
 				}
+			}
+			else {
+				// Update lastCodepoint
+				lastCodepoint = codepoint.value();
 			}
 			// Add the new glyph
 			pushGlyph(glyph, codepoint.value());
@@ -330,18 +328,20 @@ namespace SnackerEngine
 				// Advance to next glyph
 				advanceBaselineWithKerning(character.codepoint);
 			}
-			// Update lastCodepoint
-			lastCodepoint = character.codepoint;
 			// Obtain glyph
 			Glyph glyph = font.getGlyph(character.codepoint);
 			// Check if we need a new line
-			if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty()) {
+			if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty() && lastCodepoint != 0) {
 				goToNextLine(indexIntoCharactersVector);
 				// Special rule: If the first character on a new line is a space character, we dont 
 				// want to advance the next character!
 				if (isSpaceCharacter(character.codepoint)) {
 					lastCodepoint = 0;
 				}
+			}
+			else {
+				// Update lastCodepoint
+				lastCodepoint = character.codepoint;
 			}
 			// Add the new glyph
 			editGlyph(glyph, indexIntoCharactersVector);
@@ -382,17 +382,19 @@ namespace SnackerEngine
 					// Advance to next glyph
 					advanceBaselineWithKerning(codepoint.value());
 				}
-				// Update lastCodepoint
-				lastCodepoint = codepoint.value();
 				Glyph glyph = font.getGlyph(codepoint.value());
 				// Check if we need a new line
-				if (!isInsideTextWidth(currentBaseline.x + glyph.right)) {
+				if (!isInsideTextWidth(currentBaseline.x + glyph.right) && lastCodepoint != 0) {
 					goToNextLine();
 					// Special rule: If the first character on a new line is a space character, we dont 
 					// want to advance the next character!
 					if (isSpaceCharacter(codepoint.value())) {
 						lastCodepoint = 0;
 					}
+				}
+				else {
+					// Update lastCodepoint
+					lastCodepoint = codepoint.value();
 				}
 				// Add the new glyph
 				pushGlyph(glyph, codepoint.value());
@@ -413,7 +415,7 @@ namespace SnackerEngine
 				}
 				Glyph glyph = font.getGlyph(codepoint.value());
 				// Check if we need a new line
-				if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty()) {
+				if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty() && lastCodepoint != 0) {
 					goToNextLine();
 					previousBaselineX = currentBaseline.x;
 					lastCodepoint = codepoint.value();
@@ -484,17 +486,19 @@ namespace SnackerEngine
 					// Advance to next glyph
 					advanceBaselineWithKerning(character.codepoint);
 				}
-				// Update lastCodepoint
-				lastCodepoint = character.codepoint;
 				Glyph glyph = font.getGlyph(character.codepoint);
 				// Check if we need a new line
-				if (!isInsideTextWidth(currentBaseline.x + glyph.right)) {
+				if (!isInsideTextWidth(currentBaseline.x + glyph.right) && lastCodepoint != 0) {
 					goToNextLine(indexIntoCharactersVector);
 					// Special rule: If the first character on a new line is a space character, we dont 
 					// want to advance the next character!
 					if (isSpaceCharacter(character.codepoint)) {
 						lastCodepoint = 0;
 					}
+				}
+				else {
+					// Update lastCodepoint
+					lastCodepoint = character.codepoint;
 				}
 				// Special rule: If the first character on a new line is a space character, we dont 
 				// want to advance the next character! (only if the last character before was a newline character)
@@ -522,7 +526,7 @@ namespace SnackerEngine
 				}
 				Glyph glyph = font.getGlyph(character.codepoint);
 				// Check if we need a new line
-				if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty()) {
+				if (!isInsideTextWidth(currentBaseline.x + glyph.right) && !characters.empty() && lastCodepoint!=0) {
 					goToNextLine(indexIntoCharactersVector);
 					previousBaselineX = currentBaseline.x;
 					lastCodepoint = character.codepoint;
@@ -570,24 +574,19 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	Model ParseData::alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices)
 	{
-		return alignAndConstructModel(alignment, vertices, indices, 0);
-	}
-	//--------------------------------------------------------------------------------------------------
-	Model ParseData::alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices, const unsigned int& startAtLine)
-	{
-		if (startAtLine >= lines.size()) return Model();
-		if (startAtLine > 0) {
-			vertices.resize(static_cast<std::size_t>(lines[startAtLine].beginIndex) * 4);
-			indices.resize(static_cast<std::size_t>(lines[startAtLine].beginIndex) * 6);
-		}
-		else
-		{
-			vertices.clear();
-			indices.clear();
-		}
+		if (characters.empty()) return Model();
+		vertices.clear();
+		indices.clear();
 		vertices.reserve(characters.size() * 4);
 		indices.reserve(characters.size() * 6);
-		for (unsigned int lineIndex = startAtLine; lineIndex < lines.size(); ++lineIndex) {
+		double longestLineWidth = 0.0;
+		if (alignment != StaticText::Alignment::LEFT) {
+			for (auto& line : lines) {
+				double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
+				if (lineWidth > longestLineWidth) longestLineWidth = lineWidth;
+			}
+		}
+		for (unsigned int lineIndex = 0; lineIndex < lines.size(); ++lineIndex) {
 			const auto& line = lines[lineIndex];
 			if (line.beginIndex >= characters.size() || line.endIndex >= characters.size()) {
 				continue;
@@ -600,13 +599,13 @@ namespace SnackerEngine
 			case StaticText::Alignment::CENTER:
 			{
 				double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
-				horizontalOffset = (textWidth / fontSize - lineWidth) / 2.0;
+				horizontalOffset = (longestLineWidth - lineWidth) / 2.0;
 				break;
 			}
 			case StaticText::Alignment::RIGHT:
 			{
 				double lineWidth = characters[line.endIndex].right;
-				horizontalOffset = textWidth / fontSize - lineWidth;
+				horizontalOffset = longestLineWidth - lineWidth;
 				break;
 			}
 			default: break;
@@ -873,6 +872,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	double DynamicText::getLeft()
 	{
+		if (characters.empty()) return 0.0;
 		switch (alignment)
 		{
 		case SnackerEngine::StaticText::Alignment::LEFT:
@@ -903,7 +903,7 @@ namespace SnackerEngine
 		{
 		case SnackerEngine::StaticText::Alignment::RIGHT:
 		{
-			return 0.0;
+			return textWidth;
 		}
 		case SnackerEngine::StaticText::Alignment::CENTER:
 		case SnackerEngine::StaticText::Alignment::LEFT:
@@ -962,6 +962,11 @@ namespace SnackerEngine
 		if (recompute) constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void DynamicText::recompute()
+	{
+		constructModel();
+	}
+	//--------------------------------------------------------------------------------------------------
 	unsigned int EditableText::getLineNumber(const unsigned int& characterIndex) const
 	{
 		auto result = std::lower_bound(lines.begin(), lines.end(), Line{ 0, characterIndex, characterIndex });
@@ -1011,7 +1016,7 @@ namespace SnackerEngine
 		// Finalize the lines vector
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
-		return data.alignAndConstructModel(alignment, vertices, indices, lineIndex);
+		return data.alignAndConstructModel(alignment, vertices, indices);
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextSingleLineFrom(const unsigned int& lineIndex)
@@ -1027,7 +1032,7 @@ namespace SnackerEngine
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		data.textWidth = textWidth;
-		return data.alignAndConstructModel(alignment, vertices, indices, lineIndex);
+		return data.alignAndConstructModel(alignment, vertices, indices);
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextWordByWordFrom(const unsigned int& lineIndex)
@@ -1045,7 +1050,7 @@ namespace SnackerEngine
 		// Finalize the lines vector
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
-		return data.alignAndConstructModel(alignment, vertices, indices, newLineIndex);
+		return data.alignAndConstructModel(alignment, vertices, indices);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::constructModelFrom(const unsigned int& lineIndex)
@@ -1139,22 +1144,6 @@ namespace SnackerEngine
 		result.second.x -= cursorSize.x;
 		result.second.y += static_cast<float>(font.getDescender());
 		result.first = characterIndex;
-		// Special care needs to be taken if the alignment is CENTER or RIGHT
-		if (alignment == Alignment::CENTER) {
-			if (characters.empty()) result.second.x = static_cast<float>(textWidth / fontSize / 2.0) - cursorSize.x / 2.0f;
-			else {
-				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
-				double horizontalOffset = (textWidth / fontSize - lineWidth) / 2.0;
-				result.second.x += static_cast<float>(horizontalOffset);
-			}
-		}
-		else if (alignment == Alignment::RIGHT) {
-			if (characters.empty()) result.second.x = static_cast<float>(textWidth);
-			else {
-				double lineWidth = characters[lines[lineNumber].endIndex].right - characters[lines[lineNumber].beginIndex].left;
-				result.second.x += static_cast<float>(textWidth - lineWidth);
-			}
-		}
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -1165,7 +1154,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode, const Alignment& alignment)
-		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, static_cast<float>(font.getAscender() - font.getDescender()))
+		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, static_cast<float>(font.getLineHeight()))
 	{
 		constructModel();
 		setCursorPos(0);
@@ -1498,6 +1487,7 @@ namespace SnackerEngine
 	void EditableText::setFont(const Font& font, bool recompute)
 	{
 		this->font = font;
+		cursorSize = Vec2f(cursorSize.x, static_cast<float>(font.getLineHeight()));
 		if (recompute) constructModelFrom(0);
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -1525,6 +1515,11 @@ namespace SnackerEngine
 	bool EditableText::isSelecting() const
 	{
 		return cursorPosIndex != selectionIndex;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void EditableText::recompute()
+	{
+		constructModelFrom(0);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

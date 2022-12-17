@@ -47,11 +47,11 @@ public:
 
 		SnackerEngine::GuiStyle style = SnackerEngine::getDefaultStyle();
 
+		/*
 		parentWindow = SnackerEngine::GuiWindow(style);
 		guiManager.registerElement(parentWindow);
 		parentWindow.setPosition({ 10, 10 });
 		parentWindow.setSize({ 1180, 680 });
-
 		SnackerEngine::HorizontalLayout layout;
 		parentWindow.registerChild(layout);
 		{
@@ -73,7 +73,7 @@ public:
 				SnackerEngine::GuiEditTextBox editBox("Edit me!", style);
 				editBox.setSingleLine(false);
 				editBox.setTextParseMode(SnackerEngine::StaticText::ParseMode::WORD_BY_WORD);
-				editBox.setTextBoxMode(SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE);
+				editBox.setTextBoxMode(SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN);
 				verticalLayout.registerChild(editBox, 1.0);
 				editBox.setEventHandleTextWasEdited(helloEventHandle);
 				guiManager.moveElement<SnackerEngine::GuiEditTextBox>(std::move(editBox));
@@ -144,8 +144,40 @@ public:
 
 		}
 		guiManager.moveElement<SnackerEngine::HorizontalLayout>(std::move(layout));
-
 		guiManager.moveElement<SnackerEngine::GuiWindow>(std::move(parentWindow));
+		*/
+
+		SnackerEngine::GuiWindow parentWindow2 = SnackerEngine::GuiWindow(style);
+		guiManager.registerElement(parentWindow2);
+		parentWindow2.setPosition({ 10, 10 });
+		parentWindow2.setSize({ 1180, 680 });
+		SnackerEngine::HorizontalLayout horizontalLayout;
+		parentWindow2.registerChild(horizontalLayout);
+		{
+			// LEFT aligned text
+			SnackerEngine::VerticalLayout verticalLayout;
+			horizontalLayout.registerChild(verticalLayout, 1.0);
+			{
+			
+			}
+			guiManager.moveElement<SnackerEngine::VerticalLayout>(std::move(verticalLayout));
+			// CENTER aligned text
+			verticalLayout = SnackerEngine::VerticalLayout();
+			horizontalLayout.registerChild(verticalLayout, 1.0);
+			{
+			
+			}
+			guiManager.moveElement<SnackerEngine::VerticalLayout>(std::move(verticalLayout));
+			// RIGHT aligned text
+			verticalLayout = SnackerEngine::VerticalLayout();
+			horizontalLayout.registerChild(verticalLayout, 1.0);
+			{
+			
+			}
+			guiManager.moveElement<SnackerEngine::VerticalLayout>(std::move(verticalLayout));
+		}
+		guiManager.moveElement<SnackerEngine::HorizontalLayout>(std::move(horizontalLayout));
+		guiManager.moveElement<SnackerEngine::GuiWindow>(std::move(parentWindow2));
 	}
 
 	void draw() override

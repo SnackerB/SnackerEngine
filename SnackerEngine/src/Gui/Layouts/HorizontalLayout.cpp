@@ -46,6 +46,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	std::optional<std::pair<unsigned int, int>> HorizontalLayout::getCollidingBorderAndOffset(const Vec2i& position)
 	{
+		if (percentages.empty()) return {};
 		int width = getSize().x;
 		// Start from the left
 		for (unsigned int i = 0; i < percentages.size() - 1; ++i) {
