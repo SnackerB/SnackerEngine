@@ -23,6 +23,24 @@ namespace SnackerEngine
 			FORCE_SIZE,					/// The textBox has the given size, no matter
 										/// the actual text size. Default mode. Part
 										/// of the text may not be visible
+			FORCE_SIZE_SCALE_TEXT_UP,	/// The textBox has the given size and the text will
+										/// be scaled up to try to fit the box better.
+										/// Works best in the single line mode.
+			FORCE_SIZE_SCALE_TEXT_DOWN, /// The textBox has the given size and the text will
+										/// be scaled down to try to fit the text box.
+										/// Works best in the single line mode
+			FORCE_SIZE_SCALE_TEXT,		/// The textBox has the given size and the text will
+										/// be scaled up and down to try to fit the text box.
+										/// Works best in the single line mode
+			FORCE_SIZE_RECOMPUTE_SCALE_DOWN, 
+										/// The textBox has the given size. If it becomes to
+										/// small the text is recomputed with a different font
+										/// size to try to fit the text better. May lead to bad
+										/// performance
+			FORCE_SIZE_RECOMPUTE_SCALE, /// The textBox has the given size. The text is 
+										/// recomputed with different font sizes
+										/// to try to fit the text better. May lead to bad
+										/// performance
 			SHRINK_HEIGHT_TO_FIT,		/// Computes the size of the text with a given width
 										/// and adjusts the height accordingly. size.x sets the
 										/// maximum textwidth
@@ -52,7 +70,8 @@ namespace SnackerEngine
 		TextBoxMode textBoxMode;
 		/// If this is set to true, the text is displayed in a single line
 		bool singleLine;
-		/// Computes the modelMatrix of the text and the background box
+		/// Computes the modelMatrix of the text and the background box.
+		/// Depending on the textBoxMode the text is scaled appropriately.
 		void computeModelMatrices();
 	protected:
 		/// Draws this GuiTextBox
@@ -68,10 +87,11 @@ namespace SnackerEngine
 		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
 		virtual void onRegister() override;
-		/// Helper function that shrinks the size to the text size according to the textBoxMode
-		void resizeToText();
-		/// Helper function that changes the size according to the textBoxMode and recomputes the text
-		void resizeAndRecomputeText();
+		/// Helper function that recomputes the text and corresponding model matrices.
+		/// This function should be called when the text needs to be recomputed, eg.
+		/// when the font or fontSize changes.
+		/// May also change the size of the textBox, depending on the textBoxMode
+		void recomputeText();
 		/// Helper function that computes the the text position
 		Vec2f computeTextPosition();
 		/// Protected constructor that can be used to create a TextBox with differen types of GuiText, eg.

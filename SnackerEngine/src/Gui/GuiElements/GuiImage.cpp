@@ -60,8 +60,11 @@ namespace SnackerEngine
 				textureSize.x *= factor;
 				textureSize.y = size.y;
 			}
+			// Clip
+			textureSize.x = std::min(size.x, textureSize.x);
+			textureSize.y = std::min(size.y, textureSize.y);
 			modelMatrixImage = Mat4f::TranslateAndScale(
-				Vec3f(static_cast<float>(position.x + size.x / 2 - textureSize.x / 2), static_cast<float>(-position.y - std::min(std::ceil(size.y / 2) + std::ceil(textureSize.y / 2), static_cast<double>(size.y))), 0.0f),
+				Vec3f(static_cast<float>(position.x) + static_cast<float>(size.x) / 2.0f - static_cast<float>(textureSize.x) / 2.0f, static_cast<float>(-position.y) - std::min(std::ceil(static_cast<float>(size.y) / 2.0f) + std::ceil(static_cast<float>(textureSize.y) / 2.0f), static_cast<float>(size.y)), 0.0f),
 				Vec3f(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y), 0.0f));
 		}
 		default:

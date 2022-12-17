@@ -17,6 +17,7 @@ namespace SnackerEngine
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f), Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 		unsigned int DPI = Engine::getDPI().y;
+
 		Vec2f textPosition = computeTextPosition();
 		modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), pointsToInches<float>(static_cast<float>(text->getFontSize())) * static_cast<float>(DPI));
 	}
@@ -54,8 +55,48 @@ namespace SnackerEngine
 	void GuiDynamicTextBox::onSizeChange()
 	{
 		GuiElement::onSizeChange();
-		resizeAndRecomputeText();
-		computeModelMatrices();
+		switch (textBoxMode)
+		{
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_UP:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_DOWN:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT:
+		{
+			if (singleLine) {
+				computeModelMatrices();
+			}
+			else {
+				recomputeText();
+			}
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE:
+		{
+			recomputeText();
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
+		{
+			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
+			computeModelMatrices();
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
+		{
+			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
+			computeModelMatrices();
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
+		{
+			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
+			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
+			computeModelMatrices();
+			break;
+		}
+		default:
+			break;
+		}
 	}
 
 	GuiDynamicTextBox::IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& position)
@@ -70,28 +111,53 @@ namespace SnackerEngine
 		GuiElement::onRegister();
 	}
 
-	void GuiDynamicTextBox::resizeToText()
+	void GuiDynamicTextBox::recomputeText()
 	{
 		switch (textBoxMode)
 		{
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_UP:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_DOWN:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT:
 		{
+			// Just compute the text with the size.x as textWidth:
+			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
+			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f));
+			computeModelMatrices();
 			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN:
+		{
+			computeModelMatrices();
+			break; // TODO
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE:
+		{
+			computeModelMatrices();
+			break; // TODO
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
 		{
-			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
+			// Just compute the text with the size.x as textWidth:
+			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
+			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f));
+			onSizeChange();
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
 		{
-			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
+			// compute the text with zero textWidth
+			text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
+			text->setTextWidth(0.0);
+			onSizeChange();
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
 		{
-			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
-			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
+			// compute the text with zero textWidth
+			text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
+			text->setTextWidth(0.0);
+			onSizeChange();
 			break;
 		}
 		default:
@@ -99,45 +165,41 @@ namespace SnackerEngine
 		}
 	}
 
-	void GuiDynamicTextBox::resizeAndRecomputeText()
+	/*
+	void GuiDynamicTextBox::scaleTextAndResize()
 	{
 		switch (textBoxMode)
 		{
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE: 
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_UP:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_DOWN:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN:
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE:
 		{
-			// Just compute the text with the size.x as textWidth:
-			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f));
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
 		{
-			// compute the text with size.x as textWidth
-			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f));
-			resizeToText();
+			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
 		{
-			// compute the text with zero textWidth
-			text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(0.0);
-			resizeToText();
+			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
 		{
-			// compute the text with zero textWidth
-			text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(0.0);
-			resizeToText();
+			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
+			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
 			break;
 		}
 		default:
 			break;
 		}
 	}
+	*/
 
 	Vec2f GuiDynamicTextBox::computeTextPosition()
 	{
@@ -152,7 +214,8 @@ namespace SnackerEngine
 			// Align to the top of the text box
 			textOffsetY = -pointsToInches(text->getTop()) * DPI;
 		}
-		return Vec2f(static_cast<float>(position.x), -static_cast<float>(position.y) + static_cast<float>(textOffsetY));
+		Vec2f position = Vec2f(static_cast<float>(getPositionX()), -static_cast<float>(getPositionY()) + static_cast<float>(textOffsetY));
+		return position;
 	}
 
 	/// Helper function for constructing the text material
@@ -172,11 +235,36 @@ namespace SnackerEngine
 		// Check if the size needs to be adjusted
 		switch (textBoxMode)
 		{
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_UP:
+		{
+			// TODO: Implement
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_DOWN:
+		{
+			// TODO: Implement
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT:
+		{
+			// TODO: Implement
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN:
+		{
+			// TODO: Implement
+			break;
+		}
+		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE:
+		{
+			// TODO: Implement
+			break;
+		}
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
 		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
 		{
-			resizeToText(); break;
+			computeModelMatrices(); break;
 		}
 		default:
 			break;
@@ -277,24 +365,28 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::setText(const std::string& text)
 	{
-		this->text->setText(text);
-		resizeToText();
+		this->text->setText(text, false);
+		recomputeText();
 		computeModelMatrices();
 	}
 
 	void GuiDynamicTextBox::setFont(const Font& font)
 	{
-		this->text->setFont(font);
-		material = constructTextMaterial(text->getFont(), textColor, backgroundColor);
-		resizeToText();
-		computeModelMatrices();
+		if (this->text->getFont().fontID != font.fontID) {
+			this->text->setFont(font, false);
+			material = constructTextMaterial(text->getFont(), textColor, backgroundColor);
+			recomputeText();
+			computeModelMatrices();
+		}
 	}
 
 	void GuiDynamicTextBox::setFontSize(const double& fontSize)
 	{
-		this->text->setFontSize(fontSize);
-		resizeToText();
-		computeModelMatrices();
+		if (this->text->getFontSize() != fontSize) {
+			this->text->setFontSize(fontSize, false);
+			recomputeText();
+			computeModelMatrices();
+		}
 	}
 
 	void GuiDynamicTextBox::setTextColor(const Color4f& textColor)
@@ -311,30 +403,38 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::setTextParseMode(const StaticText::ParseMode& parseMode)
 	{
-		text->setParseMode(parseMode);
-		resizeAndRecomputeText();
-		computeModelMatrices();
+		if (text->getParseMode() != parseMode) {
+			text->setParseMode(parseMode, false);
+			recomputeText();
+			computeModelMatrices();
+		}
 	}
 
 	void GuiDynamicTextBox::setAlignment(const StaticText::Alignment& alignment)
 	{
-		this->text->setAlignment(alignment);
-		resizeAndRecomputeText();
-		computeModelMatrices();
+		if (this->text->getAlignment() != alignment) {
+			this->text->setAlignment(alignment, false);
+			recomputeText();
+			computeModelMatrices();
+		}
 	}
 
 	void GuiDynamicTextBox::setTextBoxMode(const TextBoxMode& textBoxMode)
 	{
-		this->textBoxMode = textBoxMode;
-		resizeAndRecomputeText();
-		computeModelMatrices();
+		if (this->textBoxMode != textBoxMode) {
+			this->textBoxMode = textBoxMode;
+			recomputeText();
+			computeModelMatrices();
+		}
 	}
 
 	void GuiDynamicTextBox::setSingleLine(const bool& singleLine)
 	{
-		this->singleLine = singleLine;
-		resizeAndRecomputeText();
-		computeModelMatrices();
+		if (this->singleLine != singleLine) {
+			this->singleLine = singleLine;
+			recomputeText();
+			computeModelMatrices();
+		}
 	}
 
 	const Vec2i GuiDynamicTextBox::getTextSize() const
@@ -642,8 +742,7 @@ namespace SnackerEngine
 		double textOffsetY;
 		if (text->getAlignment() == StaticText::Alignment::CENTER) {
 			// Align to the center of the text box
-			// TODO: Why is this *1.0 necessary? Does not work if i remove it. Compiler bug?
-			textOffsetY = -pointsToInches((text->getTop() * 1.0 + text->getBottom()) / 2.0) * DPI.y - static_cast<double>(size.y) / 2.0;
+			textOffsetY = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI.y - static_cast<double>(size.y) / 2.0;
 		}
 		else {
 			// Align to the top of the text box

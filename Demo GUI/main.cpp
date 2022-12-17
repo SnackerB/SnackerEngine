@@ -72,6 +72,7 @@ public:
 
 				SnackerEngine::GuiEditTextBox editBox("Edit me!", style);
 				editBox.setSingleLine(false);
+				editBox.setTextParseMode(SnackerEngine::StaticText::ParseMode::WORD_BY_WORD);
 				editBox.setTextBoxMode(SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE);
 				verticalLayout.registerChild(editBox, 1.0);
 				editBox.setEventHandleTextWasEdited(helloEventHandle);
@@ -82,7 +83,6 @@ public:
 				guiManager.moveElement<SnackerEngine::GuiDynamicTextBox>(std::move(textBox));
 				
 				SnackerEngine::GuiImage guiImage(style, style.defaultFont.getMsdfTexture());
-				guiImage.setBackgroundColor(SnackerEngine::Color4f(0.0f, 1.0f, 0.0f, 1.0f));
 				verticalLayout.registerChild(guiImage, 1.0);
 				guiManager.moveElement<SnackerEngine::GuiImage>(std::move(guiImage));
 			}
