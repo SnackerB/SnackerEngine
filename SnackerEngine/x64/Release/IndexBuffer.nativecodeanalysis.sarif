@@ -1,0 +1,75 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31629.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/indexbuffer.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "e5e4e85d14122c6c9db46ebf28b23c431073dee023e947f612e1903965f09982"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/indexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "df98209f163b957e740ee975de4b44e2c7cf793cff620ff90f58ac098b9abf57"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/core/assert.h"
+          },
+          "hashes": {
+            "sha-256": "6d90f272639ad0384f9e8845442605beef4da40ec5fa891092340d81707bd4a6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/core/log.h"
+          },
+          "hashes": {
+            "sha-256": "f44d581b5b74b5208f80e5d12bd5f80ada534e8bf92325084f2c6f65946474db"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/dependencies/glew/include/gl/glew.h"
+          },
+          "hashes": {
+            "sha-256": "1a2d50dc00a69940838cb3b5413cf7a7ac3cee8078672f27ffbfa2d3b88ad344"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/dependencies/glfw/include/glfw/glfw3.h"
+          },
+          "hashes": {
+            "sha-256": "0992a30f01ebaa41c32f3f0588e942961abb8a9a52ca8764bd32ee4d7d71a46d"
+          }
+        }
+      ]
+    }
+  ]
+}

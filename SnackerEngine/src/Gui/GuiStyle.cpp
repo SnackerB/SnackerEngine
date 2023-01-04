@@ -23,29 +23,28 @@ namespace SnackerEngine
 		result.guiTextBoxBackgroundColor = Color4f(0.0f, 0.0f);
 		result.guiTextBoxParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiTextBoxAlignment = StaticText::Alignment::LEFT;
-		result.guiTextBoxMode2 = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
+		result.guiTextBoxTextScaleMode = GuiDynamicTextBox::TextScaleMode::DONT_SCALE;
+		result.guiTextBoxSizeHintModes = { GuiDynamicTextBox::SizeHintMode::ARBITRARY, GuiDynamicTextBox::SizeHintMode::ARBITRARY , GuiDynamicTextBox::SizeHintMode::ARBITRARY };
+		result.guiTextBoxBorder = 10;
 		result.guiTextBoxResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
-		result.guiTextBoxSingleLine = true;
 		/// GuiTextVariable
 		result.guiTextVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiTextVariableTextColor = result.guiTextBoxTextColor;
 		result.guiTextVariableBackgroundColor = result.guiTextBoxBackgroundColor;
 		result.guiTextVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
 		result.guiTextVariableAlignment = StaticText::Alignment::LEFT;
-		result.guiTextVariableTextBoxMode2 = GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
-		result.guiTextVariableSingleLine = true;
+		result.guiTextVariableTextScaleMode = GuiDynamicTextBox::TextScaleMode::DONT_SCALE;
+		result.guiTextVariableSizeHintModes = { GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT, GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT , GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT };
+		result.guiTextVariableBorder = 10;
 		result.guiTextVariableResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
 		/// GuiEditTextBox
 		result.guiEditTextBoxCursorWidth = 0.1; // TODO
 		result.guiEditTextBoxBlinkTime = 0.5;
 		result.guiEditTextBoxBackgroundColor = Color4f(0.0f, 1.0f);
-		result.guiEditTextBoxSingleLine = true;
-		/// GuiInputVariable
-		//result.guiInputVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
-		//result.guiInputVariableTextColor = result.guiTextBoxTextColor;
-		//result.guiInputVariableBackgroundColor = result.guiTextBoxBackgroundColor;
-		//result.guiInputVariableParseMode = StaticText::ParseMode::SINGLE_LINE;
-		//result.guiInputVariableAlignment = StaticText::Alignment::CENTER;
+		result.guiEditTextBoxSelectionBoxColor = Color4f(0.0f, 1.0f, 0.0f, 1.0f);
+		result.guiEditTextBoxTextScaleMode = GuiEditTextBox::TextScaleMode::RECOMPUTE_DOWN;
+		result.guiEditTextBoxSizeHintModes = {GuiEditTextBox::SizeHintMode::ARBITRARY, GuiEditTextBox::SizeHintMode::ARBITRARY , GuiEditTextBox::SizeHintMode::ARBITRARY };
+		result.guiEditTextBoxBorder = 10;
 		/// GuiEditVariable
 		result.guiEditVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiEditVariableResizeMode = GuiElement::ResizeMode::RESIZE_RANGE;
@@ -60,16 +59,17 @@ namespace SnackerEngine
 		result.guiButtonParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiButtonAlignment = StaticText::Alignment::CENTER;
 		result.guiButtonResizeMode = GuiButton::ResizeMode::RESIZE_RANGE;
-		result.guiButtonTextBoxMode2 = GuiButton::TextBoxMode::SHRINK_HEIGHT_TO_FIT;
-		result.guiButtonSingleLine = false;
+		result.guiButtonTextScaleMode = GuiButton::TextScaleMode::DONT_SCALE;
+		result.guiButtonSizeHintModes = {GuiButton::SizeHintMode::SET_TO_TEXT_SIZE, GuiButton::SizeHintMode::SET_TO_TEXT_HEIGHT, GuiButton::SizeHintMode::SET_TO_TEXT_SIZE};
+		result.guiButtonBorder = 10;
 		/// GuiWindow
 		result.guiWindowSize = Vec2i(800, 900);
 		result.guiWindowBackgroundColor = Color3f(0.2f, 0.2f, 0.2f);
 		result.guiWindowResizeButtonColor = Color3f::fromColor256(Color3<unsigned char>(23, 70, 162));
 		result.guiWindowResizeButtonSize = screenDims.y * 0.04;
 		/// ListLayout
-		result.listLayoutVerticalOffset = 20.0f;
-		result.listLayoutLeftBorder = 20.0f;
+		result.listLayoutVerticalOffset = 10.0f;
+		result.listLayoutLeftBorder = 10.0f;
 		result.listLayoutScrollSpeed = 20.0f;
 		result.listLayoutScrollBarBackgroundColor = Color3f(0.07f);
 		result.listLayoutScrollBarColor = result.guiWindowResizeButtonColor;

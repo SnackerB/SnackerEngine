@@ -25,8 +25,7 @@ out vec4 color;
 
 uniform sampler2D u_msdf;
 
-uniform vec4 u_bgColor;
-uniform vec4 u_fgColor;
+uniform vec4 u_color;
 uniform float u_pxRange; // set to distance field's pixel range
 
 float screenPxRange() {
@@ -44,7 +43,5 @@ void main() {
     float sd = median(msd.r, msd.g, msd.b);
     float screenPxDistance = screenPxRange() * (sd - 0.5);
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-    color = mix(u_bgColor, u_fgColor, opacity);
-    if (color.w < 0.001)
-        discard;
+    color = vec4(u_color.rgb, opacity*u_color.w);
 }

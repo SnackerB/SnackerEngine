@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>MeshManager.cpp</FILENAME>
+      <LINE>67</LINE>
+      <COLUMN>38</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::MeshManager::getNewMeshID</FUNCTION>
+    <DECORATED>?getNewMeshID@MeshManager@SnackerEngine@@CAIXZ</DECORATED>
+    <FUNCLINE>62</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>MeshManager.cpp</FILENAME>
+      <LINE>67</LINE>
+      <COLUMN>34</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::MeshManager::getNewMeshID</FUNCTION>
+    <DECORATED>?getNewMeshID@MeshManager@SnackerEngine@@CAIXZ</DECORATED>
+    <FUNCLINE>62</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>MeshManager.cpp</FILENAME>
+      <LINE>91</LINE>
+      <COLUMN>36</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::MeshManager::initialize</FUNCTION>
+    <DECORATED>?initialize@MeshManager@SnackerEngine@@KAXAEBI@Z</DECORATED>
+    <FUNCLINE>83</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

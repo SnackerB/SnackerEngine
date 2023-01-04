@@ -22,8 +22,8 @@ namespace SnackerEngine
 	protected:
 		/// Function that is called by guiElement to register handle
 		void registerHandle(const GuiHandleID& guiHandleID, GuiElement& guiElement);
-		/// Function that is called by guiElement when the handle is no longer needed 
-		/// (e.g. on destruction of the guiElement)
+		/// Function that should be called if this handle needs to forget
+		/// about its guiElements (eg. when it is moved from)
 		void signOff();
 		/// Function that is called by the guiElement after it is moved
 		void onMove(GuiElement* oldElement, GuiElement* newElement);

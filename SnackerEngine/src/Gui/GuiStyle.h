@@ -28,29 +28,28 @@ namespace SnackerEngine
 		Color4f guiTextBoxBackgroundColor{};
 		StaticText::ParseMode guiTextBoxParseMode{};
 		StaticText::Alignment guiTextBoxAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiTextBoxMode2{}; 
+		GuiDynamicTextBox::TextScaleMode guiTextBoxTextScaleMode{};
+		GuiDynamicTextBox::SizeHintModes guiTextBoxSizeHintModes{};
+		int guiTextBoxBorder{};
 		GuiElement::ResizeMode guiTextBoxResizeMode{};
-		bool guiTextBoxSingleLine{};
 		/// GuiTextVariable
 		Vec2i guiTextVariableSize{};
 		Color4f guiTextVariableTextColor{};
 		Color4f guiTextVariableBackgroundColor{};
 		StaticText::ParseMode guiTextVariableParseMode{};
 		StaticText::Alignment guiTextVariableAlignment{};
-		GuiDynamicTextBox::TextBoxMode guiTextVariableTextBoxMode2{};
-		bool guiTextVariableSingleLine{};
+		GuiDynamicTextBox::TextScaleMode guiTextVariableTextScaleMode{};
+		GuiDynamicTextBox::SizeHintModes guiTextVariableSizeHintModes{};
+		int guiTextVariableBorder{};
 		GuiElement::ResizeMode guiTextVariableResizeMode{};
 		/// GuiEditTextBox
 		double guiEditTextBoxCursorWidth{};
 		double guiEditTextBoxBlinkTime{};
 		Color4f guiEditTextBoxBackgroundColor{};
-		bool guiEditTextBoxSingleLine{};
-		/// GuiInputVariable
-		//Vec2i guiInputVariableSize{};
-		//Color4f guiInputVariableTextColor{};
-		//Color4f guiInputVariableBackgroundColor{};
-		//StaticText::ParseMode guiInputVariableParseMode{};
-		//StaticText::Alignment guiInputVariableAlignment{};
+		Color4f guiEditTextBoxSelectionBoxColor{};
+		GuiDynamicTextBox::TextScaleMode guiEditTextBoxTextScaleMode{};
+		GuiDynamicTextBox::SizeHintModes guiEditTextBoxSizeHintModes{};
+		int guiEditTextBoxBorder{};
 		/// GuiEditVariable
 		Vec2i guiEditVariableSize{};
 		GuiElement::ResizeMode guiEditVariableResizeMode{};
@@ -65,8 +64,9 @@ namespace SnackerEngine
 		StaticText::ParseMode guiButtonParseMode{};
 		StaticText::Alignment guiButtonAlignment{};
 		GuiElement::ResizeMode guiButtonResizeMode{};
-		GuiButton::TextBoxMode guiButtonTextBoxMode2{};
-		bool guiButtonSingleLine{};
+		GuiButton::TextScaleMode guiButtonTextScaleMode{};
+		GuiButton::SizeHintModes guiButtonSizeHintModes{};
+		int guiButtonBorder{};
 		/// GuiWindow
 		Vec2i guiWindowSize{};
 		Color3f guiWindowBackgroundColor{};

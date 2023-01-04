@@ -45,7 +45,6 @@ namespace SnackerEngine
 		Vec2i position;
 		/// Dimensions of the bounding rectangle in pixels. The origin is at the upper left corner
 		Vec2i size;
-	private:
 		/// The resize mode of this element. For more explanation see the definition of
 		/// the enum class above
 		ResizeMode resizeMode;
@@ -55,6 +54,10 @@ namespace SnackerEngine
 		/// If a component of maxSize is set to -1 this means that there is no constraint along
 		/// this direction and the element can get as large as necessary
 		Vec2i maxSize;
+		/// The preferred size of this element. If a component of preferredSize is set to -1
+		/// this means that there is no preferred size along this direction!
+		Vec2i preferredSize;
+	private:
 		/// Vector of child elements. Sorted in the order they will be drawn (but this can be
 		/// changed in derived elements by overwriting draw())
 		std::vector<GuiID> children;
@@ -214,6 +217,7 @@ namespace SnackerEngine
 		ResizeMode getResizeMode(const GuiID& guiID);
 		Vec2i getMinSize(const GuiID& guiID);
 		Vec2i getMaxSize(const GuiID& guiID);
+		Vec2i getPreferredSize(const GuiID& guiID);
 		IsCollidingResult isColliding(const GuiID& guiID, const Vec2i& parentPosition);
 		void setPosition(const GuiID& guiID, const Vec2i& position);
 		void setSize(const GuiID& guiID, const Vec2i& size);
@@ -231,8 +235,6 @@ namespace SnackerEngine
 		void setWidthWithoutEnforcingLayouts(const GuiID& guiID, const int& width);
 		void setHeightWithoutEnforcingLayouts(const GuiID& guiID, const int& height);
 		void setPositionAndSizeWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
-		void setMinSize(const Vec2i& minSize);
-		void setMaxSize(const Vec2i& maxSize);
 		void enforceLayoutOnElement(const GuiID& guiID);
 		void drawElement(const GuiID& guiID, const Vec2i& newParentPosition);
 		/// Adds a child to this guiElement. Returns true on success. Does not enforce any layouts
@@ -243,7 +245,7 @@ namespace SnackerEngine
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), 
 			const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE);
 		/// Destructor
-		~GuiElement();
+		virtual ~GuiElement();
 		/// Copy constructor and assignment operator
 		GuiElement(const GuiElement& other) noexcept;
 		GuiElement& operator=(const GuiElement& other) noexcept;
@@ -265,6 +267,14 @@ namespace SnackerEngine
 		/// this function should be preferred over two seperate calls of setPosition()
 		/// and setSize()
 		void setPositionAndSize(const Vec2i& position, const Vec2i& size);
+		/// Setters for min/max/preferredSize. May call enforceLayout() on the parent element
+		void setMinSize(const Vec2i& minSize);
+		void setMinWidth(const int& minWidth);
+		void setMinHeight(const int& minHeight);
+		void setMaxSize(const Vec2i& maxSize);
+		void setMaxWidth(const int& maxWidth);
+		void setMaxHeight(const int& maxHeight);
+		void setPreferredSize(const Vec2i& preferredSize);
 		/// Getters
 		const GuiID& getGuiID() const { return guiID; }
 		const GuiID& getParentID() const { return parentID; }
@@ -277,6 +287,7 @@ namespace SnackerEngine
 		const ResizeMode& getResizeMode() const { return resizeMode; }
 		const Vec2i& getMinSize() const { return minSize; }
 		const Vec2i& getMaxSize() const { return maxSize; }
+		const Vec2i& getPreferredSize() const { return preferredSize; }
 		const std::vector<GuiID>& getChildren() const { return children; }
 	};
 

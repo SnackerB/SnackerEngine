@@ -41,14 +41,16 @@ namespace SnackerEngine
 			Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
-			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE, const double& singleLine = false);
+			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
 		/// Constructor that already registers variable handle
 		GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
 			const std::string& label, const Font& font, const double& fontSize,
 			Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
-			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE, const double& singleLine = false);
+			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
 		/// Constructors using GuiStyle
 		GuiTextVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style);
 		GuiTextVariable(const std::string& label, const GuiStyle& style);
@@ -115,31 +117,32 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiTextVariable<T>::GuiTextVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine)
-		: GuiDynamicTextBox(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, textBoxMode, singleLine), variableHandle(nullptr), label(label) {}
+	inline GuiTextVariable<T>::GuiTextVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
+		: GuiDynamicTextBox(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, border, textScaleMode, sizeHintModes), variableHandle(nullptr), label(label) {}
+	
 
 	template<typename T>
-	inline GuiTextVariable<T>::GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine)
-		: GuiTextVariable<T>(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, textBoxMode, singleLine)
+	inline GuiTextVariable<T>::GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
+		: GuiTextVariable<T>(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, border, textScaleMode, sizeHintModes)
 	{
 		setVariableHandle(handle);
 	}
 
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiTextVariable<T>(handle, Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableTextBoxMode2, style.guiTextVariableSingleLine) {}
+		: GuiTextVariable<T>(handle, Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableBorder, style.guiTextVariableTextScaleMode, style.guiTextVariableSizeHintModes) {}
 
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const std::string& label, const GuiStyle& style)
-		: GuiTextVariable<T>(Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableTextBoxMode2, style.guiTextVariableSingleLine) {}
+		: GuiTextVariable<T>(Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableBorder, style.guiTextVariableTextScaleMode, style.guiTextVariableSizeHintModes) {}
 
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const std::string& label, const double& fontSize, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiTextVariable<T>(handle, Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableTextBoxMode2, style.guiTextVariableSingleLine) {}
+		: GuiTextVariable<T>(handle, Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableBorder, style.guiTextVariableTextScaleMode, style.guiTextVariableSizeHintModes) {}
 
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const std::string& label, const double& fontSize, const GuiStyle& style)
-		: GuiTextVariable<T>(Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableTextBoxMode2, style.guiTextVariableSingleLine) {}
+		: GuiTextVariable<T>(Vec2i(), style.guiTextVariableSize, style.guiTextVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiTextVariableParseMode, style.guiTextVariableAlignment, style.guiTextVariableBorder, style.guiTextVariableTextScaleMode, style.guiTextVariableSizeHintModes) {}
 
 	template<typename T>
 	inline void GuiTextVariable<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)

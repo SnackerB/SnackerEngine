@@ -1,0 +1,589 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 227,
+                  "startColumn": 42,
+                  "endLine": 227,
+                  "endColumn": 46
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 228,
+                  "startColumn": 42,
+                  "endLine": 228,
+                  "endColumn": 50
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 228,
+                  "startColumn": 42,
+                  "endLine": 228,
+                  "endColumn": 46
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 229,
+                  "startColumn": 42,
+                  "endLine": 229,
+                  "endColumn": 50
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 229,
+                  "startColumn": 42,
+                  "endLine": 229,
+                  "endColumn": 46
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 231,
+                  "startColumn": 43,
+                  "endLine": 231,
+                  "endColumn": 47
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 232,
+                  "startColumn": 43,
+                  "endLine": 232,
+                  "endColumn": 51
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 232,
+                  "startColumn": 43,
+                  "endLine": 232,
+                  "endColumn": 47
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 235,
+                  "startColumn": 41,
+                  "endLine": 235,
+                  "endColumn": 45
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 236,
+                  "startColumn": 41,
+                  "endLine": 236,
+                  "endColumn": 49
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 236,
+                  "startColumn": 41,
+                  "endLine": 236,
+                  "endColumn": 45
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 237,
+                  "startColumn": 41,
+                  "endLine": 237,
+                  "endColumn": 49
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 237,
+                  "startColumn": 41,
+                  "endLine": 237,
+                  "endColumn": 45
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 240,
+                  "startColumn": 42,
+                  "endLine": 240,
+                  "endColumn": 46
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 241,
+                  "startColumn": 42,
+                  "endLine": 241,
+                  "endColumn": 50
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 241,
+                  "startColumn": 42,
+                  "endLine": 241,
+                  "endColumn": 46
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 242,
+                  "startColumn": 42,
+                  "endLine": 242,
+                  "endColumn": 50
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+                },
+                "region": {
+                  "startLine": 242,
+                  "startColumn": 42,
+                  "endLine": 242,
+                  "endColumn": 46
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshCube",
+                  "decoratedName": "?createMeshCube@SnackerEngine@@YA?AVMesh@1@AEB_N00@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31629.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Cube.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "sha-256": "92692ff680247e99e396c47b0a3567bd2704fa4449a42bca20f2266f4c22d177"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/assetmanager/meshmanager.h"
+          },
+          "hashes": {
+            "sha-256": "bb4f7725988150b4d21161135fd9dddf3eb2080d67acaa66156644b2662359e2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/mesh.h"
+          },
+          "hashes": {
+            "sha-256": "9f84e625ecc3bd9fd59c66173b7765cfde2cd4edba1e90d0a77e1dfc036fbe1a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexarray.h"
+          },
+          "hashes": {
+            "sha-256": "3ef241c38ba6d62ac883f953b76da9fa2155331a8a18cb3250b077dea0a352a8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexbufferlayout.h"
+          },
+          "hashes": {
+            "sha-256": "a23d4a35ad1b61ba2f115adf33038ffd1240a8e3f3ee8ef926814c27a33630fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "ddb1151fe7e3b62d50da3e32504bdea761cb24937eae8c78c818f39326189bf5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/indexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "df98209f163b957e740ee975de4b44e2c7cf793cff620ff90f58ac098b9abf57"
+          }
+        }
+      ]
+    }
+  ]
+}

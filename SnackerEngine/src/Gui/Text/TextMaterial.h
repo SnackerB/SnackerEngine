@@ -13,11 +13,9 @@ namespace SnackerEngine
 		/// The font the text is in
 		Font font;
 		/// Text color
-		Color4f textColor;
-		/// Background color
-		Color4f backgroundColor;
+		Color4f color;
 		/// Constructor
-		SimpleTextMaterialData(const Shader& shader, const Font& font, const Color4f& textColor, const Color4f& backgroundColor);
+		SimpleTextMaterialData(const Shader& shader, const Font& font, const Color4f& color);
 		/// Binds this material
 		void bind() override;
 	};

@@ -290,8 +290,8 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& labelBackgroundColor, const Color4f& sliderBoxTextColor, const Color4f& SliderBoxBackgroundColor, const Color4f& sliderButtonColor, const double& sliderButtonWidth)
 		: GuiElement(position, size, resizeMode), variableHandle(nullptr), 
-		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::LEFT, GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT, true)),
-		variableBox(std::make_unique<GuiDynamicTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, toText(minValue), font, fontSize, sliderBoxTextColor, SliderBoxBackgroundColor, StaticText::ParseMode::CHARACTERS, StaticText::Alignment::CENTER, GuiDynamicTextBox::TextBoxMode::FORCE_SIZE, true)),
+		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::LEFT, 0, GuiDynamicTextBox::TextScaleMode::DONT_SCALE, GuiDynamicTextBox::SizeHintMode(GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_SIZE))),
+		variableBox(std::make_unique<GuiDynamicTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, toText(minValue), font, fontSize, sliderBoxTextColor, SliderBoxBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::CENTER)),
 		sliderButtonOffsetX(0), sliderButtonWidth(sliderButtonWidth), sliderButtonColor(sliderButtonColor), 
 		sliderButtonShader(Shader("shaders/gui/simpleTransparentColor.shader")), sliderButtonModelMatrix{}, minValue(minValue), maxValue(maxValue),
 		mouseOffset(0)
@@ -374,7 +374,7 @@ namespace SnackerEngine
 	inline GuiSlider<T>& GuiSlider<T>::operator=(GuiSlider<T>&& other) noexcept
 	{
 		GuiElement::operator=(std::move(other));
-		if (variableHandle) signOffHandle(variableHandle);
+		if (variableHandle) signOffHandle(*variableHandle);
 		variableHandle = nullptr;
 		label = std::move(other.label);
 		variableBox = std::move(other.variableBox);
@@ -391,7 +391,8 @@ namespace SnackerEngine
 		other.label = nullptr;
 		other.variableBox = nullptr;
 		// update variable handle
-		if (variableHandle) notifyHandleOnGuiElementMove(*variableHandle);
+		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
+		return *this;
 	}
 
 	template<typename T>

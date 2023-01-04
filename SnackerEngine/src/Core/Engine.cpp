@@ -68,9 +68,14 @@ namespace SnackerEngine
 		}
 	}
 	//------------------------------------------------------------------------------------------------------
-	void Engine::determineResourcePath()
+	bool Engine::determineResourcePath(const std::string& resourceFolderPath)
 	{
-		if (std::filesystem::exists("resources/"))
+		if (resourceFolderPath != "" && std::filesystem::exists(resourceFolderPath)) 
+		{
+			resourcePath = resourceFolderPath;
+			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"" << resourceFolderPath << "\"" << LOGGER::ENDL;
+		}
+		else if (std::filesystem::exists("resources/"))
 		{
 			resourcePath = "resources/";
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"./resources/\"" << LOGGER::ENDL;
@@ -102,17 +107,20 @@ namespace SnackerEngine
 		}
 		else
 		{
-			warningLogger << LOGGER::BEGIN << "Could not find resource folder!" << LOGGER::ENDL;
+			errorLogger << LOGGER::BEGIN << "Could not find resource folder!" << LOGGER::ENDL;
+			return false;
 		}
+		return true;
 	}
 	//------------------------------------------------------------------------------------------------------
-	bool Engine::initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName)
+	bool Engine::initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName, const std::string& resourceFolderPath)
 	{
 		// Initialize Renderer class and create window
 		if (!Renderer::initialize(windowWidth, windowHeight, windowName))
 			return false;
 		// Search for resource path
-		determineResourcePath();
+		if (!determineResourcePath(resourceFolderPath))
+			return false;
 		// Initialize AssetManager class
 		AssetManager::initialize();
 
@@ -152,7 +160,7 @@ namespace SnackerEngine
 	void Engine::startup()
 	{
 		// Create timer for capping draw fps TODO: Make this variable
-		Timer drawTimer((unsigned int)100);
+		Timer drawTimer((unsigned int)0);
 		lastUpdateTime = std::chrono::high_resolution_clock::now();
 		// Main loop
 		while (!glfwWindowShouldClose(Renderer::activeWindow))

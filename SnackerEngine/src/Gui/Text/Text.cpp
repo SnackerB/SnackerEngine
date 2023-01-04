@@ -106,8 +106,9 @@ namespace SnackerEngine
 		/// Assumes that the lines vector has at least one entry and is properly set up.
 		bool parseWordByWord(const unsigned& beginIndexIntoCharactersVector, const unsigned endIndexIntoCharactersVector);
 		/// Constructs the model from the characters and lines vectors. At this time a last alignment pass
-		/// is made that shifts the text based on the alignment mode
-		Model alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices);
+		/// is made that shifts the text based on the alignment mode. Returns the Model and the right border
+		/// of the text in pt.
+		std::pair<Model, double> alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices);
 	};
 	//--------------------------------------------------------------------------------------------------
 	ParseData::ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines)
@@ -294,6 +295,10 @@ namespace SnackerEngine
 				if (isSpaceCharacter(codepoint.value())) {
 					lastCodepoint = 0;
 				}
+				else {
+					// Update lastCodepoint
+					lastCodepoint = codepoint.value();
+				}
 			}
 			else {
 				// Update lastCodepoint
@@ -337,6 +342,10 @@ namespace SnackerEngine
 				// want to advance the next character!
 				if (isSpaceCharacter(character.codepoint)) {
 					lastCodepoint = 0;
+				}
+				else {
+					// Update lastCodepoint
+					lastCodepoint = character.codepoint;
 				}
 			}
 			else {
@@ -390,6 +399,10 @@ namespace SnackerEngine
 					// want to advance the next character!
 					if (isSpaceCharacter(codepoint.value())) {
 						lastCodepoint = 0;
+					}
+					else {
+						// Update lastCodepoint
+						lastCodepoint = codepoint.value();
 					}
 				}
 				else {
@@ -495,6 +508,10 @@ namespace SnackerEngine
 					if (isSpaceCharacter(character.codepoint)) {
 						lastCodepoint = 0;
 					}
+					else {
+						// Update lastCodepoint
+						lastCodepoint = character.codepoint;
+					}
 				}
 				else {
 					// Update lastCodepoint
@@ -572,18 +589,21 @@ namespace SnackerEngine
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model ParseData::alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices)
+	std::pair<Model, double> ParseData::alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices)
 	{
-		if (characters.empty()) return Model();
+		if (characters.empty()) return std::make_pair(Model(), 0.0);
 		vertices.clear();
 		indices.clear();
 		vertices.reserve(characters.size() * 4);
 		indices.reserve(characters.size() * 6);
 		double longestLineWidth = 0.0;
-		if (alignment != StaticText::Alignment::LEFT) {
-			for (auto& line : lines) {
-				double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
-				if (lineWidth > longestLineWidth) longestLineWidth = lineWidth;
+		double right = 0.0;
+		for (auto& line : lines) {
+			if (line.beginIndex >= characters.size() || line.endIndex >= characters.size()) continue;
+			double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
+			if (lineWidth > longestLineWidth) {
+				longestLineWidth = lineWidth;
+				right = characters[line.endIndex].right;
 			}
 		}
 		for (unsigned int lineIndex = 0; lineIndex < lines.size(); ++lineIndex) {
@@ -646,7 +666,7 @@ namespace SnackerEngine
 		layout.push<Vec2f>(1);
 		layout.push<Vec2f>(1);
 		Mesh mesh = MeshManager::createMesh<Vec4f>(layout, vertices, indices);
-		return Model(mesh);
+		return std::make_pair(Model(mesh), right);
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model StaticText::parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment)
@@ -664,7 +684,7 @@ namespace SnackerEngine
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model StaticText::parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment)
@@ -682,7 +702,7 @@ namespace SnackerEngine
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model StaticText::parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment)
@@ -701,7 +721,7 @@ namespace SnackerEngine
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
 		data.textWidth = textWidth;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void StaticText::constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, const Alignment& alignment)
@@ -747,7 +767,9 @@ namespace SnackerEngine
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model DynamicText::parseTextWordByWord()
@@ -764,7 +786,9 @@ namespace SnackerEngine
 		// Construct model
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model DynamicText::parseTextSingleLine()
@@ -782,7 +806,9 @@ namespace SnackerEngine
 		std::vector<Vec4f> vertices;
 		std::vector<unsigned int> indices;
 		data.textWidth = textWidth;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::constructModel()
@@ -798,26 +824,26 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	DynamicText::DynamicText() 
 		: StaticText(), font{}, fontSize(0), textWidth(0), text{}, parseMode(ParseMode::WORD_BY_WORD),
-		alignment(Alignment::LEFT), characters{}, lines{}
+		alignment(Alignment::LEFT), right(0.0), characters{}, lines{}
 	{
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
 	DynamicText::DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, const Alignment& alignment)
 		: StaticText(), font(font), fontSize(fontSize), textWidth(textWidth), text(text), parseMode(parseMode),
-		alignment(alignment), characters{}, lines{}
+		alignment(alignment), right(0.0), characters{}, lines{}
 	{
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
 	DynamicText::DynamicText(const DynamicText& other) noexcept
 		: StaticText(other),  font(other.font), fontSize(other.fontSize), textWidth(other.textWidth),
-		text(other.text), parseMode(other.parseMode), alignment(other.alignment), 
+		text(other.text), parseMode(other.parseMode), alignment(other.alignment), right(other.right),
 		characters(other.characters), lines(other.lines) {}
 	//--------------------------------------------------------------------------------------------------
 	DynamicText::DynamicText(DynamicText&& other) noexcept
 		: StaticText(other), font(other.font), fontSize(other.fontSize), textWidth(other.textWidth),
-		text(other.text), parseMode(other.parseMode), alignment(other.alignment),
+		text(other.text), parseMode(other.parseMode), alignment(other.alignment), right(other.right),
 		characters(other.characters), lines(other.lines)
 	{
 		other.text = "";
@@ -872,57 +898,20 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	double DynamicText::getLeft()
 	{
-		if (characters.empty()) return 0.0;
-		switch (alignment)
-		{
-		case SnackerEngine::StaticText::Alignment::LEFT:
-		{
-			return 0.0;
-		}
-		case SnackerEngine::StaticText::Alignment::CENTER:
-		case SnackerEngine::StaticText::Alignment::RIGHT:
-		{
-			double currentLeft = textWidth;
-			for (const auto& line : lines) {
-				if (characters[line.beginIndex].left * fontSize < currentLeft) {
-					currentLeft = characters[line.beginIndex].left * fontSize;
-				}
-			}
-			return currentLeft;
-		}
-		default:
-			break;
-		}
 		return 0.0;
 	}
 	//--------------------------------------------------------------------------------------------------
 	double DynamicText::getRight()
 	{
-		if (characters.empty()) return 0.0;
-		switch (alignment)
-		{
-		case SnackerEngine::StaticText::Alignment::RIGHT:
-		{
-			return textWidth;
-		}
-		case SnackerEngine::StaticText::Alignment::CENTER:
-		case SnackerEngine::StaticText::Alignment::LEFT:
-		{
-			double currentRight = 0.0;
-			for (const auto& line : lines) {
-				if (characters[line.endIndex].right * fontSize > currentRight) {
-					currentRight = characters[line.endIndex].right * fontSize;
-					if (isWhiteSpace(characters[line.endIndex].codepoint) && !isNewline(characters[line.endIndex].codepoint)) {
-						currentRight += font.getGlyph(characters[line.endIndex].codepoint).advance * fontSize;
-					}
-				}
-			}
-			return currentRight;
-		}
-		default:
-			break;
-		}
-		return 0.0;
+		return right * fontSize;
+	}
+	//--------------------------------------------------------------------------------------------------
+	double DynamicText::getRight(const unsigned int& lineIndex)
+	{
+		if (lineIndex >= lines.size()) return 0.0;
+		const auto& line = lines[lineIndex];
+		if (line.beginIndex >= characters.size() || line.endIndex >= characters.size()) return 0.0;
+		return characters[line.endIndex].right;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::setText(const std::string& text, bool recompute)
@@ -986,7 +975,9 @@ namespace SnackerEngine
 		// Finalize the lines vector
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextWordByWord()
@@ -1001,7 +992,9 @@ namespace SnackerEngine
 		// Finalize the lines vector
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextCharactersFrom(const unsigned int& lineIndex)
@@ -1016,7 +1009,9 @@ namespace SnackerEngine
 		// Finalize the lines vector
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextSingleLineFrom(const unsigned int& lineIndex)
@@ -1032,7 +1027,9 @@ namespace SnackerEngine
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
 		data.textWidth = textWidth;
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Model EditableText::parseTextWordByWordFrom(const unsigned int& lineIndex)
@@ -1050,7 +1047,9 @@ namespace SnackerEngine
 		// Finalize the lines vector
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		// Construct model
-		return data.alignAndConstructModel(alignment, vertices, indices);
+		auto result = data.alignAndConstructModel(alignment, vertices, indices);
+		right = result.second;
+		return result.first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::constructModelFrom(const unsigned int& lineIndex)
@@ -1079,11 +1078,11 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::constructTextFromCharacters()
 	{
-		std::stringstream ss;
+		std::vector<char> chars;
 		for (const auto& character : characters) {
-			appendUnicodeCharacter(ss, character.codepoint);
+			appendUnicodeCharacter(chars, character.codepoint);
 		}
-		text = std::move(ss.str());
+		text = std::string(chars.begin(), chars.end());
 		textIsUpToDate = true;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -1144,6 +1143,25 @@ namespace SnackerEngine
 		result.second.x -= cursorSize.x;
 		result.second.y += static_cast<float>(font.getDescender());
 		result.first = characterIndex;
+		switch (alignment)
+		{
+		case SnackerEngine::StaticText::Alignment::LEFT:
+			break;
+		case SnackerEngine::StaticText::Alignment::CENTER: 
+		{
+			double lineWidth = getRight(lineNumber);
+			result.second.x += (right - lineWidth) / 2.0;
+			break;
+		}
+		case SnackerEngine::StaticText::Alignment::RIGHT:
+		{
+			double lineWidth = getRight(lineNumber);
+			result.second.x += right - lineWidth;
+			break;
+		}
+		default:
+			break;
+		}
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -1231,14 +1249,12 @@ namespace SnackerEngine
 			break;
 		case SnackerEngine::StaticText::Alignment::CENTER:
 		{
-			double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
-			textOffsetX = (textWidth / fontSize - lineWidth) / 2.0;
+			textOffsetX = (right - getRight(lineNumber)) / 2.0;
 			break;
 		}
 		case SnackerEngine::StaticText::Alignment::RIGHT:
 		{
-			double lineWidth = characters[line.endIndex].right;
-			textOffsetX = textWidth / fontSize - lineWidth;
+			textOffsetX = right - getRight(lineNumber);
 			break;
 		}
 		default:

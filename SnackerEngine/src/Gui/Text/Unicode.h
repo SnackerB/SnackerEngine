@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 #include <sstream>
+#include <vector>
 
 namespace SnackerEngine
 {
@@ -73,11 +74,14 @@ namespace SnackerEngine
 		return 0x0085;
 	}
 	//--------------------------------------------------------------------------------------------------
-	/// Creates a UTF8 encoded string from a std::u8stirng
+	/// Creates a UTF8 encoded string from a std::u8string
 	std::string encodeUTF8(std::u8string input);
 	//--------------------------------------------------------------------------------------------------
-	/// Converts a unicode character to UTF8 and appends the characters to the stringstream object
-	void appendUnicodeCharacter(std::stringstream& ss, const Unicode& codepoint);
+	/// Converts a vector of unciode characters to an UTF8 encoded string
+	std::string encodeUTF8(const std::vector<Unicode>& codepoints);
+	//--------------------------------------------------------------------------------------------------
+	/// Appends the UTF8 representation of the given codepoint to the chars vector
+	void appendUnicodeCharacter(std::vector<char>& charsUTF8, const Unicode& codepoint);
 	//--------------------------------------------------------------------------------------------------
 	/// Returns true if the given unicode character is an alphabetic character
 	bool isAlpha(const Unicode& codepoint);

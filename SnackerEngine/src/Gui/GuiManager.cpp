@@ -101,7 +101,11 @@ namespace SnackerEngine
 		{
 			// Resize vector and add new available GuiID slots accordingly. For now: double size everytime this happens and send warning!
 			registeredGuiElements.resize(static_cast<std::size_t>(maxGuiElements) *2 + 1, nullptr);
-			ownedGuiElements.resize(static_cast<std::size_t>(maxGuiElements) * 2 + 1, nullptr);
+			ownedGuiElements.reserve(static_cast<std::size_t>(maxGuiElements) * 2 + 1);
+			for (unsigned int i = maxGuiElements + 1; i < static_cast<std::size_t>(maxGuiElements) * 2 + 1; ++i) {
+				ownedGuiElements.push_back(nullptr);
+			}
+			//ownedGuiElements.resize(static_cast<std::size_t>(maxGuiElements) * 2 + 1, nullptr);
 			for (GuiID id = maxGuiElements + 1; id <= 2 * maxGuiElements; ++id)
 			{
 				availableGuiIDs.push(id);
@@ -153,9 +157,10 @@ namespace SnackerEngine
 			return;
 		}
 		if (registeredGuiElements[element.parentID]) registeredGuiElements[element.parentID]->removeChild(element);
+		else signOffWithoutNotifyingParent(guiElement);
 	}
 
-	void GuiManager::signOffWithoutNotifyingParent(const GuiID& guiElement)
+	void GuiManager::signOffWithoutNotifyingParent(const GuiID guiElement)
 	{
 		if (guiElement <= 0) return;
 		if (guiElement > maxGuiElements)
@@ -170,11 +175,14 @@ namespace SnackerEngine
 		registeredGuiElementsCount--;
 		// Clear event queues
 		clearEventQueues(guiElement);
+		if (lastMouseHoverElement == guiElement) lastMouseHoverElement = 0;
 		// Delete element if it is stored by guiManager
 		if (ownedGuiElements[guiElement]) {
 			ownedGuiElements[guiElement] = nullptr;
 			ownedGuiElementsCount--;
 		}
+		// Add guiID back to queue!
+		availableGuiIDs.push(guiElement);
 	}
 
 	void GuiManager::updateMoved(GuiElement& guiElement)
@@ -197,7 +205,7 @@ namespace SnackerEngine
 	}
 
 	GuiManager::GuiManager(const unsigned int& startingSize)
-		: registeredGuiElements(startingSize + 1, nullptr), ownedGuiElements(startingSize + 1, nullptr),
+		: registeredGuiElements(startingSize + 1, nullptr), ownedGuiElements{},
 		availableGuiIDs{}, maxGuiElements(startingSize), registeredGuiElementsCount(0),
 		ownedGuiElementsCount(0), viewMatrix{}, projectionMatrix{}, parentElement(0), currentMousePosition{},
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
@@ -205,6 +213,10 @@ namespace SnackerEngine
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, signOffQueue{}, squareModel{},
 		triangleModel{}, screenDims{}
 	{
+		ownedGuiElements.reserve(startingSize + 1);
+		for (unsigned int i = 0; i < startingSize + 1; ++i) {
+			ownedGuiElements.push_back(nullptr);
+		}
 		// Initializes queue with all possible GuiIDs. GuiID = 0 is reserved for invalid guiElements.
 		for (GuiID id = 1; id <= static_cast<int>(startingSize); ++id)
 		{
@@ -213,27 +225,18 @@ namespace SnackerEngine
 		// Compute view and projection matrix
 		computeViewAndProjection();
 		// Initialize parent GuiElement
-		ownedGuiElements[parentElement] = new GuiElement(Vec2i(0, 0), Renderer::getScreenDimensions(), GuiElement::ResizeMode::DO_NOT_RESIZE);
+		ownedGuiElements[parentElement] = std::make_unique<GuiElement>(Vec2i(0, 0), Renderer::getScreenDimensions(), GuiElement::ResizeMode::DO_NOT_RESIZE);
 		ownedGuiElements[parentElement]->guiID = 0;
 		ownedGuiElements[parentElement]->parentID = -1;
 		ownedGuiElements[parentElement]->guiManager = this;
-		registeredGuiElements[parentElement] = ownedGuiElements[parentElement];
+		registeredGuiElements[parentElement] = ownedGuiElements[parentElement].get();
 		// Computes screen dims
 		screenDims = Renderer::getScreenDimensions();
 	}
 
 	GuiManager::~GuiManager()
 	{
-		for (unsigned int i = 0; i < ownedGuiElements.size(); ++i) {
-			if (ownedGuiElements[i] != nullptr) {
-				signOff(ownedGuiElements[i]->guiID);
-			}
-		}
-		for (unsigned int i = 0; i < registeredGuiElements.size(); ++i) {
-			if (registeredGuiElements[i] != nullptr) {
-				signOff(registeredGuiElements[i]->guiID);
-			}
-		}
+		clear();
 		signOff(parentElement);
 		ownedGuiElements.clear();
 	}
@@ -315,6 +318,20 @@ namespace SnackerEngine
 			}
 		}
 		return {};
+	}
+
+	void GuiManager::clear()
+	{
+		for (unsigned int i = 1; i < ownedGuiElements.size(); ++i) {
+			if (ownedGuiElements[i] != nullptr) {
+				signOff(ownedGuiElements[i]->guiID);
+			}
+		}
+		for (unsigned int i = 1; i < registeredGuiElements.size(); ++i) {
+			if (registeredGuiElements[i] != nullptr) {
+				signOff(registeredGuiElements[i]->guiID);
+			}
+		}
 	}
 
 	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader)
@@ -425,6 +442,7 @@ namespace SnackerEngine
 	void GuiManager::draw()
 	{
 		Renderer::disableDepthTesting();
+		Renderer::enableBlending();
 		registeredGuiElements[parentElement]->draw(Vec2i(0, 0));
 		Renderer::enableDepthTesting();
 		Renderer::disableScissorTest();

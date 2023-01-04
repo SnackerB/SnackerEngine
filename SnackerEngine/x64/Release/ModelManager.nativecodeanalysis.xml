@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>ModelManager.cpp</FILENAME>
+      <LINE>39</LINE>
+      <COLUMN>39</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::ModelManager::getNewModelID</FUNCTION>
+    <DECORATED>?getNewModelID@ModelManager@SnackerEngine@@CAIXZ</DECORATED>
+    <FUNCLINE>34</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>ModelManager.cpp</FILENAME>
+      <LINE>39</LINE>
+      <COLUMN>35</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::ModelManager::getNewModelID</FUNCTION>
+    <DECORATED>?getNewModelID@ModelManager@SnackerEngine@@CAIXZ</DECORATED>
+    <FUNCLINE>34</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>ModelManager.cpp</FILENAME>
+      <LINE>63</LINE>
+      <COLUMN>37</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::ModelManager::initialize</FUNCTION>
+    <DECORATED>?initialize@ModelManager@SnackerEngine@@KAXAEBI@Z</DECORATED>
+    <FUNCLINE>55</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

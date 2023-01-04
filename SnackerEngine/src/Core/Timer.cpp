@@ -44,7 +44,8 @@ namespace SnackerEngine
 		timeSinceLastUpdate += dt;
 		if (timeSinceLastUpdate >= timeStep) {
 			// If we're lagging behind we're just skipping steps. TODO: Maybe add additional modes
-			timeSinceLastUpdate = fmod(timeSinceLastUpdate, timeStep);
+			// timeSinceLastUpdate = fmod(timeSinceLastUpdate, timeStep);
+			timeSinceLastUpdate -= timeStep;
 			return std::make_pair<>(true, timeStep);
 		}
 		return std::make_pair<>(false, 0.0);

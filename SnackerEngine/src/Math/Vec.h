@@ -27,6 +27,7 @@ namespace SnackerEngine
 		void operator*=(const T& scalar) { x *= scalar; y *= scalar; }
 		Vec2<T> operator/(const Vec2<T>& other) const { return Vec2<T>(x / other.x, y / other.y); }
 		Vec2<T> operator/(const T& scalar) const { return Vec2<T>(x / scalar, y / scalar); }
+		Vec2<T> operator-() const { return Vec2<T>(-x, -y); }
 		void operator/=(const T& scalar) { x /= scalar; y /= scalar; }
 		bool operator==(const Vec2<T>& other) const { return x == other.x && y == other.y; }
 		bool operator!=(const Vec2<T>& other) const { return x != other.x || y != other.y; }
@@ -63,6 +64,7 @@ namespace SnackerEngine
 		Vec3<T> operator*(const T& scalar) const { return Vec3<T>(x * scalar, y * scalar, z * scalar); }
 		void operator*=(const T& scalar) { x *= scalar; y *= scalar; z *= scalar; }
 		Vec3<T> operator/(const T& scalar) const { return Vec3<T>(x / scalar, y / scalar, z / scalar); }
+		Vec3<T> operator-() const { return Vec3<T>(-x, -y, -z); }
 		void operator/=(const T& scalar) { x /= scalar; y /= scalar; z /= scalar; }
 		bool operator==(const Vec3<T>& other) const { return x == other.x && y == other.y && z == other.z; }
 		bool operator!=(const Vec3<T>& other) const { return x != other.x || y != other.y || z != other.z; }
@@ -97,6 +99,7 @@ namespace SnackerEngine
 		Vec4<T> operator*(const T& scalar) const { return Vec4<T>(x * scalar, y * scalar, z * scalar, w * scalar); }
 		void operator*=(const T& scalar) const { x *= scalar; y *= scalar; z *= scalar; w *= scalar; }
 		Vec4<T> operator/(const T& scalar) const { return Vec4<T>(x / scalar, y / scalar, z / scalar, w / scalar); }
+		Vec4<T> operator-() const { return Vec4<T>(-x, -y, -z, -w); }
 		void operator/=(const T& scalar) const { x /= scalar; y /= scalar; z /= scalar; w /= scalar; }
 		bool operator==(const Vec4<T>& other) const { return x == other.x && y == other.y && z == other.z && w == other.w; }
 		bool operator!=(const Vec4<T>& other) const { return x != other.x || y != other.y || z != other.z || w != other.w; }

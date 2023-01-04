@@ -128,7 +128,7 @@ namespace SnackerEngine
 	{
 		double cumulativePercentage = 0.0;
 		for (unsigned int i = 0; i < weights.size(); ++i) {
-			cumulativePercentage += weights[0] / totalWeight;
+			cumulativePercentage += weights[i] / totalWeight;
 			percentages[i] = cumulativePercentage;
 		}
 	}
@@ -164,7 +164,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	bool HorizontalLayout::registerChild(GuiElement& guiElement)
 	{
-		return registerChild(guiElement, 0.0);
+		return registerChild(guiElement, 1.0);
 	}
 	//--------------------------------------------------------------------------------------------------
 	HorizontalLayout::HorizontalLayout(const HorizontalLayout& other) noexcept

@@ -1,0 +1,155 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "Variable 'SnackerEngine::Material::materialID' is uninitialized. Always initialize a member variable (type.6)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Material.cpp"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 12,
+                  "endLine": 16,
+                  "endColumn": 12
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::Material::{ctor}",
+                  "decoratedName": "??0Material@SnackerEngine@@QEAA@AEBVShader@1@@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "SnackerEngine::Material::materialID"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "Variable 'SnackerEngine::Material::materialID' is uninitialized. Always initialize a member variable (type.6)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Material.cpp"
+                },
+                "region": {
+                  "startLine": 19,
+                  "startColumn": 12,
+                  "endLine": 19,
+                  "endColumn": 12
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::Material::{ctor}",
+                  "decoratedName": "??0Material@SnackerEngine@@QEAA@$$QEAV?$unique_ptr@UMaterialData@SnackerEngine@@U?$default_delete@UMaterialData@SnackerEngine@@@std@@@std@@@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "SnackerEngine::Material::materialID"
+          }
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31629.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Material.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "sha-256": "3e40d2592d6fe225ffa7241b39be0f745ab74e358f270fb3b3d8527e61ffdd20"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/material.h"
+          },
+          "hashes": {
+            "sha-256": "45233ab61b576d6c2960d05c870aea626943194a93f849a7e8fd4e2720a8afc0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/shader.h"
+          },
+          "hashes": {
+            "sha-256": "b3b695dc1e2dfffbe9b2aaadf4c17985db20401cf4dbb42e91d63a612634303a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/core/log.h"
+          },
+          "hashes": {
+            "sha-256": "f44d581b5b74b5208f80e5d12bd5f80ada534e8bf92325084f2c6f65946474db"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/math/vec.h"
+          },
+          "hashes": {
+            "sha-256": "9748d79c35514d934dfb51e73c6a4c2207a9cc0689d82bff2af4426564949788"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/math/mat.h"
+          },
+          "hashes": {
+            "sha-256": "c978d7a912ea1abf83bb3b527dec30f9ca8539d919fff4501bb8ba3e850954a0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/assetmanager/materialdata.h"
+          },
+          "hashes": {
+            "sha-256": "06638ab89b452ea37b65d401aabef1a9cfa81bc01a50ce23d5cfbd28611651c4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/assetmanager/materialmanager.h"
+          },
+          "hashes": {
+            "sha-256": "6fba621f0f4cedf6734c29eb972d646903982ad93e01e282a1bbc799969ad8e2"
+          }
+        }
+      ]
+    }
+  ]
+}

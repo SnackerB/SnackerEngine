@@ -17,38 +17,43 @@ namespace SnackerEngine
 	class GuiDynamicTextBox : public GuiElement
 	{
 	public:
-		/// Controls how the textbox changes its size for different texts
-		enum class TextBoxMode
+		/// Controls how the textbox scales the text based on the size of the box
+		enum class TextScaleMode
 		{
-			FORCE_SIZE,					/// The textBox has the given size, no matter
-										/// the actual text size. Default mode. Part
-										/// of the text may not be visible
-			FORCE_SIZE_SCALE_TEXT_UP,	/// The textBox has the given size and the text will
-										/// be scaled up to try to fit the box better.
-										/// Works best in the single line mode.
-			FORCE_SIZE_SCALE_TEXT_DOWN, /// The textBox has the given size and the text will
-										/// be scaled down to try to fit the text box.
-										/// Works best in the single line mode
-			FORCE_SIZE_SCALE_TEXT,		/// The textBox has the given size and the text will
-										/// be scaled up and down to try to fit the text box.
-										/// Works best in the single line mode
-			FORCE_SIZE_RECOMPUTE_SCALE_DOWN, 
-										/// The textBox has the given size. If it becomes to
-										/// small the text is recomputed with a different font
-										/// size to try to fit the text better. May lead to bad
-										/// performance
-			FORCE_SIZE_RECOMPUTE_SCALE, /// The textBox has the given size. The text is 
-										/// recomputed with different font sizes
-										/// to try to fit the text better. May lead to bad
-										/// performance
-			SHRINK_HEIGHT_TO_FIT,		/// Computes the size of the text with a given width
-										/// and adjusts the height accordingly. size.x sets the
-										/// maximum textwidth
-			SHRINK_WIDTH_TO_FIT,		/// computes the size of the text with textWidth set to 0.0
-										/// and adjusts the width accordingly. size.y sets the height
-										/// of the textBox
-			SHRINK_TO_FIT,				/// computes the size of the text with textWidth set to 0.0
-										/// and adjusts the size and width accordingly afterwards. 
+			DONT_SCALE,					/// Text is not scaled
+			SCALE_UP,					/// Text is scaled up to try to fit the box better.
+										/// Works best in SINGLE_LINE parse mode
+			SCALE_DOWN,					/// Text is scaled down to try to fit the box better.
+										/// Works best in SINGLE_LINE parse mode
+			SCALE_UP_DOWN,				/// Text is scaled up or down to try to fit the box better.
+										/// Works best in SINGLE_LINE parse mode
+			RECOMPUTE_DOWN,				/// If the text is too large it is recomputed with a lower
+										/// font size. Also works well in other modes than SINGLE_LINE.
+										/// Can be computationally expensive
+			RECOMPUTE_UP_DOWN,			/// If the text is too smal/large it is recomputed with a larger/lower
+										/// font size. Also works well in other modes than SINGLE_LINE.
+										/// Can be computationally expensive
+		};
+		/// Controls how the size hints (minSize, maxSize, preferredSize) are set based on the text
+		enum class SizeHintMode
+		{
+			ARBITRARY,					/// does not change the size hint
+			SET_TO_TEXT_SIZE,			/// sets the size hint to the textSize
+			SET_TO_TEXT_WIDTH,			/// sets the width of the size hint to the textWidth
+			SET_TO_TEXT_HEIGHT,			/// sets the height of the size hint to the textHeight
+		};
+		/// struct that encapsulates three instances of SizeHintMode to fully specify the size hint
+		/// behaviour of the text box
+		struct SizeHintModes
+		{
+			SizeHintMode sizeHintModeMinSize;
+			SizeHintMode sizeHintModeMaxSize;
+			SizeHintMode sizeHintModePreferredSize;
+			SizeHintModes() = default;
+			SizeHintModes(SizeHintMode sizeHintModeMinSize, SizeHintMode sizeHintModeMaxSize, SizeHintMode sizeHintModePreferredSize)
+				: sizeHintModeMinSize(sizeHintModeMinSize), sizeHintModeMaxSize(sizeHintModeMaxSize), sizeHintModePreferredSize(sizeHintModePreferredSize) {}
+			SizeHintModes(SizeHintMode sizeHintMode)
+				: sizeHintModeMinSize(sizeHintMode), sizeHintModeMaxSize(sizeHintMode), sizeHintModePreferredSize(sizeHintMode) {}
 		};
 	protected:
 		/// The text object. This needs to be a pointer such that the Edit text class can save an 
@@ -66,10 +71,12 @@ namespace SnackerEngine
 		/// Model matrices of the text and the background box
 		Mat4f modelMatrixText;
 		Mat4f modelMatrixBackground;
-		/// text box mode
-		TextBoxMode textBoxMode;
-		/// If this is set to true, the text is displayed in a single line
-		bool singleLine;
+		/// Text scale mode
+		TextScaleMode textScaleMode;
+		/// Size hint modes
+		SizeHintModes sizeHintModes;
+		/// border between the box and the text in pixels
+		int border;
 		/// The scale factor of the text, used internally for some textBoxModes
 		double scaleFactor;
 		/// The normal font size of the text (without any rescaling)
@@ -101,18 +108,22 @@ namespace SnackerEngine
 		void recomputeText();
 		/// Helper function that computes the the text position
 		Vec2f computeTextPosition();
+		/// Helper function that computes the correct values for the size hint variables, ie.
+		/// minSize, maxSize and preferredSize
+		void computeSizeHints();
 		/// Protected constructor that can be used to create a TextBox with differen types of GuiText, eg.
 		/// GuiDynamicText or GuiEditableText
 		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text,
-			const Color4f& textColor, const Color4f& backgroundColor, const TextBoxMode& textBoxMode, const double& singleLine);
+			const Color4f& textColor, const Color4f& backgroundColor, const TextScaleMode& textScaleMode, const SizeHintModes& sizeHintModes, const int& border);
 	public:
 		/// Constructor
 		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
-			const std::string& text, const Font& font, const double& fontSize, 
+			const std::string& text, const Font& font, const double& fontSize,
 			Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
-			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE, const double& singleLine = false);
+			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
 		/// Constructors using GuiStyle
 		GuiDynamicTextBox(const std::string& text, const GuiStyle& style);
 		GuiDynamicTextBox(const std::string& text, const double& fontSize, const GuiStyle& style);
@@ -122,6 +133,8 @@ namespace SnackerEngine
 		/// Copy and Move assignment operators
 		GuiDynamicTextBox& operator=(const GuiDynamicTextBox& other) noexcept;
 		GuiDynamicTextBox& operator=(GuiDynamicTextBox&& other) noexcept;
+		/// Destructor
+		virtual ~GuiDynamicTextBox() {};
 		/// Setter and Getters
 		virtual void setText(const std::string& text);
 		virtual void setFont(const Font& font);
@@ -130,8 +143,11 @@ namespace SnackerEngine
 		virtual void setBackgroundColor(const Color4f& backgroundColor);
 		virtual void setTextParseMode(const StaticText::ParseMode& parseMode);
 		virtual void setAlignment(const StaticText::Alignment& alignment);
-		virtual void setTextBoxMode(const TextBoxMode& textBoxMode);
-		virtual void setSingleLine(const bool& singleLine);
+		virtual void setTextScaleMode(const TextScaleMode& textBoxMode);
+		virtual void setSizeHintModeMinSize(const SizeHintMode& sizeHintModeMinSize);
+		virtual void setSizeHintModeMaxSize(const SizeHintMode& sizeHintModeMaxSize);
+		virtual void setSizeHintModePreferredSize(const SizeHintMode& sizeHintModePreferredSize);
+		virtual void setBorder(const int& border);
 		const std::string& getText() { return text->getText(); }
 		const Font& getFont() const { return text->getFont(); }
 		const double& getFontSize() const { return text->getFontSize(); }
@@ -140,12 +156,16 @@ namespace SnackerEngine
 		const Color4f& getBackgroundColor() const { return backgroundColor; };
 		const StaticText::ParseMode& getParseMode() const { return text->getParseMode(); }
 		const StaticText::Alignment& getAlignment() const { return text->getAlignment(); }
-		const TextBoxMode& getTextBoxMode() const { return textBoxMode; }
-		const bool& isSingleLine() const { return singleLine; };
+		const TextScaleMode& getTextScaleMode() const { return textScaleMode; }
+		const SizeHintModes& getSizeHintModes() const { return sizeHintModes; }
+		const int& getBorder() const { return border; }
+
 	};
 	//--------------------------------------------------------------------------------------------------
 	class GuiEditTextBox : public GuiDynamicTextBox
 	{
+		/// Color of the selection Box
+		Color4f selectionBoxColor;
 		/// If this is set to true, the text box is currently being edited. This also means that the
 		/// cursor should be blinking.
 		bool active;
@@ -212,9 +232,11 @@ namespace SnackerEngine
 			const std::string& text = "", const Font& font = Font(),
 			const double& fontSize = 0, const double& cursorWidth = 0, Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
+			Color4f selectionBoxColor = { 0.0f, 0.0f, 1.0f, 1.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
-			const TextBoxMode& textBoxMode = TextBoxMode::FORCE_SIZE,
-			const double& singleLine = true, const double& cursorBlinkTime = 0.5);
+			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY },
+			const double& cursorBlinkTime = 0.5);
 		/// Constructors using GuiStyle
 		GuiEditTextBox(const std::string& text, const GuiStyle& style);
 		GuiEditTextBox(const std::string& text, const double& fontSize, const GuiStyle& style);
@@ -224,6 +246,8 @@ namespace SnackerEngine
 		/// Copy and Move assignment operators
 		GuiEditTextBox& operator=(const GuiEditTextBox& other) noexcept;
 		GuiEditTextBox& operator=(GuiEditTextBox&& other) noexcept;
+		/// Destructor
+		virtual ~GuiEditTextBox();
 		/// Returns true if the text is currently being edited
 		bool isActive() const { return active; }
 		/// Sets the event handle for the event that happens when the text was edited 
@@ -239,7 +263,7 @@ namespace SnackerEngine
 		void setFontSize(const double& fontSize) override;
 		void setTextParseMode(const StaticText::ParseMode& parseMode) override;
 		void setAlignment(const StaticText::Alignment& alignment) override;
-		void setTextBoxMode(const TextBoxMode& textBoxMode) override;
-		void setSingleLine(const bool& singleLine) override;
+		void setTextScaleMode(const TextScaleMode& textScaleMode) override;
+		void setSelectionBoxColor(const Color4f& selectionBoxColor);
 	};
 }

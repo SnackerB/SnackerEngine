@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>TextureManager.cpp</FILENAME>
+      <LINE>362</LINE>
+      <COLUMN>43</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::TextureManager::getNewTextureID</FUNCTION>
+    <DECORATED>?getNewTextureID@TextureManager@SnackerEngine@@CAIXZ</DECORATED>
+    <FUNCLINE>357</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>TextureManager.cpp</FILENAME>
+      <LINE>362</LINE>
+      <COLUMN>39</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::TextureManager::getNewTextureID</FUNCTION>
+    <DECORATED>?getNewTextureID@TextureManager@SnackerEngine@@CAIXZ</DECORATED>
+    <FUNCLINE>357</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\AssetManager\</FILEPATH>
+      <FILENAME>TextureManager.cpp</FILENAME>
+      <LINE>421</LINE>
+      <COLUMN>39</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::TextureManager::initialize</FUNCTION>
+    <DECORATED>?initialize@TextureManager@SnackerEngine@@KAXAEBI@Z</DECORATED>
+    <FUNCLINE>413</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

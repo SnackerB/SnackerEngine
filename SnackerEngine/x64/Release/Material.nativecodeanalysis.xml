@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Graphics\</FILEPATH>
+      <FILENAME>Material.cpp</FILENAME>
+      <LINE>16</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'SnackerEngine::Material::materialID' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::Material::{ctor}</FUNCTION>
+    <DECORATED>??0Material@SnackerEngine@@QEAA@AEBVShader@1@@Z</DECORATED>
+    <FUNCLINE>16</FUNCLINE>
+    <ADDITIONALINFO>
+      <targetSymbol>SnackerEngine::Material::materialID</targetSymbol>
+    </ADDITIONALINFO>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Graphics\</FILEPATH>
+      <FILENAME>Material.cpp</FILENAME>
+      <LINE>19</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'SnackerEngine::Material::materialID' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::Material::{ctor}</FUNCTION>
+    <DECORATED>??0Material@SnackerEngine@@QEAA@$$QEAV?$unique_ptr@UMaterialData@SnackerEngine@@U?$default_delete@UMaterialData@SnackerEngine@@@std@@@std@@@Z</DECORATED>
+    <FUNCLINE>19</FUNCLINE>
+    <ADDITIONALINFO>
+      <targetSymbol>SnackerEngine::Material::materialID</targetSymbol>
+    </ADDITIONALINFO>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

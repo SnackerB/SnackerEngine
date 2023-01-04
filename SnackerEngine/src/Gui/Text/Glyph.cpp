@@ -15,6 +15,14 @@ namespace SnackerEngine
 		if (!isWhitespace) {
 			glyphGeometry.getQuadAtlasBounds(texLeft, texBottom, texRight, texTop);
 			glyphGeometry.getQuadPlaneBounds(left, bottom, right, top);
+			// Somewhat hacky solution to stop the next glyph from showing at some text sizes.
+			// More correct solution would be to introduce a border between the glyphs on the 
+			// MSDF texture. TODO: Implement this!
+			//double border = (texRight - texLeft) / 20.0f;
+			//texLeft += border;
+			//texRight -= border;
+			//texBottom += border;
+			//texTop -= border;
 		}
 	}
 	//------------------------------------------------------------------------------------------------------

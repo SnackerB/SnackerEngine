@@ -66,7 +66,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signOffHandle(GuiHandle& guiHandle)
 	{
-		guiHandle.signOff();
+		guiHandle.signOff(*this);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle)
@@ -81,7 +81,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& position)
 	{
-		return IsCollidingResult::NOT_COLLIDING;
+		return IsCollidingResult::COLLIDE_CHILD;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiID GuiElement::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& position)
@@ -222,6 +222,12 @@ namespace SnackerEngine
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiElement::getPreferredSize(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).preferredSize;
+		return Vec2i();
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiElement::isColliding(const GuiID& guiID, const Vec2i& parentPosition)
 	{
 		if (guiManager) return guiManager->getElement(guiID).isColliding(parentPosition);
@@ -311,16 +317,6 @@ namespace SnackerEngine
 		guiElement.onSizeChange();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setMinSize(const Vec2i& minSize)
-	{
-		this->minSize = minSize;
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setMaxSize(const Vec2i& maxSize)
-	{
-		this->maxSize = maxSize;
-	}
-	//--------------------------------------------------------------------------------------------------
 	void GuiElement::enforceLayoutOnElement(const GuiID& guiID)
 	{
 		if (guiManager) guiManager->getElement(guiID).enforceLayout();
@@ -344,7 +340,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode)
 		: guiManager(nullptr), guiID(-1), parentID(-1), position(position), size(size),
-		resizeMode(resizeMode), minSize(0, 0), maxSize(-1, -1), children{}
+		resizeMode(resizeMode), minSize(0, 0), maxSize(-1, -1), preferredSize(-1, -1), children{}
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -355,7 +351,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const GuiElement& other) noexcept
 		: guiManager(nullptr), guiID(-1), parentID(-1), position(other.position), size(other.size),
-		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize), children{}
+		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize), 
+		preferredSize(other.preferredSize), children{}
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -370,13 +367,15 @@ namespace SnackerEngine
 		resizeMode = other.resizeMode;
 		minSize = other.minSize;
 		maxSize = other.maxSize;
+		preferredSize = other.preferredSize;
 		children.clear();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
 		: guiManager(other.guiManager), guiID(other.guiID), parentID(other.parentID), position(other.position), size(other.size),
-		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize), children(other.children)
+		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize), 
+		preferredSize(other.preferredSize), children(other.children)
 	{
 		if (guiManager) guiManager->updateMoved(*this);
 		other.children.clear();
@@ -394,6 +393,7 @@ namespace SnackerEngine
 		resizeMode = other.resizeMode;
 		minSize = other.minSize;
 		maxSize = other.maxSize;
+		preferredSize = other.preferredSize;
 		children = other.children;
 		if (guiManager) guiManager->updateMoved(*this);
 		other.children.clear();
@@ -439,6 +439,48 @@ namespace SnackerEngine
 		onSizeChange();
 		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
 		else enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setMinSize(const Vec2i& minSize)
+	{
+		this->minSize = minSize;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setMinWidth(const int& minWidth)
+	{
+		minSize.x = minWidth;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setMinHeight(const int& minHeight)
+	{
+		minSize.y = minHeight;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setMaxSize(const Vec2i& maxSize)
+	{
+		this->maxSize = maxSize;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setMaxWidth(const int& maxWidth)
+	{
+		maxSize.x = maxWidth;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setMaxHeight(const int& maxHeight)
+	{
+		maxSize.y = maxHeight;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setPreferredSize(const Vec2i& preferredSize)
+	{
+		this->preferredSize = preferredSize;
+		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
 	}
 	//--------------------------------------------------------------------------------------------------
 }

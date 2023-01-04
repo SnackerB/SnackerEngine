@@ -1,0 +1,725 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 105,
+                  "startColumn": 36,
+                  "endLine": 105,
+                  "endColumn": 63
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 108,
+                  "startColumn": 18,
+                  "endLine": 108,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 109,
+                  "startColumn": 18,
+                  "endLine": 109,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 109,
+                  "startColumn": 18,
+                  "endLine": 109,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 110,
+                  "startColumn": 18,
+                  "endLine": 110,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 110,
+                  "startColumn": 18,
+                  "endLine": 110,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 111,
+                  "startColumn": 18,
+                  "endLine": 111,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 111,
+                  "startColumn": 18,
+                  "endLine": 111,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 112,
+                  "startColumn": 18,
+                  "endLine": 112,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 112,
+                  "startColumn": 18,
+                  "endLine": 112,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 113,
+                  "startColumn": 18,
+                  "endLine": 113,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 113,
+                  "startColumn": 18,
+                  "endLine": 113,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 114,
+                  "startColumn": 18,
+                  "endLine": 114,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 114,
+                  "startColumn": 18,
+                  "endLine": 114,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 115,
+                  "startColumn": 18,
+                  "endLine": 115,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 115,
+                  "startColumn": 18,
+                  "endLine": 115,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 116,
+                  "startColumn": 18,
+                  "endLine": 116,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 116,
+                  "startColumn": 18,
+                  "endLine": 116,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 117,
+                  "startColumn": 18,
+                  "endLine": 117,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 117,
+                  "startColumn": 18,
+                  "endLine": 117,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 118,
+                  "startColumn": 18,
+                  "endLine": 118,
+                  "endColumn": 40
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+                },
+                "region": {
+                  "startLine": 118,
+                  "startColumn": 18,
+                  "endLine": 118,
+                  "endColumn": 35
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::createMeshUVSphere",
+                  "decoratedName": "?createMeshUVSphere@SnackerEngine@@YA?AVMesh@1@AEBI0@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31629.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///C:/Users/benja/Documents/dev/SnackerEngine 2.0/SnackerEngine/SnackerEngine/src/Graphics/Meshes/Sphere.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "sha-256": "3b24f61dcbab28367a18f7dbddf408d11db7276cb1a5c24ec942437cfd08ba25"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/meshes/sphere.h"
+          },
+          "hashes": {
+            "sha-256": "980e74d3029e64c6b5156118aa25f614f446bce0b359d2e25866893309cca13a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/mesh.h"
+          },
+          "hashes": {
+            "sha-256": "9f84e625ecc3bd9fd59c66173b7765cfde2cd4edba1e90d0a77e1dfc036fbe1a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexarray.h"
+          },
+          "hashes": {
+            "sha-256": "3ef241c38ba6d62ac883f953b76da9fa2155331a8a18cb3250b077dea0a352a8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexbufferlayout.h"
+          },
+          "hashes": {
+            "sha-256": "a23d4a35ad1b61ba2f115adf33038ffd1240a8e3f3ee8ef926814c27a33630fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "ddb1151fe7e3b62d50da3e32504bdea761cb24937eae8c78c818f39326189bf5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/indexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "df98209f163b957e740ee975de4b44e2c7cf793cff620ff90f58ac098b9abf57"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/math/vec.h"
+          },
+          "hashes": {
+            "sha-256": "9748d79c35514d934dfb51e73c6a4c2207a9cc0689d82bff2af4426564949788"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/assetmanager/meshmanager.h"
+          },
+          "hashes": {
+            "sha-256": "bb4f7725988150b4d21161135fd9dddf3eb2080d67acaa66156644b2662359e2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/math/vectoralgorithms.h"
+          },
+          "hashes": {
+            "sha-256": "85cbdf4f0ff9fe7d945052801d21352357e96e18a2f844ce1833eafa83337f99"
+          }
+        }
+      ]
+    }
+  ]
+}

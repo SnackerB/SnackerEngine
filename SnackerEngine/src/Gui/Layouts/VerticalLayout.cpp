@@ -10,13 +10,14 @@ namespace SnackerEngine
 		const auto& children = getChildren();
 		auto result = std::find(children.begin(), children.end(), guiElement.getGuiID());
 		if (result != children.end()) {
+			std::size_t offset = result - children.begin();
 			GuiLayout::removeChild(guiElement);
 			// Compute weights from percentages for all children
 			computeWeightsFromPercentages();
 			// Delete child
-			totalWeight -= weights[result - children.begin()];
-			weights.erase(weights.begin() + (result - children.begin()));
-			percentages.erase(weights.begin() + (result - children.begin()));
+			totalWeight -= weights[offset];
+			weights.erase(weights.begin() + offset);
+			percentages.erase(percentages.begin() + offset);
 			// Compute percentages from weights for all children
 			computePercentagesFromWeights();
 			enforceLayout();
@@ -129,7 +130,7 @@ namespace SnackerEngine
 	{
 		double cumulativePercentage = 0.0;
 		for (unsigned int i = 0; i < weights.size(); ++i) {
-			cumulativePercentage += weights[0] / totalWeight;
+			cumulativePercentage += weights[i] / totalWeight;
 			percentages[i] = cumulativePercentage;
 		}
 	}
@@ -165,7 +166,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	bool VerticalLayout::registerChild(GuiElement& guiElement)
 	{
-		return registerChild(guiElement, 0.0);
+		return registerChild(guiElement, 1.0);
 	}
 	//--------------------------------------------------------------------------------------------------
 	VerticalLayout::VerticalLayout(const VerticalLayout& other) noexcept

@@ -1,0 +1,275 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31629.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guielements/guiimage.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "c8c12721b45dbe4076211756b1b5e6599435dca8227e6b228c73834614a01416"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guielements/guiimage.h"
+          },
+          "hashes": {
+            "sha-256": "79079d47ae1b0d3e7d20692d82c0387d9cd065b81bf3dd893cd83b2cbdd08be1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guielement.h"
+          },
+          "hashes": {
+            "sha-256": "ce8ca541a9615320ad504058d1b538c161b56daaf6192eaf763316ae85a62524"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/math/vec.h"
+          },
+          "hashes": {
+            "sha-256": "9748d79c35514d934dfb51e73c6a4c2207a9cc0689d82bff2af4426564949788"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guieventhandles/guihandle.h"
+          },
+          "hashes": {
+            "sha-256": "fd4bb810dc73978a13bc538dced389697bf97ea4eeafe8fc32ce53838b41cd20"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guieventhandles/guivariablehandle.h"
+          },
+          "hashes": {
+            "sha-256": "15ddecddcd9e8d5bcd472459272fb4982aab5709ab4a6ba47b8de77219151152"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guieventhandles/guieventhandle.h"
+          },
+          "hashes": {
+            "sha-256": "3d56e2f8fd40db61db6a3e150df2dfc38ccb6d1e91f67ab65a738df29c3638b2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/color.h"
+          },
+          "hashes": {
+            "sha-256": "a31bb1104b96a2c47c066a2ed22b82843c33a8bfff5965f892eb3da5df7a3a3f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/texture.h"
+          },
+          "hashes": {
+            "sha-256": "f81db992f34c60ac670f56215455745fb6b590af0eee45f4edfedd6e35b929cf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/math/mat.h"
+          },
+          "hashes": {
+            "sha-256": "c978d7a912ea1abf83bb3b527dec30f9ca8539d919fff4501bb8ba3e850954a0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/shader.h"
+          },
+          "hashes": {
+            "sha-256": "b3b695dc1e2dfffbe9b2aaadf4c17985db20401cf4dbb42e91d63a612634303a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/core/log.h"
+          },
+          "hashes": {
+            "sha-256": "f44d581b5b74b5208f80e5d12bd5f80ada534e8bf92325084f2c6f65946474db"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guimanager.h"
+          },
+          "hashes": {
+            "sha-256": "5b8bdb605784cbeeeca92e7755366c1bfb8902f7e6cb3b66064e3238f3e437bf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/model.h"
+          },
+          "hashes": {
+            "sha-256": "1db2e5b792959bc27499427ace58114b500c5bd9e0ca946b0645e620e68797e1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/mesh.h"
+          },
+          "hashes": {
+            "sha-256": "9f84e625ecc3bd9fd59c66173b7765cfde2cd4edba1e90d0a77e1dfc036fbe1a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexarray.h"
+          },
+          "hashes": {
+            "sha-256": "3ef241c38ba6d62ac883f953b76da9fa2155331a8a18cb3250b077dea0a352a8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexbufferlayout.h"
+          },
+          "hashes": {
+            "sha-256": "a23d4a35ad1b61ba2f115adf33038ffd1240a8e3f3ee8ef926814c27a33630fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/vertexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "ddb1151fe7e3b62d50da3e32504bdea761cb24937eae8c78c818f39326189bf5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/indexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "df98209f163b957e740ee975de4b44e2c7cf793cff620ff90f58ac098b9abf57"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/renderer.h"
+          },
+          "hashes": {
+            "sha-256": "9e06796b39526aae4b1ce0d74d57ad009c38ed96c2bb6b5a83990b8c6e250be2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/graphics/material.h"
+          },
+          "hashes": {
+            "sha-256": "45233ab61b576d6c2960d05c870aea626943194a93f849a7e8fd4e2720a8afc0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/assetmanager/materialdata.h"
+          },
+          "hashes": {
+            "sha-256": "06638ab89b452ea37b65d401aabef1a9cfa81bc01a50ce23d5cfbd28611651c4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guistyle.h"
+          },
+          "hashes": {
+            "sha-256": "b272e2c46d571b891c5265b3c56d35e5f6294ea738e8b7a5f609ca369dc16fb7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/text/font.h"
+          },
+          "hashes": {
+            "sha-256": "ff69cea0a9210ded4f040d276d3dea9d982a9b5e70a76c86c3b86cefae348db4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/text/glyph.h"
+          },
+          "hashes": {
+            "sha-256": "10cdcb7a8bd3c90b76149972f9e3c2548c0625b05da3499c40e696503ea9966e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/text/text.h"
+          },
+          "hashes": {
+            "sha-256": "954c57481670f9e65a60fbfdbe0d46017c513c349931ef7baa083d3901d0b9ab"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guielements/guitextbox.h"
+          },
+          "hashes": {
+            "sha-256": "60d61652dddb69fa272f43ad7a1cb32818a05dcb46ef8472c956972e8d5c5689"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/core/timer.h"
+          },
+          "hashes": {
+            "sha-256": "c87c86a4afe255895e60269b7d56cc8d1cccc4a95d9ac504a1dacbf00e4e823b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guielements/guibutton.h"
+          },
+          "hashes": {
+            "sha-256": "9a26e6bc1cf77f819f89ec07b754c77f0bcac0e880570d9fba048a7b9912a008"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/layouts/listlayout.h"
+          },
+          "hashes": {
+            "sha-256": "73f11f549ffadba328fb9e404480a257d19ae0f6759b6711d381fc4f93caa65d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/benja/documents/dev/snackerengine 2.0/snackerengine/snackerengine/src/gui/guilayout.h"
+          },
+          "hashes": {
+            "sha-256": "0510db77e008a592ebdf51f04b5ab35ad403a8bc55da0d0c0f9bb55d32efe974"
+          }
+        }
+      ]
+    }
+  ]
+}

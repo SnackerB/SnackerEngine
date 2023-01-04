@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Gui\Layouts\</FILEPATH>
+      <FILENAME>HorizontalLayout.cpp</FILENAME>
+      <LINE>92</LINE>
+      <COLUMN>24</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::HorizontalLayout::callbackMouseMotion</FUNCTION>
+    <DECORATED>?callbackMouseMotion@HorizontalLayout@SnackerEngine@@EEAAXAEBU?$Vec2@N@2@@Z</DECORATED>
+    <FUNCLINE>85</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Gui\Layouts\</FILEPATH>
+      <FILENAME>HorizontalLayout.cpp</FILENAME>
+      <LINE>92</LINE>
+      <COLUMN>95</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::HorizontalLayout::callbackMouseMotion</FUNCTION>
+    <DECORATED>?callbackMouseMotion@HorizontalLayout@SnackerEngine@@EEAAXAEBU?$Vec2@N@2@@Z</DECORATED>
+    <FUNCLINE>85</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Gui\Layouts\</FILEPATH>
+      <FILENAME>HorizontalLayout.cpp</FILENAME>
+      <LINE>93</LINE>
+      <COLUMN>49</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::HorizontalLayout::callbackMouseMotion</FUNCTION>
+    <DECORATED>?callbackMouseMotion@HorizontalLayout@SnackerEngine@@EEAAXAEBU?$Vec2@N@2@@Z</DECORATED>
+    <FUNCLINE>85</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

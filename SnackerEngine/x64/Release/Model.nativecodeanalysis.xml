@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Graphics\</FILEPATH>
+      <FILENAME>Model.cpp</FILENAME>
+      <LINE>16</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'SnackerEngine::Model::modelID' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::Model::{ctor}</FUNCTION>
+    <DECORATED>??0Model@SnackerEngine@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z</DECORATED>
+    <FUNCLINE>16</FUNCLINE>
+    <ADDITIONALINFO>
+      <targetSymbol>SnackerEngine::Model::modelID</targetSymbol>
+    </ADDITIONALINFO>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Graphics\</FILEPATH>
+      <FILENAME>Model.cpp</FILENAME>
+      <LINE>19</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'SnackerEngine::Model::modelID' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::Model::{ctor}</FUNCTION>
+    <DECORATED>??0Model@SnackerEngine@@QEAA@AEBV?$vector@VMesh@SnackerEngine@@V?$allocator@VMesh@SnackerEngine@@@std@@@std@@@Z</DECORATED>
+    <FUNCLINE>19</FUNCLINE>
+    <ADDITIONALINFO>
+      <targetSymbol>SnackerEngine::Model::modelID</targetSymbol>
+    </ADDITIONALINFO>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Graphics\</FILEPATH>
+      <FILENAME>Model.cpp</FILENAME>
+      <LINE>22</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'SnackerEngine::Model::modelID' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::Model::{ctor}</FUNCTION>
+    <DECORATED>??0Model@SnackerEngine@@QEAA@AEBVMesh@1@@Z</DECORATED>
+    <FUNCLINE>22</FUNCLINE>
+    <ADDITIONALINFO>
+      <targetSymbol>SnackerEngine::Model::modelID</targetSymbol>
+    </ADDITIONALINFO>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

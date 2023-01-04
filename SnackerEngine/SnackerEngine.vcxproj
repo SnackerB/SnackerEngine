@@ -213,9 +213,11 @@
     <ClInclude Include="src\Gui\GuiManager.h" />
     <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
     <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\HorizontalListLayout.h" />
     <ClInclude Include="src\Gui\Layouts\ListLayout.h" />
     <ClInclude Include="src\Gui\GuiStyle.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalListLayout.h" />
     <ClInclude Include="src\Gui\Text\Font.h" />
     <ClInclude Include="src\Gui\Text\Glyph.h" />
     <ClInclude Include="src\Gui\Text\Text.h" />
@@ -227,6 +229,7 @@
     <ClInclude Include="src\Math\Vec.h" />
     <ClInclude Include="src\Graphics\Renderer.h" />
     <ClInclude Include="src\Math\VectorAlgorithms.h" />
+    <ClInclude Include="src\Utility\Alignment.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AssetManager\AssetManager.cpp" />
@@ -276,8 +279,10 @@
     <ClCompile Include="src\Gui\GuiStyle.cpp" />
     <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\HorizontalListLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\ListLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalListLayout.cpp" />
     <ClCompile Include="src\Gui\Text\Font.cpp" />
     <ClCompile Include="src\Gui\Text\Glyph.cpp" />
     <ClCompile Include="src\Gui\Text\Text.cpp" />

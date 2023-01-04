@@ -14,6 +14,13 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Camera.h"
 #include "Core/Keys.h"
+#include "Math/Utility.h"
+
+#include "Gui/GuiManager.h"
+#include "Gui/GuiElements/GuiButton.h"
+#include "Gui/GuiElements/GuiWindow.h"
+#include "Gui/GuiElements/GuiEditVariable.h"
+#include "Gui/GuiElements/GuiSlider.h"
 
 class MyScene : public SnackerEngine::Scene
 {
@@ -27,15 +34,21 @@ class MyScene : public SnackerEngine::Scene
 	SnackerEngine::Color3f clearColorA;
 	SnackerEngine::Color3f clearColorB;
 
-	float cumulativeAngle;
+	float nathanTime;
+	float burgerTime;
+	float planetTime;
 
 	SnackerEngine::Vec3f maxWobbleBurger;
 	float burgerWobbleSpeed;
 
 	float objPlanetRotationSpeed;
 
-	float nathanSpeed;
-	float nathanRadius;
+	SnackerEngine::GuiVariableHandleFloat nathanSpeed;
+	SnackerEngine::GuiVariableHandleFloat nathanRadius;
+
+	// GUI
+	SnackerEngine::GuiButton nathanTimeButton;
+	SnackerEngine::GuiManager guiManager;
 
 public:
 
@@ -43,24 +56,29 @@ public:
 	{
 		// Burger
 		modelMatrices[0] = SnackerEngine::Mat4f::TranslateAndScale({ -7.5f, 0.0f, 10.0f },
-			SnackerEngine::Vec3f(1.0f, 1.0f, 1.0f) + maxWobbleBurger * sin(cumulativeAngle * burgerWobbleSpeed));
+			SnackerEngine::Vec3f(1.0f, 1.0f, 1.0f) + maxWobbleBurger * sin(burgerTime));
 		// ObjPlanet
 		modelMatrices[1] = SnackerEngine::Mat4f::Translate({ -2.5f, 0.0f, 10.0f }) 
-			* SnackerEngine::Mat4f::RotateZ(cumulativeAngle * objPlanetRotationSpeed);
+			* SnackerEngine::Mat4f::RotateZ(planetTime);
 		// Nathan
 		modelMatrices[2] = SnackerEngine::Mat4f::Translate(SnackerEngine::Vec3f(2.5, 0.0f, 10.0f)
-			+ SnackerEngine::Vec3f(sin(cumulativeAngle * nathanSpeed), 0.0f, cos(cumulativeAngle * nathanSpeed) * nathanRadius));
+			+ nathanRadius.get() * SnackerEngine::Vec3f(sin(nathanTime), 0.0f, cos(nathanTime)));
 	}
 
 	MyScene(unsigned int fps)
 		: timer(fps), counter(0), models{}, material(SnackerEngine::Shader("shaders/basic.shader")), modelMatrices{},
 		camera{}, clearColorA(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned>(226, 151, 67))),
 		clearColorB(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned>(226, 67, 89))),
-		cumulativeAngle(0.0f), maxWobbleBurger(-0.5f, 0.5f, -0.5f), burgerWobbleSpeed(5.0f), objPlanetRotationSpeed
-		(0.2f), nathanSpeed(4.0f), nathanRadius(1.0f)
+		nathanTime(0.0f), burgerTime(0.0f), planetTime(0.0f), maxWobbleBurger(-0.5f, 0.5f, -0.5f), burgerWobbleSpeed(5.0f), objPlanetRotationSpeed
+		(0.2f), nathanSpeed(4.0f), nathanRadius(1.0f), nathanTimeButton(), guiManager{}
 	{
 		camera.setAngleSpeed(0.0125f);
 		camera.setFarPlane(1000.0f);
+		camera.setPosition({-2.0f, 5.0f, 20.0f});
+		camera.setYaw(SnackerEngine::degToRad(0.0f));
+		camera.setPitch(SnackerEngine::degToRad(-20.0f));
+		camera.computeProjection();
+		camera.computeView();
 		models.push_back(SnackerEngine::Model("models/burger/burgerWithFries.obj"));
 		modelMatrices.push_back(SnackerEngine::Mat4f::Translate({ -7.5f, 0.0f, 10.0f }));
 		models.push_back(SnackerEngine::Model("models/demo/objPlanet.obj"));
@@ -70,6 +88,25 @@ public:
 		// Tree model takes too much memory apparently!
 		//models.push_back(SnackerEngine::Model("models/trees/Tree1/Tree1.obj"));
 		//modelMatrices.push_back(SnackerEngine::Mat4f::Translate({ 7.5f, 0.0f, 10.0f }));
+
+		// Setup GUI
+		SnackerEngine::GuiStyle style = SnackerEngine::getDefaultStyle();
+		SnackerEngine::GuiWindow window(style);
+		window.setPosition({ 350, 10 });
+		window.setSize({ 500, 150 });
+		guiManager.registerElement(window);
+		SnackerEngine::ListLayout layout(style);
+		window.registerChild(layout);
+		{
+			SnackerEngine::GuiSlider<float> slider1("Nathan speed: ", 0.0f, 10.0f, nathanSpeed, style);
+			layout.registerChild(slider1);
+			guiManager.moveElement(std::move(slider1));
+			SnackerEngine::GuiSlider<float> slider2("Nathan radius: ", 0.0f, 10.0f, nathanRadius, style);
+			layout.registerChild(slider2);
+			guiManager.moveElement(std::move(slider2));
+		}
+		guiManager.moveElement(std::move(layout));
+		guiManager.moveElement(std::move(window));
 	}
 
 	void update(const double& dt) override
@@ -85,8 +122,12 @@ public:
 				SnackerEngine::Renderer::setClearColor(clearColorB);
 			}
 		}
+		//SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << dt << SnackerEngine::LOGGER::ENDL;
 		camera.update(dt);
-		cumulativeAngle += dt;
+		nathanTime += dt * nathanSpeed;
+		burgerTime += dt * burgerWobbleSpeed;
+		planetTime += dt * objPlanetRotationSpeed;
+		guiManager.update(dt);
 	}
 
 	void draw() override
@@ -102,6 +143,7 @@ public:
 			shader.setUniform<SnackerEngine::Mat4f>("u_model",modelMatrices[i]);
 			SnackerEngine::Renderer::draw(models[i], material);
 		}
+		guiManager.draw();
 	}
 
 	void callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods) override
@@ -112,22 +154,36 @@ public:
 			camera.toggleMovement();
 		}
 		camera.callbackKeyboard(key, scancode, action, mods);
+		guiManager.callbackKeyboard(key, scancode, action, mods);
 	}
 
 	void callbackWindowResize(const SnackerEngine::Vec2i& screenDims) override
 	{
 		camera.callbackWindowResize(screenDims);
+		guiManager.callbackWindowResize(screenDims);
 	}
 
 	void callbackMouseScroll(const SnackerEngine::Vec2d& offset) override
 	{
 		camera.callbackMouseScroll(offset);
+		guiManager.callbackMouseScroll(offset);
 	}
 
 	void callbackMouseMotion(const SnackerEngine::Vec2d& position) override
 	{
 		camera.callbackMouseMotion(position);
+		guiManager.callbackMouseMotion(position);
 	}
+
+	void callbackMouseButton(const int& button, const int& action, const int& mods) override
+	{
+		guiManager.callbackMouseButton(button, action, mods);
+	};
+
+	void callbackCharacterInput(const unsigned int& codepoint) override
+	{
+		guiManager.callbackCharacterInput(codepoint);
+	};
 
 };
 

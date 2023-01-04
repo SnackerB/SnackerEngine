@@ -39,8 +39,8 @@ public:
 		: camera{}, sphere(SnackerEngine::createMeshUVSphere(100, 100)), cube(SnackerEngine::createMeshCube(true, true, false)),
 		simpleMaterial(SnackerEngine::Shader("shaders/basicTexture.shader")), positionSphere({ -3.0f, 0.0f, 10.0f }), positionCube({ 3.0f, 0.0f, 10.0f }),
 		positionSmallSphere(0.0f, 0.0f, 0.0f), angle(0.0f), rotationSpeed(0.7f), smallSphereScale(0.2f),
-		earthTexture(SnackerEngine::Texture::Load2D("textures/earthmap1k.jpg")), containerTexture(SnackerEngine::Texture::Load2D("textures/container.jpg")),
-		dabbingPenguinTexture(SnackerEngine::Texture::Load2D("textures/dab_penguin.jpg"))
+		earthTexture(SnackerEngine::Texture::Load2D("textures/earthmap1k.jpg").first), containerTexture(SnackerEngine::Texture::Load2D("textures/container.jpg").first),
+		dabbingPenguinTexture(SnackerEngine::Texture::Load2D("textures/dab_penguin.jpg").first)
 	{
 		SnackerEngine::Renderer::setClearColor(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned>(186, 214, 229)));
 		camera.setAngleSpeed(0.0125f);

@@ -22,7 +22,7 @@ namespace SnackerEngine
 		std::vector<GuiElement*> registeredGuiElements;
 		/// Vectors with pointers to all GuiElements that are owned by the guiManager. The guiManager is
 		/// responsible for deleting these elements!
-		std::vector<GuiElement*> ownedGuiElements;
+		std::vector<std::unique_ptr<GuiElement>> ownedGuiElements;
 		/// Queue of available (unused) GuiIDs
 		std::queue<GuiID> availableGuiIDs;
 		/// Current maximal amount of GuiElement objects that we can have before we have to resize
@@ -112,7 +112,7 @@ namespace SnackerEngine
 		void signOff(const GuiID& guiElement);
 		/// Helper function that signs off a guiElement without notifying the parent 
 		/// (called ny guiManager when doing a cascading sign off starting at some element)
-		void signOffWithoutNotifyingParent(const GuiID& guiElement);
+		void signOffWithoutNotifyingParent(const GuiID guiElement);
 		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
 		void updateMoved(GuiElement& guiElement);
 		/// Returns a reference to the guiElement with a given guiID
@@ -139,6 +139,10 @@ namespace SnackerEngine
 		GuiManager(const unsigned int& startingSize = 20);
 		/// Destructor
 		~GuiManager();
+		/// Deleted copy constructor and operator
+		GuiManager(const GuiManager& other) = delete;
+		GuiManager& operator=(const GuiManager& other) = delete;
+
 		/// Registers the given element as a parent element
 		void registerElement(GuiElement& guiElement);
 		/// Registers the given element as a parent element and moves it to the guiManager.
@@ -148,6 +152,8 @@ namespace SnackerEngine
 		/// either using the guiManager or a parent element registered at the guiManager.
 		template<typename GuiElementType>
 		void moveElement(GuiElementType&& guiElement);
+		/// Clears all elements. Elements that are owned by the GuiManager are deleted!
+		void clear();
 		/// Sets the view and projection matrix uniform of the given shader
 		void setUniformViewAndProjectionMatrices(const Shader& shader);
 		/// Returns the view matrix
@@ -187,9 +193,9 @@ namespace SnackerEngine
 		if (guiElement.isValid()) {
 			if (guiElement.guiManager == this) {
 				GuiID guiID = guiElement.guiID;
-				ownedGuiElements[guiID] = new GuiElementType(std::move(guiElement));
+				ownedGuiElements[guiID] = std::make_unique<GuiElementType>(std::move(guiElement));
 				ownedGuiElementsCount++;
-				registeredGuiElements[guiID] = ownedGuiElements[guiID];
+				registeredGuiElements[guiID] = ownedGuiElements[guiID].get();
 				auto& element = *ownedGuiElements[guiID];
 				if (element.parentID < 0) {
 					element.parentID = 0;
@@ -204,9 +210,9 @@ namespace SnackerEngine
 			}
 		}
 		GuiID newGuiID = getNewGuiID();
-		ownedGuiElements[newGuiID] = new GuiElementType(std::move(guiElement));
+		ownedGuiElements[newGuiID] = std::make_unique<GuiElementType>(std::move(guiElement));
 		ownedGuiElementsCount++;
-		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID];
+		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID].get();
 		registeredGuiElementsCount++;
 		auto& element = *ownedGuiElements[newGuiID];
 		element.guiID = newGuiID;
@@ -224,8 +230,9 @@ namespace SnackerEngine
 			return;
 		}
 		GuiID guiID = guiElement.guiID;
-		ownedGuiElements[guiID] = new GuiElementType(std::move(guiElement));
-		registeredGuiElements[guiID] = ownedGuiElements[guiID];
+		std::unique_ptr<GuiElementType> newPtr = std::make_unique<GuiElementType>(std::move(guiElement));
+		ownedGuiElements[guiID] = std::move(newPtr);
+		registeredGuiElements[guiID] = ownedGuiElements[guiID].get();
 		ownedGuiElementsCount++;
 	}
 

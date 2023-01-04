@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Math\</FILEPATH>
+      <FILENAME>VectorAlgorithms.cpp</FILENAME>
+      <LINE>19</LINE>
+      <COLUMN>34</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::computeTangentBiTangent</FUNCTION>
+    <DECORATED>?computeTangentBiTangent@SnackerEngine@@YA?AU?$pair@V?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@std@@V12@@std@@AEBV?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@3@AEBV?$vector@U?$Vec2@M@SnackerEngine@@V?$allocator@U?$Vec2@M@SnackerEngine@@@std@@@3@AEBV?$vector@IV?$allocator@I@std@@@3@AEB_N@Z</DECORATED>
+    <FUNCLINE>6</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Math\</FILEPATH>
+      <FILENAME>VectorAlgorithms.cpp</FILENAME>
+      <LINE>20</LINE>
+      <COLUMN>34</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::computeTangentBiTangent</FUNCTION>
+    <DECORATED>?computeTangentBiTangent@SnackerEngine@@YA?AU?$pair@V?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@std@@V12@@std@@AEBV?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@3@AEBV?$vector@U?$Vec2@M@SnackerEngine@@V?$allocator@U?$Vec2@M@SnackerEngine@@@std@@@3@AEBV?$vector@IV?$allocator@I@std@@@3@AEB_N@Z</DECORATED>
+    <FUNCLINE>6</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Math\</FILEPATH>
+      <FILENAME>VectorAlgorithms.cpp</FILENAME>
+      <LINE>22</LINE>
+      <COLUMN>34</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::computeTangentBiTangent</FUNCTION>
+    <DECORATED>?computeTangentBiTangent@SnackerEngine@@YA?AU?$pair@V?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@std@@V12@@std@@AEBV?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@3@AEBV?$vector@U?$Vec2@M@SnackerEngine@@V?$allocator@U?$Vec2@M@SnackerEngine@@@std@@@3@AEBV?$vector@IV?$allocator@I@std@@@3@AEB_N@Z</DECORATED>
+    <FUNCLINE>6</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\benja\Documents\dev\SnackerEngine 2.0\SnackerEngine\SnackerEngine\src\Math\</FILEPATH>
+      <FILENAME>VectorAlgorithms.cpp</FILENAME>
+      <LINE>23</LINE>
+      <COLUMN>34</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>SnackerEngine::computeTangentBiTangent</FUNCTION>
+    <DECORATED>?computeTangentBiTangent@SnackerEngine@@YA?AU?$pair@V?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@std@@V12@@std@@AEBV?$vector@U?$Vec3@M@SnackerEngine@@V?$allocator@U?$Vec3@M@SnackerEngine@@@std@@@3@AEBV?$vector@U?$Vec2@M@SnackerEngine@@V?$allocator@U?$Vec2@M@SnackerEngine@@@std@@@3@AEBV?$vector@IV?$allocator@I@std@@@3@AEB_N@Z</DECORATED>
+    <FUNCLINE>6</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

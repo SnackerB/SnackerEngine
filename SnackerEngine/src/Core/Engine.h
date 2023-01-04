@@ -25,8 +25,8 @@ namespace SnackerEngine
 		/// if set to true, the mouse is constrained to the middle of the screen
 		inline static bool constrainMouseToScreenCenter = false;
 
-		/// Determines the resource path. Prints info/warning about the location of the path
-		static void determineResourcePath();
+		/// Determines the resource path. Prints info/error about the location of the path
+		static bool determineResourcePath(const std::string& resourceFolderPath = "");
 		/// Callback functiions
 		static void callbackKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void callbackMouseButton(GLFWwindow* window, int button, int action, int mods);
@@ -36,7 +36,7 @@ namespace SnackerEngine
 		static void callbackCharacterInput(GLFWwindow* window, unsigned int codepoint);
 	public:
 		/// Initializes the engine and creates a window
-		static bool initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName);
+		static bool initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName, const std::string& resourceFolderPath = "");
 		/// Terminates the engine
 		static void terminate();
 		/// Obtains resource path

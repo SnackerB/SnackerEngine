@@ -82,8 +82,8 @@ namespace SnackerEngine
 			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 
-	GuiButton::GuiButton(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const Color4f& defaultColor, const Color4f& hoverColor, const Color4f& pressedColor, const Color4f& pressedHoverColor, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine)
-		: GuiDynamicTextBox(position, size, resizeMode, label, font, fontSize, textColor, defaultColor, parseMode, alignment, textBoxMode, singleLine),
+	GuiButton::GuiButton(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const Color4f& defaultColor, const Color4f& hoverColor, const Color4f& pressedColor, const Color4f& pressedHoverColor, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
+		: GuiDynamicTextBox(position, size, resizeMode, label, font, fontSize, textColor, defaultColor, parseMode, alignment, border, textScaleMode, sizeHintModes),
 		eventHandle(nullptr), defaultColor(defaultColor), hoverColor(hoverColor), pressedColor(pressedColor), pressedHoverColor(pressedHoverColor),
 		isBeingPressed(false), isBeingHovered(false)
 	{
@@ -94,17 +94,17 @@ namespace SnackerEngine
 		}
 	}
 
-	GuiButton::GuiButton(GuiEventHandle& eventHandle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const Color4f& defaultColor, const Color4f& hoverColor, const Color4f& pressedColor, const Color4f& pressedHoverColor, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine)
-		: GuiButton(position, size, resizeMode, defaultColor, hoverColor, pressedColor, pressedHoverColor, label, font, fontSize, textColor, parseMode, alignment, textBoxMode, singleLine)
+	GuiButton::GuiButton(GuiEventHandle& eventHandle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const Color4f& defaultColor, const Color4f& hoverColor, const Color4f& pressedColor, const Color4f& pressedHoverColor, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
+		: GuiButton(position, size, resizeMode, defaultColor, hoverColor, pressedColor, pressedHoverColor, label, font, fontSize, textColor, parseMode, alignment, border, textScaleMode, sizeHintModes)
 	{
 		setEventHandle(eventHandle);
 	}
 
 	GuiButton::GuiButton(const std::string& label, const GuiStyle& style)
-		: GuiButton(Vec2i(), style.guiButtonSize, style.guiButtonResizeMode, style.guiButtonBackgroundColor, style.guiButtonHoverColor, style.guiButtonPressedColor, style.guiButtonPressedHoverColor, label, style.defaultFont, style.fontSizeNormal, style.guiButtonTextColor, style.guiButtonParseMode, style.guiButtonAlignment, style.guiButtonTextBoxMode2, style.guiButtonSingleLine) {}
+		: GuiButton(Vec2i(), style.guiButtonSize, style.guiButtonResizeMode, style.guiButtonBackgroundColor, style.guiButtonHoverColor, style.guiButtonPressedColor, style.guiButtonPressedHoverColor, label, style.defaultFont, style.fontSizeNormal, style.guiButtonTextColor, style.guiButtonParseMode, style.guiButtonAlignment, style.guiButtonBorder, style.guiButtonTextScaleMode, style.guiButtonSizeHintModes) {}
 
 	GuiButton::GuiButton(GuiEventHandle& eventHandle, const std::string& label, const GuiStyle& style)
-		: GuiButton(eventHandle, Vec2i(), style.guiButtonSize, style.guiButtonResizeMode, style.guiButtonBackgroundColor, style.guiButtonHoverColor, style.guiButtonPressedColor, style.guiButtonPressedHoverColor, label, style.defaultFont, style.fontSizeNormal, style.guiButtonTextColor, style.guiButtonParseMode, style.guiButtonAlignment, style.guiButtonTextBoxMode2, style.guiButtonSingleLine) {}
+		: GuiButton(eventHandle, Vec2i(), style.guiButtonSize, style.guiButtonResizeMode, style.guiButtonBackgroundColor, style.guiButtonHoverColor, style.guiButtonPressedColor, style.guiButtonPressedHoverColor, label, style.defaultFont, style.fontSizeNormal, style.guiButtonTextColor, style.guiButtonParseMode, style.guiButtonAlignment, style.guiButtonBorder, style.guiButtonTextScaleMode, style.guiButtonSizeHintModes) {}
 
 	void GuiButton::setEventHandle(GuiEventHandle& eventHandle)
 	{

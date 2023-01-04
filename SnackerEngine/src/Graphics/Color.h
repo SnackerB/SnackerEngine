@@ -35,6 +35,9 @@ namespace SnackerEngine
 		/// Converts from a color vector where each color is in [0, 255]
 		template<typename T2>
 		static Color4<T> fromColor256(Color4<T2> color256);
+		/// Implicit conversion from Color3
+		Color4(Color3<T> color)
+			: r(color.r), g(color.g), b(color.b), alpha(T(1)) {}
 	};
 	//------------------------------------------------------------------------------------------------------
 	using Color3f = Color3<float>;

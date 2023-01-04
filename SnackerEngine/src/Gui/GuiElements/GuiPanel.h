@@ -47,6 +47,8 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		GuiPanel(GuiPanel&& other) noexcept;
 		GuiPanel& operator=(GuiPanel&& other) noexcept;
+		/// Destructor
+		virtual ~GuiPanel() {};
 	};
 	//--------------------------------------------------------------------------------------------------
 

@@ -53,14 +53,16 @@ namespace SnackerEngine
 			const Color4f& pressedHoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const std::string& label = "", const Font& font = Font(),
 			const double& fontSize = 0.0, Color4f textColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::CENTER,
-			const TextBoxMode& textBoxMode = TextBoxMode::SHRINK_HEIGHT_TO_FIT, const double& singleLine = false);
+			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
 		/// Constructor that already registers an event handle
 		GuiButton(GuiEventHandle& eventHandle, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = GuiButton::ResizeMode::RESIZE_RANGE,
 			const Color4f& defaultColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& hoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& pressedColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f),
 			const Color4f& pressedHoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const std::string& label = "", const Font& font = Font(),
 			const double& fontSize = 0.0, Color4f textColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::CENTER,
-			const TextBoxMode& textBoxMode = TextBoxMode::SHRINK_HEIGHT_TO_FIT, const double& singleLine = false);
+			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
 		/// Constructors using GuiStyle
 		GuiButton(const std::string& label, const GuiStyle& style);
 		GuiButton(GuiEventHandle& eventHandle, const std::string& label, const GuiStyle& style);

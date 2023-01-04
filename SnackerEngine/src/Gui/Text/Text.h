@@ -95,6 +95,8 @@ namespace SnackerEngine
 		ParseMode parseMode;
 		/// The alignment of the text
 		Alignment alignment;
+		/// The right border of the text, in pt. Gets set when the model is constructed
+		double right;
 		/// Vector of unicode characters
 		std::vector<Character> characters;
 		/// Vector of lines
@@ -133,6 +135,8 @@ namespace SnackerEngine
 		double getLeft();
 		/// Returns the x coordinate of the right-most point in the text (in pt)
 		double getRight();
+		/// Returns most right point of the given line (in pt)
+		double getRight(const unsigned int& lineIndex);
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false

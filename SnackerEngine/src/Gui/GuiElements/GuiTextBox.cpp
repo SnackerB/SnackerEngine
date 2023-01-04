@@ -18,9 +18,9 @@ namespace SnackerEngine
 		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f), Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 		unsigned int DPI = Engine::getDPI().y;
 		scaleFactor = 1.0;
-		switch (textBoxMode)
+		switch (textScaleMode)
 		{
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_UP:
+		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_UP:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			if (textWidth > size.x) break;
@@ -29,7 +29,7 @@ namespace SnackerEngine
 			scaleFactor = std::min(size.x / textWidth, size.y / textHeight);
 			break;
 		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN:
+		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_DOWN:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
@@ -37,7 +37,7 @@ namespace SnackerEngine
 			scaleFactor = std::min(size.x / textWidth, size.y / textHeight);
 			break;
 		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT:
+		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_UP_DOWN:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
@@ -103,29 +103,12 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::recomputeText()
 	{
-		switch (textBoxMode)
-		{
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE:
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_UP:
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT_DOWN:
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_SCALE_TEXT:
-		{
-			// Just compute the text with the size.x as textWidth:
-			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
-			text->recompute();
-			computeModelMatrices();
-			break;
-		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE_DOWN:
-		{
-			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
+		if (textScaleMode == TextScaleMode::RECOMPUTE_DOWN) {
 			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
 			text->setFontSize(fontSize, false);
 			unsigned int DPI = Engine::getDPI().y;
 			double maxFontSize = 0.0;
 			double minFontSize = 0.0;
-			//infoLogger << "recomputing text, starting with font size " << text->getFontSize() << LOGGER::ENDL;
 			for (unsigned int i = 0; i < recomputeTries; ++i)
 			{
 				text->recompute();
@@ -155,11 +138,8 @@ namespace SnackerEngine
 			text->setFontSize(minFontSize, false);
 			text->recompute();
 			computeModelMatrices();
-			break;
 		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE_RECOMPUTE_SCALE:
-		{
-			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
+		else if (textScaleMode == TextScaleMode::RECOMPUTE_UP_DOWN) {
 			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
 			text->setFontSize(fontSize, false);
 			unsigned int DPI = Engine::getDPI().y;
@@ -189,47 +169,19 @@ namespace SnackerEngine
 						text->setFontSize((minFontSize + maxFontSize) / 2.0, false);
 					}
 				}
-				//infoLogger << "font size:" << text->getFontSize() << ", minFontSize: " << minFontSize << LOGGER::ENDL;
 			}
 			text->setFontSize(minFontSize, false);
 			text->recompute();
 			computeModelMatrices();
-			break;
 		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
-		{
+		else {
 			// Just compute the text with the size.x as textWidth:
-			if (singleLine) text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
 			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
 			text->recompute();
-			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
 			computeModelMatrices();
-			break;
 		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
-		{
-			// compute the text with zero textWidth
-			text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(0.0, false);
-			text->recompute();
-			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
-			computeModelMatrices();
-			break;
-		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
-		{
-			// compute the text with zero textWidth
-			text->setParseMode(StaticText::ParseMode::SINGLE_LINE, false);
-			text->setTextWidth(0.0, false);
-			text->recompute();
-			size.y = static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)));
-			size.x = static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0)));
-			computeModelMatrices();
-			break;
-		}
-		default:
-			break;
-		}
+		// Compute size hints
+		computeSizeHints();
 	}
 
 	Vec2f GuiDynamicTextBox::computeTextPosition()
@@ -268,80 +220,87 @@ namespace SnackerEngine
 		return position;
 	}
 
+	void GuiDynamicTextBox::computeSizeHints()
+	{
+		Vec2i textSize(static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0))),
+			static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0))));
+		switch (sizeHintModes.sizeHintModeMinSize)
+		{
+		case SizeHintMode::ARBITRARY: break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: minSize = textSize; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: minSize.x = textSize.x; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: minSize.y = textSize.y; break;
+		default:
+			break;
+		}
+		switch (sizeHintModes.sizeHintModeMaxSize)
+		{
+		case SizeHintMode::ARBITRARY: break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: maxSize = textSize; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: maxSize.x = textSize.x; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: maxSize.y = textSize.y; break;
+		default:
+			break;
+		}
+		switch (sizeHintModes.sizeHintModePreferredSize)
+		{
+		case SizeHintMode::ARBITRARY: break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: preferredSize = textSize; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: preferredSize.x = textSize.x; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: preferredSize.y = textSize.y; break;
+		default:
+			break;
+		}
+	}
+
 	/// Helper function for constructing the text material
 	static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor)
 	{
 		return Material(std::move(std::make_unique<SimpleTextMaterialData>(Shader("shaders/gui/basic2DText.shader"),
-			font, textColor,
-			backgroundColor.alpha == 1.0 ? backgroundColor : Color4f(textColor.r, textColor.g, textColor.b, 0.0f))));
+			font, textColor)));
 	}
 
-	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text, const Color4f& textColor, const Color4f& backgroundColor, const TextBoxMode& textBoxMode, const double& singleLine)
+	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text, const Color4f& textColor, const Color4f& backgroundColor, const TextScaleMode& textScaleMode, const SizeHintModes& sizeHintModes, const int& border)
 		: GuiElement(position, size, resizeMode), text(std::move(text)),
 		material(constructTextMaterial(this->text->getFont(), textColor, Color4f(0.0f, 0.0f))),
 		backgroundColor(backgroundColor), textColor(textColor), backgroundShader("shaders/gui/simpleColor.shader"),
-		modelMatrixText{}, modelMatrixBackground{}, textBoxMode(textBoxMode), singleLine(singleLine), scaleFactor(1.0),
-		fontSize(this->text->getFontSize()), recomputeTries(10)
+		modelMatrixText{}, modelMatrixBackground{}, textScaleMode(textScaleMode), sizeHintModes(sizeHintModes),
+		border(border), scaleFactor(1.0), fontSize(this->text->getFontSize()), recomputeTries(10)
 	{
 		recomputeText();
 	}
 
-	/// Helper function that computes which textWidth is necessary for the given resizeMode and size vector
-	static double computeTextwidth(const GuiDynamicTextBox::TextBoxMode textBoxMode, const Vec2i& size, const bool& singleLine) {
-		if (singleLine) return 0.0;
-		switch (textBoxMode)
-		{
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::FORCE_SIZE:
-		{
-			return size.x;
-		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_HEIGHT_TO_FIT:
-		{
-			return size.x;
-		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_WIDTH_TO_FIT:
-		{
-			return 0.0;
-		}
-		case SnackerEngine::GuiDynamicTextBox::TextBoxMode::SHRINK_TO_FIT:
-		{
-			return 0.0;
-		}
-		default:
-			break;
-		}
-		return 0.0;
-	}
-
-	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine)
-		: GuiDynamicTextBox(position, size, resizeMode, std::make_unique<DynamicText>(text, font, fontSize, computeTextwidth(textBoxMode, size, singleLine), parseMode, alignment),
-			textColor, backgroundColor, textBoxMode, singleLine) {}
+	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
+		: GuiDynamicTextBox(position, size, resizeMode, std::make_unique<DynamicText>(text, font, fontSize, size.x, parseMode, alignment),
+			textColor, backgroundColor, textScaleMode, sizeHintModes, border) {}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text, const GuiStyle& style)
 		: GuiDynamicTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text, 
 			style.defaultFont, style.fontSizeNormal, style.guiTextBoxTextColor, 
 			style.guiTextBoxBackgroundColor, style.guiTextBoxParseMode, 
-			style.guiTextBoxAlignment, style.guiTextBoxMode2, style.guiTextBoxSingleLine) {}
+			style.guiTextBoxAlignment, style.guiTextBoxBorder, 
+			style.guiTextBoxTextScaleMode, style.guiTextBoxSizeHintModes) {}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text, const double& fontSize, const GuiStyle& style)
 		: GuiDynamicTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text,
 			style.defaultFont, fontSize, style.guiTextBoxTextColor,
 			style.guiTextBoxBackgroundColor, style.guiTextBoxParseMode,
-			style.guiTextBoxAlignment, style.guiTextBoxMode2, style.guiTextBoxSingleLine) {}
+			style.guiTextBoxAlignment, style.guiTextBoxBorder,
+			style.guiTextBoxTextScaleMode, style.guiTextBoxSizeHintModes) {}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const GuiDynamicTextBox& other) noexcept
 		: GuiElement(other), text(std::make_unique<DynamicText>(*other.text)), material(other.material),
 		backgroundColor(other.backgroundColor), textColor(other.textColor), backgroundShader(other.backgroundShader),
 		modelMatrixText(other.modelMatrixText), modelMatrixBackground(other.modelMatrixBackground),
-		textBoxMode(other.textBoxMode), singleLine(other.singleLine), scaleFactor(other.scaleFactor),
-		fontSize(other.fontSize), recomputeTries(other.recomputeTries) {}
+		textScaleMode(other.textScaleMode), sizeHintModes(other.sizeHintModes), border(other.border),
+		scaleFactor(other.scaleFactor), fontSize(other.fontSize), recomputeTries(other.recomputeTries) {}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(GuiDynamicTextBox&& other) noexcept
 		: GuiElement(std::move(other)), text(std::move(other.text)), material(other.material),
 		backgroundColor(other.backgroundColor), textColor(other.textColor), backgroundShader(other.backgroundShader),
 		modelMatrixText(other.modelMatrixText), modelMatrixBackground(other.modelMatrixBackground),
-		textBoxMode(other.textBoxMode), singleLine(other.singleLine), scaleFactor(other.scaleFactor),
-		fontSize(other.fontSize), recomputeTries(other.recomputeTries)
+		textScaleMode(other.textScaleMode), sizeHintModes(other.sizeHintModes), border(other.border),
+		scaleFactor(other.scaleFactor), fontSize(other.fontSize), recomputeTries(other.recomputeTries)
 	{
 		// set other to a well defined state
 		other.text = nullptr;
@@ -357,8 +316,9 @@ namespace SnackerEngine
 		backgroundShader = other.backgroundShader;
 		modelMatrixText = other.modelMatrixText;
 		modelMatrixBackground = other.modelMatrixBackground;
-		textBoxMode = other.textBoxMode;
-		singleLine = other.singleLine;
+		textScaleMode = other.textScaleMode;
+		sizeHintModes = other.sizeHintModes;
+		border = other.border;
 		scaleFactor = other.scaleFactor;
 		fontSize = other.fontSize;
 		recomputeTries = other.recomputeTries;
@@ -375,8 +335,9 @@ namespace SnackerEngine
 		backgroundShader = other.backgroundShader;
 		modelMatrixText = other.modelMatrixText;
 		modelMatrixBackground = other.modelMatrixBackground;
-		textBoxMode = other.textBoxMode;
-		singleLine = other.singleLine;
+		textScaleMode = other.textScaleMode;
+		sizeHintModes = other.sizeHintModes;
+		border = other.border;
 		scaleFactor = other.scaleFactor;
 		fontSize = other.fontSize;
 		recomputeTries = other.recomputeTries;
@@ -442,21 +403,37 @@ namespace SnackerEngine
 		}
 	}
 
-	void GuiDynamicTextBox::setTextBoxMode(const TextBoxMode& textBoxMode)
+	void GuiDynamicTextBox::setTextScaleMode(const TextScaleMode& textScaleMode)
 	{
-		if (this->textBoxMode != textBoxMode) {
-			this->textBoxMode = textBoxMode;
+		if (this->textScaleMode != textScaleMode) {
+			this->textScaleMode = textScaleMode;
 			recomputeText();
-			computeModelMatrices();
 		}
 	}
 
-	void GuiDynamicTextBox::setSingleLine(const bool& singleLine)
+	void GuiDynamicTextBox::setSizeHintModeMinSize(const SizeHintMode& sizeHintModeMinSize)
 	{
-		if (this->singleLine != singleLine) {
-			this->singleLine = singleLine;
+		sizeHintModes.sizeHintModeMinSize = sizeHintModeMinSize;
+		computeSizeHints();
+	}
+
+	void GuiDynamicTextBox::setSizeHintModeMaxSize(const SizeHintMode& sizeHintModeMaxSize)
+	{
+		sizeHintModes.sizeHintModeMaxSize = sizeHintModeMaxSize;
+		computeSizeHints();
+	}
+
+	void GuiDynamicTextBox::setSizeHintModePreferredSize(const SizeHintMode& sizeHintModePreferredSize)
+	{
+		sizeHintModes.sizeHintModePreferredSize = sizeHintModePreferredSize;
+		computeSizeHints();
+	}
+
+	void GuiDynamicTextBox::setBorder(const int& border)
+	{
+		if (this->border != border) {
+			this->border = border;
 			recomputeText();
-			computeModelMatrices();
 		}
 	}
 
@@ -464,8 +441,8 @@ namespace SnackerEngine
 	{
 		if (!text) return Vec2i();
 		return Vec2i( 
-			static_cast<int>(std::ceil((text->getRight() * 1.0 - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0))),
-			static_cast<int>(std::ceil((text->getTop() * 1.0 - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)))
+			static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0))),
+			static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0)))
 		);
 	}
 
@@ -481,7 +458,7 @@ namespace SnackerEngine
 		cursorSize.y = pointsToInches(cursorSize.y);
 		cursorSize *= static_cast<float>(DPI);
 		Vec2f textOffset = computeTextPosition();
-		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(textOffset.x + cursorOffset.x + cursorSize.x, textOffset.y + cursorOffset.y, 0.0f), cursorSize);
+		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(textOffset.x + cursorOffset.x, textOffset.y + cursorOffset.y, 0.0f), cursorSize);
 	}
 
 	void GuiEditTextBox::computeModelMatricesSelectionBoxes()
@@ -492,7 +469,7 @@ namespace SnackerEngine
 		Vec2f textPosition = computeTextPosition();
 		unsigned int DPI = Engine::getDPI().y;
 		for (const auto& selectionBox : result) {
-			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position * scaleFactor) * static_cast<float>(DPI), pointsToInches(selectionBox.size * scaleFactor) * static_cast<float>(DPI)));
+			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position) * scaleFactor * static_cast<float>(DPI), pointsToInches(selectionBox.size) * scaleFactor * static_cast<float>(DPI)));
 		}
 	}
 
@@ -514,7 +491,7 @@ namespace SnackerEngine
 			backgroundShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
 			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixSelectionBox);
-			backgroundShader.setUniform<Color3f>("u_color", Color3f(0.0f, 0.0f, 1.0f)); // TODO: Transparent background TODO: Correct color
+			backgroundShader.setUniform<Color3f>("u_color", Color3f(selectionBoxColor.r, selectionBoxColor.g, selectionBoxColor.b)); // TODO: Transparent background TODO: Correct color
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw text
@@ -650,7 +627,7 @@ namespace SnackerEngine
 				computeModelMatrixCursor();
 			}
 			else if (key == KEY_ENTER) {
-				if (singleLine) {
+				if (text->getParseMode() == StaticText::ParseMode::SINGLE_LINE) {
 					// Special single line-mode
 					active = false;
 					cursorIsVisible = false;
@@ -762,49 +739,44 @@ namespace SnackerEngine
 	{
 		Vec2d DPI = Engine::getDPI();
 		// Compute offset due to centering
-		double textOffsetY;
-		if (text->getAlignment() == StaticText::Alignment::CENTER) {
-			// Align to the center of the text box
-			textOffsetY = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI.y * scaleFactor - static_cast<double>(size.y) / 2.0;
-		}
-		else {
-			// Align to the top of the text box
-			textOffsetY = -pointsToInches(text->getTop()) * scaleFactor * DPI.y;
-		}
+		Vec2f textOffset = computeTextPosition();
 		// Get mouse offset to upper left corner of element
 		Vec2d mousePos = getMouseOffset(getGuiID());
-		mousePos.y = - textOffsetY - mousePos.y;
+		mousePos = Vec2i(-textOffset.x, -textOffset.y) + Vec2i(mousePos.x, -mousePos.y);
+		mousePos += Vec2i(getPositionX(), -getPositionY());
 		mousePos.x /= DPI.x;
 		mousePos.y /= DPI.y;
 		mousePos /= pointsToInches(1.0);
 		return mousePos;
 	}
 
-	GuiEditTextBox::GuiEditTextBox(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, const double& cursorWidth, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const TextBoxMode& textBoxMode, const double& singleLine, const double& cursorBlinkTime)
-		: GuiDynamicTextBox(position, size, resizeMode, 
-			std::move(std::make_unique<EditableText>(text, font, fontSize, computeTextwidth(textBoxMode, size, singleLine), cursorWidth, parseMode, alignment)),
-			textColor, backgroundColor, textBoxMode, singleLine),
+	GuiEditTextBox::GuiEditTextBox(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, const double& cursorWidth, Color4f textColor, Color4f backgroundColor, Color4f selectionBoxColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes, const double& cursorBlinkTime)
+		: GuiDynamicTextBox(position, size, resizeMode,
+			std::move(std::make_unique<EditableText>(text, font, fontSize, size.x, cursorWidth, parseMode, alignment)),
+			textColor, backgroundColor, textScaleMode, sizeHintModes, border), selectionBoxColor(selectionBoxColor),
 		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, modelMatricesSelectionBoxes{}, eventHandleTextWasEdited(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(const std::string& text, const GuiStyle& style)
 		: GuiEditTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text, style.defaultFont, style.fontSizeNormal,
 			style.guiEditTextBoxCursorWidth, style.guiTextBoxTextColor, style.guiEditTextBoxBackgroundColor,
-			style.guiTextBoxParseMode, style.guiTextBoxAlignment, style.guiTextBoxMode2,
-			style.guiEditTextBoxSingleLine, style.guiEditTextBoxBlinkTime) {}
+			style.guiEditTextBoxSelectionBoxColor, style.guiTextBoxParseMode, style.guiTextBoxAlignment, style.guiTextBoxBorder,
+			style.guiTextBoxTextScaleMode, style.guiTextBoxSizeHintModes,
+			style.guiEditTextBoxBlinkTime) {}
 
 	GuiEditTextBox::GuiEditTextBox(const std::string& text, const double& fontSize, const GuiStyle& style)
 		: GuiEditTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text, style.defaultFont, fontSize,
 			style.guiEditTextBoxCursorWidth, style.guiTextBoxTextColor, style.guiEditTextBoxBackgroundColor,
-			style.guiTextBoxParseMode, style.guiTextBoxAlignment, style.guiTextBoxMode2,
-			style.guiEditTextBoxSingleLine, style.guiEditTextBoxBlinkTime) {}
+			style.guiEditTextBoxSelectionBoxColor, style.guiTextBoxParseMode, style.guiTextBoxAlignment, style.guiTextBoxBorder,
+			style.guiTextBoxTextScaleMode, style.guiTextBoxSizeHintModes,
+			style.guiEditTextBoxBlinkTime) {}
 
 	GuiEditTextBox::GuiEditTextBox(const GuiEditTextBox& other) noexcept
-		: GuiDynamicTextBox(other), active(false), cursorIsVisible(false), 
+		: GuiDynamicTextBox(other), selectionBoxColor(other.selectionBoxColor), active(false), cursorIsVisible(false), 
 		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor(other.modelMatrixCursor),
 		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(GuiEditTextBox&& other) noexcept
-		: GuiDynamicTextBox(std::move(other)), active(false), cursorIsVisible(false),
+		: GuiDynamicTextBox(std::move(other)), selectionBoxColor(other.selectionBoxColor), active(false), cursorIsVisible(false),
 		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), modelMatrixCursor(other.modelMatrixCursor),
 		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)) 
 	{
@@ -815,6 +787,7 @@ namespace SnackerEngine
 	GuiEditTextBox& GuiEditTextBox::operator=(const GuiEditTextBox& other) noexcept
 	{
 		GuiDynamicTextBox::operator=(other);
+		selectionBoxColor = other.selectionBoxColor;
 		active = false;
 		cursorIsVisible = false;
 		cursorBlinkingTimer = other.cursorBlinkingTimer;
@@ -827,6 +800,7 @@ namespace SnackerEngine
 	GuiEditTextBox& GuiEditTextBox::operator=(GuiEditTextBox&& other) noexcept
 	{
 		GuiDynamicTextBox::operator=(std::move(other));
+		selectionBoxColor = other.selectionBoxColor;
 		active = false;
 		cursorIsVisible = false;
 		cursorBlinkingTimer = std::move(other.cursorBlinkingTimer);
@@ -836,6 +810,12 @@ namespace SnackerEngine
 		other.eventHandleTextWasEdited = nullptr;
 		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
 		return *this;
+	}
+
+	GuiEditTextBox::~GuiEditTextBox()
+	{
+		if (eventHandleTextWasEdited)
+			signOffHandle(*eventHandleTextWasEdited);
 	}
 
 	void GuiEditTextBox::setEventHandleTextWasEdited(GuiEventHandle& eventHandle)
@@ -886,16 +866,15 @@ namespace SnackerEngine
 		computeModelMatrixCursor();
 	}
 
-	void GuiEditTextBox::setTextBoxMode(const TextBoxMode& textBoxMode)
+	void GuiEditTextBox::setTextScaleMode(const TextScaleMode& textScaleMode)
 	{
-		GuiDynamicTextBox::setTextBoxMode(textBoxMode);
+		GuiDynamicTextBox::setTextScaleMode(textScaleMode);
 		computeModelMatrixCursor();
 	}
 
-	void GuiEditTextBox::setSingleLine(const bool& singleLine)
+	void GuiEditTextBox::setSelectionBoxColor(const Color4f& selectionBoxColor)
 	{
-		GuiDynamicTextBox::setSingleLine(singleLine);
-		computeModelMatrixCursor();
+		this->selectionBoxColor = selectionBoxColor;
 	}
 
 }
