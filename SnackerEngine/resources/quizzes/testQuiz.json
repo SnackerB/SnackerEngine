@@ -1,10 +1,1 @@
-{
-  "questionType": "MULTIPLE_CHOICE",
-  "question": "Woher kommt Gallileo Gallilei?",
-  "answers": [
-    "Italien",
-    "Frankreich",
-    "Dänemark",
-    "Deutschland"
-  ]
-}
+{"quizSubScenes":[{"answers":["Italien","Deutschland","Frankreich","Algerien"],"question":"Wo wurde Gallileo Gallilei geboren?","questionType":"MULTIPLE_CHOICE"},{"answers":["Input answer 1","Input answer 2","Input answer 3","Input answer 4"],"question":"Input question 1","questionType":"MULTIPLE_CHOICE"},{"answers":["Input answer 1","Input answer 2","Input answer 3","Input answer 4"],"question":"Input question 2","questionType":"MULTIPLE_CHOICE"},{"answers":["Input answer 1","Input answer 2","Input answer 3","Input answer 4"],"question":"Input question","questionType":"MULTIPLE_CHOICE"},{"answers":["Input answer 1","Input answer 2","Input answer 3","Input answer 4"],"question":"Input question","questionType":"MULTIPLE_CHOICE"}]}

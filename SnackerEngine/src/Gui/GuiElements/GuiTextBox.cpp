@@ -23,25 +23,25 @@ namespace SnackerEngine
 		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_UP:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
-			if (textWidth > size.x) break;
+			if (textWidth > size.x - 2*border) break;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
-			if (textHeight > size.y) break;
-			scaleFactor = std::min(size.x / textWidth, size.y / textHeight);
+			if (textHeight > size.y - 2 * border) break;
+			scaleFactor = std::min((size.x - 2 * border) / textWidth, (size.y - 2 * border) / textHeight);
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_DOWN:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
-			if (textWidth < size.x && textHeight < size.y) break;
-			scaleFactor = std::min(size.x / textWidth, size.y / textHeight);
+			if (textWidth < size.x - 2 * border && textHeight < size.y - 2 * border) break;
+			scaleFactor = std::min((size.x - 2 * border) / textWidth, (size.y - 2 * border) / textHeight);
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_UP_DOWN:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
-			scaleFactor = std::min(size.x / textWidth, size.y / textHeight);
+			scaleFactor = std::min((size.x - 2 * border) / textWidth, (size.y - 2 * border) / textHeight);
 			break;
 		}
 		default:
@@ -104,7 +104,7 @@ namespace SnackerEngine
 	void GuiDynamicTextBox::recomputeText()
 	{
 		if (textScaleMode == TextScaleMode::RECOMPUTE_DOWN) {
-			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
+			text->setTextWidth((getWidth() - 2 * border) / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
 			text->setFontSize(fontSize, false);
 			unsigned int DPI = Engine::getDPI().y;
 			double maxFontSize = 0.0;
@@ -114,7 +114,7 @@ namespace SnackerEngine
 				text->recompute();
 				double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
 				// Check text width only in single line parse mode!
-				if (textHeight < size.y && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < size.x)) {
+				if (textHeight < (size.y - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < size.x - 2 * border)) {
 					minFontSize = text->getFontSize();
 					if (minFontSize == fontSize) break;
 					if (maxFontSize == 0) {
@@ -140,7 +140,7 @@ namespace SnackerEngine
 			computeModelMatrices();
 		}
 		else if (textScaleMode == TextScaleMode::RECOMPUTE_UP_DOWN) {
-			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
+			text->setTextWidth((getWidth() - 2 * border) / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
 			text->setFontSize(fontSize, false);
 			unsigned int DPI = Engine::getDPI().y;
 			double maxFontSize = 0.0;
@@ -151,7 +151,7 @@ namespace SnackerEngine
 				text->recompute();
 				double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
 				// Check text width only in single line parse mode!
-				if (textHeight < size.y && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < size.x)) {
+				if (textHeight < (size.y - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < (size.x - 2 * border))) {
 					minFontSize = text->getFontSize();
 					if (maxFontSize == 0) {
 						text->setFontSize(minFontSize * 2.0, false);
@@ -176,7 +176,7 @@ namespace SnackerEngine
 		}
 		else {
 			// Just compute the text with the size.x as textWidth:
-			text->setTextWidth(getWidth() / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
+			text->setTextWidth((getWidth() - 2 * border) / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
 			text->recompute();
 			computeModelMatrices();
 		}
@@ -201,8 +201,8 @@ namespace SnackerEngine
 		case StaticText::Alignment::CENTER:
 		{
 			// Align to the center of the text box
-			textOffset.y = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI * scaleFactor - size.y / 2.0;
-			textOffset.x = static_cast<float>(size.x) / 2.0f - pointsToInches((text->getRight() - text->getLeft()) / 2.0) * DPI * scaleFactor;
+			textOffset.y = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI * scaleFactor - (size.y - 2 * border) / 2.0;
+			textOffset.x = static_cast<float>(size.x - 2 * border) / 2.0f - pointsToInches((text->getRight() - text->getLeft()) / 2.0) * DPI * scaleFactor;
 			break;
 		}
 		case StaticText::Alignment::RIGHT:
@@ -210,13 +210,13 @@ namespace SnackerEngine
 			// Align to the top of the text box
 			textOffset.y = -pointsToInches(text->getTop()) * DPI * scaleFactor;
 			// Align to the right of the text box
-			textOffset.x = static_cast<float>(size.x) - pointsToInches((text->getRight() - text->getLeft())) * DPI * scaleFactor;
+			textOffset.x = static_cast<float>(size.x - border) - pointsToInches((text->getRight() - text->getLeft())) * DPI * scaleFactor;
 			break;
 		}
 		default:
 			break;
 		}
-		Vec2f position = Vec2f(static_cast<float>(getPositionX() + textOffset.x), -static_cast<float>(getPositionY()) + static_cast<float>(textOffset.y));
+		Vec2f position = Vec2f(static_cast<float>(getPositionX() + textOffset.x + border), -static_cast<float>(getPositionY() + border) + static_cast<float>(textOffset.y));
 		return position;
 	}
 
@@ -227,27 +227,27 @@ namespace SnackerEngine
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: minSize = textSize; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: minSize.x = textSize.x; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: minSize.y = textSize.y; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: minSize = textSize + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: minSize.x = textSize.x + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: minSize.y = textSize.y + 2 * border; break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModeMaxSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: maxSize = textSize; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: maxSize.x = textSize.x; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: maxSize.y = textSize.y; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: maxSize = textSize + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: maxSize.x = textSize.x + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: maxSize.y = textSize.y + 2 * border; break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModePreferredSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: preferredSize = textSize; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: preferredSize.x = textSize.x; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: preferredSize.y = textSize.y; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: preferredSize = textSize + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: preferredSize.x = textSize.x + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: preferredSize.y = textSize.y + 2 * border; break;
 		default:
 			break;
 		}
@@ -271,7 +271,7 @@ namespace SnackerEngine
 	}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
-		: GuiDynamicTextBox(position, size, resizeMode, std::make_unique<DynamicText>(text, font, fontSize, size.x, parseMode, alignment),
+		: GuiDynamicTextBox(position, size, resizeMode, std::make_unique<DynamicText>(text, font, fontSize, size.x - 2 * border, parseMode, alignment),
 			textColor, backgroundColor, textScaleMode, sizeHintModes, border) {}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text, const GuiStyle& style)
@@ -752,7 +752,7 @@ namespace SnackerEngine
 
 	GuiEditTextBox::GuiEditTextBox(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, const double& cursorWidth, Color4f textColor, Color4f backgroundColor, Color4f selectionBoxColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes, const double& cursorBlinkTime)
 		: GuiDynamicTextBox(position, size, resizeMode,
-			std::move(std::make_unique<EditableText>(text, font, fontSize, size.x, cursorWidth, parseMode, alignment)),
+			std::move(std::make_unique<EditableText>(text, font, fontSize, size.x - 2 * border, cursorWidth, parseMode, alignment)),
 			textColor, backgroundColor, textScaleMode, sizeHintModes, border), selectionBoxColor(selectionBoxColor),
 		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, modelMatricesSelectionBoxes{}, eventHandleTextWasEdited(nullptr) {}
 

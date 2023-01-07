@@ -251,6 +251,8 @@ namespace SnackerEngine
 		guiElement.parentID = 0;
 		registeredGuiElements[parentElement]->children.push_back(guiElement.guiID);
 		guiElement.onRegister();
+		// Callback mouseMotion, because we could collide with the new element!
+		callbackMouseMotion(currentMousePosition);
 	}
 
 	bool GuiManager::registerElementAsChild(GuiElement& parent, GuiElement& child)
@@ -266,6 +268,8 @@ namespace SnackerEngine
 		child.guiManager = this;
 		child.parentID = parent.guiID;
 		child.onRegister();
+		// Callback mouseMotion, because we could collide with the new element!
+		callbackMouseMotion(currentMousePosition);
 		return true;
 	}
 

@@ -15,7 +15,9 @@ namespace SnackerEngine
 		width -= 2 * leftBorder;
 		const auto& children = getChildren();
 		for (unsigned int i = 0; i < children.size(); ++i) {
-			int height = getSize(children[i]).y;
+			int height = getPreferredSize(children[i]).y;
+			if (height == -1) height = getSize(children[i]).y;
+			height = std::max(std::min(height, getMaxSize(children[i]).y), getMinSize(children[i]).y);
 			// Set position
 			setPositionWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(leftBorder)), static_cast<int>(std::floor(currentYOffset))));
 			// Resize
@@ -40,10 +42,10 @@ namespace SnackerEngine
 				}
 				case ResizeMode::RESIZE_RANGE:
 				{
-					int newWidth = static_cast<int>(std::roundf(width));
-					if (width <= getMinSize(children[i]).x) newWidth = getMinSize(children[i]).x;
-					else if (getMaxSize(children[i]).x != -1 && width >= getMaxSize(children[i]).x) newWidth = getMaxSize(children[i]).x;
-					setWidthWithoutEnforcingLayouts(children[i], static_cast<int>(newWidth));
+					int newWidth = getPreferredSize(children[i]).x;
+					if (newWidth == -1) newWidth = getSize(children[i]).x;
+					newWidth = std::max(std::min(newWidth, getMaxSize(children[i]).x), getMinSize(children[i]).x);
+					setSizeWithoutEnforcingLayouts(children[i], Vec2i(newWidth, height));
 					break;
 				}
 				default:

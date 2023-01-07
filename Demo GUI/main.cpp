@@ -59,7 +59,7 @@ public:
 			VERTICAL_LIST_LAYOUT_DEBUG,
 			UTF8_DEBUG,
 		};
-		DebugVariant debugVariant = DebugVariant::VERTICAL_LIST_LAYOUT_DEBUG;
+		DebugVariant debugVariant = DebugVariant::WINDOW_DEBUG;
 
 		switch (debugVariant)
 		{

@@ -95,7 +95,6 @@ namespace SnackerEngine
 		/// GuiImage
 		Color4f guiImageBackgroundColor{};
 		GuiImage::GuiImageMode guiImageGuiImageMode{};
-	protected:
 	};
 	//--------------------------------------------------------------------------------------------------
 	GuiStyle getDefaultStyle();
