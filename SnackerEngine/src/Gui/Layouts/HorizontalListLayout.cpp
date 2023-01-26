@@ -85,11 +85,6 @@ namespace SnackerEngine
 	HorizontalListLayout::HorizontalListLayout(const unsigned& border, const bool& snapHeightToPreferred)
 		: border(border), snapHeightToPreferred(snapHeightToPreferred) {}
 
-	bool HorizontalListLayout::registerChild(GuiElement& guiElement)
-	{
-		return GuiLayout::registerChild(guiElement);
-	}
-
 	HorizontalListLayout::HorizontalListLayout(const HorizontalListLayout& other) noexcept
 		: GuiLayout(other), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred) {}
 

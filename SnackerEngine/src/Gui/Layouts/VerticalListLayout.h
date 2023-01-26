@@ -8,6 +8,7 @@ namespace SnackerEngine
 
 	class VerticalListLayout : public GuiLayout
 	{
+	protected:
 		/// size of the border vertically between elements and to the edges, in pixels
 		unsigned border;
 		/// Horizontal and vertical alignment. Default: LEFT, TOP
@@ -20,8 +21,6 @@ namespace SnackerEngine
 	public:
 		/// Constructor
 		VerticalListLayout(const unsigned& border = 0, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
-		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
-		bool registerChild(GuiElement& guiElement) override;
 		// Copy constructor and assignment operator
 		VerticalListLayout(const VerticalListLayout& other) noexcept;
 		VerticalListLayout& operator=(const VerticalListLayout& other) noexcept;

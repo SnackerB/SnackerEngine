@@ -240,6 +240,9 @@
     <ClInclude Include="src\Utility\Alignment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\Layouts\VerticalScrollingListLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -411,6 +414,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\Layouts\HorizontalListLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Layouts\VerticalScrollingListLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

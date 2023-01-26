@@ -16,7 +16,7 @@
 #include "Gui/GuiElements/GuiSlider.h"
 #include "Gui/GuiElements/GuiImage.h"
 #include "Gui/GuiStyle.h"
-#include "Gui/Layouts/VerticalListLayout.h"
+#include "Gui/Layouts/VerticalScrollingListLayout.h"
 #include "Utility/Alignment.h"
 
 class HelloEventHandle : public SnackerEngine::GuiEventHandle
@@ -116,9 +116,23 @@ public:
 					VerticalLayout.registerChild(tempPanel, 1.0);
 					guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
 
-					SnackerEngine::ListLayout listLayout(style);
+					SnackerEngine::VerticalScrollingListLayout listLayout(style);
 					VerticalLayout.registerChild(listLayout, 1.0);
 					{
+						SnackerEngine::GuiPanel panel;
+						panel.setPreferredSize({ 200, 100 });
+						panel.setMinSize({ 100, 50 });
+						panel.setMaxSize({ 200, 150 });
+						listLayout.registerChild(panel);
+						guiManager.moveElement(std::move(panel));
+
+						panel = SnackerEngine::GuiPanel();
+						panel.setPreferredSize({ 200, 100 });
+						panel.setMinSize({ 100, 50 });
+						panel.setMaxSize({ 200, 150 });
+						listLayout.registerChild(panel);
+						guiManager.moveElement(std::move(panel));
+						/*
 						// List layout
 						SnackerEngine::GuiTextVariable<int> textVariable("test int: ", intHandle, style);
 						listLayout.registerChild(textVariable);
@@ -152,9 +166,9 @@ public:
 						doubleSlider2.setVariableHandle(doubleSliderHandle);
 						listLayout.registerChild(doubleSlider2);
 						guiManager.moveElement<SnackerEngine::GuiSlider<double>>(std::move(doubleSlider2));
-
+						*/
 					}
-					guiManager.moveElement<SnackerEngine::ListLayout>(std::move(listLayout));
+					guiManager.moveElement(std::move(listLayout));
 				}
 				guiManager.moveElement<SnackerEngine::VerticalLayout>(std::move(VerticalLayout));
 

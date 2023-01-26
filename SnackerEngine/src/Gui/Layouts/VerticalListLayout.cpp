@@ -121,11 +121,6 @@ namespace SnackerEngine
 
 	VerticalListLayout::VerticalListLayout(const unsigned& border, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
 		: border(border), alignmentHorizontal(alignmentHorizontal), alignmentVertical(alignmentVertical) {}
-
-	bool VerticalListLayout::registerChild(GuiElement& guiElement)
-	{
-		return GuiLayout::registerChild(guiElement);
-	}
 	
 	VerticalListLayout::VerticalListLayout(const VerticalListLayout& other) noexcept
 		: GuiLayout(other), border(other.border), alignmentHorizontal(other.alignmentHorizontal),
