@@ -218,6 +218,7 @@
     <ClInclude Include="src\Gui\GuiStyle.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalListLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalScrollingListLayout.h" />
     <ClInclude Include="src\Gui\Text\Font.h" />
     <ClInclude Include="src\Gui\Text\Glyph.h" />
     <ClInclude Include="src\Gui\Text\Text.h" />
@@ -283,6 +284,7 @@
     <ClCompile Include="src\Gui\Layouts\ListLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalListLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalScrollingListLayout.cpp" />
     <ClCompile Include="src\Gui\Text\Font.cpp" />
     <ClCompile Include="src\Gui\Text\Glyph.cpp" />
     <ClCompile Include="src\Gui\Text\Text.cpp" />

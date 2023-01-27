@@ -169,11 +169,6 @@ namespace SnackerEngine
 		alignmentVertical(alignmentVertical), backgroundColor(0.0f),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
-	bool HorizontalListLayout::registerChild(GuiElement& guiElement)
-	{
-		return GuiLayout::registerChild(guiElement);
-	}
-
 	HorizontalListLayout::HorizontalListLayout(const HorizontalListLayout& other) noexcept
 		: GuiLayout(other), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),

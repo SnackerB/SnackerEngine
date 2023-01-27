@@ -11,6 +11,7 @@ namespace SnackerEngine
 
 	class VerticalListLayout : public GuiLayout
 	{
+	protected:
 		/// size of the border vertically between elements and to the edges, in pixels
 		unsigned border;
 		/// If this is set to true, the height of the layout snaps to the largest preferredHeight
