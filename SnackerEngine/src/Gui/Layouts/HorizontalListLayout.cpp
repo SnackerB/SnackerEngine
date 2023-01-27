@@ -1,4 +1,6 @@
 #include "Gui/Layouts/HorizontalListLayout.h"
+#include "Gui/GuiManager.h"
+#include "Graphics/Renderer.h"
 
 namespace SnackerEngine
 {
@@ -12,8 +14,8 @@ namespace SnackerEngine
 	{
 		const auto& children = getChildren();
 		if (children.empty()) return;
-		// First, we need to compute the total height of the list and the number of elements
-		// whose height is not specified
+		// First, we need to compute the total width of the list and the number of elements
+		// whose width is not specified
 		std::vector<int> necessarySpaceUntilEnd(children.size());
 		// Iterate backwards!
 		necessarySpaceUntilEnd.back() = border;
@@ -30,14 +32,16 @@ namespace SnackerEngine
 				temp = getMinSize(childID).y;
 				if (temp > maxSnapHeight) maxSnapHeight = temp;
 			}
-			maxSnapHeight;
 		}
 		else {
 			maxSnapHeight = getHeight() - static_cast<int>(2 * border);
 		}
-		// position the children
+		// Compute the position of the children. Save the largest width for alignment
+		int largestHeight = 0;
 		int currentX = border;
 		int widthLeft = getSize().x;
+		std::vector<Vec2i> positions;
+		std::vector<Vec2i> sizes;
 		for (unsigned i = 0; i < children.size(); ++i) {
 			Vec2i currentPosition = Vec2i(currentX, border);
 			const int preferredWidth = getPreferredSize(children[i]).x;
@@ -68,13 +72,64 @@ namespace SnackerEngine
 			else {
 				currentHeight = std::max(getMinSize(children[i]).y, std::min(currentHeight, maxSnapHeight));
 			}
-			// Set attributes and enforce layouts
 			Vec2i currentSize = Vec2i(currentWidth, currentHeight);
-			setPositionAndSizeWithoutEnforcingLayouts(children[i], currentPosition, currentSize);
-			enforceLayoutOnElement(children[i]);
-			// increase currentY
+			// save positions and sizes
+			positions.push_back(currentPosition);
+			sizes.push_back(currentSize);
+			if (currentSize.y > largestHeight) largestHeight = currentSize.y;
+			// increase currentX
 			currentX += currentWidth + border;
 			widthLeft -= (currentWidth + border);
+		}
+		// Set position and size and do final alignment
+		int widthOffset = 0;
+		switch (alignmentHorizontal)
+		{
+		case SnackerEngine::AlignmentHorizontal::LEFT:
+			break;
+		case SnackerEngine::AlignmentHorizontal::CENTER:
+			widthOffset = (getSize().x - currentX) / 2;
+			break;
+		case SnackerEngine::AlignmentHorizontal::RIGHT:
+			widthOffset = (getSize().x - currentX);
+			break;
+		default:
+			break;
+		}
+		switch (alignmentVertical)
+		{
+		case SnackerEngine::AlignmentVertical::TOP:
+		{
+			for (unsigned int i = 0; i < children.size(); ++i)
+			{
+				// Set attributes and enforce layouts
+				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positions[i].x + widthOffset, border), sizes[i]);
+				enforceLayoutOnElement(children[i]);
+			}
+			break;
+		}
+		case SnackerEngine::AlignmentVertical::CENTER:
+		{
+			for (unsigned int i = 0; i < children.size(); ++i)
+			{
+				// Set attributes and enforce layouts
+				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positions[i].x + widthOffset, (getHeight() - sizes[i].y) / 2), sizes[i]);
+				enforceLayoutOnElement(children[i]);
+			}
+			break;
+		}
+		case SnackerEngine::AlignmentVertical::BOTTOM:
+		{
+			for (unsigned int i = 0; i < children.size(); ++i)
+			{
+				// Set attributes and enforce layouts
+				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positions[i].x + widthOffset, getHeight() - sizes[i].y - border), sizes[i]);
+				enforceLayoutOnElement(children[i]);
+			}
+			break;
+		}
+		default:
+			break;
 		}
 		// If necessary, snap height
 		if (snapHeightToPreferred) {
@@ -82,8 +137,37 @@ namespace SnackerEngine
 		}
 	}
 
-	HorizontalListLayout::HorizontalListLayout(const unsigned& border, const bool& snapHeightToPreferred)
-		: border(border), snapHeightToPreferred(snapHeightToPreferred) {}
+	void HorizontalListLayout::computeModelMatrix()
+	{
+		modelMatrixBackground = Mat4f::TranslateAndScale(
+			Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f),
+			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+	}
+
+	void HorizontalListLayout::draw(const Vec2i& parentPosition)
+	{
+		if (!guiManager || backgroundColor.alpha != 1.0f) return;
+		backgroundShader.bind();
+		guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
+		backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
+		Renderer::draw(guiManager->getModelSquare());
+		pushClippingBox(parentPosition);
+		GuiElement::draw(parentPosition);
+		popClippingBox();
+	}
+
+	void HorizontalListLayout::onSizeChange()
+	{
+		GuiLayout::onSizeChange();
+		computeModelMatrix();
+	}
+
+	HorizontalListLayout::HorizontalListLayout(const unsigned& border, const bool& snapHeightToPreferred, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+		: border(border), snapHeightToPreferred(snapHeightToPreferred), alignmentHorizontal(alignmentHorizontal),
+		alignmentVertical(alignmentVertical), backgroundColor(0.0f),
+		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	bool HorizontalListLayout::registerChild(GuiElement& guiElement)
 	{
@@ -91,24 +175,40 @@ namespace SnackerEngine
 	}
 
 	HorizontalListLayout::HorizontalListLayout(const HorizontalListLayout& other) noexcept
-		: GuiLayout(other), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred) {}
+		: GuiLayout(other), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred),
+		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
+		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
+		backgroundShader(other.backgroundShader) {}
 
 	HorizontalListLayout& HorizontalListLayout::operator=(const HorizontalListLayout& other) noexcept
 	{
 		GuiLayout::operator=(other);
 		border = other.border;
 		snapHeightToPreferred = other.snapHeightToPreferred;
+		alignmentHorizontal = other.alignmentHorizontal;
+		alignmentVertical = other.alignmentVertical;
+		backgroundColor = other.backgroundColor;
+		modelMatrixBackground = other.modelMatrixBackground;
+		backgroundShader = other.backgroundShader;
 		return *this;
 	}
 
 	HorizontalListLayout::HorizontalListLayout(HorizontalListLayout&& other) noexcept
-		: GuiLayout(std::move(other)), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred) {}
+		: GuiLayout(std::move(other)), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred),
+		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
+		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
+		backgroundShader(other.backgroundShader) {}
 
 	HorizontalListLayout& HorizontalListLayout::operator=(HorizontalListLayout&& other) noexcept
 	{
 		GuiLayout::operator=(std::move(other));
 		border = other.border;
 		snapHeightToPreferred = other.snapHeightToPreferred;
+		alignmentHorizontal = other.alignmentHorizontal;
+		alignmentVertical = other.alignmentVertical;
+		backgroundColor = other.backgroundColor;
+		modelMatrixBackground = other.modelMatrixBackground;
+		backgroundShader = other.backgroundShader;
 		return *this;
 	}
 
@@ -118,6 +218,11 @@ namespace SnackerEngine
 			this->snapHeightToPreferred = snapHeightToPreferred;
 			enforceLayout();
 		}
+	}
+
+	void HorizontalListLayout::setBackgroundColor(const Color3f& backgroundColor)
+	{
+		this->backgroundColor = backgroundColor;
 	}
 
 }

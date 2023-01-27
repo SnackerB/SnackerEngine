@@ -1,5 +1,6 @@
-#include "Gui/Layouts/VerticalLayout.h"
 #include "VerticalListLayout.h"
+#include "Gui/GuiManager.h"
+#include "Graphics/Renderer.h"
 
 namespace SnackerEngine
 {
@@ -21,6 +22,19 @@ namespace SnackerEngine
 		for (int i = children.size() - 1; i > 0; --i) {
 			int childMinHeight = getMinSize(children[i]).y;
 			necessarySpaceUntilEnd[i - 1] = necessarySpaceUntilEnd[i] + childMinHeight + border;
+		}
+		// We need to compute this additional variable if snapHeightToPreferred is set to true!
+		int maxSnapWidth = 0;
+		if (snapWidthToPreferred) {
+			for (const auto& childID : children) {
+				int temp = getPreferredSize(childID).x;
+				if (temp > maxSnapWidth) maxSnapWidth = temp;
+				temp = getMinSize(childID).x;
+				if (temp > maxSnapWidth) maxSnapWidth = temp;
+			}
+		}
+		else {
+			maxSnapWidth = getWidth() - static_cast<int>(2 * border);
 		}
 		// Compute the position of the children. Save the largest width for alignment
 		int largestWidth = 0;
@@ -117,10 +131,43 @@ namespace SnackerEngine
 		default:
 			break;
 		}
+		// If necessary, snap width
+		if (snapWidthToPreferred) {
+			preferredSize = Vec2i(-1, maxSnapWidth + static_cast<int>(2 * border));
+		}
 	}
 
-	VerticalListLayout::VerticalListLayout(const unsigned& border, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
-		: border(border), alignmentHorizontal(alignmentHorizontal), alignmentVertical(alignmentVertical) {}
+	void VerticalListLayout::computeModelMatrix()
+	{
+		modelMatrixBackground = Mat4f::TranslateAndScale(
+			Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f),
+			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+	}
+
+	void VerticalListLayout::draw(const Vec2i& parentPosition)
+	{
+		if (!guiManager || backgroundColor.alpha != 1.0f) return;
+		backgroundShader.bind();
+		guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
+		backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
+		Renderer::draw(guiManager->getModelSquare());
+		pushClippingBox(parentPosition);
+		GuiElement::draw(parentPosition);
+		popClippingBox();
+	}
+
+	void VerticalListLayout::onSizeChange()
+	{
+		GuiLayout::onSizeChange();
+		computeModelMatrix();
+	}
+
+	VerticalListLayout::VerticalListLayout(const unsigned& border, const bool& snapWidthToPreferred, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+		: border(border), snapWidthToPreferred(snapWidthToPreferred), alignmentHorizontal(alignmentHorizontal), 
+		alignmentVertical(alignmentVertical), backgroundColor(0.0f),
+		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	bool VerticalListLayout::registerChild(GuiElement& guiElement)
 	{
@@ -128,30 +175,54 @@ namespace SnackerEngine
 	}
 	
 	VerticalListLayout::VerticalListLayout(const VerticalListLayout& other) noexcept
-		: GuiLayout(other), border(other.border), alignmentHorizontal(other.alignmentHorizontal),
-		alignmentVertical(other.alignmentVertical) {}
+		: GuiLayout(other), border(other.border), snapWidthToPreferred(other.snapWidthToPreferred),
+		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
+		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
+		backgroundShader(other.backgroundShader) {}
 	
 	VerticalListLayout& VerticalListLayout::operator=(const VerticalListLayout& other) noexcept
 	{
 		GuiLayout::operator=(other);
 		border = other.border;
+		snapWidthToPreferred = other.snapWidthToPreferred;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
+		backgroundColor = other.backgroundColor;
+		modelMatrixBackground = other.modelMatrixBackground;
+		backgroundShader = other.backgroundShader;
 		return *this;
 	}
 	
 	VerticalListLayout::VerticalListLayout(VerticalListLayout&& other) noexcept
-		: GuiLayout(std::move(other)), border(other.border), 
-		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical) {}
+		: GuiLayout(std::move(other)), border(other.border), snapWidthToPreferred(other.snapWidthToPreferred),
+		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
+		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
+		backgroundShader(other.backgroundShader) {}
 
-	
 	VerticalListLayout& VerticalListLayout::operator=(VerticalListLayout&& other) noexcept
 	{
 		GuiLayout::operator=(std::move(other));
 		border = other.border;
+		snapWidthToPreferred = other.snapWidthToPreferred;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
+		backgroundColor = other.backgroundColor;
+		modelMatrixBackground = other.modelMatrixBackground;
+		backgroundShader = other.backgroundShader;
 		return *this;
+	}
+
+	void VerticalListLayout::setSnapWidthToPreferred(const bool& snapWidthToPreferred)
+	{
+		if (snapWidthToPreferred != this->snapWidthToPreferred) {
+			this->snapWidthToPreferred = snapWidthToPreferred;
+			enforceLayout();
+		}
+	}
+
+	void VerticalListLayout::setBackgroundColor(const Color4f& backgroundColor)
+	{
+		this->backgroundColor = backgroundColor;
 	}
 
 }

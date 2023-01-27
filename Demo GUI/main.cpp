@@ -59,7 +59,7 @@ public:
 			VERTICAL_LIST_LAYOUT_DEBUG,
 			UTF8_DEBUG,
 		};
-		DebugVariant debugVariant = DebugVariant::WINDOW_DEBUG;
+		DebugVariant debugVariant = DebugVariant::VERTICAL_LIST_LAYOUT_DEBUG;
 
 		switch (debugVariant)
 		{
@@ -336,7 +336,7 @@ public:
 			guiManager.registerElement(parentWindow);
 			parentWindow.setPosition({ 10, 10 });
 			parentWindow.setSize({ 1180, 680 });
-			SnackerEngine::VerticalListLayout verticalListLayout(10, SnackerEngine::AlignmentHorizontal::RIGHT, SnackerEngine::AlignmentVertical::CENTER);
+			SnackerEngine::VerticalListLayout verticalListLayout(10, false, SnackerEngine::AlignmentHorizontal::RIGHT, SnackerEngine::AlignmentVertical::CENTER);
 			parentWindow.registerChild(verticalListLayout);
 			{
 				SnackerEngine::GuiPanel panelTemplate;
