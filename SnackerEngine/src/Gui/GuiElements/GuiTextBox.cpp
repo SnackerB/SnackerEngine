@@ -222,32 +222,34 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::computeSizeHints()
 	{
-		Vec2i textSize(static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * Engine::getDPI().x * pointsToInches(1.0))),
-			static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * Engine::getDPI().y * pointsToInches(1.0))));
+		Vec2i textSize(static_cast<int>(std::ceil((text->getRight() - text->getLeft()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().x))),
+			static_cast<int>(std::ceil((text->getTop() - text->getBottom()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().y))));
+		textSize += 2 * border;
+		infoLogger << LOGGER::BEGIN << "textSize: " << textSize << " actual size: " << getSize() << LOGGER::ENDL;
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: minSize = textSize + 2 * border; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: minSize.x = textSize.x + 2 * border; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: minSize.y = textSize.y + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: minSize = textSize; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: minSize.x = textSize.x; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: minSize.y = textSize.y; break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModeMaxSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: maxSize = textSize + 2 * border; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: maxSize.x = textSize.x + 2 * border; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: maxSize.y = textSize.y + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: maxSize = textSize; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: maxSize.x = textSize.x; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: maxSize.y = textSize.y; break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModePreferredSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: preferredSize = textSize + 2 * border; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: preferredSize.x = textSize.x + 2 * border; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: preferredSize.y = textSize.y + 2 * border; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: preferredSize = textSize; break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: preferredSize.x = textSize.x; break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: preferredSize.y = textSize.y; break;
 		default:
 			break;
 		}

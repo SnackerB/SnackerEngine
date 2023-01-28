@@ -59,7 +59,7 @@ public:
 			VERTICAL_LIST_LAYOUT_DEBUG,
 			UTF8_DEBUG,
 		};
-		DebugVariant debugVariant = DebugVariant::VERTICAL_LIST_LAYOUT_DEBUG;
+		DebugVariant debugVariant = DebugVariant::WINDOW_DEBUG;
 
 		switch (debugVariant)
 		{
@@ -94,9 +94,9 @@ public:
 					editBox.setEventHandleTextWasEdited(helloEventHandle);
 					guiManager.moveElement<SnackerEngine::GuiEditTextBox>(std::move(editBox));
 
-					SnackerEngine::GuiDynamicTextBox textBox("Hello TexBox!", style);
-					verticalLayout.registerChild(textBox, 1.0);
-					guiManager.moveElement<SnackerEngine::GuiDynamicTextBox>(std::move(textBox));
+					//SnackerEngine::GuiDynamicTextBox textBox("Hello TexBox!", style);
+					//verticalLayout.registerChild(textBox, 1.0);
+					//guiManager.moveElement<SnackerEngine::GuiDynamicTextBox>(std::move(textBox));
 
 					SnackerEngine::GuiImage guiImage(style, style.defaultFont.getMsdfTexture());
 					verticalLayout.registerChild(guiImage, 1.0);
@@ -119,6 +119,10 @@ public:
 					SnackerEngine::VerticalScrollingListLayout listLayout(style);
 					VerticalLayout.registerChild(listLayout, 1.0);
 					{
+						//SnackerEngine::GuiButton button("AAA", style);
+						//listLayout.registerChild(button);
+						//guiManager.moveElement(std::move(button));
+
 						SnackerEngine::GuiPanel panel;
 						panel.setPreferredSize({ 200, 100 });
 						panel.setMinSize({ 100, 50 });

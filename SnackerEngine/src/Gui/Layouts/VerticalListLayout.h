@@ -14,7 +14,7 @@ namespace SnackerEngine
 	protected:
 		/// size of the border vertically between elements and to the edges, in pixels
 		unsigned border;
-		/// If this is set to true, the height of the layout snaps to the largest preferredHeight
+		/// If this is set to true, the width of the layout snaps to the largest preferredHeight
 		/// of its children
 		bool snapWidthToPreferred;
 		/// Horizontal and vertical alignment. Default: LEFT, TOP

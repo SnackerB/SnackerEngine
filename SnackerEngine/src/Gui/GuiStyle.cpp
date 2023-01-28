@@ -50,7 +50,7 @@ namespace SnackerEngine
 		result.guiEditVariableResizeMode = GuiElement::ResizeMode::RESIZE_RANGE;
 		result.guiEditVariableEditTextAlignment = StaticText::Alignment::CENTER;
 		/// GuiButton
-		result.guiButtonSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
+		result.guiButtonSize = 10000;// Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.5f), 0);
 		result.guiButtonTextColor = Color4f(1.0f);
 		result.guiButtonBackgroundColor = Color4f(0.5f, 0.5f, 0.7f, 1.0f);
 		result.guiButtonHoverColor = Color4f(result.guiButtonBackgroundColor.r * 0.9f, result.guiButtonBackgroundColor.g * 0.9f, result.guiButtonBackgroundColor.b * 0.9f, 1.0f);
