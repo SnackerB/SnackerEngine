@@ -15,19 +15,20 @@ namespace SnackerEngine
 		width -= 2 * border;
 		const auto& children = getChildren();
 		for (unsigned int i = 0; i < children.size(); ++i) {
-			int height = getPreferredSize(children[i]).y;
-			if (height == -1) height = getSize(children[i]).y;
-			height = std::max(std::min(height, getMaxSize(children[i]).y), getMinSize(children[i]).y);
+			int childHeight = getPreferredSize(children[i]).y;
+			if (childHeight == -1) childHeight = getSize(children[i]).y;
+			childHeight = guiManager->clipHeightToMinMaxHeight(childHeight, children[i]);
 			// Set position
 			setPositionWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))));
 			// Resize
-			int width = getPreferredSize(children[i]).x;
-			if (width == -1) width = getSize(children[i]).x;
-			width = std::max(std::min(width, getMaxSize(children[i]).x), getMinSize(children[i]).x);
+			// int childWidth = getPreferredSize(children[i]).x;
+			int childWidth = width;
+			if (childWidth == -1) childWidth = getSize(children[i]).x;
+			childWidth = guiManager->clipWidthToMinMaxWidth(childWidth, children[i]);
 			// Set position and size
-			setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))), Vec2i(width, height));
+			setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))), Vec2i(childWidth, childHeight));
 			// Advance to next element
-			currentYOffset += height + border;
+			currentYOffset += childHeight + border;
 			// Enforce layout of child element
 			enforceLayoutOnElement(children[i]);
 		}
@@ -80,7 +81,7 @@ namespace SnackerEngine
 			offsetPercentage = currentVerticalOffset / currentVerticalSize;
 			// Compute model matrices
 			float scrollBarX = size.x - scrollBarOffsetRight - scrollBarWidth;
-			modelMatrixScrollBarBackground = Mat4f::TranslateAndScale(Vec3f(scrollBarX, -size.y + border + scrollBarOffsetBottom, 0.0f), Vec3f(scrollBarWidth, scrollBarBackgroundHeight, 0.0f));
+			modelMatrixScrollBarBackground = Mat4f::TranslateAndScale(Vec3f(scrollBarX, -size.y + static_cast<int>(border) + static_cast<int>(scrollBarOffsetBottom), 0.0f), Vec3f(scrollBarWidth, scrollBarBackgroundHeight, 0.0f));
 			modelMatrixScrollBar = Mat4f::TranslateAndScale(Vec3f(scrollBarX, -static_cast<float>(border) - scrollBarOffsetTop + scrollBarBackgroundHeight * (offsetPercentage - visiblePercentage), 0.0f), Vec3f(scrollBarWidth, scrollBarBackgroundHeight * visiblePercentage, 0.0f));
 		}
 		else {
@@ -203,9 +204,9 @@ namespace SnackerEngine
 		mouseOffsetFromScrollBar(0.0f), firstVisibleElement(0), lastVisibleElement(0) {}
 
 	VerticalScrollingListLayout::VerticalScrollingListLayout(const GuiStyle& style)
-		: VerticalScrollingListLayout(style.listLayoutVerticalOffset, AlignmentHorizontal::LEFT,
-			AlignmentVertical::TOP, style.listLayoutScrollSpeed,
-			style.listLayoutScrollBarBackgroundColor, style.listLayoutScrollBarColor, style.listLayoutScrollBarWidth,
-			style.listLayoutScrollBarOffsetTop, style.listLayoutScrollBarOffsetBottom, style.listLayoutScrollBarOffsetRight) {}
+		: VerticalScrollingListLayout(style.verticalScrollingListLayoutVerticalOffset, AlignmentHorizontal::LEFT,
+			AlignmentVertical::TOP, style.verticalScrollingListLayoutScrollSpeed,
+			style.verticalScrollingListLayoutScrollBarBackgroundColor, style.verticalScrollingListLayoutScrollBarColor, style.verticalScrollingListLayoutScrollBarWidth,
+			style.verticalScrollingListLayoutScrollBarOffsetTop, style.verticalScrollingListLayoutScrollBarOffsetBottom, style.verticalScrollingListLayoutScrollBarOffsetRight) {}
 
 }

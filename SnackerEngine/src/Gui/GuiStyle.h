@@ -8,8 +8,6 @@
 #include "Gui/GuiElements/GuiButton.h"
 #include "Gui/GuiElements/GuiImage.h"
 
-#include "Gui/Layouts/ListLayout.h"
-
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
@@ -31,6 +29,7 @@ namespace SnackerEngine
 		GuiDynamicTextBox::TextScaleMode guiTextBoxTextScaleMode{};
 		GuiDynamicTextBox::SizeHintModes guiTextBoxSizeHintModes{};
 		int guiTextBoxBorder{};
+		bool guiTextBoxDoRecomputeOnSizeChange{};
 		GuiElement::ResizeMode guiTextBoxResizeMode{};
 		/// GuiTextVariable
 		Vec2i guiTextVariableSize{};
@@ -67,22 +66,22 @@ namespace SnackerEngine
 		GuiButton::TextScaleMode guiButtonTextScaleMode{};
 		GuiButton::SizeHintModes guiButtonSizeHintModes{};
 		int guiButtonBorder{};
+		bool guiButtonDoRecomputeOnSizeChange{};
 		/// GuiWindow
 		Vec2i guiWindowSize{};
 		Color3f guiWindowBackgroundColor{};
 		Color3f guiWindowResizeButtonColor{};
 		double guiWindowResizeButtonSize{};
-		/// ListLayout
-		float listLayoutVerticalOffset{};
-		float listLayoutLeftBorder{};
-		float listLayoutScrollSpeed{};
-		Color3f listLayoutScrollBarBackgroundColor{};
-		Color3f listLayoutScrollBarColor{};
-		float listLayoutScrollBarWidth{};
-		float listLayoutScrollBarOffsetTop{};
-		float listLayoutScrollBarOffsetBottom{};
-		float listLayoutScrollBarOffsetRight{};
-		ListLayout::ListLayoutResizeMode listLayoutResizeMode{};
+		/// VerticalScrollingListLayout
+		float verticalScrollingListLayoutVerticalOffset{};
+		float verticalScrollingListLayoutLeftBorder{};
+		float verticalScrollingListLayoutScrollSpeed{};
+		Color3f verticalScrollingListLayoutScrollBarBackgroundColor{};
+		Color3f verticalScrollingListLayoutScrollBarColor{};
+		float verticalScrollingListLayoutScrollBarWidth{};
+		float verticalScrollingListLayoutScrollBarOffsetTop{};
+		float verticalScrollingListLayoutScrollBarOffsetBottom{};
+		float verticalScrollingListLayoutScrollBarOffsetRight{};
 		/// Slider
 		Vec2i guiSliderSize{}; 
 		GuiElement::ResizeMode guiSliderResizeMode{};

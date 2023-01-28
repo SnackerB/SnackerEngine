@@ -214,7 +214,6 @@
     <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
     <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\HorizontalListLayout.h" />
-    <ClInclude Include="src\Gui\Layouts\ListLayout.h" />
     <ClInclude Include="src\Gui\GuiStyle.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalListLayout.h" />
@@ -281,7 +280,6 @@
     <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\HorizontalListLayout.cpp" />
-    <ClCompile Include="src\Gui\Layouts\ListLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalListLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalScrollingListLayout.cpp" />

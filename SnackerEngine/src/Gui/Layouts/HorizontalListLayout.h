@@ -42,8 +42,6 @@ namespace SnackerEngine
 	public:
 		/// Constructor
 		HorizontalListLayout(const unsigned& border = 0, const bool& snapHeightToPreferred = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
-		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
-		bool registerChild(GuiElement& guiElement) override;
 		// Copy constructor and assignment operator
 		HorizontalListLayout(const HorizontalListLayout& other) noexcept;
 		HorizontalListLayout& operator=(const HorizontalListLayout& other) noexcept;

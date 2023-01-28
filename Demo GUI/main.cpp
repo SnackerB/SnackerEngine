@@ -87,12 +87,12 @@ public:
 					verticalLayout.registerChild(tempPanel, 1.0);
 					guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
 
-					SnackerEngine::GuiEditTextBox editBox("Edit me!", style);
-					editBox.setTextParseMode(SnackerEngine::StaticText::ParseMode::WORD_BY_WORD);
-					editBox.setTextScaleMode(SnackerEngine::GuiDynamicTextBox::TextScaleMode::RECOMPUTE_DOWN);
-					verticalLayout.registerChild(editBox, 1.0);
-					editBox.setEventHandleTextWasEdited(helloEventHandle);
-					guiManager.moveElement<SnackerEngine::GuiEditTextBox>(std::move(editBox));
+					//SnackerEngine::GuiEditTextBox editBox("Edit me!", style);
+					//editBox.setTextParseMode(SnackerEngine::StaticText::ParseMode::WORD_BY_WORD);
+					//editBox.setTextScaleMode(SnackerEngine::GuiDynamicTextBox::TextScaleMode::RECOMPUTE_DOWN);
+					//verticalLayout.registerChild(editBox, 1.0);
+					//editBox.setEventHandleTextWasEdited(helloEventHandle);
+					//guiManager.moveElement<SnackerEngine::GuiEditTextBox>(std::move(editBox));
 
 					//SnackerEngine::GuiDynamicTextBox textBox("Hello TexBox!", style);
 					//verticalLayout.registerChild(textBox, 1.0);
@@ -119,25 +119,11 @@ public:
 					SnackerEngine::VerticalScrollingListLayout listLayout(style);
 					VerticalLayout.registerChild(listLayout, 1.0);
 					{
-						//SnackerEngine::GuiButton button("AAA", style);
-						//listLayout.registerChild(button);
-						//guiManager.moveElement(std::move(button));
+						SnackerEngine::GuiButton button("Test Button :)", style);
+						button.setDoRecomputeOnSizeChange(true);
+						listLayout.registerChild(button);
+						guiManager.moveElement(std::move(button));
 
-						SnackerEngine::GuiPanel panel;
-						panel.setPreferredSize({ 200, 100 });
-						panel.setMinSize({ 100, 50 });
-						panel.setMaxSize({ 200, 150 });
-						listLayout.registerChild(panel);
-						guiManager.moveElement(std::move(panel));
-
-						panel = SnackerEngine::GuiPanel();
-						panel.setPreferredSize({ 200, 100 });
-						panel.setMinSize({ 100, 50 });
-						panel.setMaxSize({ 200, 150 });
-						listLayout.registerChild(panel);
-						guiManager.moveElement(std::move(panel));
-						/*
-						// List layout
 						SnackerEngine::GuiTextVariable<int> textVariable("test int: ", intHandle, style);
 						listLayout.registerChild(textVariable);
 						guiManager.moveElement<SnackerEngine::GuiTextVariable<int>>(std::move(textVariable));
@@ -146,10 +132,6 @@ public:
 						editVariable.setVariableHandle(intHandle);
 						listLayout.registerChild(editVariable);
 						guiManager.moveElement<SnackerEngine::GuiEditVariable<int>>(std::move(editVariable));
-
-						SnackerEngine::GuiButton button("test Button", style);
-						listLayout.registerChild(button);
-						guiManager.moveElement<SnackerEngine::GuiButton>(std::move(button));
 
 						SnackerEngine::GuiSlider<float> floatSlider("float slider: ", -1.5f, 7.3f, style);
 						floatSlider.setVariableHandle(floatSliderHandle);
@@ -170,7 +152,6 @@ public:
 						doubleSlider2.setVariableHandle(doubleSliderHandle);
 						listLayout.registerChild(doubleSlider2);
 						guiManager.moveElement<SnackerEngine::GuiSlider<double>>(std::move(doubleSlider2));
-						*/
 					}
 					guiManager.moveElement(std::move(listLayout));
 				}

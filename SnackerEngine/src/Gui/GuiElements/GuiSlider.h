@@ -91,13 +91,15 @@ namespace SnackerEngine
 			const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 0.0f }, const Color4f& labelBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const Color4f& sliderBoxTextColor = { 1.0f, 1.0f, 1.0f, 0.0f }, const Color4f& SliderBoxBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f },
-			const Color4f& sliderButtonColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const double& sliderButtonWidth = 5.0);
+			const Color4f& sliderButtonColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const double& sliderButtonWidth = 5.0,
+			const int& border = 0);
 		/// Constructor that already registers variable handle
 		GuiSlider(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
 			const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 0.0f }, const Color4f& labelBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const Color4f& sliderBoxTextColor = { 1.0f, 1.0f, 1.0f, 0.0f }, const Color4f& SliderBoxBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f },
-			const Color4f& sliderButtonColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const double& sliderButtonWidth = 5.0);
+			const Color4f& sliderButtonColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const double& sliderButtonWidth = 5.0,
+			const int& border = 0);
 		/// Sets the event handle. Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
 		void setVariableHandle(GuiVariableHandle<T>& variableHandle);
@@ -288,21 +290,23 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiSlider<T>::GuiSlider(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& labelBackgroundColor, const Color4f& sliderBoxTextColor, const Color4f& SliderBoxBackgroundColor, const Color4f& sliderButtonColor, const double& sliderButtonWidth)
+	inline GuiSlider<T>::GuiSlider(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& labelBackgroundColor, const Color4f& sliderBoxTextColor, const Color4f& SliderBoxBackgroundColor, const Color4f& sliderButtonColor, const double& sliderButtonWidth, const int& border)
 		: GuiElement(position, size, resizeMode), variableHandle(nullptr), 
-		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::LEFT, 0, GuiDynamicTextBox::TextScaleMode::DONT_SCALE, GuiDynamicTextBox::SizeHintMode(GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_SIZE))),
-		variableBox(std::make_unique<GuiDynamicTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, toText(minValue), font, fontSize, sliderBoxTextColor, SliderBoxBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::CENTER)),
+		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::LEFT, border, GuiDynamicTextBox::TextScaleMode::DONT_SCALE, GuiDynamicTextBox::SizeHintMode(GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_SIZE), false)),
+		variableBox(std::make_unique<GuiDynamicTextBox>(Vec2i(this->label->getMinSize().x, 0), Vec2i(this->label->getMinSize().x < size.x ? size.x - this->label->getMinSize().x : 0, this->label->getMinSize().y), ResizeMode::DO_NOT_RESIZE, toText(minValue), font, fontSize, sliderBoxTextColor, SliderBoxBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::CENTER, border, GuiDynamicTextBox::TextScaleMode::DONT_SCALE, GuiDynamicTextBox::SizeHintMode(GuiDynamicTextBox::SizeHintMode::ARBITRARY), false)),
 		sliderButtonOffsetX(0), sliderButtonWidth(sliderButtonWidth), sliderButtonColor(sliderButtonColor), 
 		sliderButtonShader(Shader("shaders/gui/simpleTransparentColor.shader")), sliderButtonModelMatrix{}, minValue(minValue), maxValue(maxValue),
 		mouseOffset(0)
 	{
-		setSizeInternal(Vec2i(size.x, this->label->getHeight()));
+		this->label->setSize(this->label->getMinSize());
+		setSizeInternal(Vec2i(size.x, this->label->getMinSize().y));
+		minSize = this->label->getMinSize();
 		computeSliderButtonModelMatrix();
 	}
 
 	template<typename T>
-	inline GuiSlider<T>::GuiSlider(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& labelBackgroundColor, const Color4f& sliderBoxTextColor, const Color4f& SliderBoxBackgroundColor, const Color4f& sliderButtonColor, const double& sliderButtonWidth)
-		: GuiSlider<T>(position, size, resizeMode, label, minValue, maxValue, font, fontSize, labelTextColor, labelBackgroundColor, sliderBoxTextColor, SliderBoxBackgroundColor, sliderButtonColor, sliderButtonWidth)
+	inline GuiSlider<T>::GuiSlider(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const T& minValue, const T& maxValue, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& labelBackgroundColor, const Color4f& sliderBoxTextColor, const Color4f& SliderBoxBackgroundColor, const Color4f& sliderButtonColor, const double& sliderButtonWidth, const int& border)
+		: GuiSlider<T>(position, size, resizeMode, label, minValue, maxValue, font, fontSize, labelTextColor, labelBackgroundColor, sliderBoxTextColor, SliderBoxBackgroundColor, sliderButtonColor, sliderButtonWidth, border)
 	{
 		setVariableHandle(handle);
 	}
@@ -319,11 +323,11 @@ namespace SnackerEngine
 
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const std::string& label, const T& minValue, const T& maxValue, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiSlider(handle, Vec2i(), style.guiSliderSize, style.guiSliderResizeMode, label, minValue, maxValue, style.defaultFont, style.fontSizeNormal, style.guiSliderLabelTextColor, style.guiSliderLabelBackgroundColor, style.guiSliderVariableBoxTextColor, style.guiSliderVariableBoxBackgroundColor, style.guiSliderButtonColor, style.guiSliderButtonWidth) {}
+		: GuiSlider(handle, Vec2i(), style.guiSliderSize, style.guiSliderResizeMode, label, minValue, maxValue, style.defaultFont, style.fontSizeNormal, style.guiSliderLabelTextColor, style.guiSliderLabelBackgroundColor, style.guiSliderVariableBoxTextColor, style.guiSliderVariableBoxBackgroundColor, style.guiSliderButtonColor, style.guiSliderButtonWidth, style.guiTextBoxBorder) {}
 
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const std::string& label, const T& minValue, const T& maxValue, const GuiStyle& style)
-		: GuiSlider(Vec2i(), style.guiSliderSize, style.guiSliderResizeMode, label, minValue, maxValue, style.defaultFont, style.fontSizeNormal, style.guiSliderLabelTextColor, style.guiSliderLabelBackgroundColor, style.guiSliderVariableBoxTextColor, style.guiSliderVariableBoxBackgroundColor, style.guiSliderButtonColor, style.guiSliderButtonWidth) {}
+		: GuiSlider(Vec2i(), style.guiSliderSize, style.guiSliderResizeMode, label, minValue, maxValue, style.defaultFont, style.fontSizeNormal, style.guiSliderLabelTextColor, style.guiSliderLabelBackgroundColor, style.guiSliderVariableBoxTextColor, style.guiSliderVariableBoxBackgroundColor, style.guiSliderButtonColor, style.guiSliderButtonWidth, style.guiTextBoxBorder) {}
 
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const GuiSlider<T>& other) noexcept

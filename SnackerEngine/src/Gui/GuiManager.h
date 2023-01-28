@@ -164,6 +164,10 @@ namespace SnackerEngine
 		Model getModelSquare();
 		/// Returns a model of a triangle, with positions and texture coordinates
 		Model getModelTriangle();
+		/// Takes a size and a guiElement and clips the size according to minSize and maxSize of the guiElement
+		Vec2i clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement);
+		int clipWidthToMinMaxWidth(const int& width, const GuiID& guiElement);
+		int clipHeightToMinMaxHeight(const int& height, const GuiID& guiElement);
 
 		//==============================================================================================
 		// Callback functions

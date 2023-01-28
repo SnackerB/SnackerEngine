@@ -25,8 +25,9 @@ namespace SnackerEngine
 		result.guiTextBoxAlignment = StaticText::Alignment::LEFT;
 		result.guiTextBoxTextScaleMode = GuiDynamicTextBox::TextScaleMode::DONT_SCALE;
 		result.guiTextBoxSizeHintModes = { GuiDynamicTextBox::SizeHintMode::ARBITRARY, GuiDynamicTextBox::SizeHintMode::ARBITRARY , GuiDynamicTextBox::SizeHintMode::ARBITRARY };
-		result.guiTextBoxBorder = 10;
+		result.guiTextBoxBorder = 3;
 		result.guiTextBoxResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
+		result.guiButtonDoRecomputeOnSizeChange = true;
 		/// GuiTextVariable
 		result.guiTextVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiTextVariableTextColor = result.guiTextBoxTextColor;
@@ -35,7 +36,7 @@ namespace SnackerEngine
 		result.guiTextVariableAlignment = StaticText::Alignment::LEFT;
 		result.guiTextVariableTextScaleMode = GuiDynamicTextBox::TextScaleMode::DONT_SCALE;
 		result.guiTextVariableSizeHintModes = { GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT, GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT , GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT };
-		result.guiTextVariableBorder = 10;
+		result.guiTextVariableBorder = 3;
 		result.guiTextVariableResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
 		/// GuiEditTextBox
 		result.guiEditTextBoxCursorWidth = 0.1; // TODO
@@ -44,13 +45,13 @@ namespace SnackerEngine
 		result.guiEditTextBoxSelectionBoxColor = Color4f(0.0f, 1.0f, 0.0f, 1.0f);
 		result.guiEditTextBoxTextScaleMode = GuiEditTextBox::TextScaleMode::RECOMPUTE_DOWN;
 		result.guiEditTextBoxSizeHintModes = {GuiEditTextBox::SizeHintMode::ARBITRARY, GuiEditTextBox::SizeHintMode::ARBITRARY , GuiEditTextBox::SizeHintMode::ARBITRARY };
-		result.guiEditTextBoxBorder = 10;
+		result.guiEditTextBoxBorder = 3;
 		/// GuiEditVariable
 		result.guiEditVariableSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiEditVariableResizeMode = GuiElement::ResizeMode::RESIZE_RANGE;
 		result.guiEditVariableEditTextAlignment = StaticText::Alignment::CENTER;
 		/// GuiButton
-		result.guiButtonSize = 10000;// Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.5f), 0);
+		result.guiButtonSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.1f), 0);
 		result.guiButtonTextColor = Color4f(1.0f);
 		result.guiButtonBackgroundColor = Color4f(0.5f, 0.5f, 0.7f, 1.0f);
 		result.guiButtonHoverColor = Color4f(result.guiButtonBackgroundColor.r * 0.9f, result.guiButtonBackgroundColor.g * 0.9f, result.guiButtonBackgroundColor.b * 0.9f, 1.0f);
@@ -61,23 +62,23 @@ namespace SnackerEngine
 		result.guiButtonResizeMode = GuiButton::ResizeMode::RESIZE_RANGE;
 		result.guiButtonTextScaleMode = GuiButton::TextScaleMode::DONT_SCALE;
 		result.guiButtonSizeHintModes = {GuiButton::SizeHintMode::SET_TO_TEXT_SIZE, GuiButton::SizeHintMode::SET_TO_TEXT_HEIGHT, GuiButton::SizeHintMode::SET_TO_TEXT_SIZE};
-		result.guiButtonBorder = 10;
+		result.guiButtonBorder = 3;
+		result.guiButtonDoRecomputeOnSizeChange = false;
 		/// GuiWindow
 		result.guiWindowSize = Vec2i(800, 900);
 		result.guiWindowBackgroundColor = Color3f(0.2f, 0.2f, 0.2f);
 		result.guiWindowResizeButtonColor = Color3f::fromColor256(Color3<unsigned char>(23, 70, 162));
 		result.guiWindowResizeButtonSize = screenDims.y * 0.04;
-		/// ListLayout
-		result.listLayoutVerticalOffset = 10.0f;
-		result.listLayoutLeftBorder = 10.0f;
-		result.listLayoutScrollSpeed = 20.0f;
-		result.listLayoutScrollBarBackgroundColor = Color3f(0.07f);
-		result.listLayoutScrollBarColor = result.guiWindowResizeButtonColor;
-		result.listLayoutScrollBarWidth = 25.0f;
-		result.listLayoutScrollBarOffsetTop = 0.0f;
-		result.listLayoutScrollBarOffsetBottom = 20.0f;
-		result.listLayoutScrollBarOffsetRight = 20.0f;
-		result.listLayoutResizeMode = ListLayout::ListLayoutResizeMode::RESIZE_WIDTH_IF_POSSIBLE;
+		/// ScrollingListLayout
+		result.verticalScrollingListLayoutVerticalOffset = 10.0f;
+		result.verticalScrollingListLayoutLeftBorder = 5.0f;
+		result.verticalScrollingListLayoutScrollSpeed = 20.0f;
+		result.verticalScrollingListLayoutScrollBarBackgroundColor = Color3f(0.07f);
+		result.verticalScrollingListLayoutScrollBarColor = result.guiWindowResizeButtonColor;
+		result.verticalScrollingListLayoutScrollBarWidth = 25.0f;
+		result.verticalScrollingListLayoutScrollBarOffsetTop = 0.0f;
+		result.verticalScrollingListLayoutScrollBarOffsetBottom = 20.0f;
+		result.verticalScrollingListLayoutScrollBarOffsetRight = 20.0f;
 		/// Slider
 		result.guiSliderSize = Vec2i(static_cast<int>(static_cast<float>(screenDims.x) * 0.25f), 0);
 		result.guiSliderResizeMode = GuiElement::ResizeMode::RESIZE_RANGE;

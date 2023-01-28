@@ -84,15 +84,17 @@ namespace SnackerEngine
 			const std::string& label = "", const Font& font = Font(), const double& fontSize = 0,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& editTextColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const Color4f& editTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
-			 const Color4f& editTextSelectionBoxColor = { 0.0f, 0.0f, 1.0f, 1.0f },
-			const StaticText::Alignment& editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0);
+			const Color4f& editTextSelectionBoxColor = { 0.0f, 0.0f, 1.0f, 1.0f },
+			const StaticText::Alignment& editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0,
+			const int& border = 0);
 		/// Constructor that already registers variable handle
 		GuiEditVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
 			const std::string& label, const Font& font, const double& fontSize,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& editTextColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f }, const Color4f& editTextBackgroundColor = = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const Color4f& editTextSelectionBoxColor = { 0.0f, 0.0f, 1.0f, 1.0f },
-			const StaticText::Alignment & editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0);
+			const StaticText::Alignment & editTextAlignment = StaticText::Alignment::LEFT, const double& cursorWidth = 0.0,
+			const int& border = 0);
 		/// Constructors using GuiStyle
 		GuiEditVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style);
 		GuiEditVariable(const std::string& label, const GuiStyle& style);
@@ -131,9 +133,10 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiEditVariable<T>::onSizeChange()
 	{
-		int editBoxWidth = getWidth() - label->getWidth();
+		int editBoxWidth = getWidth() - label->getMinSize().x;
 		if (editBoxWidth < 0) editBoxWidth = 0;
-		editBox->setPositionAndSize(Vec2i(label->getWidth(), 0), Vec2i(editBoxWidth, label->getHeight()));
+		editBox->setPositionAndSize(Vec2i(label->getMinSize().x, 0), Vec2i(editBoxWidth, label->getMinSize().y));
+		minSize = label->getMinSize();
 	}
 
 	template<typename T>
@@ -183,38 +186,38 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const Color4f& editTextSelectionBoxColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth)
+	inline GuiEditVariable<T>::GuiEditVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const Color4f& editTextSelectionBoxColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth, const int& border)
 		: GuiElement(position, size, resizeMode),
-		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelTextBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::LEFT, 0, GuiEditTextBox::TextScaleMode::DONT_SCALE, GuiEditTextBox::SizeHintModes(GuiEditTextBox::SizeHintMode::SET_TO_TEXT_WIDTH))),
-		editBox(std::make_unique<GuiEditTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, "", font, fontSize, cursorWidth, editTextColor, editTextBackgroundColor, editTextSelectionBoxColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::CENTER, 0, GuiEditTextBox::TextScaleMode::DONT_SCALE, GuiEditTextBox::SizeHintModes(GuiEditTextBox::SizeHintMode::ARBITRARY))),
+		label(std::make_unique<GuiDynamicTextBox>(Vec2i(0, 0), size, ResizeMode::DO_NOT_RESIZE, label, font, fontSize, labelTextColor, labelTextBackgroundColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::LEFT, border, GuiEditTextBox::TextScaleMode::DONT_SCALE, GuiEditTextBox::SizeHintModes(GuiEditTextBox::SizeHintMode::SET_TO_TEXT_SIZE), false)),
+		editBox(std::make_unique<GuiEditTextBox>(Vec2i(this->label->getWidth(), 0), Vec2i(this->label->getWidth() < size.x ? size.x - this->label->getWidth() : 0, this->label->getHeight()), ResizeMode::DO_NOT_RESIZE, "", font, fontSize, cursorWidth, editTextColor, editTextBackgroundColor, editTextSelectionBoxColor, StaticText::ParseMode::SINGLE_LINE, StaticText::Alignment::CENTER, border, GuiEditTextBox::TextScaleMode::DONT_SCALE, GuiEditTextBox::SizeHintModes(GuiEditTextBox::SizeHintMode::ARBITRARY), false)),
 		variableHandle(nullptr), editTextEventHandle(*this)
 	{
-		setSizeInternal(Vec2i(size.x, this->label->getHeight()));
 		editBox->setEventHandleTextWasEdited(editTextEventHandle);
+		onSizeChange();
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const Color4f& editTextSelectionBoxColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth)
-		: GuiEditVariable<T>(position, size, resizeMode, label, font, fontSize, labelTextColor, editTextColor, labelTextBackgroundColor, editTextBackgroundColor, editTextSelectionBoxColor, editTextAlignment, cursorWidth)
+	inline GuiEditVariable<T>::GuiEditVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& editTextColor, const Color4f& labelTextBackgroundColor, const Color4f& editTextBackgroundColor, const Color4f& editTextSelectionBoxColor, const StaticText::Alignment& editTextAlignment, const double& cursorWidth, const int& border)
+		: GuiEditVariable<T>(position, size, resizeMode, label, font, fontSize, labelTextColor, editTextColor, labelTextBackgroundColor, editTextBackgroundColor, editTextSelectionBoxColor, editTextAlignment, cursorWidth, border)
 	{
 		setVariableHandle(handle);
 	}
 
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiEditVariable<T>(handle, Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
+		: GuiEditVariable<T>(handle, Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth, style.guiTextBoxBorder) {}
 
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, const GuiStyle& style)
-		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
+		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, style.fontSizeNormal, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth, style.guiTextBoxBorder) {}
 
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, const double& fontSize, GuiVariableHandle<T>& handle, const GuiStyle& style)
-		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
+		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth, style.guiTextBoxBorder) {}
 
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(const std::string& label, const double& fontSize, const GuiStyle& style)
-		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth) {}
+		: GuiEditVariable<T>(Vec2i(), style.guiEditVariableSize, style.guiEditVariableResizeMode, label, style.defaultFont, fontSize, style.guiTextVariableTextColor, style.guiTextVariableTextColor, style.guiTextVariableBackgroundColor, style.guiEditTextBoxBackgroundColor, style.guiEditTextBoxSelectionBoxColor, style.guiEditVariableEditTextAlignment, style.guiEditTextBoxCursorWidth, style.guiTextBoxBorder) {}
 
 	template<typename T>
 	inline void GuiEditVariable<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)

@@ -76,7 +76,7 @@ namespace SnackerEngine
 			alteredClippingBox.w = std::max(0, std::min(alteredClippingBox.w, previousClippingBox.y + previousClippingBox.w - alteredClippingBox.y));
 		}
 		clippingBoxStack.push_back(alteredClippingBox); 
-		Renderer::enableScissorTest(alteredClippingBox);
+		//Renderer::enableScissorTest(alteredClippingBox);
 	}
 
 	void GuiManager::popClippingBox()
@@ -84,7 +84,7 @@ namespace SnackerEngine
 		if (!clippingBoxStack.empty()) {
 			clippingBoxStack.pop_back();
 			if (!clippingBoxStack.empty()) {
-				Renderer::enableScissorTest(clippingBoxStack.back());
+				//Renderer::enableScissorTest(clippingBoxStack.back());
 			}
 			else {
 				Renderer::disableScissorTest();
@@ -368,6 +368,42 @@ namespace SnackerEngine
 			return triangleModel;
 		triangleModel = Model(createMeshTriangle());
 		return triangleModel;
+	}
+
+	Vec2i GuiManager::clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement)
+	{
+		if (guiElement > registeredGuiElements.size() || !registeredGuiElements[guiElement]) return Vec2i();
+		GuiElement& element = *registeredGuiElements[guiElement];
+		Vec2i maxSize = element.getMaxSize();
+		Vec2i minSize = element.getMinSize();
+		Vec2i result = size;
+		if (maxSize.x != -1) result.x = std::min(result.x, maxSize.x);
+		if (maxSize.y != -1) result.y = std::min(result.y, maxSize.y);
+		result.x = std::max(result.x, minSize.x);
+		result.y = std::max(result.y, minSize.y);
+		return result;
+	}
+
+	int GuiManager::clipWidthToMinMaxWidth(const int& width, const GuiID& guiElement)
+	{
+		if (guiElement > registeredGuiElements.size() || !registeredGuiElements[guiElement]) return 0;
+		GuiElement& element = *registeredGuiElements[guiElement];
+		int maxWidth = element.getMaxSize().x;
+		if (maxWidth == -1)
+			return std::max(width, element.getMinSize().x);
+		else
+			return std::max(std::min(width, maxWidth), element.getMinSize().x);
+	}
+
+	int GuiManager::clipHeightToMinMaxHeight(const int& height, const GuiID& guiElement)
+	{
+		if (guiElement > registeredGuiElements.size() || !registeredGuiElements[guiElement]) return 0;
+		GuiElement& element = *registeredGuiElements[guiElement];
+		int maxHeight = element.getMaxSize().y;
+		if (maxHeight == -1)
+			return std::max(height, element.getMinSize().y);
+		else
+			return std::max(std::min(height, maxHeight), element.getMinSize().y);
 	}
 
 	void GuiManager::callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods)
