@@ -133,7 +133,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiEditVariable<T>::onSizeChange()
 	{
-		int editBoxWidth = getWidth() - label->getMinSize().x;
+		int editBoxWidth = label ? getWidth() - label->getMinSize().x : 0;
 		if (editBoxWidth < 0) editBoxWidth = 0;
 		editBox->setPositionAndSize(Vec2i(label->getMinSize().x, 0), Vec2i(editBoxWidth, label->getMinSize().y));
 		minSize = label->getMinSize();
