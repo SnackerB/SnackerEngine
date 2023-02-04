@@ -61,9 +61,12 @@ namespace SnackerEngine
 		/// Vector of child elements. Sorted in the order they will be drawn (but this can be
 		/// changed in derived elements by overwriting draw())
 		std::vector<GuiID> children;
-		/// Tells this GuiElement object that the guiManager was deleted
-		void signOff();
+		/// Tells this GuiElement object that the guiManager was deleted.
+		virtual void signOff();
 	protected:
+		/// Signs off a child element without notifying the parent. Useful if additional children belong to this Element
+		/// which are not listed in the children vector! (ie. GuiCheckBox, GuiEditVariable, etc.)
+		void signOffWithoutNotifyingParents(const GuiID& guiID);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// parentPosition:		position of the upper left corner of the parent element

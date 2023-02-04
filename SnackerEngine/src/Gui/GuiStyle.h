@@ -94,6 +94,15 @@ namespace SnackerEngine
 		/// GuiImage
 		Color4f guiImageBackgroundColor{};
 		GuiImage::GuiImageMode guiImageGuiImageMode{};
+		/// GuiCheckBox
+		Color4f checkBoxButtonDefaultColorTrue{};
+		Color4f checkBoxButtonHoverColorTrue{};
+		Color4f checkBoxButtonPressedColorTrue{};
+		Color4f checkBoxButtonPressedHoverColorTrue{};
+		Color4f checkBoxButtonDefaultColorFalse{};
+		Color4f checkBoxButtonHoverColorFalse{};
+		Color4f checkBoxButtonPressedColorFalse{};
+		Color4f checkBoxButtonPressedHoverColorFalse{};
 	};
 	//--------------------------------------------------------------------------------------------------
 	GuiStyle getDefaultStyle();

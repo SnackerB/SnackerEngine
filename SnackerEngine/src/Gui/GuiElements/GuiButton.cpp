@@ -130,7 +130,7 @@ namespace SnackerEngine
 		}
 	}
 
-	void GuiButton::setPressedCOlor(const Color4f& pressedColor)
+	void GuiButton::setPressedColor(const Color4f& pressedColor)
 	{
 		this->pressedColor = pressedColor;
 		if (isBeingHovered == false && isBeingPressed == true) {
@@ -140,7 +140,7 @@ namespace SnackerEngine
 
 	void GuiButton::setPressedHoverColor(const Color4f& pressedHoverColor)
 	{
-		this->pressedHoverColor;
+		this->pressedHoverColor = pressedHoverColor;
 		if (isBeingHovered == true && isBeingPressed == true) {
 			setBackgroundColor(this->pressedHoverColor);
 		}

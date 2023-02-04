@@ -10,6 +10,9 @@ namespace SnackerEngine
 		/// Friend declarations
 		friend class GuiManager;
 		friend class GuiElement;
+	protected:
+		/// Removes the given child from this GuiElement object
+		virtual void removeChild(GuiElement& guiElement) override;
 	public:
 		/// Default constructor
 		GuiLayout();

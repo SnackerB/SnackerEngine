@@ -74,7 +74,7 @@ namespace SnackerEngine
 		/// Setters
 		void setDefaultColor(const Color4f& defaultColor);
 		void setHoverColor(const Color4f& hoverColor);
-		void setPressedCOlor(const Color4f& pressedColor);
+		void setPressedColor(const Color4f& pressedColor);
 		void setPressedHoverColor(const Color4f& pressedHoverColor);
 		const Color4f& getDefaultColorColor() const { return defaultColor; }
 		const Color4f& getHoverColor() const { return hoverColor; }

@@ -92,7 +92,7 @@ namespace SnackerEngine
 		Vec2i lastSizeOnRecomputeText;
 		/// Computes the modelMatrix of the text and the background box.
 		/// Depending on the textBoxMode the text is scaled appropriately.
-		void computeModelMatrices();
+		virtual void computeModelMatrices();
 	protected:
 		/// Draws this GuiTextBox
 		virtual void draw(const Vec2i& parentPosition) override;

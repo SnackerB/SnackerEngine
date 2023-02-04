@@ -402,7 +402,9 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiSlider<T>::~GuiSlider()
 	{
+		if (label) signOffWithoutNotifyingParents(label->getGuiID());
 		label = nullptr;
+		if (variableBox) signOffWithoutNotifyingParents(variableBox->getGuiID());
 		variableBox = nullptr;
 		if (variableHandle) signOffHandle(*variableHandle);
 	}

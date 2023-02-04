@@ -3,6 +3,12 @@
 namespace SnackerEngine
 {
 
+	void GuiLayout::removeChild(GuiElement& guiElement)
+	{
+		GuiElement::removeChild(guiElement);
+		enforceLayout();
+	}
+	
 	GuiLayout::GuiLayout()
 		: GuiElement(Vec2i(), Vec2i(), ResizeMode::SAME_AS_PARENT) {}
 

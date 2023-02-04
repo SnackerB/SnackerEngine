@@ -144,7 +144,7 @@ namespace SnackerEngine
 	void GuiManager::signOff(const GuiID& guiElement)
 	{
 		if (guiElement <= 0) return;
-		if (guiElement > maxGuiElements)
+		if (guiElement > maxGuiElements || registeredGuiElements[guiElement] == nullptr)
 		{
 			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement that was not valid!" << LOGGER::ENDL;
 			return;

@@ -40,8 +40,8 @@ namespace SnackerEngine
 		};
 		/// The GuiCheckBoxToggleEventHandle of this GuiCheckBox
 		GuiCheckBoxToggleEventHandle toggleEventHandle;
-		/// Helper function that updates the button colors. Should be called when the boolHandle changes its value.
-		void determineState();
+			/// Helper function that updates the button colors. Should be called when the boolHandle changes its value.
+			void determineState();
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
@@ -83,19 +83,27 @@ namespace SnackerEngine
 			const std::string& label = "", const Font& font = Font(), const double& fontSize = 0,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const int& border = 0, 
-			const Color4f& CheckBoxButtonDefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& CheckBoxButtonHoverColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& CheckBoxButtonPressedColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& CheckBoxButtonPressedHoverColor = { 1.0f, 1.0f, 1.0f, 1.0f });
+			const Color4f& checkBoxButtonDefaultColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonHoverColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedHoverColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonDefaultColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonHoverColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedHoverColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f });
 		/// Constructor that already registers variable handle
 		GuiCheckBox(GuiVariableHandle<bool>& boolHandle, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE,
 			const std::string& label = "", const Font& font = Font(), const double& fontSize = 0,
 			const Color4f& labelTextColor = { 1.0f, 1.0f, 1.0f, 1.0f }, const Color4f& labelTextBackgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const int& border = 0,
-			const Color4f& CheckBoxButtonDefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& CheckBoxButtonHoverColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& CheckBoxButtonPressedColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-			const Color4f& CheckBoxButtonPressedHoverColor = { 1.0f, 1.0f, 1.0f, 1.0f });
+			const Color4f& checkBoxButtonDefaultColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonHoverColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedHoverColorTrue = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonDefaultColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonHoverColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f },
+			const Color4f& checkBoxButtonPressedHoverColorFalse = { 1.0f, 1.0f, 1.0f, 1.0f });
 		/// Constructors using GuiStyle
 		GuiCheckBox(const std::string& label, GuiVariableHandle<bool>& handle, const GuiStyle& style);
 		GuiCheckBox(const std::string& label, const GuiStyle& style);
@@ -103,7 +111,7 @@ namespace SnackerEngine
 		GuiCheckBox(const std::string& label, const double& fontSize, const GuiStyle& style);
 		/// Sets the event handle. Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
-		void setBoolHandle(GuiVariableHandle<bool>& variableHandle);
+		void setBoolHandle(GuiVariableHandle<bool>& boolHandle);
 		/// Copy constructor and assignment operator
 		GuiCheckBox(const GuiCheckBox& other) noexcept;
 		GuiCheckBox& operator=(const GuiCheckBox& other) noexcept;

@@ -26,7 +26,7 @@ namespace SnackerEngine
 		/// Overload for the assignment operator to set the value
 		void operator=(const T& value);
 		/// Returns a const reference to the stored value
-		const T& get();
+		const T& get() const;
 		/// Implicit conversion to const T& for ease of use
 		operator const T& ();
 	};
@@ -54,7 +54,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline const T& GuiVariableHandle<T>::get()
+	inline const T& GuiVariableHandle<T>::get() const
 	{
 		return val;
 	}

@@ -15,6 +15,11 @@ namespace SnackerEngine
 		guiManager = nullptr;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signOffWithoutNotifyingParents(const GuiID& guiID)
+	{
+		if (guiManager) guiManager->signOffWithoutNotifyingParent(guiID);
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::draw(const Vec2i& parentPosition)
 	{
 		if (!guiManager) return;

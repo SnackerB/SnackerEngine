@@ -280,7 +280,9 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiEditVariable<T>::~GuiEditVariable()
 	{
+		if (label) signOffWithoutNotifyingParents(label->getGuiID());
 		label = nullptr;
+		if (editBox) signOffWithoutNotifyingParents(editBox->getGuiID());
 		editBox = nullptr;
 		if (variableHandle) signOffHandle(*variableHandle);
 	}

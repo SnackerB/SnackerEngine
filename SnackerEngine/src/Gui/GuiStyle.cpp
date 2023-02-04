@@ -91,6 +91,15 @@ namespace SnackerEngine
 		/// GuiImage
 		result.guiImageBackgroundColor = Color4f(0.0f, 1.0f);
 		result.guiImageGuiImageMode = GuiImage::GuiImageMode::FIT_IMAGE_TO_SIZE;
+		/// GuiCheckBox
+		result.checkBoxButtonDefaultColorTrue = Color4f(0.0f, 1.0f, 0.0f, 1.0f);
+		result.checkBoxButtonHoverColorTrue = Color4f(result.checkBoxButtonDefaultColorTrue.r * 0.9, result.checkBoxButtonDefaultColorTrue.g * 0.9, result.checkBoxButtonDefaultColorTrue.b * 0.9, 1.0);
+		result.checkBoxButtonPressedColorTrue = Color4f(result.checkBoxButtonDefaultColorTrue.r * 0.8, result.checkBoxButtonDefaultColorTrue.g * 0.8, result.checkBoxButtonDefaultColorTrue.b * 0.8, 1.0);
+		result.checkBoxButtonPressedHoverColorTrue = Color4f(result.checkBoxButtonDefaultColorTrue.r * 0.7, result.checkBoxButtonDefaultColorTrue.g * 0.7, result.checkBoxButtonDefaultColorTrue.b * 0.7, 1.0);
+		result.checkBoxButtonDefaultColorFalse = Color4f(1.0f, 0.0f, 0.0f, 1.0f);
+		result.checkBoxButtonHoverColorFalse = Color4f(result.checkBoxButtonDefaultColorFalse.r * 0.9, result.checkBoxButtonDefaultColorFalse.g * 0.9, result.checkBoxButtonDefaultColorFalse.b * 0.9, 1.0);
+		result.checkBoxButtonPressedColorFalse = Color4f(result.checkBoxButtonDefaultColorFalse.r * 0.8, result.checkBoxButtonDefaultColorFalse.g * 0.8, result.checkBoxButtonDefaultColorFalse.b * 0.8, 1.0);
+		result.checkBoxButtonPressedHoverColorFalse = Color4f(result.checkBoxButtonDefaultColorFalse.r * 0.7, result.checkBoxButtonDefaultColorFalse.g * 0.7, result.checkBoxButtonDefaultColorFalse.b * 0.7, 1.0);
 		// Return the result
 		return result;
 	}
