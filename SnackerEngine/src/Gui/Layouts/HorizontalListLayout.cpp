@@ -146,13 +146,16 @@ namespace SnackerEngine
 
 	void HorizontalListLayout::draw(const Vec2i& parentPosition)
 	{
-		if (!guiManager || backgroundColor.alpha != 1.0f) return;
-		backgroundShader.bind();
-		guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
-		backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
-		backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
-		Renderer::draw(guiManager->getModelSquare());
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f)
+		{
+			backgroundShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
+			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
+			Renderer::draw(guiManager->getModelSquare());
+		}
 		pushClippingBox(parentPosition);
 		GuiElement::draw(parentPosition);
 		popClippingBox();
@@ -166,7 +169,7 @@ namespace SnackerEngine
 
 	HorizontalListLayout::HorizontalListLayout(const unsigned& border, const bool& snapHeightToPreferred, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
 		: border(border), snapHeightToPreferred(snapHeightToPreferred), alignmentHorizontal(alignmentHorizontal),
-		alignmentVertical(alignmentVertical), backgroundColor(0.0f),
+		alignmentVertical(alignmentVertical), backgroundColor(0.0f, 0.0f),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	HorizontalListLayout::HorizontalListLayout(const HorizontalListLayout& other) noexcept

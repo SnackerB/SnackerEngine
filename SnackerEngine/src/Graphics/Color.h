@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
@@ -17,7 +19,14 @@ namespace SnackerEngine
 		/// Converts from a color vector where each color is in [0, 255]
 		template<typename T2>
 		static Color3<T> fromColor256(Color3<T2> color256);
+		Color3<T> operator*(const T& scalar) const { return Color3<T>(r * scalar, g * scalar, b * scalar); }
 	};
+	//------------------------------------------------------------------------------------------------------
+	template<typename T>
+	std::ostream& operator<<(std::ostream& ostream, const Color3<T>& color)
+	{
+		return ostream << "(" << color.r << ", " << color.g << ", " << color.b << ")";
+	}
 	//------------------------------------------------------------------------------------------------------
 	/// RGBA color (A = alpha = opacity)
 	template<typename T>
@@ -39,6 +48,12 @@ namespace SnackerEngine
 		Color4(Color3<T> color)
 			: r(color.r), g(color.g), b(color.b), alpha(T(1)) {}
 	};
+	//------------------------------------------------------------------------------------------------------
+	template<typename T>
+	std::ostream& operator<<(std::ostream& ostream, const Color4<T>& color)
+	{
+		return ostream << "(" << color.r << ", " << color.g << ", " << color.b << ", " << color.alpha << ")";
+	}
 	//------------------------------------------------------------------------------------------------------
 	using Color3f = Color3<float>;
 	using Color4f = Color4<float>;

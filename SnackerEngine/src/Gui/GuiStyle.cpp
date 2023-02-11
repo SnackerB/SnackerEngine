@@ -57,6 +57,7 @@ namespace SnackerEngine
 		result.guiButtonHoverColor = Color4f(result.guiButtonBackgroundColor.r * 0.9f, result.guiButtonBackgroundColor.g * 0.9f, result.guiButtonBackgroundColor.b * 0.9f, 1.0f);
 		result.guiButtonPressedColor = Color4f(result.guiButtonBackgroundColor.r * 0.8f, result.guiButtonBackgroundColor.g * 0.8f, result.guiButtonBackgroundColor.b * 0.8f, 1.0f);
 		result.guiButtonPressedHoverColor = Color4f(result.guiButtonBackgroundColor.r * 0.7f, result.guiButtonBackgroundColor.g * 0.7f, result.guiButtonBackgroundColor.b * 0.7f, 1.0f);
+		result.guiButtonLockedColor = Color4f(0.5f, 0.5f, 0.5f, 1.0f);
 		result.guiButtonParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiButtonAlignment = StaticText::Alignment::CENTER;
 		result.guiButtonResizeMode = GuiButton::ResizeMode::RESIZE_RANGE;

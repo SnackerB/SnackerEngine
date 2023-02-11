@@ -119,7 +119,7 @@ namespace SnackerEngine
 		Vec2f computeTextPosition();
 		/// Helper function that computes the correct values for the size hint variables, ie.
 		/// minSize, maxSize and preferredSize
-		void computeSizeHints();
+		virtual void computeSizeHints();
 		/// Protected constructor that can be used to create a TextBox with differen types of GuiText, eg.
 		/// GuiDynamicText or GuiEditableText
 		GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, std::unique_ptr<DynamicText>&& text,
@@ -193,6 +193,8 @@ namespace SnackerEngine
 		/// The event that happens when the text was edited (isActive is set to true and enter
 		/// or escape is pressed or the user clicks outside the textBox)
 		GuiEventHandle* eventHandleTextWasEdited;
+		/// The event that happens when the isActive was set to true and enter is pressed
+		GuiEventHandle* eventHandleEnterWasPressed;
 		/// Computes the model matrix of the cursor
 		void computeModelMatrixCursor();
 		/// Computes the model matrices of the selection boxes
@@ -267,6 +269,10 @@ namespace SnackerEngine
 		/// outside the textBox). Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
 		void setEventHandleTextWasEdited(GuiEventHandle& eventHandle);
+		/// Sets the event handle for the event that happens when isActive was set to true and 
+		/// enter is pressed. Cannot be done if an event handle is already set, 
+		/// delete the previous event handle first!
+		void setEventHandleEnterWasPressed(GuiEventHandle& eventHandle);
 		/// Setters
 		void setCursorWidth(const float& cursorWidth);
 		void setCursorBlinkTime(const double& cursorBlinkTime);

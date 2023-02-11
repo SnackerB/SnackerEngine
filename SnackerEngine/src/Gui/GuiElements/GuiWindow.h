@@ -14,7 +14,7 @@ namespace SnackerEngine
 		/// The size of the resize button in pixels
 		double resizeButtonSize;
 		/// The color of the resize button
-		Color3f resizeButtonColor;
+		Color4f resizeButtonColor;
 		/// The model matrix of the resize button
 		Mat4f resizeButtonModelMatrix;
 		/// if this is set to true, the window is currently being moved
@@ -54,7 +54,7 @@ namespace SnackerEngine
 		virtual void callbackMouseMotion(const Vec2d& position) override;
 	public:
 		/// Constructor
-		GuiWindow(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Color3f& backgroundColor = Color3f(), const double& resizeButtonSize = 100, const Color3f& resizeButtonColor = Color3f(1.0f));
+		GuiWindow(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Color3f& backgroundColor = Color3f(), const double& resizeButtonSize = 100, const Color4f& resizeButtonColor = Color4f(1.0f));
 		/// Constructor using guiStyle
 		GuiWindow(const GuiStyle& style);
 		/// Copy constructor
@@ -69,9 +69,9 @@ namespace SnackerEngine
 		~GuiWindow();
 		/// Getters and Setters
 		const double& getResizeButtonSize() const;
-		const Color3f& getResizeButtonColor() const;
+		const Color4f& getResizeButtonColor() const;
 		void setResizeButtonSize(const double& resizeButtonSize);
-		void setResizeButtonColor(const Color3f& resizeButtonColor);
+		void setResizeButtonColor(const Color4f& resizeButtonColor);
 	};
 	//--------------------------------------------------------------------------------------------------
 }

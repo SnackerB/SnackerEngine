@@ -14,9 +14,11 @@ namespace SnackerEngine
 	protected:
 		/// size of the border vertically between elements and to the edges, in pixels
 		unsigned border;
-		/// If this is set to true, the width of the layout snaps to the largest preferredHeight
+		/// If this is set to true, the width of the layout snaps to the largest preferredWidth
 		/// of its children
 		bool snapWidthToPreferred;
+		/// If this is set to true, the layout tries to make every child the same width, if possible
+		bool makeChildrenSameWidth;
 		/// Horizontal and vertical alignment. Default: LEFT, TOP
 		AlignmentHorizontal alignmentHorizontal;
 		AlignmentVertical alignmentVertical;
@@ -40,9 +42,12 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
+		/// Helper function that computes the best common width of all children. 
+		/// Useful when makeChildrenSameWidth is set to true!
+		int computeBestCommonWidth();
 	public:
 		/// Constructor
-		VerticalListLayout(const unsigned& border = 0, const bool& snapWidthToPreferred = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
+		VerticalListLayout(const unsigned& border = 0, const bool& snapWidthToPreferred = false, const bool& makeChildrenSameWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
 		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
 		bool registerChild(GuiElement& guiElement) override;
 		// Copy constructor and assignment operator
@@ -54,6 +59,8 @@ namespace SnackerEngine
 		/// Getters & Setters
 		const bool& isSnapWidthToPreferred() const { return snapWidthToPreferred; };
 		void setSnapWidthToPreferred(const bool& snapWidthToPreferred);
+		const bool& isMakeChildrenSameWidth() const { return makeChildrenSameWidth; }
+		void setMakeChildrenSameWidth(const bool& makeChildrenSameWidth);
 		void setBackgroundColor(const Color4f& backgroundColor);
 	};
 

@@ -11,7 +11,7 @@ namespace SnackerEngine
 	class GuiPanel : public GuiElement
 	{
 	private:
-		Color3f backgroundColor;
+		Color4f backgroundColor;
 		Mat4f modelMatrix;
 		Shader shader;
 		/// Computes the modelMatrix
@@ -37,10 +37,10 @@ namespace SnackerEngine
 	public:
 		/// Constructor
 		GuiPanel(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(),
-			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, const Color3f& backgroundColor = Color3f());
+			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, const Color4f& backgroundColor = Color4f());
 		/// Setter and Getter for the background color
-		void setBackgroundColor(const Color3f& backgroundColor);
-		Color3f getBackgroundColor() const;
+		void setBackgroundColor(const Color4f& backgroundColor);
+		Color4f getBackgroundColor() const;
 		/// Copy constructor and assignment operator
 		GuiPanel(const GuiPanel& other) noexcept;
 		GuiPanel& operator=(const GuiPanel& other) noexcept;

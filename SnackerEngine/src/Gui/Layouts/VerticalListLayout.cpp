@@ -36,6 +36,8 @@ namespace SnackerEngine
 		else {
 			maxSnapWidth = getWidth() - static_cast<int>(2 * border);
 		}
+		int commonWidth = -1;
+		if (makeChildrenSameWidth) commonWidth = computeBestCommonWidth();
 		// Compute the position of the children. Save the largest width for alignment
 		int largestWidth = 0;
 		int currentY = border;
@@ -61,16 +63,24 @@ namespace SnackerEngine
 			}
 			// Compute width
 			int currentWidth = getPreferredSize(children[i]).x;
-			if (currentWidth == -1) {
-				if (getMaxSize(children[i]).x == -1) {
-					currentWidth = std::max(getMinSize(children[i]).x, getWidth() - static_cast<int>(2 * border));
-				}
-				else {
-					currentWidth = std::max(getMinSize(children[i]).x, std::min(getMaxSize(children[i]).x, getWidth() - static_cast<int>(2 * border)));
-				}
+			if (makeChildrenSameWidth && commonWidth != -1) {
+				currentWidth = commonWidth;
+				currentWidth = std::max(getMinSize(children[i]).x, currentWidth);
+				if (getMaxSize(children[i]).x != -1)
+					currentWidth = std::min(getMaxSize(children[i]).x, currentWidth);
 			}
 			else {
-				currentWidth = std::max(getMinSize(children[i]).x, std::min(currentWidth, getWidth() - static_cast<int>(2 * border)));
+				if (currentWidth == -1) {
+					if (getMaxSize(children[i]).x == -1) {
+						currentWidth = std::max(getMinSize(children[i]).x, getWidth() - static_cast<int>(2 * border));
+					}
+					else {
+						currentWidth = std::max(getMinSize(children[i]).x, std::min(getMaxSize(children[i]).x, getWidth() - static_cast<int>(2 * border)));
+					}
+				}
+				else {
+					currentWidth = std::max(getMinSize(children[i]).x, std::min(currentWidth, getWidth() - static_cast<int>(2 * border)));
+				}
 			}
 			Vec2i currentSize = Vec2i(currentWidth, currentHeight);
 			// save positions and sizes
@@ -146,13 +156,16 @@ namespace SnackerEngine
 
 	void VerticalListLayout::draw(const Vec2i& parentPosition)
 	{
-		if (!guiManager || backgroundColor.alpha != 1.0f) return;
-		backgroundShader.bind();
-		guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
-		backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
-		backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
-		Renderer::draw(guiManager->getModelSquare());
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f)
+		{
+			backgroundShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
+			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
+			Renderer::draw(guiManager->getModelSquare());
+		}
 		pushClippingBox(parentPosition);
 		GuiElement::draw(parentPosition);
 		popClippingBox();
@@ -164,9 +177,34 @@ namespace SnackerEngine
 		computeModelMatrix();
 	}
 
-	VerticalListLayout::VerticalListLayout(const unsigned& border, const bool& snapWidthToPreferred, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
-		: border(border), snapWidthToPreferred(snapWidthToPreferred), alignmentHorizontal(alignmentHorizontal), 
-		alignmentVertical(alignmentVertical), backgroundColor(0.0f),
+	int VerticalListLayout::computeBestCommonWidth()
+	{
+		int minWidth = 0;
+		int maxWidth = -1;
+		for (const auto& childID : getChildren())
+		{
+			const int& currentMinWidth = getMinSize(childID).x;
+			const int& currentMaxWidth = getMaxSize(childID).x;
+			if (minWidth < currentMinWidth) minWidth = currentMinWidth;
+			if (maxWidth == -1 || maxWidth > currentMaxWidth) maxWidth = currentMaxWidth;
+		}
+		// We don't have a good common width, so we just return the minWidth!
+		if (maxWidth != -1 && minWidth >= maxWidth) return minWidth;
+		// Pick a width that is the preferred width of one of the elements, if possible
+		for (const auto& childID : getChildren())
+		{
+			const int& currentPreferredWidth = getPreferredSize(childID).x;
+			if (currentPreferredWidth != -1 && minWidth <= currentPreferredWidth && (maxWidth == -1 || currentPreferredWidth <= maxWidth)) 
+				return std::max(minWidth, std::min(currentPreferredWidth, getWidth() - static_cast<int>(2 * border)));
+		}
+		// else just snap common width to layout width (as large as possible)!
+		if (maxWidth == -1) return std::max(minWidth, getWidth() - static_cast<int>(2 * border));
+		return std::max(minWidth, std::min(maxWidth, getWidth() - static_cast<int>(2 * border)));
+	}
+
+	VerticalListLayout::VerticalListLayout(const unsigned& border, const bool& snapWidthToPreferred, const bool& makeChildrenSameWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+		: border(border), snapWidthToPreferred(snapWidthToPreferred), makeChildrenSameWidth(makeChildrenSameWidth),
+		alignmentHorizontal(alignmentHorizontal), alignmentVertical(alignmentVertical), backgroundColor(0.0f, 0.0f),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	bool VerticalListLayout::registerChild(GuiElement& guiElement)
@@ -176,6 +214,7 @@ namespace SnackerEngine
 	
 	VerticalListLayout::VerticalListLayout(const VerticalListLayout& other) noexcept
 		: GuiLayout(other), border(other.border), snapWidthToPreferred(other.snapWidthToPreferred),
+		makeChildrenSameWidth(other.makeChildrenSameWidth),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
 		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
 		backgroundShader(other.backgroundShader) {}
@@ -185,6 +224,7 @@ namespace SnackerEngine
 		GuiLayout::operator=(other);
 		border = other.border;
 		snapWidthToPreferred = other.snapWidthToPreferred;
+		makeChildrenSameWidth = other.makeChildrenSameWidth;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
 		backgroundColor = other.backgroundColor;
@@ -195,6 +235,7 @@ namespace SnackerEngine
 	
 	VerticalListLayout::VerticalListLayout(VerticalListLayout&& other) noexcept
 		: GuiLayout(std::move(other)), border(other.border), snapWidthToPreferred(other.snapWidthToPreferred),
+		makeChildrenSameWidth(other.makeChildrenSameWidth),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
 		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
 		backgroundShader(other.backgroundShader) {}
@@ -204,6 +245,7 @@ namespace SnackerEngine
 		GuiLayout::operator=(std::move(other));
 		border = other.border;
 		snapWidthToPreferred = other.snapWidthToPreferred;
+		makeChildrenSameWidth = other.makeChildrenSameWidth;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
 		backgroundColor = other.backgroundColor;
@@ -218,6 +260,10 @@ namespace SnackerEngine
 			this->snapWidthToPreferred = snapWidthToPreferred;
 			enforceLayout();
 		}
+	}
+
+	void VerticalListLayout::setMakeChildrenSameWidth(const bool& makeChildrenSameWidth)
+	{
 	}
 
 	void VerticalListLayout::setBackgroundColor(const Color4f& backgroundColor)

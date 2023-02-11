@@ -21,7 +21,7 @@ namespace SnackerEngine
 		guiManager->setUniformViewAndProjectionMatrices(getPanelShader());
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
 		getPanelShader().setUniform<Mat4f>("u_model", resizeButtonModelMatrix * translationMatrix);
-		getPanelShader().setUniform<Color3f>("u_color", resizeButtonColor);
+		getPanelShader().setUniform<Color4f>("u_color", resizeButtonColor);
 		Renderer::draw(guiManager->getModelTriangle());
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiWindow::GuiWindow(const Vec2i& position, const Vec2i& size, const Color3f& backgroundColor, const double& resizeButtonSize, const Color3f& resizeButtonColor)
+	GuiWindow::GuiWindow(const Vec2i& position, const Vec2i& size, const Color3f& backgroundColor, const double& resizeButtonSize, const Color4f& resizeButtonColor)
 		: GuiPanel(position, size, ResizeMode::DO_NOT_RESIZE, backgroundColor), resizeButtonSize(resizeButtonSize), resizeButtonColor(resizeButtonColor),
 		resizeButtonModelMatrix{}, isMoving(false), isResizing(false), mouseOffset(Vec2f())
 	{
@@ -155,7 +155,7 @@ namespace SnackerEngine
 		return resizeButtonSize;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Color3f& GuiWindow::getResizeButtonColor() const
+	const Color4f& GuiWindow::getResizeButtonColor() const
 	{
 		return resizeButtonColor;
 	}
@@ -166,7 +166,7 @@ namespace SnackerEngine
 		computeResizeButtonModelMatrix();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::setResizeButtonColor(const Color3f& resizeButtonColor)
+	void GuiWindow::setResizeButtonColor(const Color4f& resizeButtonColor)
 	{
 		this->resizeButtonColor = resizeButtonColor;
 	}

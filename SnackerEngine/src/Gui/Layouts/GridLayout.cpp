@@ -40,14 +40,14 @@ namespace SnackerEngine
 				if (childMaxSize.x >= 0 && childMaxSize.x < maxElementSize.x) maxElementSize.x = childMaxSize.x;
 				if (childMaxSize.y >= 0 && childMaxSize.y < maxElementSize.y) maxElementSize.y = childMaxSize.y;
 			}
-			// Check if the size range is valid
-			if ((maxElementSize.x >= 0 && minElementSize.x > maxElementSize.x) || 
-				(minElementSize.y >= 0 && minElementSize.y > maxElementSize.y)) {
-				enforceLayoutSplitCellsEqually();
-				break;
-			}
-			// Choose the best size
 			Vec2i elementSize(-1, -1);
+			// Choose best size
+			if (maxElementSize.x >= 0 && minElementSize.x > maxElementSize.x) {
+				elementSize.x = std::min(maxElementSize.x, static_cast<int>(mySize.x / totalColumns - std::ceil(border * (totalColumns + 1) / totalColumns)));
+			}
+			if (minElementSize.y >= 0 && minElementSize.y > maxElementSize.y) {
+				elementSize.y = std::min(maxElementSize.y, static_cast<int>(mySize.y / totalRows - std::ceil(border * (totalRows + 1) / totalRows)));
+			}
 			for (const auto& childID : getChildren()) {
 				const Vec2i childPreferredSize = getPreferredSize(childID);
 				if (elementSize.x == -1 && childPreferredSize.x != -1 && childPreferredSize.x >= minElementSize.x
@@ -61,9 +61,9 @@ namespace SnackerEngine
 					if (elementSize.x != -1) break;
 				}
 			}
-			// If no child had a preferredSize: Use compromise between min and max size!
-			if (elementSize.x == -1) elementSize.x = (minElementSize.x + maxElementSize.x) / 2;
-			if (elementSize.y == -1) elementSize.y = (minElementSize.y + maxElementSize.y) / 2;
+			// If no child had a preferredSize: Make as large as possible!
+			if (elementSize.x == -1) elementSize.x = maxElementSize.x;
+			if (elementSize.y == -1) elementSize.y = maxElementSize.y;
 			enforceLayoutSplitCellsEqually(elementSize);
 			break;
 		}

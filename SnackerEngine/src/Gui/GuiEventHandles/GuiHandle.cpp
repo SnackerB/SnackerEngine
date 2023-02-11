@@ -55,6 +55,14 @@ namespace SnackerEngine
         return guiHandleIDs;
     }
     //--------------------------------------------------------------------------------------------------
+    std::optional<GuiHandle::GuiHandleID> GuiHandle::getHandleID(const GuiElement& guiElement)
+    {
+        for (unsigned int i = 0; i < guiElements.size(); ++i) {
+            if (guiElements[i] == &guiElement) return guiHandleIDs[i];
+        }
+        return {};
+    }
+    //--------------------------------------------------------------------------------------------------
     GuiHandle::GuiHandle(GuiHandle&& other) noexcept
         : guiHandleIDs(other.guiHandleIDs), guiElements(other.guiElements)
     {

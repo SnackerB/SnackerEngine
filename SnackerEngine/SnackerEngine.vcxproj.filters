@@ -428,5 +428,6 @@
     <None Include="resources\shaders\gui\basic2DText.shader" />
     <None Include="resources\shaders\gui\simpleTransparentColor.shader" />
     <None Include="resources\shaders\gui\basicTexture.shader" />
+    <None Include="resources\shaders\gui\simpleAlphaColor.shader" />
   </ItemGroup>
 </Project>

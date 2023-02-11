@@ -296,6 +296,7 @@
     <None Include="resources\shaders\basic.shader" />
     <None Include="resources\shaders\basicTexture.shader" />
     <None Include="resources\shaders\gui\basicTexture.shader" />
+    <None Include="resources\shaders\gui\simpleAlphaColor.shader" />
     <None Include="resources\shaders\gui\simpleColor.shader" />
     <None Include="resources\shaders\basic3DText.shader" />
     <None Include="resources\shaders\gui\basic2DText.shader" />

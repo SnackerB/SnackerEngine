@@ -107,6 +107,15 @@ namespace SnackerEngine
 	void VerticalScrollingListLayout::draw(const Vec2i& parentPosition)
 	{
 		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f)
+		{
+			backgroundShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
+			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
+			Renderer::draw(guiManager->getModelSquare());
+		}
 		pushClippingBox(parentPosition);
 		// Draw children
 		const auto& children = getChildren();
@@ -196,7 +205,7 @@ namespace SnackerEngine
 	}
 
 	VerticalScrollingListLayout::VerticalScrollingListLayout(const unsigned& border, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical, const float& scrollSpeed, const Color3f& scrollBarBackgroundColor, const Color3f& scrollBarColor, const float& scrollBarWidth, const float& scrollBarOffsetTop, const float& scrollBarOffsetBottom, const float& scrollBarOffsetRight)
-		: VerticalListLayout(border, false, alignmentHorizontal, alignmentVertical), currentVerticalSize(0.0f), currentVerticalOffset(0.0f),
+		: VerticalListLayout(border, false, false, alignmentHorizontal, alignmentVertical), currentVerticalSize(0.0f), currentVerticalOffset(0.0f),
 		scrollSpeed(scrollSpeed), drawScrollBar(false), visiblePercentage(0.0f), offsetPercentage(0.0f), modelMatrixScrollBarBackground{},
 		modelMatrixScrollBar{}, shaderScrollBar("shaders/gui/simpleColor.shader"), scrollBarBackgroundColor(scrollBarBackgroundColor),
 		scrollBarColor(scrollBarColor), scrollBarWidth(scrollBarWidth), scrollBarOffsetTop(scrollBarOffsetTop),

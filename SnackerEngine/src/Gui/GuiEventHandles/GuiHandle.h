@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -39,8 +40,10 @@ namespace SnackerEngine
 		/// Constructor
 		GuiHandle();
 	public:
-		/// Returns the handle ID
+		/// Returns the handle IDs
 		const std::vector<GuiHandleID>& getGuiHandleIDs() const;
+		/// Returns the handle ID associated with a given guiElement, if it exists
+		std::optional<GuiHandleID> getHandleID(const GuiElement& guiElement);
 		/// Deleted copy constructor and assignment operator
 		GuiHandle(const GuiHandle& other) = delete;
 		GuiHandle& operator=(const GuiHandle& other) = delete;

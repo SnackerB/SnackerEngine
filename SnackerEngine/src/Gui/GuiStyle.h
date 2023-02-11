@@ -60,6 +60,7 @@ namespace SnackerEngine
 		Color4f guiButtonHoverColor{};
 		Color4f guiButtonPressedColor{};
 		Color4f guiButtonPressedHoverColor{};
+		Color4f guiButtonLockedColor{};
 		StaticText::ParseMode guiButtonParseMode{};
 		StaticText::Alignment guiButtonAlignment{};
 		GuiElement::ResizeMode guiButtonResizeMode{};

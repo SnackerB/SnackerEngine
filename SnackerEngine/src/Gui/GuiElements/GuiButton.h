@@ -19,10 +19,13 @@ namespace SnackerEngine
 		Color4f hoverColor;
 		Color4f pressedColor;
 		Color4f pressedHoverColor;
+		Color4f lockedColor;
 		/// Set to true if the button was pressed and the mouse is held down currently
 		bool isBeingPressed;
 		/// Set to true if the mouse is currently inside the button
 		bool isBeingHovered;
+		/// Set to true if the button is currently locked
+		bool locked;
 	protected:
 		/// Overwrite this function if the guiElement owns handles. This function should update the
 		/// handle pointer when the handle is moved. Called by the handle after it is moved.
@@ -50,7 +53,7 @@ namespace SnackerEngine
 		/// Constructor
 		GuiButton(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = GuiButton::ResizeMode::RESIZE_RANGE,
 			const Color4f& defaultColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& hoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& pressedColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f),
-			const Color4f& pressedHoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const std::string& label = "", const Font& font = Font(),
+			const Color4f& pressedHoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& lockedColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f), const std::string& label = "", const Font& font = Font(),
 			const double& fontSize = 0.0, Color4f textColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::CENTER,
 			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
@@ -59,7 +62,7 @@ namespace SnackerEngine
 		/// Constructor that already registers an event handle
 		GuiButton(GuiEventHandle& eventHandle, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = GuiButton::ResizeMode::RESIZE_RANGE,
 			const Color4f& defaultColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& hoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& pressedColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f),
-			const Color4f& pressedHoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const std::string& label = "", const Font& font = Font(),
+			const Color4f& pressedHoverColor = Color4f(0.0f, 0.0f, 0.0f, 1.0f), const Color4f& lockedColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f), const std::string& label = "", const Font& font = Font(),
 			const double& fontSize = 0.0, Color4f textColor = { 1.0f, 1.0f, 1.0f, 1.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::CENTER,
 			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
@@ -71,15 +74,22 @@ namespace SnackerEngine
 		/// Sets the event handle. Cannot be done if an event handle is already set, 
 		/// delete the previous event handle first!
 		void setEventHandle(GuiEventHandle& eventHandle);
+		/// Locks this button
+		void lock();
+		/// Unlocks this button
+		void unlock();
 		/// Setters
 		void setDefaultColor(const Color4f& defaultColor);
 		void setHoverColor(const Color4f& hoverColor);
 		void setPressedColor(const Color4f& pressedColor);
 		void setPressedHoverColor(const Color4f& pressedHoverColor);
+		void setLockedColor(const Color4f& lockedColor);
 		const Color4f& getDefaultColorColor() const { return defaultColor; }
 		const Color4f& getHoverColor() const { return hoverColor; }
 		const Color4f& getPressedColor() const { return pressedColor; }
 		const Color4f& getpressedHoverColor() const { return pressedHoverColor; }
+		const Color4f& getLockedColor() const { return lockedColor; }
+		bool isLocked() const { return locked; }
 		/// Copy constructor and assignment operator
 		GuiButton(const GuiButton& other) noexcept;
 		GuiButton& operator=(const GuiButton& other) noexcept;

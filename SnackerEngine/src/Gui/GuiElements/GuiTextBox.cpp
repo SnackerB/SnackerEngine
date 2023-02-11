@@ -671,6 +671,7 @@ namespace SnackerEngine
 					signOffEvent(CallbackType::MOUSE_BUTTON);
 					signOffEvent(CallbackType::MOUSE_MOTION);
 					if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
+					if (eventHandleEnterWasPressed) activate(*eventHandleEnterWasPressed);
 					// Kill selection
 					static_cast<EditableText&>(*text).setSelectionIndexToCursor();
 				}
@@ -760,13 +761,29 @@ namespace SnackerEngine
 
 	void GuiEditTextBox::onHandleDestruction(GuiHandle& guiHandle)
 	{
-		eventHandleTextWasEdited = nullptr;
+		std::optional<GuiHandle::GuiHandleID> handleID = guiHandle.getHandleID(*this);
+		if (!handleID) return;
+		switch (handleID.value())
+		{
+		case 0: eventHandleTextWasEdited = nullptr; break;
+		case 1: eventHandleEnterWasPressed = nullptr; break;
+		default:
+			break;
+		}
 	}
 
 	void GuiEditTextBox::onHandleMove(GuiHandle& guiHandle)
 	{
 		// Update pointer
-		eventHandleTextWasEdited = static_cast<GuiEventHandle*>(&guiHandle);
+		std::optional<GuiHandle::GuiHandleID> handleID = guiHandle.getHandleID(*this);
+		if (!handleID) return;
+		switch (handleID.value())
+		{
+		case 0: eventHandleTextWasEdited = static_cast<GuiEventHandle*>(&guiHandle); break;
+		case 1: eventHandleEnterWasPressed = static_cast<GuiEventHandle*>(&guiHandle); break;
+		default:
+			break;
+		}
 	}
 
 	Vec2d GuiEditTextBox::getMouseOffsetToText()
@@ -788,7 +805,8 @@ namespace SnackerEngine
 		: GuiDynamicTextBox(position, size, resizeMode,
 			std::move(std::make_unique<EditableText>(text, font, fontSize, size.x - 2 * border, cursorWidth, parseMode, alignment)),
 			textColor, backgroundColor, textScaleMode, sizeHintModes, border, doRecomputeOnSizeChange), selectionBoxColor(selectionBoxColor),
-		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, modelMatricesSelectionBoxes{}, eventHandleTextWasEdited(nullptr) {}
+		active(false), cursorIsVisible(false), cursorBlinkingTimer(cursorBlinkTime), modelMatrixCursor{}, modelMatricesSelectionBoxes{}, 
+		eventHandleTextWasEdited(nullptr), eventHandleEnterWasPressed(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(const std::string& text, const GuiStyle& style)
 		: GuiEditTextBox(Vec2i(), style.guiTextBoxSize, style.guiTextBoxResizeMode, text, style.defaultFont, style.fontSizeNormal,
@@ -807,15 +825,19 @@ namespace SnackerEngine
 	GuiEditTextBox::GuiEditTextBox(const GuiEditTextBox& other) noexcept
 		: GuiDynamicTextBox(other), selectionBoxColor(other.selectionBoxColor), active(false), cursorIsVisible(false), 
 		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor(other.modelMatrixCursor),
-		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(nullptr) {}
+		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), 
+		eventHandleTextWasEdited(nullptr), eventHandleEnterWasPressed(nullptr) {}
 
 	GuiEditTextBox::GuiEditTextBox(GuiEditTextBox&& other) noexcept
 		: GuiDynamicTextBox(std::move(other)), selectionBoxColor(other.selectionBoxColor), active(false), cursorIsVisible(false),
 		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), modelMatrixCursor(other.modelMatrixCursor),
-		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)) 
+		modelMatricesSelectionBoxes(other.modelMatricesSelectionBoxes), 
+		eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)),
+		eventHandleEnterWasPressed(std::move(other.eventHandleEnterWasPressed))
 	{
 		other.eventHandleTextWasEdited = nullptr;
 		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
+		if (eventHandleEnterWasPressed) notifyHandleOnGuiElementMove(&other, *eventHandleEnterWasPressed);
 	}
 
 	GuiEditTextBox& GuiEditTextBox::operator=(const GuiEditTextBox& other) noexcept
@@ -828,6 +850,7 @@ namespace SnackerEngine
 		modelMatrixCursor = other.modelMatrixCursor;
 		modelMatricesSelectionBoxes = other.modelMatricesSelectionBoxes;
 		eventHandleTextWasEdited = nullptr;
+		eventHandleEnterWasPressed = nullptr;
 		return *this;
 	}
 
@@ -843,6 +866,7 @@ namespace SnackerEngine
 		modelMatricesSelectionBoxes = other.modelMatricesSelectionBoxes;
 		other.eventHandleTextWasEdited = nullptr;
 		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
+		if (eventHandleEnterWasPressed) notifyHandleOnGuiElementMove(&other, *eventHandleEnterWasPressed);
 		return *this;
 	}
 
@@ -850,6 +874,8 @@ namespace SnackerEngine
 	{
 		if (eventHandleTextWasEdited)
 			signOffHandle(*eventHandleTextWasEdited);
+		if (eventHandleEnterWasPressed)
+			signOffHandle(*eventHandleEnterWasPressed);
 	}
 
 	void GuiEditTextBox::setEventHandleTextWasEdited(GuiEventHandle& eventHandle)
@@ -857,6 +883,14 @@ namespace SnackerEngine
 		if (!eventHandleTextWasEdited) {
 			this->eventHandleTextWasEdited = &eventHandle;
 			signUpHandle(eventHandle, 0);
+		}
+	}
+
+	void GuiEditTextBox::setEventHandleEnterWasPressed(GuiEventHandle& eventHandle)
+	{
+		if (!eventHandleEnterWasPressed) {
+			this->eventHandleEnterWasPressed = &eventHandle;
+			signUpHandle(eventHandle, 1);
 		}
 	}
 
