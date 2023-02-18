@@ -119,8 +119,10 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiSlider<T>::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
 		pushClippingBox(parentPosition);
-		Vec2i nextPosition = parentPosition + position;
+		Vec2i nextPosition = parentPosition + getPosition();
 		drawElement(label->getGuiID(), nextPosition);
 		drawElement(variableBox->getGuiID(), nextPosition);
 		// Draw Slider Button
@@ -300,7 +302,7 @@ namespace SnackerEngine
 	{
 		this->label->setSize(this->label->getMinSize());
 		setSizeInternal(Vec2i(size.x, this->label->getMinSize().y));
-		minSize = this->label->getMinSize();
+		setMinSize(this->label->getMinSize());
 		computeSliderButtonModelMatrix();
 	}
 

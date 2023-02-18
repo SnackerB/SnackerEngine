@@ -76,7 +76,7 @@ namespace SnackerEngine
 			alteredClippingBox.w = std::max(0, std::min(alteredClippingBox.w, previousClippingBox.y + previousClippingBox.w - alteredClippingBox.y));
 		}
 		clippingBoxStack.push_back(alteredClippingBox); 
-		//Renderer::enableScissorTest(alteredClippingBox);
+		Renderer::enableScissorTest(alteredClippingBox);
 	}
 
 	void GuiManager::popClippingBox()
@@ -84,7 +84,7 @@ namespace SnackerEngine
 		if (!clippingBoxStack.empty()) {
 			clippingBoxStack.pop_back();
 			if (!clippingBoxStack.empty()) {
-				//Renderer::enableScissorTest(clippingBoxStack.back());
+				Renderer::enableScissorTest(clippingBoxStack.back());
 			}
 			else {
 				Renderer::disableScissorTest();
@@ -92,6 +92,113 @@ namespace SnackerEngine
 		}
 		else {
 			Renderer::disableScissorTest();
+		}
+	}
+
+	void GuiManager::removeFromEnforceLayoutQueues(const GuiID guiID)
+	{
+		if (guiID >= registeredGuiElements.size() || guiID < 0 || !registeredGuiElements[guiID])
+		{
+			return;
+		}
+		auto it = enforceLayoutQueueUp.find(registeredGuiElements[guiID]->depth);
+		if (it != enforceLayoutQueueUp.end()) {
+			it->second.erase(guiID);
+		}
+		auto it2 = enforceLayoutQueueDown.find(registeredGuiElements[guiID]->depth);
+		if (it2 != enforceLayoutQueueDown.end()) {
+			it2->second.erase(guiID);
+		}
+	}
+
+	void GuiManager::registerForEnforcingLayoutsUpAndDown(const GuiID& guiID)
+	{
+		registerForEnforcingLayoutsUp(guiID);
+		registerForEnforcingLayoutsDown(guiID);
+	}
+
+	void GuiManager::registerForEnforcingLayoutsUp(const GuiID& guiID)
+	{
+		if (guiID >= registeredGuiElements.size() || guiID < 0 || !registeredGuiElements[guiID])
+		{
+			warningLogger << LOGGER::BEGIN << "Tried to register invalid guiElement to EnforceLayoutQueue." << LOGGER::ENDL;
+			return;
+		}
+		auto it = enforceLayoutQueueUp.find(registeredGuiElements[guiID]->depth);
+		if (it != enforceLayoutQueueUp.end()) {
+			it->second.insert(guiID);
+		}
+		else {
+			enforceLayoutQueueUp.insert(std::make_pair(registeredGuiElements[guiID]->depth, std::set<GuiID>({ guiID })));
+		}
+	}
+
+	void GuiManager::registerForEnforcingLayoutsDown(const GuiID& guiID)
+	{
+		if (guiID >= registeredGuiElements.size() || guiID < 0 || !registeredGuiElements[guiID])
+		{
+			warningLogger << LOGGER::BEGIN << "Tried to register invalid guiElement to EnforceLayoutQueue." << LOGGER::ENDL;
+			return;
+		}
+		auto it = enforceLayoutQueueDown.find(registeredGuiElements[guiID]->depth);
+		if (it != enforceLayoutQueueDown.end()) {
+			it->second.insert(guiID);
+		}
+		else {
+			enforceLayoutQueueDown.insert(std::make_pair(registeredGuiElements[guiID]->depth, std::set<GuiID>({ guiID })));
+		}
+	}
+
+	void GuiManager::enforceLayouts()
+	{
+		/// First go from bottom to top and enforce all layouts
+		for (auto rit = enforceLayoutQueueUp.rbegin(); rit != enforceLayoutQueueUp.rend(); ++rit)
+		{
+			for (const GuiID& guiID : rit->second)
+			{
+				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
+					GuiID parentID = registeredGuiElements[guiID]->parentID;
+					if (parentID < registeredGuiElements.size() && parentID >= 0 || registeredGuiElements[parentID]) {
+						registeredGuiElements[parentID]->enforceLayout();
+					}
+				}
+			}
+		}
+		/// Now go from the top down and enforce all layouts
+		for (const auto& it : enforceLayoutQueueDown)
+		{
+			for (const GuiID& guiID : it.second)
+			{
+				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
+					registeredGuiElements[guiID]->enforceLayout();
+				}
+			}
+		}
+		/// Clear the queues!
+		enforceLayoutQueueUp.clear();
+		enforceLayoutQueueDown.clear();
+		// Callback mouseMotion, because we could collide with moved elements!
+		callbackMouseMotion(currentMousePosition);
+	}
+
+	void GuiManager::deleteAnimations(const GuiID& guiID)
+	{
+		animations.erase(guiID);
+	}
+
+	void GuiManager::animate(const double& dt)
+	{
+		for (auto& it : animations) {
+			auto it2 = it.second.begin();
+			while (it2 != it.second.end())
+			{
+				if ((*it2)->tick(dt)) {
+					it.second.erase(it2);
+				}
+				else {
+					it2++;
+				}
+			}
 		}
 	}
 
@@ -176,6 +283,10 @@ namespace SnackerEngine
 		// Clear event queues
 		clearEventQueues(guiElement);
 		if (lastMouseHoverElement == guiElement) lastMouseHoverElement = 0;
+		/// Sign off from EnforceLayoutQueues
+		removeFromEnforceLayoutQueues(guiElement);
+		/// Sign off from animations
+		deleteAnimations(guiElement);
 		// Delete element if it is stored by guiManager
 		if (ownedGuiElements[guiElement]) {
 			ownedGuiElements[guiElement] = nullptr;
@@ -211,7 +322,7 @@ namespace SnackerEngine
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, signOffQueue{}, squareModel{},
-		triangleModel{}, screenDims{}
+		triangleModel{}, clippingBoxStack{}, enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, screenDims {}
 	{
 		ownedGuiElements.reserve(startingSize + 1);
 		for (unsigned int i = 0; i < startingSize + 1; ++i) {
@@ -249,8 +360,10 @@ namespace SnackerEngine
 		guiElement.guiID = newGuiID;
 		guiElement.guiManager = this;
 		guiElement.parentID = 0;
+		guiElement.depth = 1;
 		registeredGuiElements[parentElement]->children.push_back(guiElement.guiID);
 		guiElement.onRegister();
+		registerForEnforcingLayoutsUpAndDown(guiElement.guiID);
 		// Callback mouseMotion, because we could collide with the new element!
 		callbackMouseMotion(currentMousePosition);
 	}
@@ -267,7 +380,9 @@ namespace SnackerEngine
 		child.guiID = newGuiID;
 		child.guiManager = this;
 		child.parentID = parent.guiID;
+		child.depth = parent.depth + 1;
 		child.onRegister();
+		registerForEnforcingLayoutsUpAndDown(child.guiID);
 		// Callback mouseMotion, because we could collide with the new element!
 		callbackMouseMotion(currentMousePosition);
 		return true;
@@ -477,6 +592,8 @@ namespace SnackerEngine
 		for (auto& guiID: eventSetUpdate) {
 			getElement(guiID).update(dt);
 		}
+		animate(dt);
+		enforceLayouts();
 	}
 
 	void GuiManager::draw()

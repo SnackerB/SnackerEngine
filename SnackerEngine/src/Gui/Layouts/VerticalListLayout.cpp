@@ -113,8 +113,7 @@ namespace SnackerEngine
 			for (unsigned int i = 0; i < children.size(); ++i)
 			{
 				// Set attributes and enforce layouts
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(border, positions[i].y + heightOffset), sizes[i]);
-				enforceLayoutOnElement(children[i]);
+				setPositionAndSizeOfChild(children[i], Vec2i(border, positions[i].y + heightOffset), sizes[i]);
 			}
 			break;
 		}
@@ -123,8 +122,7 @@ namespace SnackerEngine
 			for (unsigned int i = 0; i < children.size(); ++i)
 			{
 				// Set attributes and enforce layouts
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(getWidth() / 2 - sizes[i].x / 2, positions[i].y + heightOffset), sizes[i]);
-				enforceLayoutOnElement(children[i]);
+				setPositionAndSizeOfChild(children[i], Vec2i(getWidth() / 2 - sizes[i].x / 2, positions[i].y + heightOffset), sizes[i]);
 			}
 			break;
 		}
@@ -133,8 +131,7 @@ namespace SnackerEngine
 			for (unsigned int i = 0; i < children.size(); ++i)
 			{
 				// Set attributes and enforce layouts
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(getWidth() - sizes[i].x - border, positions[i].y + heightOffset), sizes[i]);
-				enforceLayoutOnElement(children[i]);
+				setPositionAndSizeOfChild(children[i], Vec2i(getWidth() - sizes[i].x - border, positions[i].y + heightOffset), sizes[i]);
 			}
 			break;
 		}
@@ -143,19 +140,20 @@ namespace SnackerEngine
 		}
 		// If necessary, snap width
 		if (snapWidthToPreferred) {
-			preferredSize = Vec2i(-1, maxSnapWidth + static_cast<int>(2 * border));
+			setPreferredWidth(maxSnapWidth + static_cast<int>(2 * border));
 		}
 	}
 
 	void VerticalListLayout::computeModelMatrix()
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(
-			Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f),
-			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+			Vec3f(static_cast<float>(getPositionX()), static_cast<float>(-getPositionY() - getHeight()), 0.0f),
+			Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
 	}
 
 	void VerticalListLayout::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		if (backgroundColor.alpha != 0.0f)
 		{
@@ -258,7 +256,7 @@ namespace SnackerEngine
 	{
 		if (snapWidthToPreferred != this->snapWidthToPreferred) {
 			this->snapWidthToPreferred = snapWidthToPreferred;
-			enforceLayout();
+			registerEnforceLayoutDown();
 		}
 	}
 

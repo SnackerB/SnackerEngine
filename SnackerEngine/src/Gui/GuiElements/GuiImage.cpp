@@ -5,8 +5,10 @@
 
 namespace SnackerEngine
 {
+
 	void GuiImage::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;;
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
 		if (backgroundColor.alpha > 0.0f && guiImageMode != GuiImageMode::RESIZE_TO_IMAGE_SIZE) {

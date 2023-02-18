@@ -6,25 +6,13 @@
 namespace SnackerEngine
 {
 
-	double animationFunctionLinear(const double& percent)
-	{
-		return percent;
-	}
+	double animationFunctionLinear(const double& percent);
 
-	double animationFunctionEaseInSine(const double& percent)
-	{
-		return 1.0 - cos((percent * M_PI) / 2.0);
-	}
+	double animationFunctionEaseInSine(const double& percent);
 
-	double animationFunctionEaseOutSine(const double& percent)
-	{
-		return sin(percent * M_PI);
-	}
+	double animationFunctionEaseOutSine(const double& percent);
 
-	double animationFunctionEaseInOutSine(const double& percent)
-	{
-		return -(cos(percent * M_PI) - 1) / 2.0;
-	}
+	double animationFunctionEaseInOutSine(const double& percent);
 
 	using AnimationFuncT = double(&)(const double&);
 

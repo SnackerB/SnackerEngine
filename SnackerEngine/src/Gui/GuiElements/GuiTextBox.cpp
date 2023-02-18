@@ -15,7 +15,7 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::computeModelMatrices()
 	{
-		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f), Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(getPositionX()), static_cast<float>(-getPositionY() - getHeight()), 0.0f), Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
 		unsigned int DPI = Engine::getDPI().y;
 		scaleFactor = 1.0;
 		switch (textScaleMode)
@@ -23,25 +23,25 @@ namespace SnackerEngine
 		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_UP:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
-			if (textWidth > size.x - 2*border) break;
+			if (textWidth > getWidth() - 2 * border) break;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
-			if (textHeight > size.y - 2 * border) break;
-			scaleFactor = std::min((size.x - 2 * border) / textWidth, (size.y - 2 * border) / textHeight);
+			if (textHeight > getHeight() - 2 * border) break;
+			scaleFactor = std::min((getWidth() - 2 * border) / textWidth, (getHeight() - 2 * border) / textHeight);
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_DOWN:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
-			if (textWidth < size.x - 2 * border && textHeight < size.y - 2 * border) break;
-			scaleFactor = std::min((size.x - 2 * border) / textWidth, (size.y - 2 * border) / textHeight);
+			if (textWidth < getWidth() - 2 * border && textHeight < getHeight() - 2 * border) break;
+			scaleFactor = std::min((getWidth() - 2 * border) / textWidth, (getHeight() - 2 * border) / textHeight);
 			break;
 		}
 		case SnackerEngine::GuiDynamicTextBox::TextScaleMode::SCALE_UP_DOWN:
 		{
 			double textWidth = pointsToInches((text->getRight() - text->getLeft())) * DPI;
 			double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
-			scaleFactor = std::min((size.x - 2 * border) / textWidth, (size.y - 2 * border) / textHeight);
+			scaleFactor = std::min((getWidth() - 2 * border) / textWidth, (getHeight() - 2 * border) / textHeight);
 			break;
 		}
 		default:
@@ -55,6 +55,7 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::draw(const Vec2i& parentPosition)
 	{
+		GuiManager * const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
 		// Draw background
@@ -91,8 +92,8 @@ namespace SnackerEngine
 
 	GuiDynamicTextBox::IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& position)
 	{
-		return (position.x > this->position.x && position.x < this->position.x + size.x
-			&& position.y > this->position.y && position.y < this->position.y + size.y) ?
+		return (position.x > getPositionX() && position.x < getPositionX() + getWidth()
+			&& position.y > getPositionY() && position.y < getPositionY() + getHeight()) ?
 			IsCollidingResult::COLLIDE_CHILD : IsCollidingResult::NOT_COLLIDING;
 	}
 
@@ -114,7 +115,7 @@ namespace SnackerEngine
 				text->recompute();
 				double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
 				// Check text width only in single line parse mode!
-				if (textHeight < (size.y - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < size.x - 2 * border)) {
+				if (textHeight < (getHeight() - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < getWidth() - 2 * border)) {
 					minFontSize = text->getFontSize();
 					if (minFontSize == fontSize) break;
 					if (maxFontSize == 0) {
@@ -151,7 +152,7 @@ namespace SnackerEngine
 				text->recompute();
 				double textHeight = pointsToInches((text->getTop() - text->getBottom())) * DPI;
 				// Check text width only in single line parse mode!
-				if (textHeight < (size.y - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < (size.x - 2 * border))) {
+				if (textHeight < (getHeight() - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((text->getRight() - text->getLeft())) * DPI < (getHeight() - 2 * border))) {
 					minFontSize = text->getFontSize();
 					if (maxFontSize == 0) {
 						text->setFontSize(minFontSize * 2.0, false);
@@ -214,8 +215,8 @@ namespace SnackerEngine
 		case StaticText::Alignment::CENTER:
 		{
 			// Align to the center of the text box
-			textOffset.y = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI * scaleFactor - (size.y - 2 * border) / 2.0;
-			textOffset.x = static_cast<float>(size.x - 2 * border) / 2.0f - pointsToInches((text->getRight() - text->getLeft()) / 2.0) * DPI * scaleFactor;
+			textOffset.y = -pointsToInches((text->getTop() + text->getBottom()) / 2.0) * DPI * scaleFactor - (getHeight() - 2 * border) / 2.0;
+			textOffset.x = static_cast<float>(getWidth() - 2 * border) / 2.0f - pointsToInches((text->getRight() - text->getLeft()) / 2.0) * DPI * scaleFactor;
 			break;
 		}
 		case StaticText::Alignment::RIGHT:
@@ -223,7 +224,7 @@ namespace SnackerEngine
 			// Align to the top of the text box
 			textOffset.y = -pointsToInches(text->getTop()) * DPI * scaleFactor;
 			// Align to the right of the text box
-			textOffset.x = static_cast<float>(size.x - border) - pointsToInches((text->getRight() - text->getLeft())) * DPI * scaleFactor;
+			textOffset.x = static_cast<float>(getWidth() - border) - pointsToInches((text->getRight() - text->getLeft())) * DPI * scaleFactor;
 			break;
 		}
 		default:
@@ -241,27 +242,27 @@ namespace SnackerEngine
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: minSize = textSize; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: minSize.x = textSize.x; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: minSize.y = textSize.y; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setMinSize(textSize); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: setMinWidth(textSize.x); break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: setMinHeight(textSize.y); break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModeMaxSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: maxSize = textSize; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: maxSize.x = textSize.x; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: maxSize.y = textSize.y; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setMaxSize(textSize); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: setMaxWidth(textSize.x); break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: setMaxHeight(textSize.y); break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModePreferredSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: preferredSize = textSize; break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: preferredSize.x = textSize.x; break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: preferredSize.y = textSize.y; break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setPreferredSize(textSize); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: setPreferredWidth(textSize.x); break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: setPreferredHeight(textSize.y); break;
 		default:
 			break;
 		}
@@ -509,6 +510,7 @@ namespace SnackerEngine
 
 	void GuiEditTextBox::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
 		// Draw background

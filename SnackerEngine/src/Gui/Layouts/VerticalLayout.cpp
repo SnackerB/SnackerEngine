@@ -20,12 +20,13 @@ namespace SnackerEngine
 			percentages.erase(percentages.begin() + offset);
 			// Compute percentages from weights for all children
 			computePercentagesFromWeights();
-			enforceLayout();
+			registerEnforceLayoutDown();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void VerticalLayout::enforceLayout()
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		Vec2i mySize = getSize();
 		const auto& children = getChildren();
@@ -35,13 +36,12 @@ namespace SnackerEngine
 			int height = i == 0 ? static_cast<int>(std::ceil(static_cast<double>(mySize.y) * percentages[0]))
 				: static_cast<int>(std::ceil(static_cast<double>(mySize.y) * (percentages[i] - percentages[i - 1])));
 			if (forceWidth) {
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(0, positionY), Vec2i(mySize.x, height));
+				setPositionAndSizeOfChild(children[i], Vec2i(0, positionY), Vec2i(mySize.x, height));
 			}
 			else {
-				setPositionYWithoutEnforcingLayouts(children[i], positionY);
-				setHeightWithoutEnforcingLayouts(children[i], height);
+				setPositionYOfChild(children[i], positionY);
+				setHeightOfChild(children[i], height);
 			}
-			enforceLayoutOnElement(children[i]);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ namespace SnackerEngine
 		}
 		// Compute new percentages. We only need to change the percentage of the element in front of the resize border
 		percentages[resizeBorder] = getSize().y == 0 ? 0.0 : static_cast<double>(borderPos) / static_cast<double>(getSize().y);
-		enforceLayout();
+		registerEnforceLayoutDown();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void VerticalLayout::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)
@@ -149,7 +149,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	bool VerticalLayout::registerChild(GuiElement& guiElement, const double& weight)
 	{
-		if (GuiLayout::registerChildWithoutEnforcingLayouts(guiElement)) {
+		if (GuiLayout::registerChild(guiElement)) {
 			// Compute weights from percentages for all children
 			computeWeightsFromPercentages();
 			// push back new weight
@@ -158,7 +158,7 @@ namespace SnackerEngine
 			totalWeight += weight;
 			// Compute percentages from weights for all children
 			computePercentagesFromWeights();
-			enforceLayout();
+			registerEnforceLayoutDown();
 			return true;
 		}
 		return false;

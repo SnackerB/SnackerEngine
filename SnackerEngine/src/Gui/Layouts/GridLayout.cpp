@@ -11,13 +11,13 @@ namespace SnackerEngine
 		if (result != children.end()) {
  			layoutOptions.erase(layoutOptions.begin() + (result - children.begin()));
 			GuiLayout::removeChild(guiElement);
-			enforceLayout();
+			registerEnforceLayoutDown();
 		}
 	}
 
 	void GridLayout::enforceLayout()
 	{
-		if (!guiManager) return;
+		if (!getGuiManager()) return;
 		switch (mode)
 		{
 		case SnackerEngine::GridLayout::Mode::SPLIT_CELLS_EQUALLY:
@@ -107,8 +107,7 @@ namespace SnackerEngine
 			Vec2i currentPosition = topLeft;
 			currentPosition += Vec2i((elementSize.x + border) * (layoutOptions[i].column - 1) + border, (elementSize.y + border) * (layoutOptions[i].row - 1) + border);
 			// Set attributes and enforce layouts
-			setPositionAndSizeWithoutEnforcingLayouts(children[i], currentPosition, currentSize);
-			enforceLayoutOnElement(children[i]);
+			setPositionAndSizeOfChild(children[i], currentPosition, currentSize);
 		}
 	}
 
@@ -130,8 +129,7 @@ namespace SnackerEngine
 			// Compute position
 			Vec2i currentPosition = Vec2i((elementSize.x + border) * (layoutOptions[i].column - 1) + border, (elementSize.y + border) * (layoutOptions[i].row - 1) + border);
 			// Set attributes and enforce layouts
-			setPositionAndSizeWithoutEnforcingLayouts(children[i], currentPosition, currentSize);
-			enforceLayoutOnElement(children[i]);
+			setPositionAndSizeOfChild(children[i], currentPosition, currentSize);
 		}
 	}
 
@@ -142,9 +140,8 @@ namespace SnackerEngine
 
 	bool GridLayout::registerChild(GuiElement& guiElement, const unsigned& row, const unsigned& column)
 	{
-		if (GuiLayout::registerChildWithoutEnforcingLayouts(guiElement)) {
+		if (GuiLayout::registerChild(guiElement)) {
 			layoutOptions.push_back({ row, column });
-			enforceLayout();
 			return true;
 		}
 		return false;

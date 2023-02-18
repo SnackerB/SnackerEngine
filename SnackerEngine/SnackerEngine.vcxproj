@@ -271,6 +271,7 @@
     <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\VertexBufferLayout.cpp" />
     <ClCompile Include="src\Gui\Animation\Animatable.cpp" />
+    <ClCompile Include="src\Gui\Animation\AnimationFunc.cpp" />
     <ClCompile Include="src\Gui\GuiElement.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiCheckBox.cpp" />

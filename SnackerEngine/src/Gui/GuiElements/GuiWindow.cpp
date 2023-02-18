@@ -14,6 +14,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		/// Draw the panel first. Also draws all children.
 		GuiPanel::draw(parentPosition);
 		if (!guiManager) return;

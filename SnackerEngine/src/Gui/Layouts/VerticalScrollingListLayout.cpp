@@ -9,6 +9,7 @@ namespace SnackerEngine
 
 	void VerticalScrollingListLayout::enforceLayout()
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		float currentYOffset = border;
 		float width = static_cast<float>(getSize().x);
@@ -19,18 +20,16 @@ namespace SnackerEngine
 			if (childHeight == -1) childHeight = getSize(children[i]).y;
 			childHeight = guiManager->clipHeightToMinMaxHeight(childHeight, children[i]);
 			// Set position
-			setPositionWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))));
+			setPositionOfChild(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))));
 			// Resize
 			// int childWidth = getPreferredSize(children[i]).x;
 			int childWidth = width;
 			if (childWidth == -1) childWidth = getSize(children[i]).x;
 			childWidth = guiManager->clipWidthToMinMaxWidth(childWidth, children[i]);
 			// Set position and size
-			setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))), Vec2i(childWidth, childHeight));
+			setPositionAndSizeOfChild(children[i], Vec2i(static_cast<int>(std::floor(border)), static_cast<int>(std::floor(currentYOffset))), Vec2i(childWidth, childHeight));
 			// Advance to next element
 			currentYOffset += childHeight + border;
-			// Enforce layout of child element
-			enforceLayoutOnElement(children[i]);
 		}
 		currentVerticalSize = currentYOffset;
 		computeScrollBar();
@@ -43,7 +42,7 @@ namespace SnackerEngine
 			drawScrollBar = false;
 			firstVisibleElement = 0;
 			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
-			if (guiManager) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+			if (getGuiManager()) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			return;
 		}
 		Vec2i size = getSize();
@@ -54,7 +53,7 @@ namespace SnackerEngine
 			drawScrollBar = false;
 			firstVisibleElement = 0;
 			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
-			if (guiManager) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+			if (getGuiManager()) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			currentVerticalOffset = 0.0f;
 			return;
 		}
@@ -77,7 +76,7 @@ namespace SnackerEngine
 					break;
 				}
 			}
-			if (guiManager) signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+			if (getGuiManager()) signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			offsetPercentage = currentVerticalOffset / currentVerticalSize;
 			// Compute model matrices
 			float scrollBarX = size.x - scrollBarOffsetRight - scrollBarWidth;
@@ -88,7 +87,7 @@ namespace SnackerEngine
 			drawScrollBar = false;
 			firstVisibleElement = 0;
 			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
-			if (guiManager) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+			if (getGuiManager()) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		}
 	}
 	
@@ -106,6 +105,7 @@ namespace SnackerEngine
 	
 	void VerticalScrollingListLayout::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		if (backgroundColor.alpha != 0.0f)
 		{

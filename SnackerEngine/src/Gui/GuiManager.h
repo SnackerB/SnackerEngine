@@ -9,6 +9,8 @@
 #include <queue>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
+#include <set>
 #include <optional>
 
 namespace SnackerEngine
@@ -98,11 +100,46 @@ namespace SnackerEngine
 		void popClippingBox();
 
 		//==============================================================================================
+		// Enforcing Layouts
+		//==============================================================================================
+	private:
+		/// Maps that store for each depth a set of GuiIDs that correspond to GuiElements that need their
+		/// Layouts enforced. The maps are cleared when enforceLayouts() is called.
+		std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueUp;
+		std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueDown;
+		/// Removes a guiElement from both LayoutQueues
+		void removeFromEnforceLayoutQueues(const GuiID guiID);
+	protected:
+		/// This is called by GuiElements who need to enforce Layouts up and down the tree, 
+		/// eg. when the size changes. Layouts are enforced whenever the GuiManager updates.
+		void registerForEnforcingLayoutsUpAndDown(const GuiID& guiID);
+		/// This is called by GuiElements who need to enforce Layouts up the tree,
+		/// eg. when the position changes. Layouts are enforced whenever the GuiManager updates.
+		void registerForEnforcingLayoutsUp(const GuiID& guiID);
+		/// This is called by GuiElements who need to enforce Layouts down the tree,
+		/// eg. when some internal parameters change, but the size/position is not changed.
+		///  Layouts are enforced whenever the GuiManager updates.
+		void registerForEnforcingLayoutsDown(const GuiID& guiID);
+	public:
+		/// Enforces all Layouts that are registered to be needed to enforce. This is normally
+		/// called by the GuiManager at the end of each updat(), but can also be called manually
+		/// after adding a bunch of elements. Layouts are enforced first from the bottom up, and
+		/// then from the top down in two successive sweeps.
+		void enforceLayouts();
+		
+		//==============================================================================================
 		// Animations
 		//==============================================================================================
+	private:
 		/// Map that stores all active animations, ordered by which GuiElement they belong to.
 		std::unordered_map<GuiID, std::vector<std::unique_ptr<Animatable>>> animations;
+		/// Deletes all animations of the given element from the animations map. Is called when a
+		/// guiElement is signed off
+		void deleteAnimations(const GuiID& guiID);
+		/// animates all currently registered animations and deletes finished animations
+		void animate(const double& dt);
 	public:
+		/// Registers an animation
 		template<typename GuiElementAnimatableType>
 		void registerAnimation(GuiElementAnimatableType&& animatable);
 
@@ -226,8 +263,12 @@ namespace SnackerEngine
 				if (element.parentID < 0) {
 					element.parentID = 0;
 					registeredGuiElements[parentElement]->children.push_back(element.guiID);
+					element.depth = 1;
 				}
 				element.onRegister();
+				registerForEnforcingLayoutsUpAndDown(element.guiID);
+				// Callback mouseMotion, because we could collide with the new element!
+				callbackMouseMotion(currentMousePosition);
 				return;
 			}
 			else {
@@ -244,8 +285,12 @@ namespace SnackerEngine
 		element.guiID = newGuiID;
 		element.guiManager = this;
 		element.parentID = 0;
+		element.depth = 1;
 		registeredGuiElements[parentElement]->children.push_back(element.guiID);
 		element.onRegister();
+		registerForEnforcingLayoutsUpAndDown(element.guiID);
+		// Callback mouseMotion, because we could collide with the new element!
+		callbackMouseMotion(currentMousePosition);
 	}
 
 	template<typename GuiElementType>

@@ -75,7 +75,7 @@ public:
 				// main horizontal layout
 				SnackerEngine::GuiPanel tempPanel;
 
-				tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 1.0f, 1.0f, 1.0f });
+				tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 1.0f, 1.0f, 1.0f, 1.0f });
 				layout.registerChild(tempPanel, 1.0);
 				guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
 
@@ -83,7 +83,7 @@ public:
 				layout.registerChild(verticalLayout, 1.0);
 				{
 					// vertical layout
-					tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 1.0f, 0.0f, 0.0f });
+					tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 1.0f, 0.0f, 0.0f, 1.0f });
 					verticalLayout.registerChild(tempPanel, 1.0);
 					guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
 
@@ -104,7 +104,7 @@ public:
 				}
 				guiManager.moveElement<SnackerEngine::VerticalLayout>(std::move(verticalLayout));
 
-				tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 0.5f, 0.5f, 0.5f });
+				tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 0.5f, 0.5f, 0.5f, 1.0f });
 				layout.registerChild(tempPanel, 1.0);
 				guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
 
@@ -112,7 +112,7 @@ public:
 				layout.registerChild(VerticalLayout, 1.0);
 				{
 					// second vertical layout
-					tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 0.3f, 0.3f, 0.8f });
+					tempPanel = SnackerEngine::GuiPanel({ 10, 10 }, { 10, 10 }, SnackerEngine::GuiPanel::ResizeMode::RESIZE_RANGE, { 0.3f, 0.3f, 0.8f, 1.0f });
 					VerticalLayout.registerChild(tempPanel, 1.0);
 					guiManager.moveElement<SnackerEngine::GuiPanel>(std::move(tempPanel));
 
@@ -335,11 +335,11 @@ public:
 			guiManager.registerElement(parentWindow);
 			parentWindow.setPosition({ 10, 10 });
 			parentWindow.setSize({ 1180, 680 });
-			SnackerEngine::VerticalListLayout verticalListLayout(10, false, SnackerEngine::AlignmentHorizontal::RIGHT, SnackerEngine::AlignmentVertical::CENTER);
+			SnackerEngine::VerticalListLayout verticalListLayout(10, false, false, SnackerEngine::AlignmentHorizontal::RIGHT, SnackerEngine::AlignmentVertical::CENTER);
 			parentWindow.registerChild(verticalListLayout);
 			{
 				SnackerEngine::GuiPanel panelTemplate;
-				panelTemplate.setBackgroundColor({ 1.0f, 0.0f, 0.0f });
+				panelTemplate.setBackgroundColor({ 1.0f, 0.0f, 0.0f, 1.0f });
 
 				SnackerEngine::GuiPanel panel = panelTemplate;
 				panel.setMinSize({ 100, 100 });
@@ -359,7 +359,7 @@ public:
 				panel.setMinSize({ 100, 100 });
 				panel.setMaxSize({ 300, -1 });
 				panel.setPreferredSize({ 200, -1 });
-				panel.setBackgroundColor({ 0.0f, 1.0f, 0.0f });
+				panel.setBackgroundColor({ 0.0f, 1.0f, 0.0f, 1.0f });
 				verticalListLayout.registerChild(panel);
 				guiManager.moveElement(std::move(panel));
 

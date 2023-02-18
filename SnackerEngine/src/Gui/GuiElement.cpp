@@ -45,11 +45,7 @@ namespace SnackerEngine
 		for (const auto& childID : children) {
 			GuiElement& childElement = guiManager->getElement(childID);
 			if (childElement.getResizeMode() == ResizeMode::SAME_AS_PARENT) {
-				childElement.position = Vec2i();
-				childElement.onPositionChange();
-				childElement.size = size;
-				childElement.onSizeChange();
-				childElement.enforceLayout();
+				setPositionAndSizeOfChild(childID, Vec2i(), size);
 			}
 		}
 	}
@@ -221,10 +217,34 @@ namespace SnackerEngine
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getMinWidth(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).minSize.x;
+		return 0;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getMinHeight(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).minSize.y;
+		return 0;
+	}
+	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiElement::getMaxSize(const GuiID& guiID)
 	{
 		if (guiManager) return guiManager->getElement(guiID).maxSize;
 		return Vec2i();
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getMaxWidth(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).maxSize.x;
+		return 0;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getMaxHeight(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).maxSize.y;
+		return 0;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiElement::getPreferredSize(const GuiID& guiID)
@@ -233,20 +253,22 @@ namespace SnackerEngine
 		return Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredWidth(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).preferredSize.x;
+		return 0;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredHeight(const GuiID& guiID)
+	{
+		if (guiManager) return guiManager->getElement(guiID).preferredSize.y;
+		return 0;
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiElement::isColliding(const GuiID& guiID, const Vec2i& parentPosition)
 	{
 		if (guiManager) return guiManager->getElement(guiID).isColliding(parentPosition);
 		return IsCollidingResult::NOT_COLLIDING;
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setPosition(const GuiID& guiID, const Vec2i& position)
-	{
-		if (guiManager) guiManager->getElement(guiID).setPosition(position);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setSize(const GuiID& guiID, const Vec2i& size)
-	{
-		if (guiManager) guiManager->getElement(guiID).setSize(size);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPositionInternal(const Vec2i& position)
@@ -259,72 +281,90 @@ namespace SnackerEngine
 		this->size = size;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setPositionAndSize(const GuiID& guiID, const Vec2i& position, const Vec2i& size)
-	{
-		if (guiManager) guiManager->getElement(guiID).setPositionAndSize(position, size);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setPositionWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& position)
+	void GuiElement::setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.position = position;
-		guiElement.onPositionChange();
+		auto& child = guiManager->getElement(guiID);
+		if (child.position != position)
+		{
+			child.position = position;
+			child.onPositionChange();
+		}
+		if (child.size != size)
+		{
+			child.size = size;
+			guiManager->registerForEnforcingLayoutsDown(guiID);
+			child.onSizeChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setPositionXWithoutEnforcingLayouts(const GuiID& guiID, const int& x)
+	void GuiElement::setPositionOfChild(const GuiID& guiID, const Vec2i& position)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.position.x = x;
-		guiElement.onPositionChange();
+		auto& child = guiManager->getElement(guiID);
+		if (child.position != position)
+		{
+			child.position = position;
+			child.onPositionChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setPositionYWithoutEnforcingLayouts(const GuiID& guiID, const int& y)
+	void GuiElement::setPositionXOfChild(const GuiID& guiID, const int& positionX)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.position.y = y;
-		guiElement.onPositionChange();
+		auto& child = guiManager->getElement(guiID);
+		if (child.position.x != positionX)
+		{
+			child.position.x = positionX;
+			child.onPositionChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setSizeWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& size)
+	void GuiElement::setPositionYOfChild(const GuiID& guiID, const int& positionY)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.size = size;
-		guiElement.onSizeChange();
+		auto& child = guiManager->getElement(guiID);
+		if (child.position.y != positionY)
+		{
+			child.position.y = positionY;
+			child.onPositionChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setWidthWithoutEnforcingLayouts(const GuiID& guiID, const int& width)
+	void GuiElement::setSizeOfChild(const GuiID& guiID, const Vec2i& position)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.size.x = width;
-		guiElement.onSizeChange();
+		auto& child = guiManager->getElement(guiID);
+		if (child.size != size)
+		{
+			child.size = size;
+			guiManager->registerForEnforcingLayoutsDown(guiID);
+			child.onSizeChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setHeightWithoutEnforcingLayouts(const GuiID& guiID, const int& height)
+	void GuiElement::setWidthOfChild(const GuiID& guiID, const int& width)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.size.y = height;
-		guiElement.onSizeChange();
+		auto& child = guiManager->getElement(guiID);
+		if (child.size.x != size.x)
+		{
+			child.size.x = width;
+			guiManager->registerForEnforcingLayoutsDown(guiID);
+			child.onSizeChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setPositionAndSizeWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& position, const Vec2i& size)
+	void GuiElement::setHeightOfChild(const GuiID& guiID, const int& height)
 	{
 		if (!guiManager) return;
-		auto& guiElement = guiManager->getElement(guiID);
-		guiElement.position = position;
-		guiElement.onPositionChange();
-		guiElement.size = size;
-		guiElement.onSizeChange();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::enforceLayoutOnElement(const GuiID& guiID)
-	{
-		if (guiManager) guiManager->getElement(guiID).enforceLayout();
+		auto& child = guiManager->getElement(guiID);
+		if (child.size.y != size.y)
+		{
+			child.size.y = height;
+			guiManager->registerForEnforcingLayoutsDown(guiID);
+			child.onSizeChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::drawElement(const GuiID& guiID, const Vec2i& newParentPosition)
@@ -332,19 +372,13 @@ namespace SnackerEngine
 		if (guiManager) guiManager->getElement(guiID).draw(newParentPosition);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiElement::registerChildWithoutEnforcingLayouts(GuiElement& guiElement)
+	void GuiElement::registerEnforceLayoutDown()
 	{
-		if (guiManager) {
-			if (guiManager->registerElementAsChild(*this, guiElement)) {
-				children.push_back(guiElement.guiID);
-				return true;
-			}
-		}
-		return false;
+		if (guiManager) guiManager->registerForEnforcingLayoutsDown(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode)
-		: guiManager(nullptr), guiID(-1), parentID(-1), position(position), size(size),
+		: guiManager(nullptr), guiID(-1), parentID(-1), depth(0), position(position), size(size),
 		resizeMode(resizeMode), minSize(0, 0), maxSize(-1, -1), preferredSize(-1, -1), children{}
 	{
 	}
@@ -355,7 +389,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const GuiElement& other) noexcept
-		: guiManager(nullptr), guiID(-1), parentID(-1), position(other.position), size(other.size),
+		: guiManager(nullptr), guiID(-1), parentID(-1), depth(0), position(other.position), size(other.size),
 		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize), 
 		preferredSize(other.preferredSize), children{}
 	{
@@ -367,6 +401,7 @@ namespace SnackerEngine
 		guiManager = nullptr;
 		guiID = -1;
 		parentID = -1;
+		depth = 0;
 		position = other.position;
 		size = other.size;
 		resizeMode = other.resizeMode;
@@ -378,7 +413,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
-		: guiManager(other.guiManager), guiID(other.guiID), parentID(other.parentID), position(other.position), size(other.size),
+		: guiManager(other.guiManager), guiID(other.guiID), parentID(other.parentID), depth(other.depth), position(other.position), size(other.size),
 		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize), 
 		preferredSize(other.preferredSize), children(other.children)
 	{
@@ -393,6 +428,7 @@ namespace SnackerEngine
 		guiManager = other.guiManager;
 		guiID = other.guiID;
 		parentID = other.parentID;
+		depth = other.depth;
 		position = other.position;
 		size = other.size;
 		resizeMode = other.resizeMode;
@@ -408,9 +444,11 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	bool GuiElement::registerChild(GuiElement& guiElement)
 	{
-		if (registerChildWithoutEnforcingLayouts(guiElement)) {
-			enforceLayout();
-			return true;
+		if (guiManager) {
+			if (guiManager->registerElementAsChild(*this, guiElement)) {
+				children.push_back(guiElement.guiID);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -422,70 +460,98 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPosition(const Vec2i& position)
 	{
-		this->position = position;
-		onPositionChange();
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
-		else enforceLayout();
+		if (this->position != position) {
+			this->position = position;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			onPositionChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setSize(const Vec2i& size)
 	{
-		this->size = size;
-		onSizeChange();
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
-		else enforceLayout();
+		if (this->size != size) {
+			this->size = size;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUpAndDown(guiID);
+			onSizeChange();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPositionAndSize(const Vec2i& position, const Vec2i& size)
 	{
-		this->position = position;
-		onPositionChange();
-		this->size = size;
-		onSizeChange();
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
-		else enforceLayout();
+		setPosition(position);
+		setSize(size);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinSize(const Vec2i& minSize)
 	{
-		this->minSize = minSize;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->minSize != minSize) {
+			this->minSize = minSize;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinWidth(const int& minWidth)
 	{
-		minSize.x = minWidth;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->minSize.x != minWidth) {
+			this->minSize.x = minWidth;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinHeight(const int& minHeight)
 	{
-		minSize.y = minHeight;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->minSize.y != minHeight) {
+			this->minSize.y = minHeight;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMaxSize(const Vec2i& maxSize)
 	{
-		this->maxSize = maxSize;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->maxSize != maxSize) {
+			this->maxSize = maxSize;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMaxWidth(const int& maxWidth)
 	{
-		maxSize.x = maxWidth;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->maxSize.x != maxWidth) {
+			this->maxSize.x = maxWidth;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMaxHeight(const int& maxHeight)
 	{
-		maxSize.y = maxHeight;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->maxSize.y != maxHeight) {
+			this->maxSize.y = maxHeight;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPreferredSize(const Vec2i& preferredSize)
 	{
-		this->preferredSize = preferredSize;
-		if (parentID > 0 && guiManager) guiManager->getElement(parentID).enforceLayout();
+		if (this->preferredSize != preferredSize) {
+			this->preferredSize = preferredSize;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setPreferredWidth(const int& preferredWidth)
+	{
+		if (this->preferredSize.x != preferredWidth) {
+			this->preferredSize.x = preferredWidth;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setPreferredHeight(const int& preferredHeight)
+	{
+		if (this->preferredSize.y != preferredHeight) {
+			this->preferredSize.y = preferredHeight;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 }

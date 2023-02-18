@@ -27,19 +27,22 @@ namespace SnackerEngine
 								/// minSize and maxSize
 		};
 
-	protected:
+	private:
 		friend class GuiManager;
 		friend class GuiHandle;
+	public:
 		using GuiID = int;
+	private:
 		/// Pointer to the parent guiManager
 		GuiManager* guiManager;
-	private:
 		/// GuiID of this GuiElement object
 		GuiID guiID;
 		/// guiID of the parent GuiElement object. If this is zero, this GuiElement object does not 
 		/// have a parent object.
 		GuiID parentID;
-	protected:
+		/// The depth is the depth of this element when drawing the GUI as a tree, with the GuiElement with GuiID 0
+		/// as the root! This variable is automatically set by the GuiManager when registering an element
+		unsigned int depth;
 		/// Position of this GuiElement object relative to its parent. The position vector points
 		///  to the upper left corner of the bounding rectangle.
 		Vec2i position;
@@ -57,7 +60,6 @@ namespace SnackerEngine
 		/// The preferred size of this element. If a component of preferredSize is set to -1
 		/// this means that there is no preferred size along this direction!
 		Vec2i preferredSize;
-	private:
 		/// Vector of child elements. Sorted in the order they will be drawn (but this can be
 		/// changed in derived elements by overwriting draw())
 		std::vector<GuiID> children;
@@ -97,6 +99,8 @@ namespace SnackerEngine
 		/// overwritten if the children are displayed at a different place than they
 		/// are (eg. in a scrolling list etc)
 		virtual Vec2i getChildOffset(const GuiID& childID);
+		/// Returns a const pointer ref to the GuiManager
+		GuiManager * const& getGuiManager() { return guiManager; }
 
 		//==============================================================================================
 		// GuiHandles
@@ -219,29 +223,40 @@ namespace SnackerEngine
 		Vec2i getMouseOffset(const GuiID& guiID);
 		ResizeMode getResizeMode(const GuiID& guiID);
 		Vec2i getMinSize(const GuiID& guiID);
+		int getMinWidth(const GuiID& guiID);
+		int getMinHeight(const GuiID& guiID);
 		Vec2i getMaxSize(const GuiID& guiID);
+		int getMaxWidth(const GuiID& guiID);
+		int getMaxHeight(const GuiID& guiID);
 		Vec2i getPreferredSize(const GuiID& guiID);
+		int getPreferredWidth(const GuiID& guiID);
+		int getPreferredHeight(const GuiID& guiID);
 		IsCollidingResult isColliding(const GuiID& guiID, const Vec2i& parentPosition);
-		void setPosition(const GuiID& guiID, const Vec2i& position);
-		void setSize(const GuiID& guiID, const Vec2i& size);
+
 		/// Sets position directly without calling OnPositionChange()
-		/// Should only be used during construction!
+		/// Use only if you know what you're doing!
 		void setPositionInternal(const Vec2i& position);
 		/// Sets size directly without calling OnPositionChange()
-		/// Should only be used during construction!
+		/// Use only if you know what you're doing!
 		void setSizeInternal(const Vec2i& size);
-		void setPositionAndSize(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
-		void setPositionWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& position);
-		void setPositionXWithoutEnforcingLayouts(const GuiID& guiID, const int& x);
-		void setPositionYWithoutEnforcingLayouts(const GuiID& guiID, const int& y);
-		void setSizeWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& size);
-		void setWidthWithoutEnforcingLayouts(const GuiID& guiID, const int& width);
-		void setHeightWithoutEnforcingLayouts(const GuiID& guiID, const int& height);
-		void setPositionAndSizeWithoutEnforcingLayouts(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
-		void enforceLayoutOnElement(const GuiID& guiID);
+
+		/// Using these setters a guiElement can change the position and size of child elements.
+		/// This will trigger them to enforce layouts on themselves and their children respectively.
+		/// This will of course also call onSizeChange() and/or onPositionChange() on the child element affected.
+		void setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
+		void setPositionOfChild(const GuiID& guiID, const Vec2i& position);
+		void setPositionXOfChild(const GuiID& guiID, const int& positionX);
+		void setPositionYOfChild(const GuiID& guiID, const int& positionY);
+		void setSizeOfChild(const GuiID& guiID, const Vec2i& position);
+		void setWidthOfChild(const GuiID& guiID, const int& width);
+		void setHeightOfChild(const GuiID& guiID, const int& height);
+
+		/// draws a child Element
 		void drawElement(const GuiID& guiID, const Vec2i& newParentPosition);
-		/// Adds a child to this guiElement. Returns true on success. Does not enforce any layouts
-		bool registerChildWithoutEnforcingLayouts(GuiElement& guiElement);
+
+		/// This function can be used to tell the GuiManager that this element wants to enforce its layout
+		/// and the layouts of its child elements if necessary
+		void registerEnforceLayoutDown();
 
 	public:
 		/// Default constructor
@@ -270,7 +285,7 @@ namespace SnackerEngine
 		/// this function should be preferred over two seperate calls of setPosition()
 		/// and setSize()
 		void setPositionAndSize(const Vec2i& position, const Vec2i& size);
-		/// Setters for min/max/preferredSize. May call enforceLayout() on the parent element
+		/// Setters for min/max/preferredSize. May call enforceLayout() on the parent element.
 		void setMinSize(const Vec2i& minSize);
 		void setMinWidth(const int& minWidth);
 		void setMinHeight(const int& minHeight);
@@ -278,6 +293,8 @@ namespace SnackerEngine
 		void setMaxWidth(const int& maxWidth);
 		void setMaxHeight(const int& maxHeight);
 		void setPreferredSize(const Vec2i& preferredSize);
+		void setPreferredWidth(const int& preferredWidth);
+		void setPreferredHeight(const int& preferredHeight);
 		/// Getters
 		const GuiID& getGuiID() const { return guiID; }
 		const GuiID& getParentID() const { return parentID; }
@@ -289,8 +306,14 @@ namespace SnackerEngine
 		const int& getHeight() const { return size.y; }
 		const ResizeMode& getResizeMode() const { return resizeMode; }
 		const Vec2i& getMinSize() const { return minSize; }
+		const int& getMinWidth() const { return minSize.x; }
+		const int& getMinHeight() const { return minSize.y; }
 		const Vec2i& getMaxSize() const { return maxSize; }
+		const int& getMaxWidth() const { return maxSize.x; }
+		const int& getMaxHeight() const { return maxSize.y; }
 		const Vec2i& getPreferredSize() const { return preferredSize; }
+		const int& getPreferredWidth() const { return preferredSize.x; }
+		const int& getPreferredHeight() const { return preferredSize.y; }
 		const std::vector<GuiID>& getChildren() const { return children; }
 	};
 

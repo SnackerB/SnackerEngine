@@ -1,4 +1,5 @@
 #include "Gui/GuiLayout.h"
+#include "Gui/GuiManager.h"
 
 namespace SnackerEngine
 {
@@ -6,7 +7,7 @@ namespace SnackerEngine
 	void GuiLayout::removeChild(GuiElement& guiElement)
 	{
 		GuiElement::removeChild(guiElement);
-		enforceLayout();
+		registerEnforceLayoutDown();
 	}
 	
 	GuiLayout::GuiLayout()

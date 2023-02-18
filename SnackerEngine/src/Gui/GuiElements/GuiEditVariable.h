@@ -117,7 +117,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiEditVariable<T>::draw(const Vec2i& parentPosition)
 	{
-		Vec2i nextPosition = parentPosition + position;
+		Vec2i nextPosition = parentPosition + getPosition();
 		drawElement(label->getGuiID(), nextPosition);
 		drawElement(editBox->getGuiID(), nextPosition);
 		GuiElement::draw(parentPosition);
@@ -133,10 +133,10 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiEditVariable<T>::onSizeChange()
 	{
-		int editBoxWidth = label ? getWidth() - label->getMinSize().x : 0;
+		int editBoxWidth = label ? getWidth() - label->getMinWidth() : 0;
 		if (editBoxWidth < 0) editBoxWidth = 0;
-		editBox->setPositionAndSize(Vec2i(label->getMinSize().x, 0), Vec2i(editBoxWidth, label->getMinSize().y));
-		minSize = label->getMinSize();
+		editBox->setPositionAndSize(Vec2i(label->getMinWidth(), 0), Vec2i(editBoxWidth, label->getMinHeight()));
+		setMinSize(label->getMinSize());
 	}
 
 	template<typename T>

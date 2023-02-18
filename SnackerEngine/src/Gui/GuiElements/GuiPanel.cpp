@@ -16,6 +16,7 @@ namespace SnackerEngine
 
 	void GuiPanel::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		if (backgroundColor.alpha != 0.0f)
 		{

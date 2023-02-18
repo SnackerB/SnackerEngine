@@ -103,8 +103,7 @@ namespace SnackerEngine
 			for (unsigned int i = 0; i < children.size(); ++i)
 			{
 				// Set attributes and enforce layouts
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positions[i].x + widthOffset, border), sizes[i]);
-				enforceLayoutOnElement(children[i]);
+				setPositionAndSizeOfChild(children[i], Vec2i(positions[i].x + widthOffset, border), sizes[i]);
 			}
 			break;
 		}
@@ -113,8 +112,7 @@ namespace SnackerEngine
 			for (unsigned int i = 0; i < children.size(); ++i)
 			{
 				// Set attributes and enforce layouts
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positions[i].x + widthOffset, (getHeight() - sizes[i].y) / 2), sizes[i]);
-				enforceLayoutOnElement(children[i]);
+				setPositionAndSizeOfChild(children[i], Vec2i(positions[i].x + widthOffset, (getHeight() - sizes[i].y) / 2), sizes[i]);
 			}
 			break;
 		}
@@ -123,8 +121,7 @@ namespace SnackerEngine
 			for (unsigned int i = 0; i < children.size(); ++i)
 			{
 				// Set attributes and enforce layouts
-				setPositionAndSizeWithoutEnforcingLayouts(children[i], Vec2i(positions[i].x + widthOffset, getHeight() - sizes[i].y - border), sizes[i]);
-				enforceLayoutOnElement(children[i]);
+				setPositionAndSizeOfChild(children[i], Vec2i(positions[i].x + widthOffset, getHeight() - sizes[i].y - border), sizes[i]);
 			}
 			break;
 		}
@@ -133,19 +130,20 @@ namespace SnackerEngine
 		}
 		// If necessary, snap height
 		if (snapHeightToPreferred) {
-			preferredSize = Vec2i(-1, maxSnapHeight + static_cast<int>(2 * border));
+			setPreferredHeight(maxSnapHeight + static_cast<int>(2 * border));
 		}
 	}
 
 	void HorizontalListLayout::computeModelMatrix()
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(
-			Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f),
-			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+			Vec3f(static_cast<float>(getPositionX()), static_cast<float>(-getPositionY() - getHeight()), 0.0f),
+			Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
 	}
 
 	void HorizontalListLayout::draw(const Vec2i& parentPosition)
 	{
+		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
 		if (backgroundColor.alpha != 0.0f)
 		{
@@ -214,7 +212,7 @@ namespace SnackerEngine
 	{
 		if (snapHeightToPreferred != this->snapHeightToPreferred) {
 			this->snapHeightToPreferred = snapHeightToPreferred;
-			enforceLayout();
+			registerEnforceLayoutDown();
 		}
 	}
 
