@@ -197,6 +197,9 @@
     <ClInclude Include="src\Graphics\VertexArray.h" />
     <ClInclude Include="src\Graphics\VertexBuffer.h" />
     <ClInclude Include="src\Graphics\VertexBufferLayout.h" />
+    <ClInclude Include="src\Gui\Animation\Animatable.h" />
+    <ClInclude Include="src\Gui\Animation\AnimationFunc.h" />
+    <ClInclude Include="src\Gui\Animation\GuiElementAnimatable.h" />
     <ClInclude Include="src\Gui\GuiElement.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiButton.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiCheckBox.h" />
@@ -267,6 +270,7 @@
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
     <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\VertexBufferLayout.cpp" />
+    <ClCompile Include="src\Gui\Animation\Animatable.cpp" />
     <ClCompile Include="src\Gui\GuiElement.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiCheckBox.cpp" />

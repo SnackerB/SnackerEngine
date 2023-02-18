@@ -243,6 +243,15 @@
     <ClInclude Include="src\Gui\GuiElements\GuiCheckBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\Animation\Animatable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Animation\AnimationFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\Animation\GuiElementAnimatable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -417,6 +426,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\GuiElements\GuiCheckBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\Animation\Animatable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

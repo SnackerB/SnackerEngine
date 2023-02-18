@@ -4,9 +4,11 @@
 #include "Math/Mat.h"
 #include "Graphics/Model.h"
 #include "Graphics/Shader.h"
+#include "Gui/Animation/Animatable.h"
 
 #include <queue>
 #include <unordered_set>
+#include <unordered_map>
 #include <optional>
 
 namespace SnackerEngine
@@ -94,6 +96,15 @@ namespace SnackerEngine
 		void pushClippingBox(const Vec4i& clippingBox);
 		/// Pops the top clipping box from the stack and updates the scissor test
 		void popClippingBox();
+
+		//==============================================================================================
+		// Animations
+		//==============================================================================================
+		/// Map that stores all active animations, ordered by which GuiElement they belong to.
+		std::unordered_map<GuiID, std::vector<std::unique_ptr<Animatable>>> animations;
+	public:
+		template<typename GuiElementAnimatableType>
+		void registerAnimation(GuiElementAnimatableType&& animatable);
 
 		//==============================================================================================
 		// Helper functions
@@ -190,6 +201,17 @@ namespace SnackerEngine
 		// Draws the GUI
 		void draw();
 	};
+
+	template<typename GuiElementAnimatableType>
+	inline void GuiManager::registerAnimation(GuiElementAnimatableType&& animatable)
+	{
+		if (auto it = animations.find(animatable.getGuiElement().getGuiID()) != animations.end()) {
+			it.second().insert(std::make_unique<GuiElementAnimatableType>(std::move(animatable)));
+		}
+		else {
+			// animations.insert(std::make_pair(animatable.getGuiElement().getGuiID(), )
+		}
+	}
 
 	template<typename GuiElementType>
 	inline void GuiManager::registerAndMoveElement(GuiElementType&& guiElement)
