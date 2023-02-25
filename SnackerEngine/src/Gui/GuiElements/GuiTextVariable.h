@@ -42,7 +42,8 @@ namespace SnackerEngine
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
 			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
-			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY },
+			bool doRecomputeOnSizeChange = true);
 		/// Constructor that already registers variable handle
 		GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
 			const std::string& label, const Font& font, const double& fontSize,
@@ -50,7 +51,8 @@ namespace SnackerEngine
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,
 			const int& border = 0, const TextScaleMode& textScaleMode = TextScaleMode::DONT_SCALE,
-			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY });
+			const SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY },
+			bool doRecomputeOnSizeChange = true);
 		/// Constructors using GuiStyle
 		GuiTextVariable(const std::string& label, GuiVariableHandle<T>& handle, const GuiStyle& style);
 		GuiTextVariable(const std::string& label, const GuiStyle& style);
@@ -117,13 +119,13 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiTextVariable<T>::GuiTextVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
-		: GuiDynamicTextBox(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, border, textScaleMode, sizeHintModes), variableHandle(nullptr), label(label) {}
+	inline GuiTextVariable<T>::GuiTextVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes, bool doRecomputeOnSizeChange)
+		: GuiDynamicTextBox(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, border, textScaleMode, sizeHintModes, doRecomputeOnSizeChange), variableHandle(nullptr), label(label) {}
 	
 
 	template<typename T>
-	inline GuiTextVariable<T>::GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes)
-		: GuiTextVariable<T>(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, border, textScaleMode, sizeHintModes)
+	inline GuiTextVariable<T>::GuiTextVariable(GuiVariableHandle<T>& handle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes, bool doRecomputeOnSizeChange)
+		: GuiTextVariable<T>(position, size, resizeMode, label, font, fontSize, textColor, backgroundColor, parseMode, alignment, border, textScaleMode, sizeHintModes, doRecomputeOnSizeChange)
 	{
 		setVariableHandle(handle);
 	}

@@ -270,7 +270,7 @@ namespace SnackerEngine
 			Vec2i initial;
 			Vec2i final;
 			PositionAnimatable(GuiElement& guiElement, const Vec2i& initial, const Vec2i & final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction) {}
+				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
 			void animate(const float& percentage) override
 			{
 				getGuiElement()->setPosition(initial + (final - initial) * percentage);
