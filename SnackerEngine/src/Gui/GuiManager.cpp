@@ -193,7 +193,7 @@ namespace SnackerEngine
 			while (it2 != it.second.end())
 			{
 				if ((*it2)->tick(dt)) {
-					it.second.erase(it2);
+					it2 = it.second.erase(it2);
 				}
 				else {
 					it2++;
@@ -305,6 +305,13 @@ namespace SnackerEngine
 			return;
 		}
 		registeredGuiElements[guiElement.guiID] = &guiElement;
+		auto it = animations.find(guiElement.guiID);
+		if (it != animations.end()) {
+			for (auto& animatablePtr : it->second)
+			{
+				animatablePtr->onGuiElementMove(guiElement);
+			}
+		}
 	}
 
 	GuiElement& GuiManager::getElement(const GuiID& guiID)
@@ -322,7 +329,8 @@ namespace SnackerEngine
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, signOffQueue{}, squareModel{},
-		triangleModel{}, clippingBoxStack{}, enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, screenDims {}
+		triangleModel{}, clippingBoxStack{}, enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, animations{},
+		screenDims{}
 	{
 		ownedGuiElements.reserve(startingSize + 1);
 		for (unsigned int i = 0; i < startingSize + 1; ++i) {

@@ -36,6 +36,16 @@ class TextureDemo : public SnackerEngine::Scene
 	SnackerEngine::GuiWindow parentWindow;
 	SnackerEngine::GuiVariableHandleInt intHandle;
 
+	enum class DebugVariant
+	{
+		TEXT_DEBUG,
+		WINDOW_DEBUG,
+		VERTICAL_LIST_LAYOUT_DEBUG,
+		UTF8_DEBUG,
+		ANIMATION_DEBUG,
+	};
+	DebugVariant debugVariant = DebugVariant::ANIMATION_DEBUG;
+
 	SnackerEngine::GuiVariableHandleFloat floatSliderHandle;
 	SnackerEngine::GuiVariableHandleDouble doubleSliderHandle;
 
@@ -43,6 +53,19 @@ class TextureDemo : public SnackerEngine::Scene
 	HelloEventHandle helloEventHandle;
 	SnackerEngine::GuiEventHandle eventHandle;
 	SnackerEngine::GuiEditTextBox editBoxUTF8;
+
+	SnackerEngine::GuiPanel panel;
+	bool animationBool = true;
+	enum class AnimationType
+	{
+		LINEAR,
+		SINE,
+		EXPO,
+		BACK,
+		BOUNCE,
+		ELASTIC,
+	};
+	AnimationType animationType = AnimationType::LINEAR;
 public:
 
 	TextureDemo()
@@ -51,15 +74,6 @@ public:
 		SnackerEngine::Renderer::setClearColor(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned char>(253, 152, 51)));
 
 		SnackerEngine::GuiStyle style = SnackerEngine::getDefaultStyle();
-
-		enum class DebugVariant
-		{
-			TEXT_DEBUG,
-			WINDOW_DEBUG,
-			VERTICAL_LIST_LAYOUT_DEBUG,
-			UTF8_DEBUG,
-		};
-		DebugVariant debugVariant = DebugVariant::WINDOW_DEBUG;
 
 		switch (debugVariant)
 		{
@@ -381,6 +395,17 @@ public:
 			guiManager.registerElement(editBoxUTF8);
 			break;
 		}
+		case DebugVariant::ANIMATION_DEBUG:
+		{
+			SnackerEngine::GuiButton button(eventHandle, "Click me :)", style);
+			button.setSize(button.getPreferredSize());
+			guiManager.registerAndMoveElement(std::move(button));
+
+			panel = SnackerEngine::GuiPanel({ 100, 200 }, { 100, 100 });
+			panel.setBackgroundColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+			guiManager.registerElement(panel);
+			break;
+		}
 		default:
 			break;
 		}
@@ -423,17 +448,70 @@ public:
 
 	virtual void update(const double& dt) override
 	{
-		if (intHandle.isActive()) 
+		switch (debugVariant)
 		{
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "Int changed to " << intHandle.get() << SnackerEngine::LOGGER::ENDL;
-			intHandle.reset();
+		case TextureDemo::DebugVariant::TEXT_DEBUG:
+			break;
+		case TextureDemo::DebugVariant::WINDOW_DEBUG:
+		{
+			if (intHandle.isActive())
+			{
+				SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "Int changed to " << intHandle.get() << SnackerEngine::LOGGER::ENDL;
+				intHandle.reset();
+			}
+			break;
 		}
-		if (eventHandle.isActive()) 
+		case TextureDemo::DebugVariant::VERTICAL_LIST_LAYOUT_DEBUG:
+			break;
+		case TextureDemo::DebugVariant::UTF8_DEBUG:
 		{
-			eventHandle.reset();
-			std::string text = editBoxUTF8.getText();
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "text was: " << text << SnackerEngine::LOGGER::ENDL;
-			editBoxUTF8.setText(text);
+			if (eventHandle.isActive())
+			{
+				eventHandle.reset();
+				std::string text = editBoxUTF8.getText();
+				SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "text was: " << text << SnackerEngine::LOGGER::ENDL;
+				editBoxUTF8.setText(text);
+			}
+			break;
+		}
+		case TextureDemo::DebugVariant::ANIMATION_DEBUG:
+		{
+			if (eventHandle.isActive())
+			{
+				eventHandle.reset();
+				int posX = 100;
+				if (animationBool)
+					posX = 600;
+				switch (animationType)
+				{
+				case TextureDemo::AnimationType::LINEAR:
+					panel.animatePositionX(panel.getPositionX(), posX, 0.5, SnackerEngine::animationFunctionLinear);
+					break;
+				case TextureDemo::AnimationType::SINE:
+					panel.animatePositionX(panel.getPositionX(), posX, 0.5, SnackerEngine::animationFunctionEaseInOutSine);
+					break;
+				case TextureDemo::AnimationType::EXPO:
+					panel.animatePositionX(panel.getPositionX(), posX, 0.5, SnackerEngine::animationFunctionEaseInOutExpo);
+					break;
+				case TextureDemo::AnimationType::BACK:
+					panel.animatePositionX(panel.getPositionX(), posX, 0.5, SnackerEngine::animationFunctionEaseOutBack);
+					break;
+				case TextureDemo::AnimationType::BOUNCE:
+					panel.animatePositionX(panel.getPositionX(), posX, 0.5, SnackerEngine::animationFunctionEaseOutBounce);
+					break;
+				case TextureDemo::AnimationType::ELASTIC:
+					panel.animatePositionX(panel.getPositionX(), posX, 0.5, SnackerEngine::animationFunctionEaseOutElastic);
+					break;
+				default:
+					break;
+				}
+				animationBool = !animationBool;
+				animationType = static_cast<AnimationType>((static_cast<int>(animationType) + 1) % 6);
+			}
+			break;
+		}
+		default:
+			break;
 		}
 		guiManager.update(dt);
 	}

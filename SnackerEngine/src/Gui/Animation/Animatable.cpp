@@ -7,8 +7,14 @@ namespace SnackerEngine
 	bool Animatable::tick(const float& dt)
 	{
 		timePassed = std::min(timeFinal, timePassed + dt);
-		animate(std::max(0.0, std::min(timePassed / timeFinal, 1.0)));
-		return timePassed == timeFinal;
+		if (timePassed == timeFinal) {
+			animate(1.0);
+			return true;
+		}
+		else {
+			animate(animationFunction(std::max(0.0, std::min(timePassed / timeFinal, 1.0))));
+			return false;
+		}
 	}
 
 	Animatable::Animatable(const double& duration, AnimationFuncT animationFunction)

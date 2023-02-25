@@ -3,6 +3,7 @@
 #include "Math/Vec.h"
 #include "Gui/GuiEventHandles/GuiHandle.h"
 #include "Gui/GuiEventHandles/GuiVariableHandle.h"
+#include "Gui/Animation/GuiElementAnimatable.h"
 
 #include <vector>
 
@@ -258,6 +259,97 @@ namespace SnackerEngine
 		/// and the layouts of its child elements if necessary
 		void registerEnforceLayoutDown();
 
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+
+	private:
+		class PositionAnimatable : public GuiElementAnimatable
+		{
+			friend class GuiElement;
+			Vec2i initial;
+			Vec2i final;
+			PositionAnimatable(GuiElement& guiElement, const Vec2i& initial, const Vec2i & final, const double& duration, AnimationFuncT animationFunction)
+				: GuiElementAnimatable(guiElement, duration, animationFunction) {}
+			void animate(const float& percentage) override
+			{
+				getGuiElement()->setPosition(initial + (final - initial) * percentage);
+			}
+		};
+
+		class PositionXAnimatable : public GuiElementAnimatable
+		{
+			int initial;
+			int final;
+			friend class GuiElement;
+			PositionXAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
+			virtual void animate(const float& percentage) override
+			{
+				getGuiElement()->setPositionX(initial + (final - initial) * percentage);
+			}
+		};
+
+		class PositionYAnimatable : public GuiElementAnimatable
+		{
+			int initial;
+			int final;
+			friend class GuiElement;
+			PositionYAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
+			void animate(const float& percentage) override
+			{
+				getGuiElement()->setPositionY(initial + (final - initial) * percentage);
+			}
+		};
+
+		class SizeAnimatable : public GuiElementAnimatable
+		{
+			Vec2i initial;
+			Vec2i final;
+			friend class GuiElement;
+			SizeAnimatable(GuiElement& guiElement, const Vec2i& initial, const Vec2i& final, const double& duration, AnimationFuncT animationFunction)
+				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
+			void animate(const float& percentage) override
+			{
+				getGuiElement()->setSize(initial + (final - initial) * percentage);
+			}
+		};
+
+		class WidthAnimatable : public GuiElementAnimatable
+		{
+			int initial;
+			int final;
+			friend class GuiElement;
+			WidthAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
+			void animate(const float& percentage) override
+			{
+				getGuiElement()->setWidth(initial + (final - initial) * percentage);
+			}
+		};
+
+		class HeightAnimatable : public GuiElementAnimatable
+		{
+			int initial;
+			int final;
+			friend class GuiElement;
+			HeightAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
+			void animate(const float& percentage) override
+			{
+				getGuiElement()->setHeight(initial + (final - initial) * percentage);
+			}
+		};
+
+	public:
+		void animatePosition(const Vec2i& initial, const Vec2i &final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+		void animatePositionX(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+		void animatePositionY(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+		void animateSize(const Vec2i& initial, const Vec2i &final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+		void animateWidth(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+		void animateHeight(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+
 	public:
 		/// Default constructor
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), 
@@ -277,9 +369,13 @@ namespace SnackerEngine
 		/// Sets the position of this element. May call enforceLayout() on the parent
 		/// and child elements
 		void setPosition(const Vec2i& position);
+		void setPositionX(const int& positionX);
+		void setPositionY(const int& positionY);
 		/// Sets the size of this element. May call enforceLayout() on the parent
 		/// and child elements
 		void setSize(const Vec2i& size);
+		void setWidth(const int& width);
+		void setHeight(const int& height);
 		/// Sets the position and the size of this element. May call enforceLayout()
 		/// on the parent and child elements. If the position and size is to be set,
 		/// this function should be preferred over two seperate calls of setPosition()

@@ -4,7 +4,7 @@
 #include "Math/Mat.h"
 #include "Graphics/Model.h"
 #include "Graphics/Shader.h"
-#include "Gui/Animation/Animatable.h"
+#include "Gui/Animation/GuiElementAnimatable.h"
 
 #include <queue>
 #include <unordered_set>
@@ -132,7 +132,7 @@ namespace SnackerEngine
 		//==============================================================================================
 	private:
 		/// Map that stores all active animations, ordered by which GuiElement they belong to.
-		std::unordered_map<GuiID, std::vector<std::unique_ptr<Animatable>>> animations;
+		std::unordered_map<GuiID, std::vector<std::unique_ptr<GuiElementAnimatable>>> animations;
 		/// Deletes all animations of the given element from the animations map. Is called when a
 		/// guiElement is signed off
 		void deleteAnimations(const GuiID& guiID);
@@ -242,11 +242,15 @@ namespace SnackerEngine
 	template<typename GuiElementAnimatableType>
 	inline void GuiManager::registerAnimation(GuiElementAnimatableType&& animatable)
 	{
-		if (auto it = animations.find(animatable.getGuiElement().getGuiID()) != animations.end()) {
-			it.second().insert(std::make_unique<GuiElementAnimatableType>(std::move(animatable)));
+		auto it = animations.find(animatable.getGuiElement()->getGuiID());
+		auto ptr = std::make_unique<GuiElementAnimatableType>(std::move(animatable));
+		if (it != animations.end()) {
+			it->second.push_back(std::move(ptr));
 		}
 		else {
-			// animations.insert(std::make_pair(animatable.getGuiElement().getGuiID(), )
+			std::vector<std::unique_ptr<GuiElementAnimatable>> vector;
+			vector.push_back(std::move(ptr));
+			animations.insert(std::make_pair(animatable.getGuiElement()->getGuiID(), std::move(vector)));
 		}
 	}
 
