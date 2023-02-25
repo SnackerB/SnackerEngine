@@ -377,6 +377,42 @@ namespace SnackerEngine
 		if (guiManager) guiManager->registerForEnforcingLayoutsDown(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePosition(const Vec2i& initial, const Vec2i & final, const double& duration, AnimationFuncT animationFunction)
+	{
+		if (guiManager)
+			guiManager->registerAnimation(std::move(PositionAnimatable(*this, initial, final, duration, animationFunction)));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePositionX(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+	{
+		if (guiManager)
+			guiManager->registerAnimation(std::move(PositionXAnimatable(*this, initial, final, duration, animationFunction)));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePositionY(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+	{
+		if (guiManager)
+			guiManager->registerAnimation(std::move(PositionYAnimatable(*this, initial, final, duration, animationFunction)));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateSize(const Vec2i& initial, const Vec2i & final, const double& duration, AnimationFuncT animationFunction)
+	{
+		if (guiManager)
+			guiManager->registerAnimation(std::move(SizeAnimatable(*this, initial, final, duration, animationFunction)));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateWidth(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+	{
+		if (guiManager)
+			guiManager->registerAnimation(std::move(WidthAnimatable(*this, initial, final, duration, animationFunction)));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateHeight(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
+	{
+		if (guiManager)
+			guiManager->registerAnimation(std::move(HeightAnimatable(*this, initial, final, duration, animationFunction)));
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode)
 		: guiManager(nullptr), guiID(-1), parentID(-1), depth(0), position(position), size(size),
 		resizeMode(resizeMode), minSize(0, 0), maxSize(-1, -1), preferredSize(-1, -1), children{}
@@ -467,10 +503,46 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setPositionX(const int& positionX)
+	{
+		if (this->position.x != positionX) {
+			this->position.x = positionX;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			onPositionChange();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setPositionY(const int& positionY)
+	{
+		if (this->position.y != positionY) {
+			this->position.y = positionY;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			onPositionChange();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setSize(const Vec2i& size)
 	{
 		if (this->size != size) {
 			this->size = size;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUpAndDown(guiID);
+			onSizeChange();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setWidth(const int& width)
+	{
+		if (this->size.x != width) {
+			this->size.x = width;
+			if (guiManager) guiManager->registerForEnforcingLayoutsUpAndDown(guiID);
+			onSizeChange();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::setHeight(const int& height)
+	{
+		if (this->size.y != height) {
+			this->size.y = height;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUpAndDown(guiID);
 			onSizeChange();
 		}

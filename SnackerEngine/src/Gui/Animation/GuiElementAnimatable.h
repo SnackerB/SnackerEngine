@@ -8,8 +8,7 @@ namespace SnackerEngine
 	class GuiElement;
 	class GuiManager;
 
-	template<typename T>
-	class GuiElementAnimatable : public ValueAnimatable<T>
+	class GuiElementAnimatable : public Animatable
 	{
 	private:
 		friend class GuiManager;
@@ -21,17 +20,7 @@ namespace SnackerEngine
 		/// Returns a const pointer to the guiElement in question. Careful: Can be nullptr!
 		GuiElement* const getGuiElement() { return elementPtr; }
 		/// Constructor using a reference to a guiElement
-		GuiElementAnimatable(GuiElement& guiElement, const T& initial, const T & final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
+		GuiElementAnimatable(GuiElement& guiElement, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
 	};
-
-	template<typename T>
-	inline void GuiElementAnimatable<T>::onGuiElementMove(GuiElement& guiElement)
-	{
-		elementPtr = &guiElement;
-	}
-
-	template<typename T>
-	inline GuiElementAnimatable<T>::GuiElementAnimatable(GuiElement& guiElement, const T& initial, const T & final, const double& duration, AnimationFuncT animationFunction)
-		: Animatable<T>(initial, final, duration, animationFunction), elementPtr(&guiElement) {}
 
 }

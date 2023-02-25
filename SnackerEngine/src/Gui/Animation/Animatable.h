@@ -15,12 +15,12 @@ namespace SnackerEngine
 		double timePassed;
 		/// The time (in seconds) when the animation should be finished
 		double timeFinal;
-		/// Protected constructor
-		Animatable(const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
 		/// Performs the animation (eg. setting position/color etc.)
 		/// This function has to be overloaded by child classes actually implementing animations
-		void animate(const float& percenteage) {};
+		virtual void animate(const float& percentage) {}
 	protected:
+		/// Protected constructor
+		Animatable(const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
 		/// The animation function (map from linear to the goal animation)
 		AnimationFuncT animationFunction;
 	public:
@@ -29,7 +29,7 @@ namespace SnackerEngine
 	};
 
 	template<typename T>
-	class ValueAnimatable
+	class ValueAnimatable : public Animatable
 	{
 	protected:
 		/// The starting value

@@ -14,6 +14,14 @@ namespace SnackerEngine
 
 	double animationFunctionEaseInOutSine(const double& percent);
 
+	double animationFunctionEaseInOutExpo(const double& percent);
+
+	double animationFunctionEaseOutBack(const double& percent);
+
+	double animationFunctionEaseOutBounce(const double& percent);
+
+	double animationFunctionEaseOutElastic(const double& percent);
+		
 	using AnimationFuncT = double(&)(const double&);
 
 }
