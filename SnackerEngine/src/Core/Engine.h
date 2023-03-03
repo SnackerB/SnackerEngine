@@ -4,6 +4,7 @@
 
 #include <string>
 #include <chrono>
+#include <random>
 
 //----------------------------------------------------------------------------------------------------------
 /// Forward declaration of GLFWindow class
@@ -24,6 +25,8 @@ namespace SnackerEngine
 		inline static std::chrono::high_resolution_clock::time_point lastUpdateTime{};
 		/// if set to true, the mouse is constrained to the middle of the screen
 		inline static bool constrainMouseToScreenCenter = false;
+		/// Random Engine
+		inline static std::default_random_engine randomEngine{};
 
 		/// Determines the resource path. Prints info/error about the location of the path
 		static bool determineResourcePath(const std::string& resourceFolderPath = "");
@@ -52,6 +55,8 @@ namespace SnackerEngine
 		static Vec2i constrainMouseCenter(const bool& enable);
 		/// Returns the x and y dpi of the monitor the engine is run on
 		static Vec2<unsigned int> getDPI();
+		/// Returns a random number generator that can be used for non-critical random numbers!
+		static std::default_random_engine& getRandomEngine() { return randomEngine; }
 		/// Deleted destructor: this is a static class!
 		Engine() = delete;
 	};

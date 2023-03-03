@@ -132,6 +132,10 @@ namespace SnackerEngine
 		GLCall(glfwSetScrollCallback(Renderer::activeWindow, &callbackMouseScroll));
 		GLCall(glfwSetCharCallback(Renderer::activeWindow, &callbackCharacterInput));
 
+		// Initialize random engine
+		auto rd = std::random_device{};
+		Engine::randomEngine = std::default_random_engine{ rd() };
+
 		return true;
 	}
 	//------------------------------------------------------------------------------------------------------

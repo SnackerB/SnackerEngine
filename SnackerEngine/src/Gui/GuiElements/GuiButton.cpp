@@ -20,9 +20,9 @@ namespace SnackerEngine
 	{
 		if (!locked) {
 			signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
-			signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
-			signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
 		}
+		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
+		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
 	}
 
 	void GuiButton::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)
@@ -38,22 +38,26 @@ namespace SnackerEngine
 	void GuiButton::callbackMouseEnter(const Vec2d& position)
 	{
 		isBeingHovered = true;
-		if (isBeingPressed) {
-			setBackgroundColor(pressedHoverColor);
-		}
-		else {
-			setBackgroundColor(hoverColor);
+		if (!locked) {
+			if (isBeingPressed) {
+				setBackgroundColor(pressedHoverColor);
+			}
+			else {
+				setBackgroundColor(hoverColor);
+			}
 		}
 	}
 
 	void GuiButton::callbackMouseLeave(const Vec2d& position)
 	{
 		isBeingHovered = false;
-		if (isBeingPressed) {
-			setBackgroundColor(pressedColor);
-		}
-		else {
-			setBackgroundColor(defaultColor);
+		if (!locked) {
+			if (isBeingPressed) {
+				setBackgroundColor(pressedColor);
+			}
+			else {
+				setBackgroundColor(defaultColor);
+			}
 		}
 	}
 
@@ -114,10 +118,7 @@ namespace SnackerEngine
 	void GuiButton::lock()
 	{
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
-		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
-		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
-		isBeingHovered = false;
 		isBeingPressed = false;
 		locked = true;
 		setBackgroundColor(lockedColor);
@@ -126,10 +127,11 @@ namespace SnackerEngine
 	void GuiButton::unlock()
 	{
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
-		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
-		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
 		locked = false;
-		setBackgroundColor(defaultColor);
+		if (isBeingHovered)
+			setBackgroundColor(hoverColor);
+		else
+			setBackgroundColor(defaultColor);
 	}
 
 	void GuiButton::setDefaultColor(const Color4f& defaultColor)
