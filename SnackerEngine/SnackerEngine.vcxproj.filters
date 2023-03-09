@@ -252,6 +252,15 @@
     <ClInclude Include="src\Gui\Animation\GuiElementAnimatable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Network\SERP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Network\SMP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Network\Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -435,6 +444,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Gui\Animation\GuiElementAnimatable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\SERP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\SMP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

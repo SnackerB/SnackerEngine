@@ -233,6 +233,9 @@
     <ClInclude Include="src\Math\Vec.h" />
     <ClInclude Include="src\Graphics\Renderer.h" />
     <ClInclude Include="src\Math\VectorAlgorithms.h" />
+    <ClInclude Include="src\Network\Network.h" />
+    <ClInclude Include="src\Network\SERP.h" />
+    <ClInclude Include="src\Network\SMP.h" />
     <ClInclude Include="src\Utility\Alignment.h" />
   </ItemGroup>
   <ItemGroup>
@@ -297,6 +300,9 @@
     <ClCompile Include="src\Gui\Text\TextMaterial.cpp" />
     <ClCompile Include="src\Gui\Text\Unicode.cpp" />
     <ClCompile Include="src\Math\VectorAlgorithms.cpp" />
+    <ClCompile Include="src\Network\Network.cpp" />
+    <ClCompile Include="src\Network\SERP.cpp" />
+    <ClCompile Include="src\Network\SMP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\basic.shader" />

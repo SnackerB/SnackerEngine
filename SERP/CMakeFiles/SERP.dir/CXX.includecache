@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/media/benjamin/Data/dev/SnackerEngine/SERP/main.cpp
+server.h
+/media/benjamin/Data/dev/SnackerEngine/SERP/server.h
+iostream
+-
+unistd.h
+-
+csignal
+-
+sys/stat.h
+-
+syslog.h
+-
+fstream
+-
+cstring
+-
+optional
+-
+
+/media/benjamin/Data/dev/SnackerEngine/SERP/server.cpp
+
+/media/benjamin/Data/dev/SnackerEngine/SERP/server.h
+

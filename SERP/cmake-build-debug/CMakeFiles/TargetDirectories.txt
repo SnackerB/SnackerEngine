@@ -1,0 +1,3 @@
+/media/benjamin/Data/dev/SnackerEngine/SERP/cmake-build-debug/CMakeFiles/SERP.dir
+/media/benjamin/Data/dev/SnackerEngine/SERP/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/benjamin/Data/dev/SnackerEngine/SERP/cmake-build-debug/CMakeFiles/rebuild_cache.dir
