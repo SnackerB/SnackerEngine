@@ -15,8 +15,6 @@ namespace SnackerEngine
 		struct SMP_Message
 		{
 			uint16_t src;
-			uint16_t dst;
-			uint16_t len;
 			SMP_Header smpHeader;
 			std::vector<uint8_t> data;
 		};
@@ -28,11 +26,15 @@ namespace SnackerEngine
 		/// Returns true if we are currently connected to SERP server
 		static bool isConnectedToServer();
 		/// Send a given SMP_Message using SERP. Returns true if the message was successfully sent
-		static bool sendMessage(const SMP_Message& message);
+		static bool sendMessage(const SMP_Message& message, uint16_t destination);
 		/// Send a given SMP_Message to multiple destinations at the same time.
 		/// Returns true if the message was successfully sent
 		static bool sendMessageMulticast(const SMP_Message& message, const std::vector<uint16_t>& destinations);
 		/// Updates the NetworkManager
+		static void update(double dt);
+		/// Cleans up the manager, closes all sockets etc. Should be called when the Engine terminates
+		/// or when the network capabilities are no longer used.
+		static void cleanup();
 	};
 
 }

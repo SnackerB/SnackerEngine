@@ -137,6 +137,9 @@ namespace SnackerEngine
 		if (editBoxWidth < 0) editBoxWidth = 0;
 		editBox->setPositionAndSize(Vec2i(label->getMinWidth(), 0), Vec2i(editBoxWidth, label->getMinHeight()));
 		setMinSize(label->getMinSize());
+		setPreferredHeight(label->getPreferredHeight());
+		setPreferredWidth(-1);
+		setMaxSize(Vec2i(-1, -1));
 	}
 
 	template<typename T>

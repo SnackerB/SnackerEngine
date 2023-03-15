@@ -8,7 +8,7 @@ namespace SnackerEngine
     enum class MESSAGE_TYPE : uint16_t
     {
         ECHO,                   /// Used for pings and alive-checks
-        ERROR,                  /// Used for sending error messages
+        ERROR_MESSAGE,          /// Used for sending error messages
         ADVERTISEMENT,          /// Used to advertise a client to the SRP server
     };
 

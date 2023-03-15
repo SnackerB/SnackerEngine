@@ -79,7 +79,7 @@ std::string getCurrentTime()
 {
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
-    std::ostringstream oss;
+    std::ostringstream oss{};
     oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
     return oss.str();
 }

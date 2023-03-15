@@ -24,7 +24,7 @@ namespace SnackerEngine
 		result.guiTextBoxParseMode = StaticText::ParseMode::WORD_BY_WORD;
 		result.guiTextBoxAlignment = StaticText::Alignment::LEFT;
 		result.guiTextBoxTextScaleMode = GuiDynamicTextBox::TextScaleMode::DONT_SCALE;
-		result.guiTextBoxSizeHintModes = { GuiDynamicTextBox::SizeHintMode::ARBITRARY, GuiDynamicTextBox::SizeHintMode::ARBITRARY , GuiDynamicTextBox::SizeHintMode::ARBITRARY };
+		result.guiTextBoxSizeHintModes = { GuiDynamicTextBox::SizeHintMode::ARBITRARY, GuiDynamicTextBox::SizeHintMode::ARBITRARY, GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_SIZE };
 		result.guiTextBoxBorder = 3;
 		result.guiTextBoxResizeMode = GuiElement::ResizeMode::DO_NOT_RESIZE;
 		result.guiButtonDoRecomputeOnSizeChange = true;

@@ -85,6 +85,29 @@ namespace SnackerEngine
 		return value;
 	}
 
+	template<>
+	std::optional<uint16_t> convertFromString<uint16_t>(const std::string& string)
+	{
+		try {
+			long result = std::strtol(string.c_str(), 0, 10);
+			if (result >= 0 && result <= 65535) return static_cast<uint16_t>(result);
+			if (result > 65535) return static_cast<uint16_t>(65535);
+			return static_cast<uint16_t>(0);
+		}
+		catch (...) {
+			return {};
+		}
+	}
+
+	template<>
+	uint16_t roundFromDouble(const double& value)
+	{
+		long result = std::lround(value);
+		if (result >= 0 && result <= 65535) return static_cast<uint16_t>(result);
+		if (result > 65535) return static_cast<uint16_t>(65535);
+		return static_cast<uint16_t>(0);
+	}
+
 	template<typename T>
 	T interpolate(const T& a, const T& b, const double& percentage)
 	{

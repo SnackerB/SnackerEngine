@@ -158,7 +158,7 @@ namespace SnackerEngine
 			{
 				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
 					GuiID parentID = registeredGuiElements[guiID]->parentID;
-					if (parentID < registeredGuiElements.size() && parentID >= 0 || registeredGuiElements[parentID]) {
+					if (parentID < registeredGuiElements.size() && parentID >= 0 && registeredGuiElements[parentID]) {
 						registeredGuiElements[parentID]->enforceLayout();
 					}
 				}
@@ -575,6 +575,7 @@ namespace SnackerEngine
 	void GuiManager::callbackWindowResize(const Vec2i& screenDims)
 	{
 		computeViewAndProjection();
+		if (ownedGuiElements[0]) ownedGuiElements[0]->setSize(screenDims);
 	}
 
 	void GuiManager::callbackMouseScroll(const Vec2d& offset)

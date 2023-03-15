@@ -4,6 +4,7 @@
 #include "Core/Log.h"
 #include "Core/Timer.h"
 #include "Core/Assert.h"
+#include "Network/Network.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -142,6 +143,7 @@ namespace SnackerEngine
 	void Engine::terminate()
 	{
 		AssetManager::terminate();
+		NetworkManager::cleanup();
 		Renderer::terminate();
 	}
 	//------------------------------------------------------------------------------------------------------

@@ -92,6 +92,12 @@ namespace SnackerEngine
 			const float& scrollBarOffsetRight = 10);
 		/// Constructor using GuiStyle
 		VerticalScrollingListLayout(const GuiStyle& style);
+		// Copy constructor and assignment operator
+		VerticalScrollingListLayout(const VerticalScrollingListLayout& other) noexcept;
+		VerticalScrollingListLayout& operator=(const VerticalScrollingListLayout& other) noexcept;
+		/// Move constructor and assignment operator
+		VerticalScrollingListLayout(VerticalScrollingListLayout&& other) noexcept;
+		VerticalScrollingListLayout& operator=(VerticalScrollingListLayout&& other) noexcept;
 	};
 
 }

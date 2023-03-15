@@ -41,7 +41,7 @@ namespace SnackerEngine
 		if (currentVerticalSize == 0.0f) {
 			drawScrollBar = false;
 			firstVisibleElement = 0;
-			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
+			lastVisibleElement = children.empty() ? 0 : static_cast<unsigned int>(children.size()) - 1;
 			if (getGuiManager()) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			return;
 		}
@@ -52,7 +52,7 @@ namespace SnackerEngine
 		if (visiblePercentage >= 1.0f) {
 			drawScrollBar = false;
 			firstVisibleElement = 0;
-			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
+			lastVisibleElement = children.empty() ? 0 : static_cast<unsigned int>(children.size()) - 1;
 			if (getGuiManager()) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 			currentVerticalOffset = 0.0f;
 			return;
@@ -69,7 +69,7 @@ namespace SnackerEngine
 					break;
 				}
 			}
-			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
+			lastVisibleElement = children.empty() ? 0 : static_cast<unsigned int>(children.size()) - 1;
 			for (unsigned int i = firstVisibleElement + 1; i < children.size(); ++i) {
 				if (getPosition(children[i]).y > size.y - currentVerticalOffset) {
 					lastVisibleElement = i;
@@ -86,7 +86,7 @@ namespace SnackerEngine
 		else {
 			drawScrollBar = false;
 			firstVisibleElement = 0;
-			lastVisibleElement = static_cast<unsigned int>(children.size()) - 1;
+			lastVisibleElement = children.empty() ? 0 : static_cast<unsigned int>(children.size()) - 1;
 			if (getGuiManager()) signOffEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		}
 	}
@@ -120,7 +120,7 @@ namespace SnackerEngine
 		// Draw children
 		const auto& children = getChildren();
 		Vec2i newParentPosition = parentPosition + getPosition();
-		for (unsigned int i = firstVisibleElement; i <= lastVisibleElement; ++i) {
+		for (unsigned int i = firstVisibleElement; i < std::min(static_cast<std::size_t>(lastVisibleElement + 1), children.size()); ++i) {
 			drawElement(children[i], newParentPosition + Vec2i(0, static_cast<int>(std::floor(currentVerticalOffset))));
 		}
 		// Draw scrollBar
@@ -217,5 +217,73 @@ namespace SnackerEngine
 			AlignmentVertical::TOP, style.verticalScrollingListLayoutScrollSpeed,
 			style.verticalScrollingListLayoutScrollBarBackgroundColor, style.verticalScrollingListLayoutScrollBarColor, style.verticalScrollingListLayoutScrollBarWidth,
 			style.verticalScrollingListLayoutScrollBarOffsetTop, style.verticalScrollingListLayoutScrollBarOffsetBottom, style.verticalScrollingListLayoutScrollBarOffsetRight) {}
+
+	VerticalScrollingListLayout::VerticalScrollingListLayout(const VerticalScrollingListLayout& other) noexcept
+		: VerticalListLayout(other), currentVerticalSize(0.0f), currentVerticalOffset(0.0f), scrollSpeed(other.scrollSpeed),
+		drawScrollBar(false), visiblePercentage(0.0f), offsetPercentage(0.0f), modelMatrixScrollBarBackground{},
+		modelMatrixScrollBar{}, shaderScrollBar(other.shaderScrollBar), scrollBarBackgroundColor(other.scrollBarBackgroundColor), 
+		scrollBarColor(other.scrollBarColor), scrollBarWidth(other.scrollBarWidth), scrollBarOffsetTop(other.scrollBarOffsetTop), 
+		scrollBarOffsetBottom(other.scrollBarOffsetBottom), scrollBarOffsetRight(other.scrollBarOffsetRight), 
+		mouseOffsetFromScrollBar(0.0f), firstVisibleElement(0), lastVisibleElement(0) {}
+
+	VerticalScrollingListLayout& VerticalScrollingListLayout::operator=(const VerticalScrollingListLayout& other) noexcept
+	{
+		VerticalListLayout::operator=(other);
+		currentVerticalSize = 0.0f;
+		currentVerticalOffset = 0.0f;
+		scrollSpeed = other.scrollSpeed;
+		drawScrollBar = false;
+		visiblePercentage = 0.0f;
+		offsetPercentage = 0.0f;
+		modelMatrixScrollBarBackground = Mat4f();
+		modelMatrixScrollBar = Mat4f();
+		shaderScrollBar = other.shaderScrollBar;
+		scrollBarBackgroundColor = other.scrollBarBackgroundColor;
+		scrollBarColor = other.scrollBarColor;
+		scrollBarWidth = other.scrollBarWidth;
+		scrollBarOffsetTop = other.scrollBarOffsetTop;
+		scrollBarOffsetBottom = other.scrollBarOffsetBottom;
+		scrollBarOffsetRight = other.scrollBarOffsetRight;
+		mouseOffsetFromScrollBar = 0.0f;
+		firstVisibleElement = 0;
+		lastVisibleElement = 0;
+		return *this;
+	}
+
+	VerticalScrollingListLayout::VerticalScrollingListLayout(VerticalScrollingListLayout&& other) noexcept
+		: VerticalListLayout(std::move(other)), currentVerticalSize(other.currentVerticalSize), currentVerticalOffset(other.currentVerticalOffset),
+		scrollSpeed(other.scrollSpeed), drawScrollBar(other.drawScrollBar), visiblePercentage(other.visiblePercentage),
+		offsetPercentage(other.offsetPercentage), modelMatrixScrollBarBackground(other.modelMatrixScrollBarBackground),
+		modelMatrixScrollBar(other.modelMatrixScrollBar), shaderScrollBar(other.shaderScrollBar),
+		scrollBarBackgroundColor(other.scrollBarBackgroundColor), scrollBarColor(other.scrollBarColor),
+		scrollBarWidth(other.scrollBarWidth), scrollBarOffsetTop(other.scrollBarOffsetTop), scrollBarOffsetBottom(other.scrollBarOffsetBottom),
+		scrollBarOffsetRight(other.scrollBarOffsetRight), mouseOffsetFromScrollBar(other.mouseOffsetFromScrollBar),
+		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement)
+	{
+	}
+
+	VerticalScrollingListLayout& VerticalScrollingListLayout::operator=(VerticalScrollingListLayout&& other) noexcept
+	{
+		VerticalListLayout::operator=(std::move(other));
+		currentVerticalSize = other.currentVerticalSize;
+		currentVerticalOffset = other.currentVerticalOffset;
+		scrollSpeed = other.scrollSpeed;
+		drawScrollBar = other.drawScrollBar;
+		visiblePercentage = other.visiblePercentage;
+		offsetPercentage = other.offsetPercentage;
+		modelMatrixScrollBarBackground = other.modelMatrixScrollBarBackground;
+		modelMatrixScrollBar = other.modelMatrixScrollBar;
+		shaderScrollBar = other.shaderScrollBar;
+		scrollBarBackgroundColor = other.scrollBarBackgroundColor;
+		scrollBarColor = other.scrollBarColor;
+		scrollBarWidth = other.scrollBarWidth;
+		scrollBarOffsetTop = other.scrollBarOffsetTop;
+		scrollBarOffsetBottom = other.scrollBarOffsetBottom;
+		scrollBarOffsetRight = other.scrollBarOffsetRight;
+		mouseOffsetFromScrollBar = other.mouseOffsetFromScrollBar;
+		firstVisibleElement = other.firstVisibleElement;
+		lastVisibleElement = other.lastVisibleElement;
+		return *this;
+	}
 
 }

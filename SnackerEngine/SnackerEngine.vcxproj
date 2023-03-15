@@ -85,7 +85,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -108,7 +108,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -127,7 +127,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -150,7 +150,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

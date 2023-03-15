@@ -29,4 +29,7 @@ namespace SnackerEngine
     };
 
 #define SERP_DST_MULTICAST 0xffff
+
+    constexpr const uint16_t serpServerPort = 33333;
+    constexpr const char* serpServerIP = "45.131.109.18";
 }
