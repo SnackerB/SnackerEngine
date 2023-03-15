@@ -61,7 +61,7 @@ namespace SnackerEngine
 		// Vector of stored layoutOptions
 		std::vector<LayoutOptions> layoutOptions;
 		/// Removes the given child guiElement from this layout
-		void removeChild(GuiElement& guiElement) override;
+		void removeChild(GuiID guiElement) override;
 		/// Enforces this layout by possibly changing position and size of the children guiElements
 		void enforceLayout() override;
 		/// Helper function, that computes the layout as if the mode were set to SPLIT_CELLS_EQUALLY,

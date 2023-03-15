@@ -1,5 +1,6 @@
 #include "network.h"
 #include <cstring>
+#include <cerrno>
 
 std::optional<int> createUDPSocket()
 {

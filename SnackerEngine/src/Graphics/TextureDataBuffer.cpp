@@ -160,6 +160,11 @@ namespace SnackerEngine
 	TextureDataBuffer::TextureDataBuffer(const Texture& texture, const Vec2i& size)
 		: TextureDataBuffer(TextureManager::getTextureData(texture).textureDataType, TextureManager::getTextureData(texture).textureDataPrecision, TextureManager::getTextureData(texture).textureDataFormat, size) {}
 	//------------------------------------------------------------------------------------------------------
+	std::optional<TextureDataBuffer> TextureDataBuffer::loadTextureDataBuffer2D(const std::string& path)
+	{
+		return std::move(TextureManager::loadTextureDataBuffer2D(path));
+	}
+	//------------------------------------------------------------------------------------------------------
 	template<>
 	void TextureDataBuffer::setPixel(const Vec2i& position, const float& value) 
 	{

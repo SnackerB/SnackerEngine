@@ -1,14 +1,15 @@
 #include "Gui/Layouts/VerticalLayout.h"
 #include "Core/Keys.h"
 #include "Graphics/Renderer.h"
+#include "Gui/GuiManager.h"
 
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	void VerticalLayout::removeChild(GuiElement& guiElement)
+	void VerticalLayout::removeChild(GuiID guiElement)
 	{
 		const auto& children = getChildren();
-		auto result = std::find(children.begin(), children.end(), guiElement.getGuiID());
+		auto result = std::find(children.begin(), children.end(), guiElement);
 		if (result != children.end()) {
 			std::size_t offset = result - children.begin();
 			GuiLayout::removeChild(guiElement);

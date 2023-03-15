@@ -4,7 +4,7 @@
 namespace SnackerEngine
 {
 
-	void GuiLayout::removeChild(GuiElement& guiElement)
+	void GuiLayout::removeChild(GuiID guiElement)
 	{
 		GuiElement::removeChild(guiElement);
 		registerEnforceLayoutDown();

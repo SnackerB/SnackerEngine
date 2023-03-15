@@ -77,6 +77,11 @@ namespace SnackerEngine
 			TextureDataType::FLOAT, dataFormat, TextureDataPrecision::PRECISION_32, mip);
 	}
 	//--------------------------------------------------------------------------------------------------
+	Texture Texture::CreateFromBuffer(TextureDataBuffer& buffer, const bool& mip)
+	{
+		return TextureManager::createTextureFromBuffer(buffer, mip);
+	}
+	//--------------------------------------------------------------------------------------------------
 	void Texture::fill2D(TextureDataBuffer& textureDataBuffer, const bool& mip)
 	{
 		TextureManager::fillTexture2D(*this, textureDataBuffer, mip);

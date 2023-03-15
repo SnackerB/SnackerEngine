@@ -21,6 +21,37 @@ namespace SnackerEngine
 		}
 	}
 	//------------------------------------------------------------------------------------------------------
+	TextureManager::TextureData::TextureData(TextureData&& other) noexcept
+		: GPU_ID(other.GPU_ID), referenceCount(other.referenceCount), persistent(other.persistent),
+		valid(other.valid), path(std::move(other.path)), size(other.size), textureType(other.textureType),
+		textureDataType(other.textureDataType), textureDataFormat(other.textureDataFormat), 
+		textureDataPrecision(other.textureDataPrecision)
+	{
+		other.GPU_ID = 0;
+		other.valid = false;
+	}
+	//------------------------------------------------------------------------------------------------------
+	TextureManager::TextureData& TextureManager::TextureData::operator=(TextureData&& other) noexcept
+	{
+		if (valid) {
+			GLCall(glDeleteTextures(1, &GPU_ID));
+		}
+		GPU_ID = other.GPU_ID;
+		referenceCount = other.referenceCount;
+		persistent = other.persistent;
+		valid = other.valid;
+		path = std::move(other.path); 
+		size = other.size;
+		textureType = other.textureType;
+		textureDataType = other.textureDataType;
+		textureDataFormat = other.textureDataFormat;
+		textureDataPrecision = other.textureDataPrecision;
+		// Leave other in a well-defined state
+		other.GPU_ID = 0;
+		other.valid = false;
+		return *this;
+	}
+	//------------------------------------------------------------------------------------------------------
 	void TextureManager::TextureData::bind(const unsigned int& slot) const
 	{
 		if (valid) {
@@ -524,6 +555,41 @@ namespace SnackerEngine
 		return buffer;
 	}
 	//------------------------------------------------------------------------------------------------------
+	std::optional<TextureDataBuffer> TextureManager::loadTextureDataBuffer2D(const std::string& path)
+	{
+		std::string fullPath = Engine::getResourcePath();
+		fullPath.append(path);
+		// Important so the image gets loaded the way OpenGL expects.
+		stbi_set_flip_vertically_on_load(true);
+
+		// Determine data type (either float (hdr) or unsigned byte (non hdr))
+		TextureManager::TextureData textureData{};
+		textureData.textureDataType = endsWith(fullPath, ".hdr") ? Texture::TextureDataType::FLOAT : Texture::TextureDataType::UNSIGNED_BYTE;
+		// Try to load the texture
+		int width, height, nrComponents, bytesPerPixel;
+		void* data = nullptr;
+		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
+			data = stbi_loadf(fullPath.c_str(), &width, &height, &nrComponents, 0);
+			bytesPerPixel = sizeof(float);
+		}
+		else {
+			data = stbi_load(fullPath.c_str(), &width, &height, &nrComponents, 0);
+			bytesPerPixel = sizeof(stbi_uc);
+		}
+		if (!data) {
+			warningLogger << LOGGER::BEGIN << "Texture failed to load at " << fullPath << LOGGER::ENDL;
+			return {}; // Texture failed to load
+		}
+		textureData.determineTextureDataFormat(nrComponents);
+		textureData.size = Vec2i(width, height);
+		TextureDataBuffer buffer(textureData.textureDataType, textureData.textureDataPrecision, textureData.textureDataFormat, textureData.size);
+		std::memcpy(buffer.getDataPointer(), data, std::min(buffer.dataSize, static_cast<unsigned int>(width * height * nrComponents * bytesPerPixel)));
+		// Free data
+		stbi_image_free(data);
+		// Loaded texture successfully!
+		return std::move(buffer);
+	}
+	//------------------------------------------------------------------------------------------------------
 	bool TextureManager::saveTexture2D(Texture& texture, const std::string& path, const bool& relativeToResourceDir)
 	{
 		std::string fullpath;
@@ -556,6 +622,14 @@ namespace SnackerEngine
 		return Texture(textureID);
 	}
 	//------------------------------------------------------------------------------------------------------
+	Texture TextureManager::createTextureFromBuffer(TextureDataBuffer& buffer, const bool& mip)
+	{
+		// TODO: Make this work with cubemaps as well
+		Texture texture = createTexture(buffer.size, Texture::TextureType::TEXTURE2D, buffer.textureDataType, buffer.textureDataFormat, buffer.textureDataPrecision);
+		texture.fill2D(buffer, mip);
+		return texture;
+	}
+	//------------------------------------------------------------------------------------------------------
 	void TextureManager::fillTexture2D(Texture& texture, TextureDataBuffer& textureDataBuffer, const bool& mip)
 	{
 		fillTexture2D(texture, textureDataBuffer, Vec2i(0), mip);
@@ -571,7 +645,7 @@ namespace SnackerEngine
 			warningLogger << LOGGER::BEGIN << "Could not fill texture: Buffer and textureData do not match" << LOGGER::ENDL;
 			return;
 		}
-		fillTexture2D(texture, textureDataBuffer.getDataPointer(), offset, mip);
+		fillTexture2D(texture, textureDataBuffer.getDataPointer(), offset, textureDataBuffer.size, mip);
 	}
 	//------------------------------------------------------------------------------------------------------
 	void TextureManager::copyTexture2D(const Texture& source, Texture& target, const Vec2i& offset)

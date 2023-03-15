@@ -30,7 +30,7 @@ namespace SnackerEngine
 		bool allowMoveBorders;
 
 		/// Removes the given child guiElement from this layout
-		void removeChild(GuiElement& guiElement) override;
+		void removeChild(GuiID guiElement) override;
 		/// Enforces this layout by possibly changing position and size of the children guiElements
 		void enforceLayout() override;
 		/// Helper function that returns the border and offset, if a collision occured.

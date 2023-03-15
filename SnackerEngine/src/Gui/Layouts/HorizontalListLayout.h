@@ -16,6 +16,8 @@ namespace SnackerEngine
 		/// If this is set to true, the height of the layout snaps to the largest preferredHeight
 		/// of its children
 		bool snapHeightToPreferred;
+		/// If this is set to true, the width of the layout snaps to the total width needed
+		bool snapWidth;
 		/// Horizontal and vertical alignment. Default: LEFT, TOP
 		AlignmentHorizontal alignmentHorizontal;
 		AlignmentVertical alignmentVertical;
@@ -26,7 +28,7 @@ namespace SnackerEngine
 		/// Shader for drawing the background
 		Shader backgroundShader;
 		/// Removes the given child guiElement from this layout
-		void removeChild(GuiElement& guiElement) override;
+		void removeChild(GuiID guiElement) override;
 		/// Enforces this layout by possibly changing position and size of the children guiElements
 		void enforceLayout() override;
 		/// Computes the background model matrix
@@ -41,13 +43,15 @@ namespace SnackerEngine
 		virtual void onSizeChange() override;
 	public:
 		/// Constructor
-		HorizontalListLayout(const unsigned& border = 0, const bool& snapHeightToPreferred = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
+		HorizontalListLayout(const unsigned border = 0, const bool snapHeightToPreferred = false, const bool snapWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
 		// Copy constructor and assignment operator
 		HorizontalListLayout(const HorizontalListLayout& other) noexcept;
 		HorizontalListLayout& operator=(const HorizontalListLayout& other) noexcept;
 		/// Move constructor and assignment operator
 		HorizontalListLayout(HorizontalListLayout&& other) noexcept;
 		HorizontalListLayout& operator=(HorizontalListLayout&& other) noexcept;
+		/// Clears all children
+		void clear();
 		/// Getters & Setters
 		const bool& isSnapHeightToPreferred() const { return snapHeightToPreferred; };
 		void setSnapheightToPreferred(const bool& snapHeightToPreferred);

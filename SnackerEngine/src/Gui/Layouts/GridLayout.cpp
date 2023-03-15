@@ -4,10 +4,10 @@
 namespace SnackerEngine
 {
 
-	void GridLayout::removeChild(GuiElement& guiElement)
+	void GridLayout::removeChild(GuiID guiElement)
 	{
 		const auto& children = getChildren();
-		auto result = std::find(children.begin(), children.end(), guiElement.getGuiID());
+		auto result = std::find(children.begin(), children.end(), guiElement);
 		if (result != children.end()) {
  			layoutOptions.erase(layoutOptions.begin() + (result - children.begin()));
 			GuiLayout::removeChild(guiElement);

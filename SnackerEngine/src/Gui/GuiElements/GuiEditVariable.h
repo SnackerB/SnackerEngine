@@ -322,7 +322,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline std::string GuiEditVariable<T>::toText(const T& value)
 	{
-		return std::to_string(value);
+		return convertToString(value);
 	}
 
 	template<typename T>

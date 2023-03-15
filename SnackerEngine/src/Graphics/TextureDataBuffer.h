@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -47,6 +48,8 @@ namespace SnackerEngine
 		/// Sets a single pixel.
 		template<typename T>
 		void setPixel(const Vec2i& position, const T& value);
+		/// Tries to load texture data from the given path and store it in a TextureBufferObject
+		static std::optional<TextureDataBuffer> loadTextureDataBuffer2D(const std::string& path);
 	};
 	//------------------------------------------------------------------------------------------------------
 }

@@ -64,7 +64,8 @@ namespace SnackerEngine
 		//==================================================================================================
 		/// Special constructors
 		//==================================================================================================
-		/// Loads a 2D texture from a given path
+		/// Tries to load a texture from a given path. Looks relative to the resources directory
+		/// Returns the texture and true if successfull, and the missingTexture and false if not.
 		static std::pair<Texture, bool> Load2D(const std::string& path, const bool& persistent = false);
 		/// Creates a new 2D texture with the given dimensions and dataFormat. 
 		static Texture Create2D(const Vec2i& dimensions,
@@ -75,6 +76,7 @@ namespace SnackerEngine
 		/// Creates a new cubemap texture with the given dimensions and dataFormat. 
 		static Texture CreateFloatCubemap(const Vec2i& dimensions,
 			const TextureDataFormat& dataFormat = TextureDataFormat::RGB, const bool& mip = true);
+		static Texture CreateFromBuffer(TextureDataBuffer& buffer, const bool& mip = true);
 		//==================================================================================================
 		// Functions manipulating the texture
 		//==================================================================================================

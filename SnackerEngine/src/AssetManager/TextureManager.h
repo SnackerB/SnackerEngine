@@ -8,6 +8,7 @@
 #include <queue>
 #include <unordered_map>
 #include <string_view>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -40,6 +41,9 @@ namespace SnackerEngine
 			Texture::TextureDataPrecision textureDataPrecision{};
 			/// Destructor
 			~TextureData();
+			/// Move constructor and assignment operator
+			TextureData(TextureData&& other) noexcept;
+			TextureData& operator=(TextureData&& other) noexcept;
 
 			/// Binds this texture
 			void bind(const unsigned int& slot = 0) const;
@@ -105,12 +109,16 @@ namespace SnackerEngine
 		static std::pair<Texture, bool> loadTexture2D(const std::string& path, const bool& persistent = false);
 		/// Tries to load texture data from the GPU and store it in a TextureBufferObject
 		static TextureDataBuffer getTextureDataFromGPU(Texture& texture, const int& mipLevel = 0);
+		/// Tries to load texture data from the given path and store it in a TextureBufferObject
+		static std::optional<TextureDataBuffer> loadTextureDataBuffer2D(const std::string& path);
 		/// Tries to save a texture at a given path. Returns true on success
 		static bool saveTexture2D(Texture& texture, const std::string& path, const bool& relativeToResourceDir = true);
 		/// Creates a new texture with the given parameters
 		static Texture createTexture(const Vec2i& dimensions, const Texture::TextureType& type = Texture::TextureType::TEXTURE2D,
 			const Texture::TextureDataType& dataType = Texture::TextureDataType::UNSIGNED_BYTE, const Texture::TextureDataFormat& dataFormat = Texture::TextureDataFormat::RGB,
 			const Texture::TextureDataPrecision& dataPrecision = Texture::TextureDataPrecision::PRECISION_NOT_SPECIFIED, const bool& mip = true);
+		/// Creates a texture and fills it from the given buffer
+		static Texture createTextureFromBuffer(TextureDataBuffer& buffer, const bool& mip);
 		// Fills a texture with the given data. The data must match the textures size and dataType
 		static void fillTexture2D(Texture& texture, TextureDataBuffer& textureDataBuffer, const bool& mip = true);
 		// Fills a texture with the given data, placed at a given offset vector. The data must match the textures size and dataType

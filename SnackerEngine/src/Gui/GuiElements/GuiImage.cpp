@@ -37,7 +37,7 @@ namespace SnackerEngine
 		{
 		case SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE: 
 		{
-			setSizeInternal(texture.getSize());
+			setPreferredSize(texture.getSize());
 			const Vec2i& position = getPosition();
 			const Vec2i& size = getSize();
 			modelMatrixImage = Mat4f::TranslateAndScale(

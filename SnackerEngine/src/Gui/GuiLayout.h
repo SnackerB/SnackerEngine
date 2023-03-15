@@ -12,7 +12,7 @@ namespace SnackerEngine
 		friend class GuiElement;
 	protected:
 		/// Removes the given child from this GuiElement object
-		virtual void removeChild(GuiElement& guiElement) override;
+		virtual void removeChild(GuiID guiElement) override;
 	public:
 		/// Default constructor
 		GuiLayout();

@@ -10,15 +10,33 @@
 #include "Gui/GuiStyle.h"
 #include "Gui/GuiEventHandles/GuiVariableHandle.h"
 #include "Gui/GuiElements/GuiEditVariable.h"
+#include "Gui/GuiElements/GuiTextVariable.h"
+#include "Network/SERP.h"
+#include "Graphics/TextureDataBuffer.h"
+#include "Gui/GuiElements/GuiImage.h"
+
+
+#include <sstream>
+#include <vector>
 
 class NetworkDemoScene : public SnackerEngine::Scene
 {
 	SnackerEngine::GuiManager guiManager;
+	SnackerEngine::GuiStyle style;
+	SnackerEngine::GuiVariableHandle<uint16_t> clientIDHandle;
 	SnackerEngine::GuiEventHandle sendButtonHandle;
 	SnackerEngine::GuiVariableHandle<uint16_t> dstHandle;
 	SnackerEngine::GuiVariableHandle<uint16_t> SMPtypeHandle;
 	SnackerEngine::GuiVariableHandle<uint16_t> SMPoptionHandle;
 	SnackerEngine::GuiEditTextBox editDataTextBox;
+	SnackerEngine::VerticalScrollingListLayout incomingMessagesList;
+	SnackerEngine::GuiEventHandle addMulticastAddressHandle;
+	SnackerEngine::GuiVariableHandle<uint16_t> newMulticastAddressHandle;
+	SnackerEngine::GuiEventHandle clearMulticastAddressesHandle;
+	SnackerEngine::VerticalListLayout multicastAdressesList;
+	std::vector<uint16_t> multicastAdresses;
+	SnackerEngine::GuiVariableHandle<std::string> texturePathHandle;
+	SnackerEngine::GuiEventHandle sendTextureButtonHandle;
 
 public:
 	NetworkDemoScene()
@@ -26,21 +44,24 @@ public:
 	{
 		SnackerEngine::Renderer::setClearColor(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned char>(253, 152, 51)));
 		// Setup GUI
-		SnackerEngine::GuiStyle style = SnackerEngine::getDefaultStyle();
+		style = SnackerEngine::getDefaultStyle();
 		SnackerEngine::HorizontalLayout horizontalLayout(true, false);
 		guiManager.registerElement(horizontalLayout);
 		{
-			SnackerEngine::VerticalScrollingListLayout leftList(style);
-			leftList.setBackgroundColor(SnackerEngine::Color4f(0.2f, 0.2f, 0.2f, 1.0f));
-			horizontalLayout.registerChild(leftList, 2.0);
+			incomingMessagesList = SnackerEngine::VerticalScrollingListLayout(style);
+			incomingMessagesList.setBackgroundColor(SnackerEngine::Color4f(0.2f, 0.2f, 0.2f, 1.0f));
+			horizontalLayout.registerChild(incomingMessagesList, 2.0);
 			{
-			
+
 			}
-			guiManager.moveElement(std::move(leftList));
 
 			SnackerEngine::VerticalScrollingListLayout rightList(style);
 			horizontalLayout.registerChild(rightList, 1.0);
 			{
+				SnackerEngine::GuiTextVariable<uint16_t> clientIDDisplay("clientID: ", clientIDHandle, style);
+				rightList.registerChild(clientIDDisplay);
+				guiManager.moveElement(std::move(clientIDDisplay));
+
 				SnackerEngine::GuiButton buttonSend(sendButtonHandle, "Send Message", style);
 				rightList.registerChild(buttonSend);
 				guiManager.moveElement(std::move(buttonSend));
@@ -63,6 +84,35 @@ public:
 
 				editDataTextBox = SnackerEngine::GuiEditTextBox("", style);
 				rightList.registerChild(editDataTextBox);
+
+				SnackerEngine::GuiButton buttonAddMulticastAddress(addMulticastAddressHandle, "Add Multicast address", style);
+				rightList.registerChild(buttonAddMulticastAddress);
+				guiManager.moveElement(std::move(buttonAddMulticastAddress));
+
+				SnackerEngine::GuiEditVariable<uint16_t> editNewMulticastAddressVariable("new multicast address: ", newMulticastAddressHandle, style);
+				rightList.registerChild(editNewMulticastAddressVariable);
+				guiManager.moveElement(std::move(editNewMulticastAddressVariable));
+
+				SnackerEngine::GuiButton buttonClearMulticastAddresses(clearMulticastAddressesHandle, "Clear multicast addresses", style);
+				rightList.registerChild(buttonClearMulticastAddresses);
+				guiManager.moveElement(std::move(buttonClearMulticastAddresses));
+
+				SnackerEngine::GuiDynamicTextBox multicastAdressesLabel("Multicast adresses:", style);
+				rightList.registerChild(multicastAdressesLabel);
+				guiManager.moveElement(std::move(multicastAdressesLabel));
+
+				multicastAdressesList = SnackerEngine::VerticalListLayout(style.verticalScrollingListLayoutLeftBorder, true, true, true);
+				multicastAdressesList.setBackgroundColor(SnackerEngine::Color4f(0.2f, 0.2f, 0.2f, 1.0f));
+				rightList.registerChild(multicastAdressesList);
+
+				SnackerEngine::GuiEditVariable<std::string> editTexturePathVariable("texture path: ", texturePathHandle, style);
+				texturePathHandle.set("textures/dab.jpg");
+				rightList.registerChild(editTexturePathVariable);
+				guiManager.moveElement(std::move(editTexturePathVariable));
+
+				SnackerEngine::GuiButton sendTextureButton(sendTextureButtonHandle, "Send texture", style);
+				rightList.registerChild(sendTextureButton);
+				guiManager.moveElement(std::move(sendTextureButton));
 			}
 			guiManager.moveElement(std::move(rightList));
 		}
@@ -106,6 +156,32 @@ public:
 
 	virtual void update(const double& dt) override
 	{
+		if (SnackerEngine::NetworkManager::isConnectedToServer()) {
+			clientIDHandle.set(SnackerEngine::NetworkManager::getClientID());
+		}
+		if (addMulticastAddressHandle.isActive()) {
+			addMulticastAddressHandle.reset();
+			uint16_t newMulticastAddress = newMulticastAddressHandle.get();
+			bool foundaddress = false;
+			for (const auto& multicastAddress : multicastAdresses) {
+				if (multicastAddress == newMulticastAddress) {
+					foundaddress = true;
+					break;
+				}
+			}
+			if (!foundaddress) {
+				multicastAdresses.push_back(newMulticastAddress);
+				SnackerEngine::GuiDynamicTextBox newMulticastAddressTextBox(std::to_string(newMulticastAddress), style);
+				newMulticastAddressTextBox.setSizeHintModeMinSize(SnackerEngine::GuiDynamicTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
+				multicastAdressesList.registerChild(newMulticastAddressTextBox);
+				guiManager.moveElement(std::move(newMulticastAddressTextBox));
+			}
+		}
+		if (clearMulticastAddressesHandle.isActive()) {
+			clearMulticastAddressesHandle.reset();
+			multicastAdresses.clear();
+			multicastAdressesList.clear();
+		}
 		if (sendButtonHandle.isActive()) {
 			sendButtonHandle.reset();
 			SnackerEngine::NetworkManager::SMP_Message message;
@@ -113,9 +189,51 @@ public:
 			std::string dataText = editDataTextBox.getText();
 			message.data = std::vector<uint8_t>(dataText.size());
 			std::memcpy(message.data.data(), dataText.data(), dataText.size());
-			SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
+			if (dstHandle.get() == SERP_DST_MULTICAST) {
+				SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
+			}
+			else {
+				SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
+			}
+		}
+		if (sendTextureButtonHandle.isActive()) {
+			sendTextureButtonHandle.reset();
+			auto textureDataBuffer = SnackerEngine::TextureDataBuffer::loadTextureDataBuffer2D(texturePathHandle.get());
+			if (textureDataBuffer.has_value()) {
+				SnackerEngine::Texture texture = SnackerEngine::Texture::CreateFromBuffer(textureDataBuffer.value());
+				SnackerEngine::GuiImage image(style, texture);
+				image.setGuiImageMode(SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE);
+				incomingMessagesList.registerChild(image);
+				guiManager.moveElement(std::move(image));
+				//SnackerEngine::NetworkManager::SMP_Message message;
+				//message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(100), 0);
+				//message.data = std::vector<uint8_t>(dataText.size());
+				//std::memcpy(message.data.data(), dataText.data(), dataText.size());
+				//if (dstHandle.get() == SERP_DST_MULTICAST) {
+				//	SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
+				//}
+				//else {
+				//	SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
+				//}
+			}
 		}
 		SnackerEngine::NetworkManager::update(dt);
+		// Look at incoming messages
+		std::vector<SnackerEngine::NetworkManager::SMP_Message> incomingMessages;
+		incomingMessages = std::move(SnackerEngine::NetworkManager::getIncomingMessages());
+		for (SnackerEngine::NetworkManager::SMP_Message& message : incomingMessages) {
+			std::stringstream ss;
+			ss << "[" << message.src << "]: " << message.smpHeader.type << ", " << message.smpHeader.options;
+			if (!message.data.empty()) {
+				ss << ": ";
+				for (const auto& c : message.data) {
+					ss << c;
+				}
+			}
+			SnackerEngine::GuiDynamicTextBox messageText(ss.str(), style);
+			incomingMessagesList.registerChild(messageText);
+			guiManager.moveElement(std::move(messageText));
+		}
 		guiManager.update(dt);
 	}
 

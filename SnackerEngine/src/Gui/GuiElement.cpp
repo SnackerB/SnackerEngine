@@ -29,10 +29,11 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::removeChild(GuiElement& guiElement)
+	void GuiElement::removeChild(GuiID guiElement)
 	{
-		auto result = std::find(children.begin(), children.end(), guiElement.guiID);
-		if (result != children.end()) {
+		auto result = std::find(children.begin(), children.end(), guiElement);
+		if (result != children.end())
+		{
 			if (guiManager) guiManager->signOffWithoutNotifyingParent(*result);
 			children.erase(result);
 		}

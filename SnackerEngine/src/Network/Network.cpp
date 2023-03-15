@@ -30,14 +30,14 @@ namespace SnackerEngine
     struct IncomingMessage
     {
         double timeout;
-        std::unique_ptr<NetworkManager::SMP_Message> message;
+        NetworkManager::SMP_Message message;
     };
     static std::unordered_map<MESSAGE_TYPE, std::vector<IncomingMessage>> incomingMessages;
 
     struct UnfinishedMessage
     {
         double timeout;
-        std::unique_ptr<NetworkManager::SMP_Message> message;
+        NetworkManager::SMP_Message message;
         std::vector<std::vector<uint8_t>> dataParts;
     };
     static std::unordered_map<uint16_t, std::unordered_map<uint32_t, UnfinishedMessage>> unfinishedIncomingMessages;
@@ -236,13 +236,13 @@ namespace SnackerEngine
         return result;
     }
 
-    static std::vector<uint8_t>&& readData(unsigned int numBytes)
+    static std::vector<uint8_t> readData(unsigned int numBytes)
     {
         std::vector<uint8_t> result;
         unsigned int copyBytes = maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header);
         result.resize(min(numBytes, copyBytes));
         std::memcpy(result.data(), networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), result.size());
-        return std::move(result);
+        return result;
     }
 
     bool NetworkManager::sendMessage(const SMP_Message& message, uint16_t destination)
@@ -251,6 +251,7 @@ namespace SnackerEngine
         unsigned int dataLength = message.data.size();
         unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
         if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) != 0)) numberPackets++;
+        if (numberPackets == 0) numberPackets = 1;
         /// Check if we can send in a single message!
         if (numberPackets == 1)
         {
@@ -287,10 +288,12 @@ namespace SnackerEngine
     bool NetworkManager::sendMessageMulticast(const NetworkManager::SMP_Message& message, const std::vector<uint16_t>& destinations)
     {
         if (!isConnectedToSERPServer) return false;
+        if (destinations.size() == 0) return false;
         if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
         unsigned int dataLength = message.data.size();
         unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t));
         if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t) != 0)) numberPackets++;
+        if (numberPackets == 0) numberPackets = 1;
         /// Check if we can send in a single message!
         if (numberPackets == 1)
         {
@@ -344,10 +347,15 @@ namespace SnackerEngine
         return isConnectedToSERPServer;
     }
 
-    /// Inserts the given message into the incomingMessages map
-    void insertIntoMessageBuffer(std::unique_ptr<NetworkManager::SMP_Message>&& message)
+    uint16_t NetworkManager::getClientID()
     {
-        MESSAGE_TYPE messageType = static_cast<MESSAGE_TYPE>(message->smpHeader.type);
+        return clientID;
+    }
+
+    /// Inserts the given message into the incomingMessages map
+    void insertIntoMessageBuffer(NetworkManager::SMP_Message&& message)
+    {
+        MESSAGE_TYPE messageType = static_cast<MESSAGE_TYPE>(message.smpHeader.type);
         auto it = incomingMessages.find(messageType);
         if (it == incomingMessages.end()) {
             std::vector<IncomingMessage> temp;
@@ -363,7 +371,7 @@ namespace SnackerEngine
     /// Call this function for messages that fit into a single packet
     void insertIntoMessageBuffer(const SERP_Header& serpHeader, const SMP_Header& smpHeader)
     {
-        std::unique_ptr<NetworkManager::SMP_Message> message = std::make_unique<NetworkManager::SMP_Message>(serpHeader.src, smpHeader, std::move(readData(serpHeader.len - sizeof(SERP_Header) - sizeof(SMP_Header))));
+        NetworkManager::SMP_Message message = NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::move(readData(serpHeader.len - sizeof(SERP_Header) - sizeof(SMP_Header))));
         insertIntoMessageBuffer(std::move(message));
     }
 
@@ -377,7 +385,7 @@ namespace SnackerEngine
         }
         auto it2 = it1->second.find(serpHeader.id);
         if (it2 == it1->second.end()) {
-            UnfinishedMessage message{ 0.0, std::make_unique<NetworkManager::SMP_Message>(serpHeader.src, smpHeader, std::vector<uint8_t>{}), std::vector<std::vector<uint8_t>>(serpHeader.total) };
+            UnfinishedMessage message{ 0.0, NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::vector<uint8_t>{}), std::vector<std::vector<uint8_t>>(serpHeader.total) };
             it2 = it1->second.insert(std::make_pair(serpHeader.id, UnfinishedMessage{})).first;
         }
         // Insert data at the correct location
@@ -395,11 +403,11 @@ namespace SnackerEngine
             totalDataLength += dataPart.size();
         }
         // Copy data
-        it2->second.message->data.resize(totalDataLength);
+        it2->second.message.data.resize(totalDataLength);
         unsigned int dataOffset = 0;
         for (const auto& dataPart : it2->second.dataParts)
         {
-            std::memcpy(it2->second.message->data.data() + dataOffset, dataPart.data(), dataPart.size());
+            std::memcpy(it2->second.message.data.data() + dataOffset, dataPart.data(), dataPart.size());
             dataOffset += dataPart.size();
         }
         insertIntoMessageBuffer(std::move(it2->second.message));
@@ -528,6 +536,16 @@ namespace SnackerEngine
                 // Extract message header
                 SERP_Header serpHeader = readSERPHeader();
                 SMP_Header smpHeader = readSMPHeader();
+                // DEBUG: Print message to console
+                infoLogger << LOGGER::BEGIN << "Received message with the following headers: " 
+                    << "SERP(src: " << serpHeader.src
+                    << ", dst: " << serpHeader.dst
+                    << ", len: " << serpHeader.len
+                    << ", part: " << static_cast<int>(serpHeader.part)
+                    << ", total: " << static_cast<int>(serpHeader.total)
+                    << ", id: " << serpHeader.id
+                    << "), SMP(type: " << smpHeader.type
+                    << ", options: " << smpHeader.options << ")" << LOGGER::ENDL;
                 // If the message is from the server, we need to do something with it
                 if (serpHeader.src == 0) {
                     switch (static_cast<MESSAGE_TYPE>(smpHeader.type))
@@ -564,6 +582,31 @@ namespace SnackerEngine
             }
             // TODO: Update timeouts!
         }
+    }
+
+    std::vector<NetworkManager::SMP_Message> NetworkManager::getIncomingMessages(MESSAGE_TYPE messageType)
+    {
+        std::vector<NetworkManager::SMP_Message> result;
+        auto it = incomingMessages.find(messageType);
+        if (it != incomingMessages.end()) {
+            for (auto& incomingMessage : it->second) {
+                result.push_back(std::move(incomingMessage.message));
+            }
+            incomingMessages.erase(messageType);
+        }
+        return result;
+    }
+
+    std::vector<NetworkManager::SMP_Message> NetworkManager::getIncomingMessages()
+    {
+        std::vector<NetworkManager::SMP_Message> result;
+        for (auto& it : incomingMessages) {
+            for (auto& incomingMessage : it.second) {
+                result.push_back(std::move(incomingMessage.message));
+            }
+        }
+        incomingMessages.clear();
+        return result;
     }
 
     void NetworkManager::cleanup()

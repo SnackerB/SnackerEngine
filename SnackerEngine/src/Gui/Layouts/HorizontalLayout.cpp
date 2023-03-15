@@ -5,10 +5,10 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	void HorizontalLayout::removeChild(GuiElement& guiElement)
+	void HorizontalLayout::removeChild(GuiID guiElement)
 	{
 		const auto& children = getChildren();
-		auto result = std::find(children.begin(), children.end(), guiElement.getGuiID());
+		auto result = std::find(children.begin(), children.end(), guiElement);
 		if (result != children.end()) {
 			std::size_t offset = result - children.begin();
 			GuiLayout::removeChild(guiElement);

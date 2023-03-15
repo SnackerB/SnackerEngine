@@ -5,15 +5,26 @@
 namespace SnackerEngine
 {
 
-	void VerticalListLayout::removeChild(GuiElement& guiElement)
+	void VerticalListLayout::removeChild(GuiID guiElement)
 	{
 		GuiLayout::removeChild(guiElement);
+		registerEnforceLayoutDown();
 	}
 	
 	void VerticalListLayout::enforceLayout()
 	{
 		const auto& children = getChildren();
-		if (children.empty()) return;
+		if (children.empty()) {
+			// If necessary, snap width
+			if (snapWidthToPreferred) {
+				setPreferredWidth(0);
+			}
+			// If necessary, snap height
+			if (snapHeight) {
+				setPreferredHeight(0);
+			}
+			return;
+		}
 		// First, we need to compute the total height of the list and the number of elements
 		// whose height is not specified
 		std::vector<int> necessarySpaceUntilEnd(children.size());
@@ -142,6 +153,10 @@ namespace SnackerEngine
 		if (snapWidthToPreferred) {
 			setPreferredWidth(maxSnapWidth + static_cast<int>(2 * border));
 		}
+		// If necessary, snap height
+		if (snapHeight) {
+			setPreferredHeight(currentY);
+		}
 	}
 
 	void VerticalListLayout::computeModelMatrix()
@@ -200,8 +215,8 @@ namespace SnackerEngine
 		return std::max(minWidth, std::min(maxWidth, getWidth() - static_cast<int>(2 * border)));
 	}
 
-	VerticalListLayout::VerticalListLayout(const unsigned& border, const bool& snapWidthToPreferred, const bool& makeChildrenSameWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
-		: border(border), snapWidthToPreferred(snapWidthToPreferred), makeChildrenSameWidth(makeChildrenSameWidth),
+	VerticalListLayout::VerticalListLayout(const unsigned border, const bool snapWidthToPreferred, const bool snapHeight, const bool makeChildrenSameWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+		: border(border), snapWidthToPreferred(snapWidthToPreferred), snapHeight(snapHeight), makeChildrenSameWidth(makeChildrenSameWidth),
 		alignmentHorizontal(alignmentHorizontal), alignmentVertical(alignmentVertical), backgroundColor(0.0f, 0.0f),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
@@ -212,7 +227,7 @@ namespace SnackerEngine
 	
 	VerticalListLayout::VerticalListLayout(const VerticalListLayout& other) noexcept
 		: GuiLayout(other), border(other.border), snapWidthToPreferred(other.snapWidthToPreferred),
-		makeChildrenSameWidth(other.makeChildrenSameWidth),
+		snapHeight(other.snapHeight), makeChildrenSameWidth(other.makeChildrenSameWidth),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
 		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
 		backgroundShader(other.backgroundShader) {}
@@ -222,6 +237,7 @@ namespace SnackerEngine
 		GuiLayout::operator=(other);
 		border = other.border;
 		snapWidthToPreferred = other.snapWidthToPreferred;
+		snapHeight = other.snapHeight;
 		makeChildrenSameWidth = other.makeChildrenSameWidth;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
@@ -233,7 +249,7 @@ namespace SnackerEngine
 	
 	VerticalListLayout::VerticalListLayout(VerticalListLayout&& other) noexcept
 		: GuiLayout(std::move(other)), border(other.border), snapWidthToPreferred(other.snapWidthToPreferred),
-		makeChildrenSameWidth(other.makeChildrenSameWidth),
+		snapHeight(other.snapHeight), makeChildrenSameWidth(other.makeChildrenSameWidth),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
 		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
 		backgroundShader(other.backgroundShader) {}
@@ -243,6 +259,7 @@ namespace SnackerEngine
 		GuiLayout::operator=(std::move(other));
 		border = other.border;
 		snapWidthToPreferred = other.snapWidthToPreferred;
+		snapHeight = other.snapHeight;
 		makeChildrenSameWidth = other.makeChildrenSameWidth;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
@@ -250,6 +267,14 @@ namespace SnackerEngine
 		modelMatrixBackground = other.modelMatrixBackground;
 		backgroundShader = other.backgroundShader;
 		return *this;
+	}
+
+	void VerticalListLayout::clear()
+	{
+		auto& children = getChildren();
+		while (!children.empty()) {
+			removeChild(children.back());
+		}
 	}
 
 	void VerticalListLayout::setSnapWidthToPreferred(const bool& snapWidthToPreferred)
@@ -262,6 +287,10 @@ namespace SnackerEngine
 
 	void VerticalListLayout::setMakeChildrenSameWidth(const bool& makeChildrenSameWidth)
 	{
+		if (makeChildrenSameWidth != this->makeChildrenSameWidth) {
+			this->makeChildrenSameWidth = makeChildrenSameWidth;
+			registerEnforceLayoutDown();
+		}
 	}
 
 	void VerticalListLayout::setBackgroundColor(const Color4f& backgroundColor)

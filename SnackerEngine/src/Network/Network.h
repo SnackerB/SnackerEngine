@@ -3,6 +3,7 @@
 #include "Network/SMP.h"
 
 #include <vector>
+#include <memory>
 
 namespace SnackerEngine
 {
@@ -25,6 +26,8 @@ namespace SnackerEngine
 		static void connectToSERPServer();
 		/// Returns true if we are currently connected to SERP server
 		static bool isConnectedToServer();
+		/// Returns the current clientID
+		static uint16_t getClientID();
 		/// Send a given SMP_Message using SERP. Returns true if the message was successfully sent
 		static bool sendMessage(const SMP_Message& message, uint16_t destination);
 		/// Send a given SMP_Message to multiple destinations at the same time.
@@ -32,6 +35,10 @@ namespace SnackerEngine
 		static bool sendMessageMulticast(const SMP_Message& message, const std::vector<uint16_t>& destinations);
 		/// Updates the NetworkManager
 		static void update(double dt);
+		/// Returns a vector of received messages with the given message type
+		static std::vector<SMP_Message> getIncomingMessages(MESSAGE_TYPE messageType);
+		/// Returns a vector of all received messages
+		static std::vector<SMP_Message> getIncomingMessages();
 		/// Cleans up the manager, closes all sockets etc. Should be called when the Engine terminates
 		/// or when the network capabilities are no longer used.
 		static void cleanup();

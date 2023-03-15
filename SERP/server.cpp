@@ -13,6 +13,7 @@
 #include <cstring>
 #include <random>
 #include <chrono>
+#include <cerrno>
 
 #define SLEEP_DURATION 3 /// Duration the server sleeps for between updates when its in the sleeping state.
 #define SLEEP_TIMEOUT 180 /// Time after which the server falls asleep
@@ -33,9 +34,9 @@ struct Client
     uint16_t id;        /// Unique id for every client.
     sockaddr_in addr;   /// address of the client, used to send messages and identify incoming messages.
     Client()
-        : timeout(CLIENT_TIMEOUT_SECONDS), id(0), addr{} {}
+        : timeout(0), id(0), addr{} {}
     Client(const uint16_t& id, const sockaddr_in& addr)
-        : timeout(CLIENT_TIMEOUT_SECONDS), id(id), addr(addr) {}
+        : timeout(0), id(id), addr(addr) {}
 };
 
 /// This bool decides if the server is running. Used to clean up properly when SIGTERM is received
@@ -66,12 +67,30 @@ void log(const T& message)
     }
 }
 
+template<typename T>
+void logWithoutNewline(const T& message)
+{
+    if (logger && logger->is_open()) {
+        *logger << message;
+    }
+}
+
+template<typename T, typename... Args>
+void logWithoutNewline(const T& message, Args... args) // recursive variadic function
+{
+    if (logger && logger->is_open()) {
+        *logger << message;
+        logWithoutNewline(args...);
+    }
+}
+
 template<typename T, typename... Args>
 void log(const T& message, Args... args) // recursive variadic function
 {
     if (logger && logger->is_open()) {
-        *logger << message << std::endl;
-        log(args...);
+        *logger << message;
+        logWithoutNewline(args...);
+        *logger << std::endl;
     }
 }
 
@@ -146,7 +165,8 @@ static void sendMessage(const sockaddr_in& remoteAddr, unsigned int messageLen)
 {
     auto result = sendMessage(serverSocket, remoteAddr, reinterpret_cast<void*>(buffer.data()), std::min(static_cast<int>(messageLen), MAX_MESSAGE_LEN));
     if (!result.has_value()) {
-        log("[ERROR]: send() failed.");
+        log("[ERROR]: send() failed with error code ", errno);
+        log("[ERROR]: tried to send to address ", remoteAddr.sin_addr.s_addr, " : ", remoteAddr.sin_port);
     }
     else if (result.value() != std::min(static_cast<int>(messageLen), MAX_MESSAGE_LEN)) {
         log("[ERROR] Tried to send message of length", std::min(static_cast<int>(messageLen), MAX_MESSAGE_LEN), ", but only message of length ", result.value(), " was sent!");
@@ -171,7 +191,7 @@ static void sendMessage(uint16_t clientID, unsigned int messageLen)
 static std::optional<std::pair<SERP_Header, uint16_t>> receiveMessage()
 {
     sockaddr remoteAddr{};
-    unsigned int remoteAddrLen = 0;
+    unsigned int remoteAddrLen = sizeof(sockaddr);
     auto result = receiveMessage(serverSocket, remoteAddr, remoteAddrLen, static_cast<void*>(buffer.data()), MAX_MESSAGE_LEN);
     if (!result.has_value()) {
         log ("[ERROR]: an error occurred while receiving message.");
@@ -184,7 +204,8 @@ static std::optional<std::pair<SERP_Header, uint16_t>> receiveMessage()
         log("[ERROR]: Sender had sockaddr of unknown size.");
         return {};
     }
-    lastRemoteAddr = *reinterpret_cast<sockaddr_in*>(&remoteAddr);
+    // Copy remoteAddr to lastRemoteAddr
+    lastRemoteAddr = *((sockaddr_in*)(&remoteAddr));
     SERP_Header serpHeader = extractSERPHeader();
     auto it = clients.find(serpHeader.src);
     if (it != clients.end() && !compareAddresses(it->second.addr, *reinterpret_cast<sockaddr_in*>(&remoteAddr))) {
@@ -284,9 +305,9 @@ static bool connectClient(const sockaddr_in& addr)
     uint16_t messageLen = sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint16_t);
     setSERPHeader(SERP_Header(0, clientID.value(), messageLen, 0, 1, getNextMessageID()));
     setSMPHeader(SMP_Header(MESSAGE_TYPE::ADVERTISEMENT, MESSAGE_OPTION_ADVERTISEMENT::OK));
-    setData(clientID.value());
+    setData(htons(clientID.value()));
     sendMessage(clientID.value(), messageLen);
-    log("New client connected. ID: ", clientID.value());
+    log("New client connected. ID: ", clientID.value(), ", address: ", addr.sin_addr.s_addr, ":", addr.sin_port);
     return true;
 }
 
@@ -315,7 +336,7 @@ static void handleAdvertisement(const SERP_Header& serpHeader, MESSAGE_OPTION_AD
                 unsigned int messageLen = sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(int16_t);
                 setSERPHeader(SERP_Header(0, serpHeader.src, static_cast<uint16_t>(messageLen), 0, 1, getNextMessageID()));
                 setSMPHeader(SMP_Header(MESSAGE_TYPE::ADVERTISEMENT, MESSAGE_OPTION_ADVERTISEMENT::OK));
-                setData(serpHeader.src);
+                setData(htons(serpHeader.src));
                 sendMessage(serpHeader.src, messageLen);
             }
             else {
@@ -385,12 +406,12 @@ void relayMessageMultiCast(const SERP_Header& serpHeader, int messageLen)
         log("[ERROR]: Tried to multicast message with no destination addresses!");
     }
     else {
-        SERP_Header header;
+        SERP_Header sendSerpHeader = serpHeader;
         for (unsigned int i = 0; i < (messageLen - serpHeader.len) / 2; ++i)
         {
             uint16_t dst = ntohs(*reinterpret_cast<uint16_t*>(buffer.data() + serpHeader.len + i*2));
-            header.dst = dst;
-            setSERPHeader(header);
+            sendSerpHeader.dst = dst;
+            setSERPHeader(sendSerpHeader);
             sendMessage(dst, serpHeader.len);
         }
     }
@@ -436,9 +457,9 @@ bool initialize()
         return false;
     }
     // Bind socket to address
-    if (!bindUDPSocket(sock.value(), reinterpret_cast<sockaddr*>(&addr_server.value()), sizeof(addr_server.value())))
+    if (!bindUDPSocket(sock.value(), reinterpret_cast<sockaddr*>(&addr_server.value()), sizeof(sockaddr_in)))
     {
-        log("[ERROR]: Binding UDP socket to socket address failed.");
+        log("[ERROR]: Binding UDP socket to socket address failed with error code", errno);
         cleanup();
         return false;
     }
@@ -516,7 +537,7 @@ void startMainLoop()
             }
             // In both cases: Reset timeout of client who sent the message
             auto it = clients.find(serpHeader.src);
-            if (it != clients.end()) it->second.timeout = CLIENT_TIMEOUT_SECONDS;
+            if (it != clients.end()) it->second.timeout = 0;
             // Reset timeout of server
             serverTimeout = 0.0;
         }
@@ -541,6 +562,7 @@ void startMainLoop()
                     for (auto& client : clients) {
                         client.second.timeout += PROCESS_CLIENT_TIMEOUT_EVERY_SECONDS;
                         if (client.second.timeout > CLIENT_TIMEOUT_SECONDS) {
+                            log("Disconnecting client with id ", client.second.id, " because of timeout:", client.second.timeout, " seconds.");
                             sendDisconnectMessage(client.first);
                             disconnectIDs.push_back(client.first);
                         }

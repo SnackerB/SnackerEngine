@@ -17,6 +17,8 @@ namespace SnackerEngine
 		/// If this is set to true, the width of the layout snaps to the largest preferredWidth
 		/// of its children
 		bool snapWidthToPreferred;
+		/// If this is set to true, the height of the layout snaps to the total width needed
+		bool snapHeight;
 		/// If this is set to true, the layout tries to make every child the same width, if possible
 		bool makeChildrenSameWidth;
 		/// Horizontal and vertical alignment. Default: LEFT, TOP
@@ -29,7 +31,7 @@ namespace SnackerEngine
 		/// Shader for drawing the background
 		Shader backgroundShader;
 		/// Removes the given child guiElement from this layout
-		void removeChild(GuiElement& guiElement) override;
+		void removeChild(GuiID guiElement) override;
 		/// Enforces this layout by possibly changing position and size of the children guiElements
 		void enforceLayout() override;
 		/// Computes the background model matrix
@@ -47,7 +49,7 @@ namespace SnackerEngine
 		int computeBestCommonWidth();
 	public:
 		/// Constructor
-		VerticalListLayout(const unsigned& border = 0, const bool& snapWidthToPreferred = false, const bool& makeChildrenSameWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
+		VerticalListLayout(const unsigned border = 0, const bool snapWidthToPreferred = false, const bool snapHeight = false, const bool makeChildrenSameWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
 		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
 		bool registerChild(GuiElement& guiElement) override;
 		// Copy constructor and assignment operator
@@ -56,6 +58,8 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		VerticalListLayout(VerticalListLayout&& other) noexcept;
 		VerticalListLayout& operator=(VerticalListLayout&& other) noexcept;
+		/// Clears all children
+		void clear();
 		/// Getters & Setters
 		const bool& isSnapWidthToPreferred() const { return snapWidthToPreferred; };
 		void setSnapWidthToPreferred(const bool& snapWidthToPreferred);

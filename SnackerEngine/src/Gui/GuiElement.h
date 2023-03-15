@@ -87,7 +87,7 @@ namespace SnackerEngine
 		/// in this function!
 		virtual void onSizeChange() {};
 		/// Removes the given child from this GuiElement object
-		virtual void removeChild(GuiElement& guiElement);
+		virtual void removeChild(GuiID guiElement);
 		/// Sets the position and size of the children of this element according to
 		/// layout rules, if there are any. May recursively call setLayout() on the
 		/// children as well

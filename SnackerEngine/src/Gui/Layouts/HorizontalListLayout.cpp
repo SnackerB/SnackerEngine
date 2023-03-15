@@ -5,9 +5,10 @@
 namespace SnackerEngine
 {
 
-	void HorizontalListLayout::removeChild(GuiElement& guiElement)
+	void HorizontalListLayout::removeChild(GuiID guiElement)
 	{
 		GuiLayout::removeChild(guiElement);
+		registerEnforceLayoutDown();
 	}
 
 	void HorizontalListLayout::enforceLayout()
@@ -132,6 +133,10 @@ namespace SnackerEngine
 		if (snapHeightToPreferred) {
 			setPreferredHeight(maxSnapHeight + static_cast<int>(2 * border));
 		}
+		// If necessary, snap width
+		if (snapWidth) {
+			setPreferredHeight(currentX);
+		}
 	}
 
 	void HorizontalListLayout::computeModelMatrix()
@@ -165,13 +170,13 @@ namespace SnackerEngine
 		computeModelMatrix();
 	}
 
-	HorizontalListLayout::HorizontalListLayout(const unsigned& border, const bool& snapHeightToPreferred, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
-		: border(border), snapHeightToPreferred(snapHeightToPreferred), alignmentHorizontal(alignmentHorizontal),
+	HorizontalListLayout::HorizontalListLayout(const unsigned border, const bool snapHeightToPreferred, const bool snapWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+		: border(border), snapHeightToPreferred(snapHeightToPreferred), snapWidth(snapWidth), alignmentHorizontal(alignmentHorizontal),
 		alignmentVertical(alignmentVertical), backgroundColor(0.0f, 0.0f),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	HorizontalListLayout::HorizontalListLayout(const HorizontalListLayout& other) noexcept
-		: GuiLayout(other), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred),
+		: GuiLayout(other), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred), snapWidth(snapWidth),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
 		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
 		backgroundShader(other.backgroundShader) {}
@@ -181,6 +186,7 @@ namespace SnackerEngine
 		GuiLayout::operator=(other);
 		border = other.border;
 		snapHeightToPreferred = other.snapHeightToPreferred;
+		snapWidth = other.snapWidth;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
 		backgroundColor = other.backgroundColor;
@@ -190,7 +196,7 @@ namespace SnackerEngine
 	}
 
 	HorizontalListLayout::HorizontalListLayout(HorizontalListLayout&& other) noexcept
-		: GuiLayout(std::move(other)), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred),
+		: GuiLayout(std::move(other)), border(other.border), snapHeightToPreferred(other.snapHeightToPreferred), snapWidth(snapWidth),
 		alignmentHorizontal(other.alignmentHorizontal), alignmentVertical(other.alignmentVertical),
 		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
 		backgroundShader(other.backgroundShader) {}
@@ -200,12 +206,21 @@ namespace SnackerEngine
 		GuiLayout::operator=(std::move(other));
 		border = other.border;
 		snapHeightToPreferred = other.snapHeightToPreferred;
+		snapWidth = other.snapWidth;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
 		backgroundColor = other.backgroundColor;
 		modelMatrixBackground = other.modelMatrixBackground;
 		backgroundShader = other.backgroundShader;
 		return *this;
+	}
+
+	void HorizontalListLayout::clear()
+	{
+		auto& children = getChildren();
+		while (!children.empty()) {
+			removeChild(children.back());
+		}
 	}
 
 	void HorizontalListLayout::setSnapheightToPreferred(const bool& snapHeightToPreferred)

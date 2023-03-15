@@ -12,6 +12,12 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
+	std::string convertToString(const T& value)
+	{
+		return std::to_string(value);
+	}
+
+	template<typename T>
 	T roundFromDouble(const double& value)
 	{
 		return T();
@@ -106,6 +112,18 @@ namespace SnackerEngine
 		if (result >= 0 && result <= 65535) return static_cast<uint16_t>(result);
 		if (result > 65535) return static_cast<uint16_t>(65535);
 		return static_cast<uint16_t>(0);
+	}
+
+	template<>
+	std::optional<std::string> convertFromString<std::string>(const std::string& string)
+	{
+		return string;
+	}
+
+	template<>
+	std::string convertToString(const std::string& value)
+	{
+		return value;
 	}
 
 	template<typename T>

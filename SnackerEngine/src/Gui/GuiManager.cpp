@@ -164,6 +164,7 @@ namespace SnackerEngine
 				}
 			}
 		}
+		enforceLayoutQueueUp.clear();
 		/// Now go from the top down and enforce all layouts
 		for (const auto& it : enforceLayoutQueueDown)
 		{
@@ -174,8 +175,6 @@ namespace SnackerEngine
 				}
 			}
 		}
-		/// Clear the queues!
-		enforceLayoutQueueUp.clear();
 		enforceLayoutQueueDown.clear();
 		// Callback mouseMotion, because we could collide with moved elements!
 		callbackMouseMotion(currentMousePosition);
@@ -263,7 +262,7 @@ namespace SnackerEngine
 			warningLogger << LOGGER::BEGIN << "Tried to sign off guiElement with invalid parent element" << LOGGER::ENDL;
 			return;
 		}
-		if (registeredGuiElements[element.parentID]) registeredGuiElements[element.parentID]->removeChild(element);
+		if (registeredGuiElements[element.parentID]) registeredGuiElements[element.parentID]->removeChild(element.getGuiID());
 		else signOffWithoutNotifyingParent(guiElement);
 	}
 
