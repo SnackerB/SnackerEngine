@@ -200,21 +200,21 @@ public:
 			sendTextureButtonHandle.reset();
 			auto textureDataBuffer = SnackerEngine::TextureDataBuffer::loadTextureDataBuffer2D(texturePathHandle.get());
 			if (textureDataBuffer.has_value()) {
-				SnackerEngine::Texture texture = SnackerEngine::Texture::CreateFromBuffer(textureDataBuffer.value());
-				SnackerEngine::GuiImage image(style, texture);
-				image.setGuiImageMode(SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE);
-				incomingMessagesList.registerChild(image);
-				guiManager.moveElement(std::move(image));
-				//SnackerEngine::NetworkManager::SMP_Message message;
-				//message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(100), 0);
-				//message.data = std::vector<uint8_t>(dataText.size());
-				//std::memcpy(message.data.data(), dataText.data(), dataText.size());
-				//if (dstHandle.get() == SERP_DST_MULTICAST) {
-				//	SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
-				//}
-				//else {
-				//	SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
-				//}
+				//SnackerEngine::Texture texture = SnackerEngine::Texture::CreateFromBuffer(textureDataBuffer.value());
+				//SnackerEngine::GuiImage image(style, texture);
+				//image.setGuiImageMode(SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE);
+				//incomingMessagesList.registerChild(image);
+				//guiManager.moveElement(std::move(image));
+				SnackerEngine::NetworkManager::SMP_Message message;
+				message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(100), 0);
+				message.data = std::vector<uint8_t>(textureDataBuffer.value().getBufferSize());
+				std::memcpy(message.data.data(), textureDataBuffer.value().getDataPointer(), textureDataBuffer.value().getBufferSize());
+				if (dstHandle.get() == SERP_DST_MULTICAST) {
+					SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
+				}
+				else {
+					SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
+				}
 			}
 		}
 		SnackerEngine::NetworkManager::update(dt);

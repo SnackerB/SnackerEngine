@@ -35,8 +35,6 @@ namespace SnackerEngine
 		/// Helper function that sets a value starting at the given index. Automatically uses the correct precision
 		void setSingleValue(const unsigned int& index, const int& value);
 		void setSingleValue(const unsigned int& index, const float& value);
-		// Returns raw data pointer. Should only be used by TextureManager
-		void* getDataPointer();
 	public:
 		/// Constructor using different enums to fully specify the type of texture
 		TextureDataBuffer(const Texture::TextureDataType& textureDataType, const Texture::TextureDataPrecision& textureDataPrecision,
@@ -50,6 +48,10 @@ namespace SnackerEngine
 		void setPixel(const Vec2i& position, const T& value);
 		/// Tries to load texture data from the given path and store it in a TextureBufferObject
 		static std::optional<TextureDataBuffer> loadTextureDataBuffer2D(const std::string& path);
+		/// Returns the size of the data buffer in bytes
+		unsigned int getBufferSize() { return dataSize; }
+		// Returns raw data pointer. Should only be used if you know what you're doing
+		void* getDataPointer();
 	};
 	//------------------------------------------------------------------------------------------------------
 }

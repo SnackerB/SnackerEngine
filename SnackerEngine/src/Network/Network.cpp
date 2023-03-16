@@ -249,8 +249,9 @@ namespace SnackerEngine
     {
         if (!isConnectedToSERPServer) return false;
         unsigned int dataLength = message.data.size();
-        unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
-        if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) != 0)) numberPackets++;
+        unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
+        unsigned int numberPackets = dataLength / dataPerPacket;
+        if (dataLength % dataPerPacket != 0) numberPackets++;
         if (numberPackets == 0) numberPackets = 1;
         /// Check if we can send in a single message!
         if (numberPackets == 1)
@@ -275,7 +276,7 @@ namespace SnackerEngine
                 SnackerEngine::sendMessage(clientSocket, serverAdress, maxMessageLength);
             }
             serpHeader.part = numberPackets - 1;
-            unsigned int bytesLeft = message.data.size() - offset;
+            unsigned int bytesLeft = dataLength - offset;
             serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
             writeSERPHeader(serpHeader);
             std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
@@ -386,7 +387,7 @@ namespace SnackerEngine
         auto it2 = it1->second.find(serpHeader.id);
         if (it2 == it1->second.end()) {
             UnfinishedMessage message{ 0.0, NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::vector<uint8_t>{}), std::vector<std::vector<uint8_t>>(serpHeader.total) };
-            it2 = it1->second.insert(std::make_pair(serpHeader.id, UnfinishedMessage{})).first;
+            it2 = it1->second.insert(std::make_pair(serpHeader.id, std::move(message))).first;
         }
         // Insert data at the correct location
         if (serpHeader.part < it2->second.dataParts.size()) {
@@ -571,7 +572,7 @@ namespace SnackerEngine
                 }
                 else {
                     // If the message consists of only a single packet, we can put it directly into the message buffer
-                    if (serpHeader.total == 1) {
+                    if (serpHeader.total <= 1) {
                         insertIntoMessageBuffer(serpHeader, smpHeader);
                     }
                     // If the message consitst of more than one part, we have to put it into the unfinished message buffer
