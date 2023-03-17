@@ -25,17 +25,21 @@ namespace SnackerEngine
 		unsigned int dataSize;
 		// padding in bytes after each row necessary for OpenGL texture Storage
 		unsigned int padding;
-		/// Vector holding the actual data
-		std::vector<std::byte> dataStorage;
 		/// Number of bytes per element (PRECISION_32: bytesPerElement = 4, PRECISION_16: bytesPerElement = 2,
 		/// else: bytesPerElement = 1)
 		unsigned int bytesPerElement;
+		/// Vector holding the actual data
+		std::vector<std::byte> dataStorage;
 		/// Helper function that computes the index into the storageArray of a 2D position
 		unsigned int computeIndex(const Vec2i& position) const;
 		/// Helper function that sets a value starting at the given index. Automatically uses the correct precision
 		void setSingleValue(const unsigned int& index, const int& value);
 		void setSingleValue(const unsigned int& index, const float& value);
+		/// Computes the size of the data storage, given the other member variables
+		unsigned int computeDataStorageSize();
 	public:
+		/// Default constructor
+		TextureDataBuffer() = default;
 		/// Constructor using different enums to fully specify the type of texture
 		TextureDataBuffer(const Texture::TextureDataType& textureDataType, const Texture::TextureDataPrecision& textureDataPrecision,
 			const Texture::TextureDataFormat& textureDataFormat, const Vec2i& size);
@@ -50,8 +54,12 @@ namespace SnackerEngine
 		static std::optional<TextureDataBuffer> loadTextureDataBuffer2D(const std::string& path);
 		/// Returns the size of the data buffer in bytes
 		unsigned int getBufferSize() { return dataSize; }
-		// Returns raw data pointer. Should only be used if you know what you're doing
+		/// Returns raw data pointer. Should only be used if you know what you're doing
 		void* getDataPointer();
+		/// Serializes this TextureDataBuffer into the given buffer. This will resize the buffer accordingly
+		void serialize(std::vector<uint8_t>& buffer) const;
+		/// Loads a TextureDataBuffer from serialized data
+		static std::optional<TextureDataBuffer> Deserialize(const std::vector<uint8_t>& buffer);
 	};
 	//------------------------------------------------------------------------------------------------------
 }

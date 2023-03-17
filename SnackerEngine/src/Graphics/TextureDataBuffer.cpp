@@ -1,6 +1,7 @@
 #include "Graphics/TextureDataBuffer.h"
 #include "AssetManager/TextureManager.h"
 #include "Core/Log.h"
+#include <winsock.h>
 
 namespace SnackerEngine
 {
@@ -126,9 +127,94 @@ namespace SnackerEngine
 		}
 	}
 	//------------------------------------------------------------------------------------------------------
+	unsigned int TextureDataBuffer::computeDataStorageSize()
+	{
+		return (stride * size.x + padding) * size.y;
+	}
+	//------------------------------------------------------------------------------------------------------
 	void* TextureDataBuffer::getDataPointer()
 	{
 		return dataStorage.data();
+	}
+	//------------------------------------------------------------------------------------------------------
+	void TextureDataBuffer::serialize(std::vector<uint8_t>& buffer) const
+	{
+		// Resize buffer
+		buffer.resize(sizeof(Texture::TextureDataType) + sizeof(Texture::TextureDataPrecision) + sizeof(Texture::TextureDataFormat) 
+			+ sizeof(int) * 2 + sizeof(unsigned int) * 4 + dataStorage.size() * sizeof(std::byte));
+		// Transform to network byte order and copy to buffer
+		unsigned int offsetBytes = 0;
+		Texture::TextureDataType tempTextureDataType = static_cast<Texture::TextureDataType>(htonl(static_cast<u_long>(textureDataType)));
+		std::memcpy(buffer.data() + offsetBytes, &tempTextureDataType, sizeof(Texture::TextureDataType));
+		offsetBytes += sizeof(Texture::TextureDataType);
+		Texture::TextureDataPrecision tempTextureDataPrecision = static_cast<Texture::TextureDataPrecision>(htonl(static_cast<u_long>(textureDataPrecision)));
+		std::memcpy(buffer.data() + offsetBytes, &tempTextureDataPrecision, sizeof(Texture::TextureDataPrecision));
+		offsetBytes += sizeof(Texture::TextureDataPrecision);
+		Texture::TextureDataFormat tempTextureDataFormat = static_cast<Texture::TextureDataFormat>(htonl(static_cast<u_long>(textureDataType)));
+		std::memcpy(buffer.data() + offsetBytes, &tempTextureDataFormat, sizeof(Texture::TextureDataFormat));
+		offsetBytes += sizeof(Texture::TextureDataFormat);
+		int widthTemp = ntohl(size.x);
+		std::memcpy(buffer.data() + offsetBytes, &widthTemp, sizeof(int));
+		offsetBytes += sizeof(int);
+		int heightTemp = ntohl(size.y);
+		std::memcpy(buffer.data() + offsetBytes, &heightTemp, sizeof(int));
+		offsetBytes += sizeof(int);
+		unsigned int strideTemp = ntohl(stride);
+		std::memcpy(buffer.data() + offsetBytes, &strideTemp, sizeof(unsigned int));
+		offsetBytes += sizeof(unsigned int);
+		unsigned int dataSizeTemp = ntohl(dataSize);
+		std::memcpy(buffer.data() + offsetBytes, &dataSizeTemp, sizeof(unsigned int));
+		offsetBytes += sizeof(unsigned int);
+		unsigned int paddingTemp = ntohl(padding);
+		std::memcpy(buffer.data() + offsetBytes, &paddingTemp, sizeof(unsigned int));
+		offsetBytes += sizeof(unsigned int);
+		unsigned int bytesPerElementTemp = ntohl(bytesPerElement);
+		std::memcpy(buffer.data() + offsetBytes, &bytesPerElementTemp, sizeof(unsigned int));
+		offsetBytes += sizeof(unsigned int);
+		std::memcpy(buffer.data() + offsetBytes, dataStorage.data(), dataStorage.size() * sizeof(std::byte));
+	}
+	//------------------------------------------------------------------------------------------------------
+	std::optional<TextureDataBuffer> TextureDataBuffer::Deserialize(const std::vector<uint8_t>& buffer)
+	{
+		if (buffer.size() < sizeof(Texture::TextureDataType) + sizeof(Texture::TextureDataPrecision) + sizeof(Texture::TextureDataFormat)
+			+ sizeof(int) * 2 + sizeof(unsigned int) * 4) return {};
+		TextureDataBuffer result;
+		unsigned int offsetBytes = 0;
+		std::memcpy(&result.textureDataType, buffer.data() + offsetBytes, sizeof(Texture::TextureDataType));
+		result.textureDataType = static_cast<Texture::TextureDataType>(htonl(static_cast<u_long>(result.textureDataType)));
+		offsetBytes += sizeof(Texture::TextureDataType);
+		std::memcpy(&result.textureDataPrecision, buffer.data() + offsetBytes, sizeof(Texture::TextureDataPrecision));
+		result.textureDataPrecision = static_cast<Texture::TextureDataPrecision>(htonl(static_cast<u_long>(result.textureDataPrecision)));
+		offsetBytes += sizeof(Texture::TextureDataPrecision);
+		std::memcpy(&result.textureDataFormat, buffer.data() + offsetBytes, sizeof(Texture::TextureDataFormat));
+		result.textureDataFormat = static_cast<Texture::TextureDataFormat>(htonl(static_cast<u_long>(result.textureDataFormat)));
+		offsetBytes += sizeof(Texture::TextureDataFormat);
+		std::memcpy(&result.size.x, buffer.data() + offsetBytes, sizeof(int));
+		result.size.x = ntohl(result.size.x);
+		offsetBytes += sizeof(int);
+		std::memcpy(&result.size.y, buffer.data() + offsetBytes, sizeof(int));
+		result.size.y = ntohl(result.size.y);
+		offsetBytes += sizeof(int);
+		std::memcpy(&result.stride, buffer.data() + offsetBytes, sizeof(unsigned int));
+		result.stride = ntohl(result.stride);
+		if (result.stride != determineStride(result.textureDataFormat)) return {};
+		offsetBytes += sizeof(unsigned int);
+		std::memcpy(&result.dataSize, buffer.data() + offsetBytes, sizeof(unsigned int));
+		result.dataSize = ntohl(result.dataSize);
+		offsetBytes += sizeof(unsigned int);
+		std::memcpy(&result.padding, buffer.data() + offsetBytes, sizeof(unsigned int));
+		result.padding = ntohl(result.padding);
+		offsetBytes += sizeof(unsigned int);
+		std::memcpy(&result.bytesPerElement, buffer.data() + offsetBytes, sizeof(unsigned int));
+		result.bytesPerElement = ntohl(result.bytesPerElement);
+		if (result.bytesPerElement != determineBytesPerElement(result.textureDataPrecision)) return {};
+		offsetBytes += sizeof(unsigned int);
+		unsigned int dataStorageSize = buffer.size() - offsetBytes;
+		if (dataStorageSize != result.dataSize) return {};
+		if (dataStorageSize != result.computeDataStorageSize()) return {};
+		result.dataStorage.resize(dataStorageSize);
+		std::memcpy(result.dataStorage.data(), buffer.data() + offsetBytes, dataStorageSize);
+		return std::move(result);
 	}
 	//------------------------------------------------------------------------------------------------------
 	TextureDataBuffer::TextureDataBuffer(const Texture::TextureDataType& textureDataType, const Texture::TextureDataPrecision& textureDataPrecision, const Texture::TextureDataFormat& textureDataFormat, const Vec2i& size)

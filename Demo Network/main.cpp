@@ -37,6 +37,7 @@ class NetworkDemoScene : public SnackerEngine::Scene
 	std::vector<uint16_t> multicastAdresses;
 	SnackerEngine::GuiVariableHandle<std::string> texturePathHandle;
 	SnackerEngine::GuiEventHandle sendTextureButtonHandle;
+	SnackerEngine::GuiVariableHandleUnsignedInt bytesPerSecondHandle;
 
 public:
 	NetworkDemoScene()
@@ -113,6 +114,11 @@ public:
 				SnackerEngine::GuiButton sendTextureButton(sendTextureButtonHandle, "Send texture", style);
 				rightList.registerChild(sendTextureButton);
 				guiManager.moveElement(std::move(sendTextureButton));
+
+				SnackerEngine::GuiEditVariable<unsigned int> bytesPerSecondEditVariable("bytes per second: ", bytesPerSecondHandle, style);
+				bytesPerSecondHandle.set(500'000);
+				rightList.registerChild(bytesPerSecondEditVariable);
+				guiManager.moveElement(std::move(bytesPerSecondEditVariable));
 			}
 			guiManager.moveElement(std::move(rightList));
 		}
@@ -200,15 +206,9 @@ public:
 			sendTextureButtonHandle.reset();
 			auto textureDataBuffer = SnackerEngine::TextureDataBuffer::loadTextureDataBuffer2D(texturePathHandle.get());
 			if (textureDataBuffer.has_value()) {
-				//SnackerEngine::Texture texture = SnackerEngine::Texture::CreateFromBuffer(textureDataBuffer.value());
-				//SnackerEngine::GuiImage image(style, texture);
-				//image.setGuiImageMode(SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE);
-				//incomingMessagesList.registerChild(image);
-				//guiManager.moveElement(std::move(image));
 				SnackerEngine::NetworkManager::SMP_Message message;
 				message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(100), 0);
-				message.data = std::vector<uint8_t>(textureDataBuffer.value().getBufferSize());
-				std::memcpy(message.data.data(), textureDataBuffer.value().getDataPointer(), textureDataBuffer.value().getBufferSize());
+				textureDataBuffer.value().serialize(message.data);
 				if (dstHandle.get() == SERP_DST_MULTICAST) {
 					SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
 				}
@@ -222,17 +222,37 @@ public:
 		std::vector<SnackerEngine::NetworkManager::SMP_Message> incomingMessages;
 		incomingMessages = std::move(SnackerEngine::NetworkManager::getIncomingMessages());
 		for (SnackerEngine::NetworkManager::SMP_Message& message : incomingMessages) {
-			std::stringstream ss;
-			ss << "[" << message.src << "]: " << message.smpHeader.type << ", " << message.smpHeader.options;
-			if (!message.data.empty()) {
-				ss << ": ";
-				for (const auto& c : message.data) {
-					ss << c;
+			if (message.smpHeader.type == 100) {
+				auto textureDataBuffer = std::move(SnackerEngine::TextureDataBuffer::Deserialize(message.data));
+				if (textureDataBuffer.has_value()) {
+					SnackerEngine::Texture texture = SnackerEngine::Texture::CreateFromBuffer(textureDataBuffer.value());
+					SnackerEngine::GuiImage image(style, texture);
+					image.setGuiImageMode(SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE);
+					incomingMessagesList.registerChild(image);
+					guiManager.moveElement(std::move(image));
+				}
+				else {
+					SnackerEngine::warningLogger << SnackerEngine::LOGGER::BEGIN << "Received faulty textureDataBuffer!" << SnackerEngine::LOGGER::ENDL;
 				}
 			}
-			SnackerEngine::GuiDynamicTextBox messageText(ss.str(), style);
-			incomingMessagesList.registerChild(messageText);
-			guiManager.moveElement(std::move(messageText));
+			else {
+				std::stringstream ss;
+				ss << "[" << message.src << "]: " << message.smpHeader.type << ", " << message.smpHeader.options;
+				if (!message.data.empty()) {
+					ss << ": ";
+					for (const auto& c : message.data) {
+						ss << c;
+					}
+				}
+				SnackerEngine::GuiDynamicTextBox messageText(ss.str(), style);
+				incomingMessagesList.registerChild(messageText);
+				guiManager.moveElement(std::move(messageText));
+			}
+		}
+		if (bytesPerSecondHandle.isActive()) 
+		{
+			bytesPerSecondHandle.reset();
+			SnackerEngine::NetworkManager::setBytesPerSecondsSend(bytesPerSecondHandle.get());
 		}
 		guiManager.update(dt);
 	}

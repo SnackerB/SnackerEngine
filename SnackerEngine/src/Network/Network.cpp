@@ -10,6 +10,7 @@
 #include <optional>
 #include <random>
 #include <unordered_map>
+#include <queue>
 
 namespace SnackerEngine
 {
@@ -25,8 +26,10 @@ namespace SnackerEngine
 	static sockaddr_in serverAdress;
     static bool isSetup;
     static bool isConnectedToSERPServer;
-    static unsigned int nextMessageID;
     using MessageID = unsigned int;
+    static MessageID nextMessageID;
+    static unsigned int bytesPerSecondSend;
+    static double accumulativeTime;
     struct IncomingMessage
     {
         double timeout;
@@ -41,6 +44,12 @@ namespace SnackerEngine
         std::vector<std::vector<uint8_t>> dataParts;
     };
     static std::unordered_map<uint16_t, std::unordered_map<uint32_t, UnfinishedMessage>> unfinishedIncomingMessages;
+
+    struct OutgoingMessage
+    {
+        std::vector<uint8_t> data;
+    };
+    static std::queue<OutgoingMessage> outgoingMessages;
 
     /// Initializes winsock. Returns true on success and false on failure.
     static bool startWinsock()
@@ -156,9 +165,9 @@ namespace SnackerEngine
     }
 
     /// Sends the message in the buffer to the given address. Returns true on success and false on failure.
-    static bool sendMessage(SOCKET socket, const sockaddr_in& Addr, int len)
+    static bool sendMessage(SOCKET socket, const sockaddr_in& Addr, int len, char* buffer = networkBufferPtr)
     {
-        int ret = sendto(socket, networkBufferPtr, len, 0, reinterpret_cast<const sockaddr*>(&Addr), sizeof(sockaddr_in));
+        int ret = sendto(socket, buffer, len, 0, reinterpret_cast<const sockaddr*>(&Addr), sizeof(sockaddr_in));
         if (ret == SOCKET_ERROR) {
             errorLogger << LOGGER::BEGIN << "sendto() failed with error code: " << WSAGetLastError() << LOGGER::ENDL;
         }
@@ -179,44 +188,47 @@ namespace SnackerEngine
         }
         isSetup = true;
         clientID = 0;
+        bytesPerSecondSend = 500'000; // 0.5 MByte per second
+        accumulativeTime = 0.0;
         // Setup buffer ptr
         networkBufferPtr = (char*)(&networkBuffer[0]);
         serverAdress = createSockAddress(serpServerIP, serpServerPort);
         nextMessageID = 0;
         incomingMessages.clear();
         unfinishedIncomingMessages.clear();
+        std::queue<OutgoingMessage>().swap(outgoingMessages); // Clear outgoing message queue
         return true;
     }
 
     /// Transforms the header to network byte order and copies it into the buffer
-    static void writeSERPHeader(SERP_Header serpHeader)
+    static void writeSERPHeader(SERP_Header serpHeader, uint8_t* buffer = networkBuffer.data())
     {
         serpHeader.turnToNetworkByteOrder();
-        std::memcpy(networkBufferPtr, &serpHeader, sizeof(SERP_Header));
+        std::memcpy(buffer, &serpHeader, sizeof(SERP_Header));
     }
 
     /// Transforms the header to network byte order and copies it into the buffer at the correct position
-    static void writeSMPHeader(SMP_Header smpHeader)
+    static void writeSMPHeader(SMP_Header smpHeader, uint8_t* buffer = networkBuffer.data())
     {
         smpHeader.turnToNetworkByteOrder();
-        std::memcpy(networkBufferPtr + sizeof(SERP_Header), &smpHeader, sizeof(SMP_Header));
+        std::memcpy(buffer + sizeof(SERP_Header), &smpHeader, sizeof(SMP_Header));
     }
 
     /// Writes data to the buffer
-    static void writeData(const std::vector<uint8_t>& data)
+    static void writeData(const std::vector<uint8_t>& data, uint8_t* buffer = networkBuffer.data())
     {
-        std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), data.data(), min(data.size(), maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header)));
+        std::memcpy(buffer + sizeof(SERP_Header) + sizeof(SMP_Header), data.data(), min(data.size(), maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header)));
     }
 
     /// Turns the destinations to network byte order and writes them to the end of the buffer. 
     /// Returns true on success and false on failure.
-    static bool writeDestinations(unsigned int dataSizeInBytes, std::vector<uint16_t> destinations)
+    static bool writeDestinations(unsigned int dataSizeInBytes, std::vector<uint16_t> destinations, uint8_t* buffer = networkBuffer.data())
     {
         if (maxMessageLength < sizeof(SERP_Header) + sizeof(SMP_Header) + dataSizeInBytes + destinations.size() * sizeof(uint16_t)) return false;
         for (auto& destination : destinations) {
             destination = htons(destination);
         }
-        std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header) + dataSizeInBytes, destinations.data(), destinations.size() * sizeof(uint16_t));
+        std::memcpy(buffer + sizeof(SERP_Header) + sizeof(SMP_Header) + dataSizeInBytes, destinations.data(), destinations.size() * sizeof(uint16_t));
         return true;
     }
 
@@ -247,6 +259,7 @@ namespace SnackerEngine
 
     bool NetworkManager::sendMessage(const SMP_Message& message, uint16_t destination)
     {
+        /*
         if (!isConnectedToSERPServer) return false;
         unsigned int dataLength = message.data.size();
         unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
@@ -284,10 +297,54 @@ namespace SnackerEngine
             return true;
         }
         return false;
+        */
+        if (!isConnectedToSERPServer) return false;
+        unsigned int dataLength = message.data.size();
+        unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
+        unsigned int numberPackets = dataLength / dataPerPacket;
+        if (dataLength % dataPerPacket != 0) numberPackets++;
+        if (numberPackets == 0) numberPackets = 1;
+        /// Check if we can send in a single message!
+        if (numberPackets == 1)
+        {
+            OutgoingMessage outgoingMessage;
+            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size());
+            SERP_Header serpHeader(clientID, destination, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size(), 0, 1, getNextMessageID());
+            writeSERPHeader(serpHeader, outgoingMessage.data.data());
+            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
+            if (!message.data.empty()) writeData(message.data, outgoingMessage.data.data());
+            outgoingMessages.push(std::move(outgoingMessage));
+            return true;
+        }
+        else {
+            SERP_Header serpHeader(clientID, destination, maxMessageLength, 0, numberPackets, getNextMessageID());
+            OutgoingMessage outgoingMessage;
+            outgoingMessage.data.resize(maxMessageLength);
+            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
+            unsigned int offset = 0;
+            for (int i = 0; i < numberPackets - 1; ++i)
+            {
+                serpHeader.part = i;
+                writeSERPHeader(serpHeader, outgoingMessage.data.data());
+                std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
+                offset += maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header);
+                outgoingMessages.push(outgoingMessage);
+            }
+            serpHeader.part = numberPackets - 1;
+            unsigned int bytesLeft = dataLength - offset;
+            serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
+            outgoingMessage.data.resize(serpHeader.len);
+            writeSERPHeader(serpHeader, outgoingMessage.data.data());
+            std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
+            outgoingMessages.push(std::move(outgoingMessage));
+            return true;
+        }
+        return false;
     }
 
     bool NetworkManager::sendMessageMulticast(const NetworkManager::SMP_Message& message, const std::vector<uint16_t>& destinations)
     {
+        /*
         if (!isConnectedToSERPServer) return false;
         if (destinations.size() == 0) return false;
         if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
@@ -328,6 +385,55 @@ namespace SnackerEngine
             std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
             writeDestinations(bytesLeft, destinations);
             SnackerEngine::sendMessage(clientSocket, serverAdress, bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header));
+            return true;
+        }
+        return false;
+        */
+        if (!isConnectedToSERPServer) return false;
+        if (destinations.size() == 0) return false;
+        if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
+        unsigned int dataLength = message.data.size();
+        unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t));
+        if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t) != 0)) numberPackets++;
+        if (numberPackets == 0) numberPackets = 1;
+        /// Check if we can send in a single message!
+        if (numberPackets == 1)
+        {
+            OutgoingMessage outgoingMessage;
+            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size() + sizeof(uint16_t) * destinations.size());
+            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size(), 0, 1, getNextMessageID());
+            writeSERPHeader(serpHeader, outgoingMessage.data.data());
+            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
+            if (!message.data.empty()) writeData(message.data, outgoingMessage.data.data());
+            writeDestinations(message.data.size(), destinations, outgoingMessage.data.data());
+            outgoingMessages.push(std::move(outgoingMessage));
+            return true;
+        }
+        else {
+            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, maxMessageLength - destinations.size() * sizeof(uint16_t), 0, numberPackets, getNextMessageID());
+            OutgoingMessage outgoingMessage;
+            outgoingMessage.data.resize(maxMessageLength);
+            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
+            unsigned int offset = 0;
+            unsigned int destinationsSizeBytes = destinations.size() * sizeof(uint16_t);
+            unsigned int destinationsOffset = maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes;
+            for (int i = 0; i < numberPackets - 1; ++i)
+            {
+                serpHeader.part = i;
+                writeSERPHeader(serpHeader, outgoingMessage.data.data());
+                std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes);
+                writeDestinations(destinationsOffset, destinations, outgoingMessage.data.data());
+                offset += maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes;
+                outgoingMessages.push(outgoingMessage);
+            }
+            serpHeader.part = numberPackets - 1;
+            unsigned int bytesLeft = message.data.size() - offset;
+            serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
+            outgoingMessage.data.resize(serpHeader.len + sizeof(uint16_t) * destinations.size());
+            writeSERPHeader(serpHeader, outgoingMessage.data.data());
+            std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
+            writeDestinations(bytesLeft, destinations, outgoingMessage.data.data());
+            outgoingMessages.push(std::move(outgoingMessage));
             return true;
         }
         return false;
@@ -522,10 +628,31 @@ namespace SnackerEngine
         errorLogger << LOGGER::ENDL;
     }
 
+    /// Works on the outgoing message queue and sends as many messages as possible
+    void workOnOutgoingMessages(double dt)
+    {
+        accumulativeTime += dt;
+        unsigned int bytesToSend = bytesPerSecondSend * accumulativeTime;
+        while (!outgoingMessages.empty()) 
+        {
+            if (bytesToSend >= outgoingMessages.front().data.size() * sizeof(uint8_t)) {
+                SnackerEngine::sendMessage(clientSocket, serverAdress, outgoingMessages.front().data.size() * sizeof(uint8_t), reinterpret_cast<char*>(outgoingMessages.front().data.data()));
+                bytesToSend -= outgoingMessages.front().data.size() * sizeof(uint8_t);
+                outgoingMessages.pop();
+            }
+            else {
+                accumulativeTime = static_cast<double>(bytesToSend) / static_cast<double>(bytesPerSecondSend);
+                return;
+            }
+        }
+        accumulativeTime = 0.0;
+    }
+
     void NetworkManager::update(double dt)
     {
         // Check if there are any incoming messages
         if (isSetup) {
+            // Receive messages
             sockaddr remoteAddr;
             int remoteAddrLen = sizeof(sockaddr); // TODO: Check if this is wrong?
             while (auto len = recieveMessage(clientSocket, remoteAddr, remoteAddrLen).has_value())
@@ -581,6 +708,8 @@ namespace SnackerEngine
                     }
                 }
             }
+            // Send messages
+            workOnOutgoingMessages(dt);
             // TODO: Update timeouts!
         }
     }
@@ -608,6 +737,12 @@ namespace SnackerEngine
         }
         incomingMessages.clear();
         return result;
+    }
+
+    void NetworkManager::setBytesPerSecondsSend(unsigned int bytesPerSecond)
+    {
+        bytesPerSecondSend = bytesPerSecond;
+        accumulativeTime = 0.0;
     }
 
     void NetworkManager::cleanup()

@@ -39,6 +39,8 @@ namespace SnackerEngine
 		static std::vector<SMP_Message> getIncomingMessages(MESSAGE_TYPE messageType);
 		/// Returns a vector of all received messages
 		static std::vector<SMP_Message> getIncomingMessages();
+		/// Sets the allowed bytes per seconds for sending messages
+		static void setBytesPerSecondsSend(unsigned int bytesPerSecond);
 		/// Cleans up the manager, closes all sockets etc. Should be called when the Engine terminates
 		/// or when the network capabilities are no longer used.
 		static void cleanup();
