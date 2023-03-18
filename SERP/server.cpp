@@ -492,17 +492,17 @@ void startMainLoop()
             uint16_t& messageLen = result.value().second;
             if (messageLen < serpHeader.len) {
                 log("[ERROR]: Received message where the real messageLength is smaller than the length specified in the header.");
-                break;
+                continue;
             }
             if (serpHeader.dst == 0) {
                 // The message is addressed at the server!
                 if (messageLen < sizeof(SERP_Header) + sizeof(SMP_Header)) {
                     log("[ERROR]: Received message addressed to the server with no SMP header.");
-                    break;
+                    continue;
                 }
                 if (messageLen > MAX_MESSAGE_LEN) {
                     log("[ERROR]: Received message that was larger than the maximum allowed message size.");
-                    break;
+                    continue;
                 }
                 SMP_Header smpHeader = extractSMPHeader();
                 switch (static_cast<MESSAGE_TYPE>(smpHeader.type)) {
