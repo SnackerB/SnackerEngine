@@ -120,6 +120,7 @@ namespace SnackerEngine
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
 		isBeingPressed = false;
+		isBeingHovered = false;
 		locked = true;
 		setBackgroundColor(lockedColor);
 	}

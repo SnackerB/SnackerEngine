@@ -36,8 +36,8 @@ namespace SnackerEngine
 		const T& getVariable() const;
 	public:
 		/// Constructor
-		GuiTextVariable(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode,
-			const std::string& label, const Font& font, const double& fontSize,
+		GuiTextVariable(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = {},
+			const std::string& label = "", const Font& font = {}, const double& fontSize = 0,
 			Color4f textColor = { 1.0f, 1.0f, 1.0f, 0.0f },
 			Color4f backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f },
 			const StaticText::ParseMode& parseMode = StaticText::ParseMode::WORD_BY_WORD, const StaticText::Alignment& alignment = StaticText::Alignment::LEFT,

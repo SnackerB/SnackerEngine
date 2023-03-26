@@ -146,10 +146,10 @@ namespace SnackerEngine
 				// Check if we are colliding with the scroll bar
 				Vec2i size = getSize();
 				float scrollBarBackgroundHeight = size.y - 2 * border - scrollBarOffsetBottom - scrollBarOffsetTop;
-				if (position.x >= getPositionX() + size.x - border - scrollBarWidth &&
-					position.x <= getPositionX() + size.x - border &&
-					position.y >= getPositionY() + border + scrollBarOffsetTop &&
-					position.y <= getPositionY() + border + scrollBarOffsetTop + scrollBarBackgroundHeight) {
+				if (position.x >= getPositionX() + size.x - scrollBarOffsetRight - scrollBarWidth &&
+					position.x <= getPositionX() + size.x - scrollBarOffsetRight &&
+					position.y >= getPositionY() + scrollBarOffsetTop &&
+					position.y <= getPositionY() + scrollBarOffsetTop + scrollBarBackgroundHeight) {
 					return IsCollidingResult::COLLIDE_STRONG;
 				}
 			}

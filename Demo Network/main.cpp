@@ -57,6 +57,7 @@ public:
 			}
 
 			SnackerEngine::VerticalScrollingListLayout rightList(style);
+			rightList.setBackgroundColor(SnackerEngine::Color4f(0.15f, 0.15f, 0.15f, 1.0f));
 			horizontalLayout.registerChild(rightList, 1.0);
 			{
 				SnackerEngine::GuiTextVariable<uint16_t> clientIDDisplay("clientID: ", clientIDHandle, style);
@@ -103,7 +104,7 @@ public:
 				guiManager.moveElement(std::move(multicastAdressesLabel));
 
 				multicastAdressesList = SnackerEngine::VerticalListLayout(style.verticalScrollingListLayoutLeftBorder, true, true, true);
-				multicastAdressesList.setBackgroundColor(SnackerEngine::Color4f(0.2f, 0.2f, 0.2f, 1.0f));
+				multicastAdressesList.setBackgroundColor(SnackerEngine::Color4f(0.1f, 0.1f, 0.1f, 1.0f));
 				rightList.registerChild(multicastAdressesList);
 
 				SnackerEngine::GuiEditVariable<std::string> editTexturePathVariable("texture path: ", texturePathHandle, style);
@@ -223,7 +224,7 @@ public:
 		incomingMessages = std::move(SnackerEngine::NetworkManager::getIncomingMessages());
 		for (SnackerEngine::NetworkManager::SMP_Message& message : incomingMessages) {
 			if (message.smpHeader.type == 100) {
-				auto textureDataBuffer = std::move(SnackerEngine::TextureDataBuffer::Deserialize(message.data));
+				std::optional<SnackerEngine::TextureDataBuffer> textureDataBuffer = std::move(SnackerEngine::TextureDataBuffer::Deserialize(message.data));
 				if (textureDataBuffer.has_value()) {
 					SnackerEngine::Texture texture = SnackerEngine::Texture::CreateFromBuffer(textureDataBuffer.value());
 					SnackerEngine::GuiImage image(style, texture);

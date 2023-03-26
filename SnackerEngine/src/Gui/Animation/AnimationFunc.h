@@ -23,5 +23,6 @@ namespace SnackerEngine
 	double animationFunctionEaseOutElastic(const double& percent);
 		
 	using AnimationFuncT = double(&)(const double&);
+	using AnimationFuncPtrT = double(*)(const double&);
 
 }

@@ -259,45 +259,6 @@ namespace SnackerEngine
 
     bool NetworkManager::sendMessage(const SMP_Message& message, uint16_t destination)
     {
-        /*
-        if (!isConnectedToSERPServer) return false;
-        unsigned int dataLength = message.data.size();
-        unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
-        unsigned int numberPackets = dataLength / dataPerPacket;
-        if (dataLength % dataPerPacket != 0) numberPackets++;
-        if (numberPackets == 0) numberPackets = 1;
-        /// Check if we can send in a single message!
-        if (numberPackets == 1)
-        {
-            SERP_Header serpHeader(clientID, destination, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size(), 0, 1, getNextMessageID());
-            writeSERPHeader(serpHeader);
-            writeSMPHeader(message.smpHeader);
-            if (!message.data.empty()) writeData(message.data);
-            SnackerEngine::sendMessage(clientSocket, serverAdress, sizeof(SERP_Header) + sizeof(SMP_Header) + dataLength);
-            return true;
-        }
-        else {
-            SERP_Header serpHeader(clientID, destination, maxMessageLength, 0, numberPackets, getNextMessageID());
-            writeSMPHeader(message.smpHeader);
-            unsigned int offset = 0;
-            for (int i = 0; i < numberPackets - 1; ++i)
-            {
-                serpHeader.part = i;
-                writeSERPHeader(serpHeader);
-                std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
-                offset += maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header);
-                SnackerEngine::sendMessage(clientSocket, serverAdress, maxMessageLength);
-            }
-            serpHeader.part = numberPackets - 1;
-            unsigned int bytesLeft = dataLength - offset;
-            serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
-            writeSERPHeader(serpHeader);
-            std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
-            SnackerEngine::sendMessage(clientSocket, serverAdress, bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header));
-            return true;
-        }
-        return false;
-        */
         if (!isConnectedToSERPServer) return false;
         unsigned int dataLength = message.data.size();
         unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
@@ -344,57 +305,12 @@ namespace SnackerEngine
 
     bool NetworkManager::sendMessageMulticast(const NetworkManager::SMP_Message& message, const std::vector<uint16_t>& destinations)
     {
-        /*
         if (!isConnectedToSERPServer) return false;
         if (destinations.size() == 0) return false;
         if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
         unsigned int dataLength = message.data.size();
         unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t));
-        if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t) != 0)) numberPackets++;
-        if (numberPackets == 0) numberPackets = 1;
-        /// Check if we can send in a single message!
-        if (numberPackets == 1)
-        {
-            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size(), 0, 1, getNextMessageID());
-            writeSERPHeader(serpHeader);
-            writeSMPHeader(message.smpHeader);
-            if (!message.data.empty()) writeData(message.data);
-            writeDestinations(message.data.size(), destinations);
-            SnackerEngine::sendMessage(clientSocket, serverAdress, sizeof(SERP_Header) + sizeof(SMP_Header) + dataLength + destinations.size() * sizeof(uint16_t));
-            return true;
-        }
-        else {
-            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, maxMessageLength - destinations.size() * sizeof(uint16_t), 0, numberPackets, getNextMessageID());
-            writeSMPHeader(message.smpHeader);
-            unsigned int offset = 0;
-            unsigned int destinationsSizeBytes = destinations.size() * sizeof(uint16_t);
-            unsigned int destinationsOffset = maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes;
-            for (int i = 0; i < numberPackets - 1; ++i)
-            {
-                serpHeader.part = i;
-                writeSERPHeader(serpHeader);
-                std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes);
-                writeDestinations(destinationsOffset, destinations);
-                offset += maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes;
-                SnackerEngine::sendMessage(clientSocket, serverAdress, maxMessageLength);
-            }
-            serpHeader.part = numberPackets - 1;
-            unsigned int bytesLeft = message.data.size() - offset;
-            serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
-            writeSERPHeader(serpHeader);
-            std::memcpy(networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
-            writeDestinations(bytesLeft, destinations);
-            SnackerEngine::sendMessage(clientSocket, serverAdress, bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header));
-            return true;
-        }
-        return false;
-        */
-        if (!isConnectedToSERPServer) return false;
-        if (destinations.size() == 0) return false;
-        if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
-        unsigned int dataLength = message.data.size();
-        unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t));
-        if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t) != 0)) numberPackets++;
+        if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t)) != 0) numberPackets++;
         if (numberPackets == 0) numberPackets = 1;
         /// Check if we can send in a single message!
         if (numberPackets == 1)
@@ -423,7 +339,7 @@ namespace SnackerEngine
                 writeSERPHeader(serpHeader, outgoingMessage.data.data());
                 std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes);
                 writeDestinations(destinationsOffset, destinations, outgoingMessage.data.data());
-                offset += maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes;
+                offset += destinationsOffset;
                 outgoingMessages.push(outgoingMessage);
             }
             serpHeader.part = numberPackets - 1;

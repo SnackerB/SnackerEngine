@@ -550,7 +550,7 @@ void startMainLoop()
             unsigned duration = std::chrono::duration_cast<std::chrono::seconds>(time - lastClientUpdate).count();
             if (duration > PROCESS_CLIENT_TIMEOUT_EVERY_SECONDS) {
                 if (clients.empty()) {
-                    serverTimeout += PROCESS_CLIENT_TIMEOUT_EVERY_SECONDS;
+                    serverTimeout += duration;
                     if (serverTimeout > SLEEP_TIMEOUT) {
                         sleeping = true;
                         log("Going to sleep ...");
@@ -575,6 +575,7 @@ void startMainLoop()
                     }
                 }
             }
+            lastClientUpdate = time;
         }
     }
     log("shutting down SERP daemon. Current time:");

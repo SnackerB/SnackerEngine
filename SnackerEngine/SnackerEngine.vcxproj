@@ -183,6 +183,7 @@
     <ClInclude Include="src\Graphics\Materials\MaterialPBR.h" />
     <ClInclude Include="src\Graphics\Materials\MaterialSingleUniform.h" />
     <ClInclude Include="src\Graphics\Mesh.h" />
+    <ClInclude Include="src\Graphics\Meshes\Circle.h" />
     <ClInclude Include="src\Graphics\Meshes\Cube.h" />
     <ClInclude Include="src\Graphics\Meshes\Plane.h" />
     <ClInclude Include="src\Graphics\Meshes\ScreenQuad.h" />
@@ -219,6 +220,7 @@
     <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\HorizontalListLayout.h" />
     <ClInclude Include="src\Gui\GuiStyle.h" />
+    <ClInclude Include="src\Gui\Layouts\SimpleLayout.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalLayout.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalListLayout.h" />
     <ClInclude Include="src\Gui\Layouts\VerticalScrollingListLayout.h" />
@@ -259,6 +261,7 @@
     <ClCompile Include="src\Graphics\Material.cpp" />
     <ClCompile Include="src\Graphics\Materials\MaterialPBR.cpp" />
     <ClCompile Include="src\Graphics\Mesh.cpp" />
+    <ClCompile Include="src\Graphics\Meshes\Circle.cpp" />
     <ClCompile Include="src\Graphics\Meshes\Cube.cpp" />
     <ClCompile Include="src\Graphics\Meshes\Plane.cpp" />
     <ClCompile Include="src\Graphics\Meshes\ScreenQuad.cpp" />
@@ -291,6 +294,7 @@
     <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\HorizontalListLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\SimpleLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalListLayout.cpp" />
     <ClCompile Include="src\Gui\Layouts\VerticalScrollingListLayout.cpp" />

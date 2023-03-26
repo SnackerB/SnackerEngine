@@ -133,11 +133,19 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiEditVariable<T>::onSizeChange()
 	{
-		int editBoxWidth = label ? getWidth() - label->getMinWidth() : 0;
-		if (editBoxWidth < 0) editBoxWidth = 0;
-		editBox->setPositionAndSize(Vec2i(label->getMinWidth(), 0), Vec2i(editBoxWidth, label->getMinHeight()));
-		setMinSize(label->getMinSize());
-		setPreferredHeight(label->getPreferredHeight());
+		if (label && editBox) {
+			label->setWidth(std::min(label->getPreferredWidth(), getWidth()));
+			label->setHeight(std::min(label->getPreferredHeight(), getHeight()));
+			int editBoxWidth = std::max(0, getWidth() - label->getWidth());
+			editBox->setPositionAndSize(Vec2i(label->getWidth(), 0), Vec2i(editBoxWidth, label->getHeight()));
+			setMinSize(label->getMinSize());
+			setPreferredHeight(label->getPreferredHeight());
+		}
+		else if (editBox) {
+			int editBoxHeight = std::min(editBox->getPreferredHeight(), getHeight());
+			editBox->setPositionAndSize(Vec2i(0, 0), Vec2i(getWidth(), editBoxHeight));
+			setPreferredHeight(editBox->getPreferredHeight());
+		}
 		setPreferredWidth(-1);
 		setMaxSize(Vec2i(-1, -1));
 	}
