@@ -239,6 +239,7 @@
     <ClInclude Include="src\Network\SERP.h" />
     <ClInclude Include="src\Network\SMP.h" />
     <ClInclude Include="src\Utility\Alignment.h" />
+    <ClInclude Include="src\Utility\ByteBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AssetManager\AssetManager.cpp" />
@@ -307,6 +308,7 @@
     <ClCompile Include="src\Network\Network.cpp" />
     <ClCompile Include="src\Network\SERP.cpp" />
     <ClCompile Include="src\Network\SMP.cpp" />
+    <ClCompile Include="src\Utility\ByteBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\basic.shader" />

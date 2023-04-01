@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <memory>
+#include <bit>
 
 namespace SnackerEngine
 {
@@ -17,7 +18,13 @@ namespace SnackerEngine
 		{
 			uint16_t src;
 			SMP_Header smpHeader;
-			std::vector<uint8_t> data;
+			std::vector<std::byte> data;
+			/// Constructors
+			SMP_Message() = default;
+			SMP_Message(uint16_t src, const SMP_Header& smpHeader, std::vector<std::byte>&& data = {})
+				: src(src), smpHeader(smpHeader), data(std::move(data)) {}
+			SMP_Message(const SMP_Header& smpHeader, std::vector<std::byte>&& data = {})
+				: src(0), smpHeader(smpHeader), data(std::move(data)) {}
 		};
 		/// Initializes the network manager, opens a socket, creates an address, etc. Returns true on success
 		/// and false on failure

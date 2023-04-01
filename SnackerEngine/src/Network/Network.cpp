@@ -18,7 +18,7 @@ namespace SnackerEngine
     static constexpr unsigned int maxMessageLength = 4000;
     static constexpr unsigned int socketTimeoutMilliseconds = 1;
     static constexpr unsigned int generatePortNumberTries = 10;
-    std::array<uint8_t, maxMessageLength> networkBuffer;
+    std::array<std::byte, maxMessageLength> networkBuffer;
     char* networkBufferPtr;
 	static SOCKET clientSocket;
     static sockaddr_in clientAddress;
@@ -41,13 +41,13 @@ namespace SnackerEngine
     {
         double timeout;
         NetworkManager::SMP_Message message;
-        std::vector<std::vector<uint8_t>> dataParts;
+        std::vector<std::vector<std::byte>> dataParts;
     };
     static std::unordered_map<uint16_t, std::unordered_map<uint32_t, UnfinishedMessage>> unfinishedIncomingMessages;
 
     struct OutgoingMessage
     {
-        std::vector<uint8_t> data;
+        std::vector<std::byte> data;
     };
     static std::queue<OutgoingMessage> outgoingMessages;
 
@@ -151,7 +151,7 @@ namespace SnackerEngine
     /// see https://stackoverflow.com/questions/17306405/c-udp-recvfrom-is-acting-strange-wsagetlasterror-10014
     static std::optional<int> recieveMessage(int sock, sockaddr& remoteAddr, int& remoteAddrLen)
     {
-        int ret = recvfrom(sock, reinterpret_cast<char*>(networkBuffer.data()), maxMessageLength * sizeof(uint8_t), 0, &remoteAddr, &remoteAddrLen);
+        int ret = recvfrom(sock, reinterpret_cast<char*>(networkBuffer.data()), maxMessageLength * sizeof(std::byte), 0, &remoteAddr, &remoteAddrLen);
         if (ret == -1)
         {
             int error = WSAGetLastError();
@@ -201,28 +201,28 @@ namespace SnackerEngine
     }
 
     /// Transforms the header to network byte order and copies it into the buffer
-    static void writeSERPHeader(SERP_Header serpHeader, uint8_t* buffer = networkBuffer.data())
+    static void writeSERPHeader(SERP_Header serpHeader, std::byte* buffer = networkBuffer.data())
     {
         serpHeader.turnToNetworkByteOrder();
         std::memcpy(buffer, &serpHeader, sizeof(SERP_Header));
     }
 
     /// Transforms the header to network byte order and copies it into the buffer at the correct position
-    static void writeSMPHeader(SMP_Header smpHeader, uint8_t* buffer = networkBuffer.data())
+    static void writeSMPHeader(SMP_Header smpHeader, std::byte* buffer = networkBuffer.data())
     {
         smpHeader.turnToNetworkByteOrder();
         std::memcpy(buffer + sizeof(SERP_Header), &smpHeader, sizeof(SMP_Header));
     }
 
     /// Writes data to the buffer
-    static void writeData(const std::vector<uint8_t>& data, uint8_t* buffer = networkBuffer.data())
+    static void writeData(const std::vector<std::byte>& data, std::byte* buffer = networkBuffer.data())
     {
         std::memcpy(buffer + sizeof(SERP_Header) + sizeof(SMP_Header), data.data(), min(data.size(), maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header)));
     }
 
     /// Turns the destinations to network byte order and writes them to the end of the buffer. 
     /// Returns true on success and false on failure.
-    static bool writeDestinations(unsigned int dataSizeInBytes, std::vector<uint16_t> destinations, uint8_t* buffer = networkBuffer.data())
+    static bool writeDestinations(unsigned int dataSizeInBytes, std::vector<uint16_t> destinations, std::byte* buffer = networkBuffer.data())
     {
         if (maxMessageLength < sizeof(SERP_Header) + sizeof(SMP_Header) + dataSizeInBytes + destinations.size() * sizeof(uint16_t)) return false;
         for (auto& destination : destinations) {
@@ -248,9 +248,9 @@ namespace SnackerEngine
         return result;
     }
 
-    static std::vector<uint8_t> readData(unsigned int numBytes)
+    static std::vector<std::byte> readData(unsigned int numBytes)
     {
-        std::vector<uint8_t> result;
+        std::vector<std::byte> result;
         unsigned int copyBytes = maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header);
         result.resize(min(numBytes, copyBytes));
         std::memcpy(result.data(), networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), result.size());
@@ -269,8 +269,8 @@ namespace SnackerEngine
         if (numberPackets == 1)
         {
             OutgoingMessage outgoingMessage;
-            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size());
-            SERP_Header serpHeader(clientID, destination, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size(), 0, 1, getNextMessageID());
+            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size());
+            SERP_Header serpHeader(clientID, destination, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size(), 0, 1, getNextMessageID());
             writeSERPHeader(serpHeader, outgoingMessage.data.data());
             writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
             if (!message.data.empty()) writeData(message.data, outgoingMessage.data.data());
@@ -316,8 +316,8 @@ namespace SnackerEngine
         if (numberPackets == 1)
         {
             OutgoingMessage outgoingMessage;
-            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size() + sizeof(uint16_t) * destinations.size());
-            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint8_t) * message.data.size(), 0, 1, getNextMessageID());
+            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size() + sizeof(uint16_t) * destinations.size());
+            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size(), 0, 1, getNextMessageID());
             writeSERPHeader(serpHeader, outgoingMessage.data.data());
             writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
             if (!message.data.empty()) writeData(message.data, outgoingMessage.data.data());
@@ -408,7 +408,7 @@ namespace SnackerEngine
         }
         auto it2 = it1->second.find(serpHeader.id);
         if (it2 == it1->second.end()) {
-            UnfinishedMessage message{ 0.0, NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::vector<uint8_t>{}), std::vector<std::vector<uint8_t>>(serpHeader.total) };
+            UnfinishedMessage message{ 0.0, NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::vector<std::byte>{}), std::vector<std::vector<std::byte>>(serpHeader.total) };
             it2 = it1->second.insert(std::make_pair(serpHeader.id, std::move(message))).first;
         }
         // Insert data at the correct location
@@ -460,7 +460,7 @@ namespace SnackerEngine
             }
             else {
                 for (unsigned int i = 0; i < sizeof(uint16_t); ++i) {
-                    std::memcpy(reinterpret_cast<uint8_t*>(&clientID) + i, networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header) + i, sizeof(uint8_t));
+                    std::memcpy(reinterpret_cast<std::byte*>(&clientID) + i, networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header) + i, sizeof(std::byte));
                 }
                 clientID = ntohs(clientID);
                 isConnectedToSERPServer = true;
@@ -538,7 +538,7 @@ namespace SnackerEngine
         if (serpHeader.len > sizeof(SERP_Header) + sizeof(SMP_Header)) {
             // Print additional message
             for (unsigned int i = sizeof(SERP_Header) + sizeof(SMP_Header); i < serpHeader.len; ++i) {
-                errorLogger << networkBuffer[i];
+                errorLogger << static_cast<uint8_t>(networkBuffer[i]);
             }
         }
         errorLogger << LOGGER::ENDL;
@@ -551,9 +551,9 @@ namespace SnackerEngine
         unsigned int bytesToSend = bytesPerSecondSend * accumulativeTime;
         while (!outgoingMessages.empty()) 
         {
-            if (bytesToSend >= outgoingMessages.front().data.size() * sizeof(uint8_t)) {
-                SnackerEngine::sendMessage(clientSocket, serverAdress, outgoingMessages.front().data.size() * sizeof(uint8_t), reinterpret_cast<char*>(outgoingMessages.front().data.data()));
-                bytesToSend -= outgoingMessages.front().data.size() * sizeof(uint8_t);
+            if (bytesToSend >= outgoingMessages.front().data.size() * sizeof(std::byte)) {
+                SnackerEngine::sendMessage(clientSocket, serverAdress, outgoingMessages.front().data.size() * sizeof(std::byte), reinterpret_cast<char*>(outgoingMessages.front().data.data()));
+                bytesToSend -= outgoingMessages.front().data.size() * sizeof(std::byte);
                 outgoingMessages.pop();
             }
             else {

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <vector>
 #include <optional>
+#include <bit>
 
 namespace SnackerEngine
 {
@@ -57,9 +58,9 @@ namespace SnackerEngine
 		/// Returns raw data pointer. Should only be used if you know what you're doing
 		void* getDataPointer();
 		/// Serializes this TextureDataBuffer into the given buffer. This will resize the buffer accordingly
-		void serialize(std::vector<uint8_t>& buffer) const;
+		void serialize(std::vector<std::byte>& buffer) const;
 		/// Loads a TextureDataBuffer from serialized data
-		static std::optional<TextureDataBuffer> Deserialize(const std::vector<uint8_t>& buffer);
+		static std::optional<TextureDataBuffer> Deserialize(const std::vector<std::byte>& buffer);
 	};
 	//------------------------------------------------------------------------------------------------------
 }
