@@ -1,5 +1,6 @@
 #include "Gui/GuiElements/GuiCheckBox.h"
 #include "Gui/GuiStyle.h"
+#include "Gui/GuiManager.h"
 
 namespace SnackerEngine
 {
@@ -25,10 +26,12 @@ namespace SnackerEngine
 
 	void GuiCheckBox::draw(const Vec2i& parentPosition)
 	{
+		pushClippingBox(parentPosition);
 		Vec2i nextPosition = parentPosition + getPosition();
 		drawElement(label->getGuiID(), nextPosition);
 		drawElement(button->getGuiID(), nextPosition);
 		GuiElement::draw(parentPosition);
+		popClippingBox();
 	}
 
 	void GuiCheckBox::onRegister()
@@ -39,6 +42,7 @@ namespace SnackerEngine
 
 	void GuiCheckBox::onSizeChange()
 	{
+		label->setSize(Vec2i(std::min(getWidth(), label->getPreferredWidth()), std::min(getHeight(), label->getPreferredHeight())));
 	}
 
 	GuiCheckBox::IsCollidingResult GuiCheckBox::isColliding(const Vec2i& position)
@@ -111,6 +115,8 @@ namespace SnackerEngine
 		button->setSize(Vec2i(this->label->getPreferredSize().y, this->label->getPreferredSize().y));
 		this->label->setPosition(Vec2i(this->label->getPreferredSize().y + border, 0));
 		setPreferredSize(Vec2i(this->label->getPreferredSize().x + this->label->getPreferredSize().y + border, this->label->getPreferredSize().y));
+		setMinSize(getPreferredSize());
+		onSizeChange();
 	}
 
 	GuiCheckBox::GuiCheckBox(GuiVariableHandle<bool>& boolHandle, const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& label, const Font& font, const double& fontSize, const Color4f& labelTextColor, const Color4f& labelTextBackgroundColor, const int& border, const Color4f& checkBoxButtonDefaultColorTrue, const Color4f& checkBoxButtonHoverColorTrue, const Color4f& checkBoxButtonPressedColorTrue, const Color4f& checkBoxButtonPressedHoverColorTrue, const Color4f& checkBoxButtonDefaultColorFalse, const Color4f& checkBoxButtonHoverColorFalse, const Color4f& checkBoxButtonPressedColorFalse, const Color4f& checkBoxButtonPressedHoverColorFalse)
