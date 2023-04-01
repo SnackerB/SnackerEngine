@@ -137,7 +137,7 @@ namespace SnackerEngine
 		return dataStorage.data();
 	}
 	//------------------------------------------------------------------------------------------------------
-	void TextureDataBuffer::serialize(std::vector<uint8_t>& buffer) const
+	void TextureDataBuffer::serialize(std::vector<std::byte>& buffer) const
 	{
 		// Resize buffer
 		buffer.resize(sizeof(Texture::TextureDataType) + sizeof(Texture::TextureDataPrecision) + sizeof(Texture::TextureDataFormat) 
@@ -174,7 +174,7 @@ namespace SnackerEngine
 		std::memcpy(buffer.data() + offsetBytes, dataStorage.data(), dataStorage.size() * sizeof(std::byte));
 	}
 	//------------------------------------------------------------------------------------------------------
-	std::optional<TextureDataBuffer> TextureDataBuffer::Deserialize(const std::vector<uint8_t>& buffer)
+	std::optional<TextureDataBuffer> TextureDataBuffer::Deserialize(const std::vector<std::byte>& buffer)
 	{
 		if (buffer.size() < sizeof(Texture::TextureDataType) + sizeof(Texture::TextureDataPrecision) + sizeof(Texture::TextureDataFormat)
 			+ sizeof(int) * 2 + sizeof(unsigned int) * 4) return {};

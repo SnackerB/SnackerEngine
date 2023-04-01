@@ -194,7 +194,7 @@ public:
 			SnackerEngine::NetworkManager::SMP_Message message;
 			message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(SMPtypeHandle.get()), SMPoptionHandle.get());
 			std::string dataText = editDataTextBox.getText();
-			message.data = std::vector<uint8_t>(dataText.size());
+			message.data = std::vector<std::byte>(dataText.size());
 			std::memcpy(message.data.data(), dataText.data(), dataText.size());
 			if (dstHandle.get() == SERP_DST_MULTICAST) {
 				SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
@@ -242,7 +242,7 @@ public:
 				if (!message.data.empty()) {
 					ss << ": ";
 					for (const auto& c : message.data) {
-						ss << c;
+						ss << static_cast<uint8_t>(c);
 					}
 				}
 				SnackerEngine::GuiDynamicTextBox messageText(ss.str(), style);
