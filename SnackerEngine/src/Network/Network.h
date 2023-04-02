@@ -32,7 +32,9 @@ namespace SnackerEngine
 		/// Tries to connect to the SERP server
 		static void connectToSERPServer();
 		/// Returns true if we are currently connected to SERP server
-		static bool isConnectedToServer();
+		static bool isConnectedToSERPServer();
+		/// Returns true if we are setup correctly
+		static bool isSetup();
 		/// Returns the current clientID
 		static uint16_t getClientID();
 		/// Send a given SMP_Message using SERP. Returns true if the message was successfully sent

@@ -215,9 +215,9 @@ namespace SnackerEngine
 		return std::max(minWidth, std::min(maxWidth, getWidth() - static_cast<int>(2 * border)));
 	}
 
-	VerticalListLayout::VerticalListLayout(const unsigned border, const bool snapWidthToPreferred, const bool snapHeight, const bool makeChildrenSameWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+	VerticalListLayout::VerticalListLayout(const unsigned border, const bool snapWidthToPreferred, const bool snapHeight, const bool makeChildrenSameWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical, const Color4f& backgroundColor)
 		: border(border), snapWidthToPreferred(snapWidthToPreferred), snapHeight(snapHeight), makeChildrenSameWidth(makeChildrenSameWidth),
-		alignmentHorizontal(alignmentHorizontal), alignmentVertical(alignmentVertical), backgroundColor(0.0f, 0.0f),
+		alignmentHorizontal(alignmentHorizontal), alignmentVertical(alignmentVertical), backgroundColor(backgroundColor),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	bool VerticalListLayout::registerChild(GuiElement& guiElement)

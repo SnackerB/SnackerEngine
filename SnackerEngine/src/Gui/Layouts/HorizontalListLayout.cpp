@@ -170,9 +170,9 @@ namespace SnackerEngine
 		computeModelMatrix();
 	}
 
-	HorizontalListLayout::HorizontalListLayout(const unsigned border, const bool snapHeightToPreferred, const bool snapWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical)
+	HorizontalListLayout::HorizontalListLayout(const unsigned border, const bool snapHeightToPreferred, const bool snapWidth, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical, const Color4f& backgroundColor)
 		: border(border), snapHeightToPreferred(snapHeightToPreferred), snapWidth(snapWidth), alignmentHorizontal(alignmentHorizontal),
-		alignmentVertical(alignmentVertical), backgroundColor(0.0f, 0.0f),
+		alignmentVertical(alignmentVertical), backgroundColor(backgroundColor),
 		modelMatrixBackground{}, backgroundShader("shaders/gui/simpleColor.shader") {}
 
 	HorizontalListLayout::HorizontalListLayout(const HorizontalListLayout& other) noexcept

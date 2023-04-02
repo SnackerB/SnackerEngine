@@ -24,8 +24,8 @@ namespace SnackerEngine
     static sockaddr_in clientAddress;
     static uint16_t clientID;
 	static sockaddr_in serverAdress;
-    static bool isSetup;
-    static bool isConnectedToSERPServer;
+    static bool setup;
+    static bool connectedToSERPServer;
     using MessageID = unsigned int;
     static MessageID nextMessageID;
     static unsigned int bytesPerSecondSend;
@@ -176,7 +176,7 @@ namespace SnackerEngine
 
     bool NetworkManager::initialize()
     {
-        if (isSetup) return true;
+        if (setup) return true;
         if (!startWinsock()) return false;
         auto resultSocket = createUDPSocket();
         if (!resultSocket.has_value()) return false;
@@ -186,7 +186,7 @@ namespace SnackerEngine
             closesocket(clientSocket);
             return false;
         }
-        isSetup = true;
+        setup = true;
         clientID = 0;
         bytesPerSecondSend = 500'000; // 0.5 MByte per second
         accumulativeTime = 0.0;
@@ -259,7 +259,7 @@ namespace SnackerEngine
 
     bool NetworkManager::sendMessage(const SMP_Message& message, uint16_t destination)
     {
-        if (!isConnectedToSERPServer) return false;
+        if (!connectedToSERPServer) return false;
         unsigned int dataLength = message.data.size();
         unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
         unsigned int numberPackets = dataLength / dataPerPacket;
@@ -305,7 +305,7 @@ namespace SnackerEngine
 
     bool NetworkManager::sendMessageMulticast(const NetworkManager::SMP_Message& message, const std::vector<uint16_t>& destinations)
     {
-        if (!isConnectedToSERPServer) return false;
+        if (!connectedToSERPServer) return false;
         if (destinations.size() == 0) return false;
         if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
         unsigned int dataLength = message.data.size();
@@ -365,9 +365,14 @@ namespace SnackerEngine
         SnackerEngine::sendMessage(clientSocket, serverAdress, static_cast<int>(serpHeader.len));
     }
 
-    bool NetworkManager::isConnectedToServer()
+    bool NetworkManager::isConnectedToSERPServer()
     {
-        return isConnectedToSERPServer;
+        return connectedToSERPServer;
+    }
+
+    bool NetworkManager::isSetup()
+    {
+        return setup;
     }
 
     uint16_t NetworkManager::getClientID()
@@ -448,7 +453,7 @@ namespace SnackerEngine
         {
         case static_cast<uint16_t>(MESSAGE_OPTION_ADVERTISEMENT::DISCONNECT):
         {
-            isConnectedToSERPServer = false;
+            connectedToSERPServer = false;
             infoLogger << LOGGER::BEGIN << "Disconnected from SERP server" << LOGGER::ENDL;
             break;
         }
@@ -463,7 +468,7 @@ namespace SnackerEngine
                     std::memcpy(reinterpret_cast<std::byte*>(&clientID) + i, networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header) + i, sizeof(std::byte));
                 }
                 clientID = ntohs(clientID);
-                isConnectedToSERPServer = true;
+                connectedToSERPServer = true;
                 infoLogger << LOGGER::BEGIN << "Connected to SERP server with clientID " << clientID << "!" << LOGGER::ENDL;
             }
             break;
@@ -567,7 +572,7 @@ namespace SnackerEngine
     void NetworkManager::update(double dt)
     {
         // Check if there are any incoming messages
-        if (isSetup) {
+        if (setup) {
             // Receive messages
             sockaddr remoteAddr;
             int remoteAddrLen = sizeof(sockaddr); // TODO: Check if this is wrong?
@@ -582,14 +587,14 @@ namespace SnackerEngine
                 SMP_Header smpHeader = readSMPHeader();
                 // DEBUG: Print message to console
                 infoLogger << LOGGER::BEGIN << "Received message with the following headers: " 
-                    << "SERP(src: " << serpHeader.src
-                    << ", dst: " << serpHeader.dst
-                    << ", len: " << serpHeader.len
-                    << ", part: " << static_cast<int>(serpHeader.part)
-                    << ", total: " << static_cast<int>(serpHeader.total)
-                    << ", id: " << serpHeader.id
-                    << "), SMP(type: " << smpHeader.type
-                    << ", options: " << smpHeader.options << ")" << LOGGER::ENDL;
+                    << "SERP(src: " << static_cast<unsigned int>(serpHeader.src)
+                    << ", dst: " << static_cast<unsigned int>(serpHeader.dst)
+                    << ", len: " << static_cast<unsigned int>(serpHeader.len)
+                    << ", part: " << static_cast<unsigned int>(serpHeader.part)
+                    << ", total: " << static_cast<unsigned int>(serpHeader.total)
+                    << ", id: " << static_cast<unsigned int>(serpHeader.id)
+                    << "), SMP(type: " << static_cast<unsigned int>(smpHeader.type)
+                    << ", options: " << static_cast<unsigned int>(smpHeader.options) << ")" << LOGGER::ENDL;
                 // If the message is from the server, we need to do something with it
                 if (serpHeader.src == 0) {
                     switch (static_cast<MESSAGE_TYPE>(smpHeader.type))
@@ -663,7 +668,7 @@ namespace SnackerEngine
 
     void NetworkManager::cleanup()
     {
-        if (isConnectedToSERPServer)
+        if (connectedToSERPServer)
         {
             // Send disconnect message
             SERP_Header serpHeader(clientID, 0, sizeof(SERP_Header) + sizeof(SMP_Header), 0, 1, getNextMessageID());
@@ -672,7 +677,7 @@ namespace SnackerEngine
             writeSMPHeader(smpHeader);
             SnackerEngine::sendMessage(clientSocket, serverAdress, static_cast<int>(serpHeader.len));
         }
-        if (isSetup)
+        if (setup)
         {
             closesocket(clientSocket);
         }

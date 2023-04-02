@@ -49,7 +49,7 @@ namespace SnackerEngine
 		int computeBestCommonWidth();
 	public:
 		/// Constructor
-		VerticalListLayout(const unsigned border = 0, const bool snapWidthToPreferred = false, const bool snapHeight = false, const bool makeChildrenSameWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
+		VerticalListLayout(const unsigned border = 0, const bool snapWidthToPreferred = false, const bool snapHeight = false, const bool makeChildrenSameWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP, const Color4f& backgroundColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f));
 		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
 		bool registerChild(GuiElement& guiElement) override;
 		// Copy constructor and assignment operator

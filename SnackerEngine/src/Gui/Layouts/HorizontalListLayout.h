@@ -43,7 +43,7 @@ namespace SnackerEngine
 		virtual void onSizeChange() override;
 	public:
 		/// Constructor
-		HorizontalListLayout(const unsigned border = 0, const bool snapHeightToPreferred = false, const bool snapWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP);
+		HorizontalListLayout(const unsigned border = 0, const bool snapHeightToPreferred = false, const bool snapWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP, const Color4f& backgroundColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f));
 		// Copy constructor and assignment operator
 		HorizontalListLayout(const HorizontalListLayout& other) noexcept;
 		HorizontalListLayout& operator=(const HorizontalListLayout& other) noexcept;

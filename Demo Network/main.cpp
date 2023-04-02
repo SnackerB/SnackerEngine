@@ -163,7 +163,7 @@ public:
 
 	virtual void update(const double& dt) override
 	{
-		if (SnackerEngine::NetworkManager::isConnectedToServer()) {
+		if (SnackerEngine::NetworkManager::isConnectedToSERPServer()) {
 			clientIDHandle.set(SnackerEngine::NetworkManager::getClientID());
 		}
 		if (addMulticastAddressHandle.isActive()) {
