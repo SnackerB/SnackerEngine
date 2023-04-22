@@ -37,13 +37,13 @@ namespace SnackerEngine
     };
     static std::unordered_map<MESSAGE_TYPE, std::vector<IncomingMessage>> incomingMessages;
 
-    struct UnfinishedMessage
+    struct UnfinishedIncomingMessage
     {
         double timeout;
         NetworkManager::SMP_Message message;
         std::vector<std::vector<std::byte>> dataParts;
     };
-    static std::unordered_map<uint16_t, std::unordered_map<uint32_t, UnfinishedMessage>> unfinishedIncomingMessages;
+    static std::unordered_map<uint16_t, std::unordered_map<uint32_t, UnfinishedIncomingMessage>> unfinishedIncomingMessages;
 
     struct OutgoingMessage
     {
@@ -586,6 +586,7 @@ namespace SnackerEngine
                 SERP_Header serpHeader = readSERPHeader();
                 SMP_Header smpHeader = readSMPHeader();
                 // DEBUG: Print message to console
+                /*
                 infoLogger << LOGGER::BEGIN << "Received message with the following headers: " 
                     << "SERP(src: " << static_cast<unsigned int>(serpHeader.src)
                     << ", dst: " << static_cast<unsigned int>(serpHeader.dst)
@@ -595,6 +596,7 @@ namespace SnackerEngine
                     << ", id: " << static_cast<unsigned int>(serpHeader.id)
                     << "), SMP(type: " << static_cast<unsigned int>(smpHeader.type)
                     << ", options: " << static_cast<unsigned int>(smpHeader.options) << ")" << LOGGER::ENDL;
+                    */
                 // If the message is from the server, we need to do something with it
                 if (serpHeader.src == 0) {
                     switch (static_cast<MESSAGE_TYPE>(smpHeader.type))

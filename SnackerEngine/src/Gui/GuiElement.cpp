@@ -490,6 +490,15 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::deleteChildren()
+	{
+		if (!guiManager) return;
+		while (!children.empty())
+		{
+			guiManager->signOff(children.front());
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	bool GuiElement::isValid()
 	{
 		return guiManager != nullptr;

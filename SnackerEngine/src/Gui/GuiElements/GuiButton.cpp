@@ -138,7 +138,7 @@ namespace SnackerEngine
 	void GuiButton::setDefaultColor(const Color4f& defaultColor)
 	{
 		this->defaultColor = defaultColor;
-		if (isBeingHovered == false && isBeingPressed == false) {
+		if (locked == false && isBeingHovered == false && isBeingPressed == false) {
 			setBackgroundColor(this->defaultColor);
 		}
 	}
@@ -146,7 +146,7 @@ namespace SnackerEngine
 	void GuiButton::setHoverColor(const Color4f& hoverColor)
 	{
 		this->hoverColor = hoverColor;
-		if (isBeingHovered == true && isBeingPressed == false) {
+		if (locked == false && isBeingHovered == true && isBeingPressed == false) {
 			setBackgroundColor(this->hoverColor);
 		}
 	}
@@ -154,7 +154,7 @@ namespace SnackerEngine
 	void GuiButton::setPressedColor(const Color4f& pressedColor)
 	{
 		this->pressedColor = pressedColor;
-		if (isBeingHovered == false && isBeingPressed == true) {
+		if (locked == false && isBeingHovered == false && isBeingPressed == true) {
 			setBackgroundColor(this->pressedColor);
 		}
 	}
@@ -162,7 +162,7 @@ namespace SnackerEngine
 	void GuiButton::setPressedHoverColor(const Color4f& pressedHoverColor)
 	{
 		this->pressedHoverColor = pressedHoverColor;
-		if (isBeingHovered == true && isBeingPressed == true) {
+		if (locked == false && isBeingHovered == true && isBeingPressed == true) {
 			setBackgroundColor(this->pressedHoverColor);
 		}
 	}

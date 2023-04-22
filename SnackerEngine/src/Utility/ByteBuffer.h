@@ -1,13 +1,12 @@
 #pragma once
 
 #include "External/json.hpp"
+//#include "core/Log.h"
 
 #include <cinttypes>
 #include <vector>
 #include <bit>
 #include <string>
-#include <iostream> // DEBUG
-#include <iomanip> // DEBUG
 
 namespace SnackerEngine
 {
@@ -44,7 +43,7 @@ namespace SnackerEngine
 
 	/// Template for vectors of data
 	template<typename T>
-	inline void copyToBuffer(std::vector<std::byte>& buffer, const std::vector<T>& data)
+	inline void copyVectorToBuffer(std::vector<std::byte>& buffer, const std::vector<T>& data)
 	{
 		buffer.resize(sizeof(T) * data.size());
 		std::memcpy(buffer.data(), data.data(), sizeof(T) * data.size());
@@ -52,7 +51,7 @@ namespace SnackerEngine
 
 	/// Template for vectors of data
 	template<typename T>
-	inline void appendToBuffer(std::vector<std::byte>& buffer, std::vector<T>& data)
+	inline void appendVectorToBuffer(std::vector<std::byte>& buffer, const std::vector<T>& data)
 	{
 		std::size_t size = buffer.size();
 		buffer.resize(size + sizeof(T) * data.size());
@@ -80,10 +79,8 @@ namespace SnackerEngine
 		std::vector<std::uint8_t> v_bson = nlohmann::json::to_bson(data);
 		buffer.resize(v_bson.size());
 		std::memcpy(buffer.data(), v_bson.data(), v_bson.size() * sizeof(std::uint8_t));
-		// DEBUG
-		for (const auto& c : v_bson)
-			std::cout << std::hex << static_cast<unsigned int>(c) << " ";
-		std::cout << std::endl;
+		//infoLogger << LOGGER::BEGIN << "copied " << v_bson.size() << " bytes of JSON to message!" << LOGGER::ENDL;
+		//infoLogger << LOGGER::BEGIN << data.dump() << LOGGER::ENDL;
 	}
 
 	template<>
@@ -93,6 +90,8 @@ namespace SnackerEngine
 		std::size_t size = buffer.size();
 		buffer.resize(size + v_bson.size() * sizeof(std::uint8_t));
 		std::memcpy(buffer.data() + size, v_bson.data(), v_bson.size() * sizeof(std::uint8_t));
+		//infoLogger << LOGGER::BEGIN << "appended " << v_bson.size() << " bytes of JSON to message!" << LOGGER::ENDL;
+		//infoLogger << LOGGER::BEGIN << data.dump() << LOGGER::ENDL;
 	}
 
 	template<>
@@ -111,13 +110,11 @@ namespace SnackerEngine
 		std::vector<std::byte> bson;
 		bson.resize(buffer.size() - offset);
 		std::memcpy(bson.data(), buffer.data () + offset, buffer.size() - offset);
-		// DEBUG
-		for (const auto& c : bson)
-			std::cout << std::hex << static_cast<unsigned int>(c) << " ";
-		std::cout << std::endl;
 		try
 		{
 			nlohmann::json result = nlohmann::json::from_bson(bson);
+			//infoLogger << LOGGER::BEGIN << "Read " << bson.size() << " bytes of JSON from message!" << LOGGER::ENDL;
+			//infoLogger << LOGGER::BEGIN << result.dump() << LOGGER::ENDL;
 			return std::make_pair(std::move(result), buffer.size());
 		}
 		catch (const std::exception& exception)

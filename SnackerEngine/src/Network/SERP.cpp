@@ -11,6 +11,7 @@ namespace SnackerEngine
 		dst = ntohs(dst);
 		len = ntohs(len);
 		id = ntohl(id);
+		flags = ntohl(flags);
 	}
 
 	void SERP_Header::turnToNetworkByteOrder()
@@ -19,6 +20,17 @@ namespace SnackerEngine
 		dst = htons(dst);
 		len = htons(len);
 		id = htonl(id);
+		flags = htonl(flags);
+	}
+
+	void SERP_Header::setFlag(FlagType flagType)
+	{
+		flags |= (0b1 << static_cast<unsigned int>(flagType));
+	}
+
+	bool SERP_Header::getFlag(FlagType flagType)
+	{
+		return flags & (0b1 << static_cast<unsigned int>(flagType));
 	}
 
 }

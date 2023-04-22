@@ -75,6 +75,8 @@ namespace SnackerEngine
 		VerticalLayout& operator=(VerticalLayout&& other) noexcept;
 		/// Getters
 		const bool& isAllowMoveBorders() const;
+		const std::vector<double>& getWeights() { computeWeightsFromPercentages(); return weights; }
+		const std::vector<double>& getPercentages() const { return percentages; }
 		/// Setters
 		void setAllowMoveBorders(const bool& allowMoveBorders);
 	};

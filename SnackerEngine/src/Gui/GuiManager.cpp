@@ -76,7 +76,7 @@ namespace SnackerEngine
 			alteredClippingBox.w = std::max(0, std::min(alteredClippingBox.w, previousClippingBox.y + previousClippingBox.w - alteredClippingBox.y));
 		}
 		clippingBoxStack.push_back(alteredClippingBox); 
-		Renderer::enableScissorTest(alteredClippingBox);
+		//Renderer::enableScissorTest(alteredClippingBox);
 	}
 
 	void GuiManager::popClippingBox()
@@ -84,7 +84,7 @@ namespace SnackerEngine
 		if (!clippingBoxStack.empty()) {
 			clippingBoxStack.pop_back();
 			if (!clippingBoxStack.empty()) {
-				Renderer::enableScissorTest(clippingBoxStack.back());
+				//Renderer::enableScissorTest(clippingBoxStack.back());
 			}
 			else {
 				Renderer::disableScissorTest();

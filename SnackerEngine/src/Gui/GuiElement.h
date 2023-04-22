@@ -364,6 +364,8 @@ namespace SnackerEngine
 		GuiElement& operator=(GuiElement&& other) noexcept;
 		/// Adds a child to this guiElement. Returns true on success
 		virtual bool registerChild(GuiElement& guiElement);
+		/// Deletes all children of this guiElement
+		void deleteChildren();
 		/// Returns true if this GuiElement object is managed by a guiManager
 		bool isValid();
 		/// Sets the position of this element. May call enforceLayout() on the parent
