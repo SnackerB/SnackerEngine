@@ -28,7 +28,12 @@ namespace SnackerEngine
 		flags |= (0b1 << static_cast<unsigned int>(flagType));
 	}
 
-	bool SERP_Header::getFlag(FlagType flagType)
+	bool SERP_Header::getFlag(FlagType flagType) const
+	{
+		return SnackerEngine::getFlag(flags, flagType);
+	}
+
+	bool getFlag(uint32_t flags, SERP_Header::FlagType flagType)
 	{
 		return flags & (0b1 << static_cast<unsigned int>(flagType));
 	}

@@ -2,6 +2,7 @@
 #include "core/Log.h"
 #include "core/Engine.h"
 #include "Network/SERP.h"
+#include "Network/NetworkData.h"
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -15,41 +16,8 @@
 namespace SnackerEngine
 {
 
-    static constexpr unsigned int maxMessageLength = 4000;
-    static constexpr unsigned int socketTimeoutMilliseconds = 1;
-    static constexpr unsigned int generatePortNumberTries = 10;
-    std::array<std::byte, maxMessageLength> networkBuffer;
-    char* networkBufferPtr;
-	static SOCKET clientSocket;
-    static sockaddr_in clientAddress;
-    static uint16_t clientID;
-	static sockaddr_in serverAdress;
-    static bool setup;
-    static bool connectedToSERPServer;
-    using MessageID = unsigned int;
-    static MessageID nextMessageID;
-    static unsigned int bytesPerSecondSend;
-    static double accumulativeTime;
-    struct IncomingMessage
-    {
-        double timeout;
-        NetworkManager::SMP_Message message;
-    };
-    static std::unordered_map<MESSAGE_TYPE, std::vector<IncomingMessage>> incomingMessages;
-
-    struct UnfinishedIncomingMessage
-    {
-        double timeout;
-        NetworkManager::SMP_Message message;
-        std::vector<std::vector<std::byte>> dataParts;
-    };
-    static std::unordered_map<uint16_t, std::unordered_map<uint32_t, UnfinishedIncomingMessage>> unfinishedIncomingMessages;
-
-    struct OutgoingMessage
-    {
-        std::vector<std::byte> data;
-    };
-    static std::queue<OutgoingMessage> outgoingMessages;
+    /// Struct that stores all necessary variables, containers and implements important helper functions
+    NetworkData networkData;
 
     /// Initializes winsock. Returns true on success and false on failure.
     static bool startWinsock()
@@ -103,12 +71,6 @@ namespace SnackerEngine
         return 49152 + (dist(Engine::getRandomEngine()) % (65535 - 29152 + 1));
     }
 
-    /// Returns the next message id and increments it by one
-    static unsigned int getNextMessageID()
-    {
-        return nextMessageID++;
-    }
-
     /// Sets the timeout for the socket in milliseconds
     static void setSocketTimeoutMilliseconds(SOCKET sock, int milliseconds)
     {
@@ -128,8 +90,8 @@ namespace SnackerEngine
     {
         // Try to generate client address. This is done multiple times to try and get a valid port number.
         bool success = false;
-        for (unsigned int i = 0; i < generatePortNumberTries; ++i) {
-            clientAddress = createSockAddress("0.0.0.0", getRandomPortNumber());
+        for (unsigned int i = 0; i < networkData.generatePortNumberTries; ++i) {
+            networkData.clientAddress = createSockAddress("0.0.0.0", getRandomPortNumber());
             if (bind(socket, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in)) == -1)
             {
                 warningLogger << LOGGER::BEGIN << "bind() failed with error code " << WSAGetLastError() << "trying again ..." << LOGGER::ENDL;
@@ -141,547 +103,149 @@ namespace SnackerEngine
             }
         }
         if (!success) {
-            errorLogger << LOGGER::BEGIN << "bind() failed after " << generatePortNumberTries << " tries!" << LOGGER::ENDL;
+            errorLogger << LOGGER::BEGIN << "bind() failed after " << networkData.generatePortNumberTries << " tries!" << LOGGER::ENDL;
         }
         return success;
     }
 
-    /// Tries to receive a message in the buffer. Returns an empty optional if a timeout or an error occurred.
-    /// Returns the length of the message on success. Make sure remoteAddrLen is properly initialized:
-    /// see https://stackoverflow.com/questions/17306405/c-udp-recvfrom-is-acting-strange-wsagetlasterror-10014
-    static std::optional<int> recieveMessage(int sock, sockaddr& remoteAddr, int& remoteAddrLen)
-    {
-        int ret = recvfrom(sock, reinterpret_cast<char*>(networkBuffer.data()), maxMessageLength * sizeof(std::byte), 0, &remoteAddr, &remoteAddrLen);
-        if (ret == -1)
-        {
-            int error = WSAGetLastError();
-            if (error != WSAETIMEDOUT) {
-                WSAEFAULT;
-                errorLogger << LOGGER::BEGIN << "recvfrom() failed with error code " << error << LOGGER::ENDL;
-            }
-            return {};
-        }
-        return ret;
-    }
-
-    /// Sends the message in the buffer to the given address. Returns true on success and false on failure.
-    static bool sendMessage(SOCKET socket, const sockaddr_in& Addr, int len, char* buffer = networkBufferPtr)
-    {
-        int ret = sendto(socket, buffer, len, 0, reinterpret_cast<const sockaddr*>(&Addr), sizeof(sockaddr_in));
-        if (ret == SOCKET_ERROR) {
-            errorLogger << LOGGER::BEGIN << "sendto() failed with error code: " << WSAGetLastError() << LOGGER::ENDL;
-        }
-        return ret;
-    }
-
     bool NetworkManager::initialize()
     {
-        if (setup) return true;
+        if (networkData.setup) return true;
+        networkData = NetworkData();
         if (!startWinsock()) return false;
         auto resultSocket = createUDPSocket();
         if (!resultSocket.has_value()) return false;
-        clientSocket = resultSocket.value();
-        setSocketTimeoutMilliseconds(clientSocket, socketTimeoutMilliseconds);
-        if (!bindSocketToAddress(clientSocket, clientAddress)) {
-            closesocket(clientSocket);
+        networkData.clientSocket = resultSocket.value();
+        setSocketTimeoutMilliseconds(networkData.clientSocket, networkData.socketTimeoutMilliseconds);
+        if (!bindSocketToAddress(networkData.clientSocket, networkData.clientAddress)) {
+            closesocket(networkData.clientSocket);
             return false;
         }
-        setup = true;
-        clientID = 0;
-        bytesPerSecondSend = 500'000; // 0.5 MByte per second
-        accumulativeTime = 0.0;
-        // Setup buffer ptr
-        networkBufferPtr = (char*)(&networkBuffer[0]);
-        serverAdress = createSockAddress(serpServerIP, serpServerPort);
-        nextMessageID = 0;
-        incomingMessages.clear();
-        unfinishedIncomingMessages.clear();
-        std::queue<OutgoingMessage>().swap(outgoingMessages); // Clear outgoing message queue
+        networkData.serverAdress = createSockAddress(serpServerIP, serpServerPort);
+        networkData.setup = true;
         return true;
     }
 
-    /// Transforms the header to network byte order and copies it into the buffer
-    static void writeSERPHeader(SERP_Header serpHeader, std::byte* buffer = networkBuffer.data())
+    bool NetworkManager::sendMessage(const SMP_Message& message, uint16_t destination, bool safeSend)
     {
-        serpHeader.turnToNetworkByteOrder();
-        std::memcpy(buffer, &serpHeader, sizeof(SERP_Header));
-    }
-
-    /// Transforms the header to network byte order and copies it into the buffer at the correct position
-    static void writeSMPHeader(SMP_Header smpHeader, std::byte* buffer = networkBuffer.data())
-    {
-        smpHeader.turnToNetworkByteOrder();
-        std::memcpy(buffer + sizeof(SERP_Header), &smpHeader, sizeof(SMP_Header));
-    }
-
-    /// Writes data to the buffer
-    static void writeData(const std::vector<std::byte>& data, std::byte* buffer = networkBuffer.data())
-    {
-        std::memcpy(buffer + sizeof(SERP_Header) + sizeof(SMP_Header), data.data(), min(data.size(), maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header)));
-    }
-
-    /// Turns the destinations to network byte order and writes them to the end of the buffer. 
-    /// Returns true on success and false on failure.
-    static bool writeDestinations(unsigned int dataSizeInBytes, std::vector<uint16_t> destinations, std::byte* buffer = networkBuffer.data())
-    {
-        if (maxMessageLength < sizeof(SERP_Header) + sizeof(SMP_Header) + dataSizeInBytes + destinations.size() * sizeof(uint16_t)) return false;
-        for (auto& destination : destinations) {
-            destination = htons(destination);
+        if (!networkData.connectedToSERPServer) return false;
+        if (safeSend)
+        {
+            std::optional<SafeOutgoingMessageData> outgoingMessage = std::move(SafeOutgoingMessageData::CreateSafeOutgoingMessageData(networkData, message, { destination }));
+            if (!outgoingMessage.has_value()) return false;
+            networkData.safeOutgoingMessageDatas[networkData.nextMessageID] = std::move(outgoingMessage.value());
+            networkData.safeOutgoingMessageDatas[networkData.nextMessageID].pushPacketsToSendQueue(networkData);
+            networkData.nextMessageID++;
         }
-        std::memcpy(buffer + sizeof(SERP_Header) + sizeof(SMP_Header) + dataSizeInBytes, destinations.data(), destinations.size() * sizeof(uint16_t));
+        else
+        {
+            if (!networkData.createBasicOutgoingMessages(message, destination)) return false;
+            networkData.nextMessageID++;
+        }
         return true;
     }
 
-    static SERP_Header readSERPHeader()
+    bool NetworkManager::sendMessage(const SMP_Message& message, const std::vector<uint16_t>& destinations, bool safeSend)
     {
-        SERP_Header result;
-        std::memcpy(&result, networkBufferPtr, sizeof(SERP_Header));
-        result.turnToHostByteOrder();
-        return result;
-    }
-
-    static SMP_Header readSMPHeader()
-    {
-        SMP_Header result;
-        std::memcpy(&result, networkBufferPtr + sizeof(SERP_Header), sizeof(SMP_Header));
-        result.turnToHostByteOrder();
-        return result;
-    }
-
-    static std::vector<std::byte> readData(unsigned int numBytes)
-    {
-        std::vector<std::byte> result;
-        unsigned int copyBytes = maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header);
-        result.resize(min(numBytes, copyBytes));
-        std::memcpy(result.data(), networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header), result.size());
-        return result;
-    }
-
-    bool NetworkManager::sendMessage(const SMP_Message& message, uint16_t destination)
-    {
-        if (!connectedToSERPServer) return false;
-        unsigned int dataLength = message.data.size();
-        unsigned int dataPerPacket = (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
-        unsigned int numberPackets = dataLength / dataPerPacket;
-        if (dataLength % dataPerPacket != 0) numberPackets++;
-        if (numberPackets == 0) numberPackets = 1;
-        /// Check if we can send in a single message!
-        if (numberPackets == 1)
+        if (!networkData.connectedToSERPServer) return false;
+        if (safeSend)
         {
-            OutgoingMessage outgoingMessage;
-            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size());
-            SERP_Header serpHeader(clientID, destination, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size(), 0, 1, getNextMessageID());
-            writeSERPHeader(serpHeader, outgoingMessage.data.data());
-            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
-            if (!message.data.empty()) writeData(message.data, outgoingMessage.data.data());
-            outgoingMessages.push(std::move(outgoingMessage));
-            return true;
+            std::optional<SafeOutgoingMessageData> outgoingMessage = std::move(SafeOutgoingMessageData::CreateSafeOutgoingMessageData(networkData, message, destinations));
+            if (!outgoingMessage.has_value()) return false;
+            networkData.safeOutgoingMessageDatas[networkData.nextMessageID] = std::move(outgoingMessage.value());
+            networkData.safeOutgoingMessageDatas[networkData.nextMessageID].pushPacketsToSendQueue(networkData);
+            networkData.nextMessageID++;
         }
-        else {
-            SERP_Header serpHeader(clientID, destination, maxMessageLength, 0, numberPackets, getNextMessageID());
-            OutgoingMessage outgoingMessage;
-            outgoingMessage.data.resize(maxMessageLength);
-            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
-            unsigned int offset = 0;
-            for (int i = 0; i < numberPackets - 1; ++i)
-            {
-                serpHeader.part = i;
-                writeSERPHeader(serpHeader, outgoingMessage.data.data());
-                std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header));
-                offset += maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header);
-                outgoingMessages.push(outgoingMessage);
-            }
-            serpHeader.part = numberPackets - 1;
-            unsigned int bytesLeft = dataLength - offset;
-            serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
-            outgoingMessage.data.resize(serpHeader.len);
-            writeSERPHeader(serpHeader, outgoingMessage.data.data());
-            std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
-            outgoingMessages.push(std::move(outgoingMessage));
-            return true;
-        }
-        return false;
-    }
-
-    bool NetworkManager::sendMessageMulticast(const NetworkManager::SMP_Message& message, const std::vector<uint16_t>& destinations)
-    {
-        if (!connectedToSERPServer) return false;
-        if (destinations.size() == 0) return false;
-        if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= maxMessageLength) return false;
-        unsigned int dataLength = message.data.size();
-        unsigned int numberPackets = dataLength / (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t));
-        if (dataLength % (maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t)) != 0) numberPackets++;
-        if (numberPackets == 0) numberPackets = 1;
-        /// Check if we can send in a single message!
-        if (numberPackets == 1)
+        else
         {
-            OutgoingMessage outgoingMessage;
-            outgoingMessage.data.resize(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size() + sizeof(uint16_t) * destinations.size());
-            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * message.data.size(), 0, 1, getNextMessageID());
-            writeSERPHeader(serpHeader, outgoingMessage.data.data());
-            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
-            if (!message.data.empty()) writeData(message.data, outgoingMessage.data.data());
-            writeDestinations(message.data.size(), destinations, outgoingMessage.data.data());
-            outgoingMessages.push(std::move(outgoingMessage));
-            return true;
+            if (!networkData.createBasicOutgoingMessages(message, destinations)) return false;
+            networkData.nextMessageID++;
         }
-        else {
-            SERP_Header serpHeader(clientID, SERP_DST_MULTICAST, maxMessageLength - destinations.size() * sizeof(uint16_t), 0, numberPackets, getNextMessageID());
-            OutgoingMessage outgoingMessage;
-            outgoingMessage.data.resize(maxMessageLength);
-            writeSMPHeader(message.smpHeader, outgoingMessage.data.data());
-            unsigned int offset = 0;
-            unsigned int destinationsSizeBytes = destinations.size() * sizeof(uint16_t);
-            unsigned int destinationsOffset = maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes;
-            for (int i = 0; i < numberPackets - 1; ++i)
-            {
-                serpHeader.part = i;
-                writeSERPHeader(serpHeader, outgoingMessage.data.data());
-                std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinationsSizeBytes);
-                writeDestinations(destinationsOffset, destinations, outgoingMessage.data.data());
-                offset += destinationsOffset;
-                outgoingMessages.push(outgoingMessage);
-            }
-            serpHeader.part = numberPackets - 1;
-            unsigned int bytesLeft = message.data.size() - offset;
-            serpHeader.len = bytesLeft + sizeof(SERP_Header) + sizeof(SMP_Header);
-            outgoingMessage.data.resize(serpHeader.len + sizeof(uint16_t) * destinations.size());
-            writeSERPHeader(serpHeader, outgoingMessage.data.data());
-            std::memcpy(outgoingMessage.data.data() + sizeof(SERP_Header) + sizeof(SMP_Header), message.data.data() + offset, bytesLeft);
-            writeDestinations(bytesLeft, destinations, outgoingMessage.data.data());
-            outgoingMessages.push(std::move(outgoingMessage));
-            return true;
-        }
-        return false;
+        return true;
     }
 
     void NetworkManager::connectToSERPServer()
     {
         // Send advertisement to server
-        SERP_Header serpHeader(clientID, 0, sizeof(SERP_Header) + sizeof(SMP_Header), 0, 1, getNextMessageID());
-        SMP_Header smpHeader(MESSAGE_TYPE::ADVERTISEMENT, static_cast<uint16_t>(MESSAGE_OPTION_ADVERTISEMENT::REQUEST));
-        writeSERPHeader(serpHeader);
-        writeSMPHeader(smpHeader);
-        SnackerEngine::sendMessage(clientSocket, serverAdress, static_cast<int>(serpHeader.len));
+        networkData.sendConnectionRequestToServer();
     }
 
     bool NetworkManager::isConnectedToSERPServer()
     {
-        return connectedToSERPServer;
+        return networkData.connectedToSERPServer;
     }
 
     bool NetworkManager::isSetup()
     {
-        return setup;
+        return networkData.setup;
     }
 
     uint16_t NetworkManager::getClientID()
     {
-        return clientID;
-    }
-
-    /// Inserts the given message into the incomingMessages map
-    void insertIntoMessageBuffer(NetworkManager::SMP_Message&& message)
-    {
-        MESSAGE_TYPE messageType = static_cast<MESSAGE_TYPE>(message.smpHeader.type);
-        auto it = incomingMessages.find(messageType);
-        if (it == incomingMessages.end()) {
-            std::vector<IncomingMessage> temp;
-            temp.push_back({ 0.0, std::move(message) });
-            incomingMessages.insert(std::make_pair(messageType, std::move(temp)));
-        }
-        else {
-            it->second.push_back({ 0.0, std::move(message) });
-        }
-    }
-
-    /// Inserts the message that is currently stored in the buffer into the incomingMessages map
-    /// Call this function for messages that fit into a single packet
-    void insertIntoMessageBuffer(const SERP_Header& serpHeader, const SMP_Header& smpHeader)
-    {
-        NetworkManager::SMP_Message message = NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::move(readData(serpHeader.len - sizeof(SERP_Header) - sizeof(SMP_Header))));
-        insertIntoMessageBuffer(std::move(message));
-    }
-
-    /// Inserts the message that is currently stored in the buffer into the unfinishedMessages map
-    /// Call this function for messages longer than a single packet
-    void insertIntoUnfinishedMessageBuffer(const SERP_Header& serpHeader, const SMP_Header& smpHeader)
-    {
-        auto it1 = unfinishedIncomingMessages.find(serpHeader.src);
-        if (it1 == unfinishedIncomingMessages.end()) {
-            it1 = unfinishedIncomingMessages.insert(std::make_pair(serpHeader.src, std::unordered_map<uint32_t, UnfinishedMessage>())).first;
-        }
-        auto it2 = it1->second.find(serpHeader.id);
-        if (it2 == it1->second.end()) {
-            UnfinishedMessage message{ 0.0, NetworkManager::SMP_Message(serpHeader.src, smpHeader, std::vector<std::byte>{}), std::vector<std::vector<std::byte>>(serpHeader.total) };
-            it2 = it1->second.insert(std::make_pair(serpHeader.id, std::move(message))).first;
-        }
-        // Insert data at the correct location
-        if (serpHeader.part < it2->second.dataParts.size()) {
-            it2->second.dataParts[serpHeader.part] = std::move(readData(serpHeader.len - sizeof(SERP_Header) - sizeof(SMP_Header)));
-        }
-        // Check if the message is now complete
-        for (const auto& dataPart : it2->second.dataParts) {
-            if (dataPart.empty()) return;
-        }
-        // The message is complete! Add it to the message buffer
-        unsigned int totalDataLength = 0;
-        // Determine total data legth
-        for (const auto& dataPart : it2->second.dataParts) {
-            totalDataLength += dataPart.size();
-        }
-        // Copy data
-        it2->second.message.data.resize(totalDataLength);
-        unsigned int dataOffset = 0;
-        for (const auto& dataPart : it2->second.dataParts)
-        {
-            std::memcpy(it2->second.message.data.data() + dataOffset, dataPart.data(), dataPart.size());
-            dataOffset += dataPart.size();
-        }
-        insertIntoMessageBuffer(std::move(it2->second.message));
-        // Delete message from unfinished message buffer!
-        it1->second.erase(serpHeader.id);
-        if (it1->second.empty()) {
-            unfinishedIncomingMessages.erase(serpHeader.src);
-        }
-    }
-
-    /// Handles an ADVERTISMENT message coming from the server
-    void handleServerMessageAdvertisement(const SERP_Header& serpHeader, const SMP_Header& smpHeader)
-    {
-        switch (smpHeader.options)
-        {
-        case static_cast<uint16_t>(MESSAGE_OPTION_ADVERTISEMENT::DISCONNECT):
-        {
-            connectedToSERPServer = false;
-            infoLogger << LOGGER::BEGIN << "Disconnected from SERP server" << LOGGER::ENDL;
-            break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ADVERTISEMENT::OK):
-        {
-            // Extract clientID
-            if (serpHeader.len != sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(uint16_t)) {
-                warningLogger << LOGGER::BEGIN << "Advertisement message from SERP server had unexpected length" << LOGGER::ENDL;
-            }
-            else {
-                for (unsigned int i = 0; i < sizeof(uint16_t); ++i) {
-                    std::memcpy(reinterpret_cast<std::byte*>(&clientID) + i, networkBufferPtr + sizeof(SERP_Header) + sizeof(SMP_Header) + i, sizeof(std::byte));
-                }
-                clientID = ntohs(clientID);
-                connectedToSERPServer = true;
-                infoLogger << LOGGER::BEGIN << "Connected to SERP server with clientID " << clientID << "!" << LOGGER::ENDL;
-            }
-            break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ADVERTISEMENT::REQUEST):
-        {
-            warningLogger << LOGGER::BEGIN << "Server send a connection request" << LOGGER::ENDL;
-            break;
-        }
-        default:
-            break;
-        }
-    }
-
-    /// Handles an ECHO message coming from the server
-    void handleServerMessageEcho(const SERP_Header& serpHeader, const SMP_Header& smpHeader)
-    {
-        switch (smpHeader.options)
-        {
-        case static_cast<uint16_t>(MESSAGE_OPTION_ECHO::ECHO_REPLY):
-        {
-            break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ECHO::ECHO_REQUEST):
-        {
-            SERP_Header replySERPHeader(clientID, 0, serpHeader.len, 0, 1, getNextMessageID());
-            SMP_Header replySMPHeader(MESSAGE_TYPE::ECHO, static_cast<uint16_t>(MESSAGE_OPTION_ECHO::ECHO_REPLY));
-            writeSERPHeader(replySERPHeader);
-            writeSMPHeader(replySMPHeader);
-            sendMessage(clientSocket, serverAdress, serpHeader.len);
-            break;
-        }
-        default:
-        {
-            warningLogger << LOGGER::BEGIN << "Got unexpected message option from SERP server for message type echo" << LOGGER::ENDL;
-            break;
-        }
-        }
-    }
-
-    /// Handles an error message coming from the server
-    void handleServerMessageError(const SERP_Header& serpHeader, const SMP_Header& smpHeader)
-    {
-        switch (smpHeader.options)
-        {
-        case static_cast<uint16_t>(MESSAGE_OPTION_ERROR::BAD_OPTION):
-        {
-            errorLogger << LOGGER::BEGIN << "SERP server sent: Bad option"; break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ERROR::BAD_TYPE):
-        {
-            errorLogger << LOGGER::BEGIN << "SERP server sent: Bad type"; break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ERROR::NOT_FOUND):
-        {
-            errorLogger << LOGGER::BEGIN << "SERP server sent: Not found"; break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ERROR::TIMEOUT):
-        {
-            errorLogger << LOGGER::BEGIN << "SERP server sent: timeout"; break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ERROR::TOO_MANY_CLIENTS):
-        {
-            errorLogger << LOGGER::BEGIN << "SERP server sent: Too many clients"; break;
-        }
-        case static_cast<uint16_t>(MESSAGE_OPTION_ERROR::UNSPECIFIED):
-        default:
-        {
-            errorLogger << LOGGER::BEGIN << "SERP server sent: Unspecified"; break;
-        }
-        }
-        if (serpHeader.len > sizeof(SERP_Header) + sizeof(SMP_Header)) {
-            // Print additional message
-            for (unsigned int i = sizeof(SERP_Header) + sizeof(SMP_Header); i < serpHeader.len; ++i) {
-                errorLogger << static_cast<uint8_t>(networkBuffer[i]);
-            }
-        }
-        errorLogger << LOGGER::ENDL;
-    }
-
-    /// Works on the outgoing message queue and sends as many messages as possible
-    void workOnOutgoingMessages(double dt)
-    {
-        accumulativeTime += dt;
-        unsigned int bytesToSend = bytesPerSecondSend * accumulativeTime;
-        while (!outgoingMessages.empty()) 
-        {
-            if (bytesToSend >= outgoingMessages.front().data.size() * sizeof(std::byte)) {
-                SnackerEngine::sendMessage(clientSocket, serverAdress, outgoingMessages.front().data.size() * sizeof(std::byte), reinterpret_cast<char*>(outgoingMessages.front().data.data()));
-                bytesToSend -= outgoingMessages.front().data.size() * sizeof(std::byte);
-                outgoingMessages.pop();
-            }
-            else {
-                accumulativeTime = static_cast<double>(bytesToSend) / static_cast<double>(bytesPerSecondSend);
-                return;
-            }
-        }
-        accumulativeTime = 0.0;
+        return networkData.clientID;
     }
 
     void NetworkManager::update(double dt)
     {
         // Check if there are any incoming messages
-        if (setup) {
+        if (networkData.setup) {
             // Receive messages
             sockaddr remoteAddr;
             int remoteAddrLen = sizeof(sockaddr); // TODO: Check if this is wrong?
-            while (auto len = recieveMessage(clientSocket, remoteAddr, remoteAddrLen).has_value())
+            while (auto len = networkData.recieveMessage(networkData.clientSocket, remoteAddr, remoteAddrLen).has_value())
             {
-                if (remoteAddrLen != sizeof(sockaddr_in) || !compareAddresses(*(reinterpret_cast<sockaddr_in*>(&remoteAddr)), serverAdress)) {
+                if (remoteAddrLen != sizeof(sockaddr_in) || !compareAddresses(*(reinterpret_cast<sockaddr_in*>(&remoteAddr)), networkData.serverAdress)) {
                     warningLogger << LOGGER::BEGIN << "Received a message that was not sent from the SERP server!" << LOGGER::ENDL;
                     continue;
                 }
-                // Extract message header
-                SERP_Header serpHeader = readSERPHeader();
-                SMP_Header smpHeader = readSMPHeader();
-                // DEBUG: Print message to console
-                /*
-                infoLogger << LOGGER::BEGIN << "Received message with the following headers: " 
-                    << "SERP(src: " << static_cast<unsigned int>(serpHeader.src)
-                    << ", dst: " << static_cast<unsigned int>(serpHeader.dst)
-                    << ", len: " << static_cast<unsigned int>(serpHeader.len)
-                    << ", part: " << static_cast<unsigned int>(serpHeader.part)
-                    << ", total: " << static_cast<unsigned int>(serpHeader.total)
-                    << ", id: " << static_cast<unsigned int>(serpHeader.id)
-                    << "), SMP(type: " << static_cast<unsigned int>(smpHeader.type)
-                    << ", options: " << static_cast<unsigned int>(smpHeader.options) << ")" << LOGGER::ENDL;
-                    */
-                // If the message is from the server, we need to do something with it
-                if (serpHeader.src == 0) {
-                    switch (static_cast<MESSAGE_TYPE>(smpHeader.type))
-                    {
-                    case MESSAGE_TYPE::ADVERTISEMENT:
-                    {
-                        handleServerMessageAdvertisement(serpHeader, smpHeader);
-                        break;
-                    }
-                    case MESSAGE_TYPE::ECHO:
-                    {
-                        handleServerMessageEcho(serpHeader, smpHeader);
-                        break;
-                    }
-                    case MESSAGE_TYPE::ERROR_MESSAGE:
-                    {
-                        handleServerMessageError(serpHeader, smpHeader);
-                        break;
-                    }
-                    default:
-                        break;
-                    }
-                }
-                else {
-                    // If the message consists of only a single packet, we can put it directly into the message buffer
-                    if (serpHeader.total <= 1) {
-                        insertIntoMessageBuffer(serpHeader, smpHeader);
-                    }
-                    // If the message consitst of more than one part, we have to put it into the unfinished message buffer
-                    else {
-                        insertIntoUnfinishedMessageBuffer(serpHeader, smpHeader);
-                    }
-                }
+                networkData.handleIncomingMessageInNetworkBuffer();
             }
             // Send messages
-            workOnOutgoingMessages(dt);
-            // TODO: Update timeouts!
+            networkData.updateOutgoingMessageQueue(dt);
+            // Update Containers
+            networkData.updateContainers(dt);
         }
     }
 
-    std::vector<NetworkManager::SMP_Message> NetworkManager::getIncomingMessages(MESSAGE_TYPE messageType)
+    std::vector<SMP_Message> NetworkManager::getIncomingMessages(MESSAGE_TYPE messageType)
     {
-        std::vector<NetworkManager::SMP_Message> result;
-        auto it = incomingMessages.find(messageType);
-        if (it != incomingMessages.end()) {
-            for (auto& incomingMessage : it->second) {
-                result.push_back(std::move(incomingMessage.message));
+        std::vector<SMP_Message> result;
+        auto it = networkData.incomingMessages.begin();
+        while (it != networkData.incomingMessages.end()) 
+        {
+            if (it->smpHeader.type == static_cast<uint16_t>(messageType)) {
+                result.push_back(std::move(*it));
+                it = networkData.incomingMessages.erase(it);
             }
-            incomingMessages.erase(messageType);
+            else ++it;
         }
         return result;
     }
 
-    std::vector<NetworkManager::SMP_Message> NetworkManager::getIncomingMessages()
+    std::vector<SMP_Message> NetworkManager::getIncomingMessages()
     {
-        std::vector<NetworkManager::SMP_Message> result;
-        for (auto& it : incomingMessages) {
-            for (auto& incomingMessage : it.second) {
-                result.push_back(std::move(incomingMessage.message));
-            }
-        }
-        incomingMessages.clear();
+        std::vector<SMP_Message> result = std::move(networkData.incomingMessages);
+        networkData.incomingMessages.clear();
         return result;
     }
 
     void NetworkManager::setBytesPerSecondsSend(unsigned int bytesPerSecond)
     {
-        bytesPerSecondSend = bytesPerSecond;
-        accumulativeTime = 0.0;
+        networkData.bytesPerSecondSend = bytesPerSecond;
+        networkData.accumulativeTimeSinceLastSend = 0.0;
     }
 
     void NetworkManager::cleanup()
     {
-        if (connectedToSERPServer)
+        if (networkData.connectedToSERPServer)
         {
-            // Send disconnect message
-            SERP_Header serpHeader(clientID, 0, sizeof(SERP_Header) + sizeof(SMP_Header), 0, 1, getNextMessageID());
-            SMP_Header smpHeader(MESSAGE_TYPE::ADVERTISEMENT, static_cast<uint16_t>(MESSAGE_OPTION_ADVERTISEMENT::DISCONNECT));
-            writeSERPHeader(serpHeader);
-            writeSMPHeader(smpHeader);
-            SnackerEngine::sendMessage(clientSocket, serverAdress, static_cast<int>(serpHeader.len));
+            networkData.sendDisconnectMessageToServer();
+            networkData.connectedToSERPServer = false;
         }
-        if (setup)
+        if (networkData.setup)
         {
-            closesocket(clientSocket);
+            closesocket(networkData.clientSocket);
+            networkData.setup = false;
         }
     }
 

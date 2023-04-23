@@ -10,6 +10,8 @@ namespace SnackerEngine
         ECHO,                   /// Used for pings and alive-checks
         ERROR_MESSAGE,          /// Used for sending error messages
         ADVERTISEMENT,          /// Used to advertise a client to the SRP server
+        MESSAGE_RECEIVED,       /// Used to announce to another client that
+                                /// a message in the safe send mode was received.
 
         SNACKER_QUIZ = 100,     /// Used for SnackerQuiz
     };

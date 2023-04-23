@@ -17,3 +17,13 @@ void SERP_Header::turnToNetworkByteOrder()
     len = htons(len);
     id = htonl(id);
 }
+
+void SERP_Header::setFlag(FlagType flagType)
+{
+	flags |= (0b1 << static_cast<unsigned int>(flagType));
+}
+
+bool SERP_Header::getFlag(FlagType flagType) const
+{
+    return flags & (0b1 << static_cast<unsigned int>(flagType));
+}

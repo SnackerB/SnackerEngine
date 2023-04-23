@@ -9,23 +9,24 @@
 namespace SnackerEngine
 {
 
+	/// A single message that can be received or sent using SERP
+	struct SMP_Message
+	{
+		uint16_t src;
+		SMP_Header smpHeader;
+		std::vector<std::byte> data;
+		/// Constructors
+		SMP_Message() = default;
+		SMP_Message(uint16_t src, const SMP_Header& smpHeader, std::vector<std::byte> data = {})
+			: src(src), smpHeader(smpHeader), data(std::move(data)) {}
+		SMP_Message(const SMP_Header& smpHeader, std::vector<std::byte> data = {})
+			: src(0), smpHeader(smpHeader), data(std::move(data)) {}
+	};
+
 	/// Static class managing all network related stuff!
 	class NetworkManager
 	{
 	public:
-		/// A single message that can be received or sent using SERP
-		struct SMP_Message
-		{
-			uint16_t src;
-			SMP_Header smpHeader;
-			std::vector<std::byte> data;
-			/// Constructors
-			SMP_Message() = default;
-			SMP_Message(uint16_t src, const SMP_Header& smpHeader, std::vector<std::byte>&& data = {})
-				: src(src), smpHeader(smpHeader), data(std::move(data)) {}
-			SMP_Message(const SMP_Header& smpHeader, std::vector<std::byte>&& data = {})
-				: src(0), smpHeader(smpHeader), data(std::move(data)) {}
-		};
 		/// Initializes the network manager, opens a socket, creates an address, etc. Returns true on success
 		/// and false on failure
 		static bool initialize();
@@ -38,10 +39,10 @@ namespace SnackerEngine
 		/// Returns the current clientID
 		static uint16_t getClientID();
 		/// Send a given SMP_Message using SERP. Returns true if the message was successfully sent
-		static bool sendMessage(const SMP_Message& message, uint16_t destination);
+		static bool sendMessage(const SMP_Message& message, uint16_t destination, bool safeSend = false);
 		/// Send a given SMP_Message to multiple destinations at the same time.
 		/// Returns true if the message was successfully sent
-		static bool sendMessageMulticast(const SMP_Message& message, const std::vector<uint16_t>& destinations);
+		static bool sendMessage(const SMP_Message& message, const std::vector<uint16_t>& destinations, bool safeSend = false);
 		/// Updates the NetworkManager
 		static void update(double dt);
 		/// Returns a vector of received messages with the given message type

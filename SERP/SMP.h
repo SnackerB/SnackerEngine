@@ -9,6 +9,8 @@ enum class MESSAGE_TYPE : uint16_t
     ECHO,                   // Used for pings and alive-checks
     ERROR,                  // Used for sending error messages
     ADVERTISEMENT,          // Used to advertise a client to the SRP server
+    MESSAGE_RECEIVED,       /// Used to announce to another client that
+                            /// a message in the safe send mode was received.
 };
 
 /// Options for the message type ECHO

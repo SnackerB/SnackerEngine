@@ -14,7 +14,7 @@
 #include "Network/SERP.h"
 #include "Graphics/TextureDataBuffer.h"
 #include "Gui/GuiElements/GuiImage.h"
-
+#include "Gui/GuiElements/GuiCheckBox.h"
 
 #include <sstream>
 #include <vector>
@@ -38,6 +38,7 @@ class NetworkDemoScene : public SnackerEngine::Scene
 	SnackerEngine::GuiVariableHandle<std::string> texturePathHandle;
 	SnackerEngine::GuiEventHandle sendTextureButtonHandle;
 	SnackerEngine::GuiVariableHandleUnsignedInt bytesPerSecondHandle;
+	SnackerEngine::GuiVariableHandle<bool> safeSendVariableHandle;
 
 public:
 	NetworkDemoScene()
@@ -67,6 +68,10 @@ public:
 				SnackerEngine::GuiButton buttonSend(sendButtonHandle, "Send Message", style);
 				rightList.registerChild(buttonSend);
 				guiManager.moveElement(std::move(buttonSend));
+
+				SnackerEngine::GuiCheckBox safeSendCheckBox("Safe send ", safeSendVariableHandle, style);
+				rightList.registerChild(safeSendCheckBox);
+				guiManager.moveElement(std::move(safeSendCheckBox));
 				
 				SnackerEngine::GuiEditVariable<uint16_t> editDstVariable("destination: ", dstHandle, style);
 				rightList.registerChild(editDstVariable);
@@ -191,38 +196,38 @@ public:
 		}
 		if (sendButtonHandle.isActive()) {
 			sendButtonHandle.reset();
-			SnackerEngine::NetworkManager::SMP_Message message;
+			SnackerEngine::SMP_Message message;
 			message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(SMPtypeHandle.get()), SMPoptionHandle.get());
 			std::string dataText = editDataTextBox.getText();
 			message.data = std::vector<std::byte>(dataText.size());
 			std::memcpy(message.data.data(), dataText.data(), dataText.size());
 			if (dstHandle.get() == SERP_DST_MULTICAST) {
-				SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
+				SnackerEngine::NetworkManager::sendMessage(message, multicastAdresses, safeSendVariableHandle.get());
 			}
 			else {
-				SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
+				SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get(), safeSendVariableHandle.get());
 			}
 		}
 		if (sendTextureButtonHandle.isActive()) {
 			sendTextureButtonHandle.reset();
 			auto textureDataBuffer = SnackerEngine::TextureDataBuffer::loadTextureDataBuffer2D(texturePathHandle.get());
 			if (textureDataBuffer.has_value()) {
-				SnackerEngine::NetworkManager::SMP_Message message;
+				SnackerEngine::SMP_Message message;
 				message.smpHeader = SnackerEngine::SMP_Header(static_cast<SnackerEngine::MESSAGE_TYPE>(100), 0);
 				textureDataBuffer.value().serialize(message.data);
 				if (dstHandle.get() == SERP_DST_MULTICAST) {
-					SnackerEngine::NetworkManager::sendMessageMulticast(message, multicastAdresses);
+					SnackerEngine::NetworkManager::sendMessage(message, multicastAdresses, safeSendVariableHandle.get());
 				}
 				else {
-					SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get());
+					SnackerEngine::NetworkManager::sendMessage(message, dstHandle.get(), safeSendVariableHandle.get());
 				}
 			}
 		}
 		SnackerEngine::NetworkManager::update(dt);
 		// Look at incoming messages
-		std::vector<SnackerEngine::NetworkManager::SMP_Message> incomingMessages;
+		std::vector<SnackerEngine::SMP_Message> incomingMessages;
 		incomingMessages = std::move(SnackerEngine::NetworkManager::getIncomingMessages());
-		for (SnackerEngine::NetworkManager::SMP_Message& message : incomingMessages) {
+		for (SnackerEngine::SMP_Message& message : incomingMessages) {
 			if (message.smpHeader.type == 100) {
 				std::optional<SnackerEngine::TextureDataBuffer> textureDataBuffer = std::move(SnackerEngine::TextureDataBuffer::Deserialize(message.data));
 				if (textureDataBuffer.has_value()) {
