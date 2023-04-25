@@ -27,6 +27,8 @@ namespace SnackerEngine
 		inline static bool constrainMouseToScreenCenter = false;
 		/// Random Engine
 		inline static std::default_random_engine randomEngine{};
+		/// bool that decides if the engine is currently running
+		inline static bool running;
 
 		/// Determines the resource path. Prints info/error about the location of the path
 		static bool determineResourcePath(const std::string& resourceFolderPath = "");
@@ -57,6 +59,8 @@ namespace SnackerEngine
 		static Vec2<unsigned int> getDPI();
 		/// Returns a random number generator that can be used for non-critical random numbers!
 		static std::default_random_engine& getRandomEngine() { return randomEngine; }
+		/// Stops the engine, can be called by scenes, eg. when a "Return to Desktop" button is clicked
+		static void stopEngine();
 		/// Deleted destructor: this is a static class!
 		Engine() = delete;
 	};

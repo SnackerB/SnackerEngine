@@ -169,7 +169,8 @@ namespace SnackerEngine
 		Timer drawTimer((unsigned int)0);
 		lastUpdateTime = std::chrono::high_resolution_clock::now();
 		// Main loop
-		while (!glfwWindowShouldClose(Renderer::activeWindow))
+		running = true;
+		while (!glfwWindowShouldClose(Renderer::activeWindow) && running)
 		{
 			// Compute time since last update
 			auto now = std::chrono::high_resolution_clock::now();
@@ -217,6 +218,11 @@ namespace SnackerEngine
 			return Vec2<unsigned int>(10, 10);
 		}
 		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::stopEngine()
+	{
+		running = false;
 	}
 	//------------------------------------------------------------------------------------------------------
 }

@@ -205,7 +205,7 @@ namespace SnackerEngine
 	}
 
 	VerticalScrollingListLayout::VerticalScrollingListLayout(const unsigned& border, AlignmentHorizontal alignmentHorizontal, AlignmentVertical alignmentVertical, const float& scrollSpeed, const Color3f& scrollBarBackgroundColor, const Color3f& scrollBarColor, const float& scrollBarWidth, const float& scrollBarOffsetTop, const float& scrollBarOffsetBottom, const float& scrollBarOffsetRight)
-		: VerticalListLayout(border, false, false, false, alignmentHorizontal, alignmentVertical), currentVerticalSize(0.0f), currentVerticalOffset(0.0f),
+		: VerticalListLayout(border, false, false, false, false, alignmentHorizontal, alignmentVertical), currentVerticalSize(0.0f), currentVerticalOffset(0.0f),
 		scrollSpeed(scrollSpeed), drawScrollBar(false), visiblePercentage(0.0f), offsetPercentage(0.0f), modelMatrixScrollBarBackground{},
 		modelMatrixScrollBar{}, shaderScrollBar("shaders/gui/simpleColor.shader"), scrollBarBackgroundColor(scrollBarBackgroundColor),
 		scrollBarColor(scrollBarColor), scrollBarWidth(scrollBarWidth), scrollBarOffsetTop(scrollBarOffsetTop),

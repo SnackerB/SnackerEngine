@@ -19,6 +19,10 @@ namespace SnackerEngine
 		bool snapWidthToPreferred;
 		/// If this is set to true, the height of the layout snaps to the total width needed
 		bool snapHeight;
+		/// If this is set to true, the height of children will be made even smaller if necessary
+		/// to fit all children into the given space. snapHeight and mustFit cannot be true
+		/// at the same time
+		bool mustFit;
 		/// If this is set to true, the layout tries to make every child the same width, if possible
 		bool makeChildrenSameWidth;
 		/// Horizontal and vertical alignment. Default: LEFT, TOP
@@ -49,7 +53,7 @@ namespace SnackerEngine
 		int computeBestCommonWidth();
 	public:
 		/// Constructor
-		VerticalListLayout(const unsigned border = 0, const bool snapWidthToPreferred = false, const bool snapHeight = false, const bool makeChildrenSameWidth = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP, const Color4f& backgroundColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f));
+		VerticalListLayout(unsigned border = 0, bool snapWidthToPreferred = false, bool snapHeight = false, bool makeChildrenSameWidth = false, bool mustFit = false, AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT, AlignmentVertical alignmentVertical = AlignmentVertical::TOP, const Color4f& backgroundColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f));
 		/// Adds a child to this guiElement (using row = 0, column = 0). Returns true on success
 		bool registerChild(GuiElement& guiElement) override;
 		// Copy constructor and assignment operator
