@@ -47,6 +47,7 @@ namespace SnackerEngine
 		GuiID lastMouseHoverElement;
 		/// The current screen dimensions
 		Vec2i screenDims;
+		
 
 		//==============================================================================================
 		// Events
@@ -62,6 +63,7 @@ namespace SnackerEngine
 		std::unordered_set<GuiID> eventSetMouseEnter;
 		std::unordered_set<GuiID> eventSetMouseLeave;
 		std::unordered_set<GuiID> eventSetUpdate;
+		std::vector<GuiID> eventVectorDrawOnTop;
 		/// After an event happens, the signoff queue will be processed. This is necessary, as 
 		/// modifying a set while it is iterated through can lead to crashes
 		std::vector<std::pair<GuiID, GuiElement::CallbackType>> signOffQueue;
@@ -94,6 +96,8 @@ namespace SnackerEngine
 		/// Clipping boxes are pushed onto this stack when a parent is rendered and removed
 		/// when children finished rendering.
 		std::vector<Vec4i> clippingBoxStack;
+		/// Wether clipping is currently done. Is true by default
+		bool doClipping;
 		/// Adds a clipping box to the stack and enables the scissor test
 		void pushClippingBox(const Vec4i& clippingBox);
 		/// Pops the top clipping box from the stack and updates the scissor test
@@ -170,6 +174,8 @@ namespace SnackerEngine
 		bool registerElementAsChild(GuiElement& parent, GuiElement& child);
 		/// returns the current mouse offset to a given GuiElement
 		Vec2i getMouseOffset(GuiID guiID);
+		/// Returns the vector from the parentGuiElement with guiID == 0 to the given guiElement
+		Vec2i getWorldOffset(GuiID guiID);
 		/// Returns the lowest currently colliding element in a given event set. In this context
 		/// "colliding" means != IsCollidingResult::NOT_COLLIDING.
 		std::optional<GuiID> getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet);
@@ -216,6 +222,9 @@ namespace SnackerEngine
 		Vec2i clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement);
 		int clipWidthToMinMaxWidth(const int& width, const GuiID& guiElement);
 		int clipHeightToMinMaxHeight(const int& height, const GuiID& guiElement);
+		/// Disables/Enables clipping boxes. Should only be used for debugging GUI
+		void disableClippingBoxes();
+		void enableClippingBoxes();
 
 		//==============================================================================================
 		// Callback functions

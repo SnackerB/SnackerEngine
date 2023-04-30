@@ -21,6 +21,7 @@
 #include "Gui/GuiElements/GuiWindow.h"
 #include "Gui/GuiElements/GuiEditVariable.h"
 #include "Gui/GuiElements/GuiSlider.h"
+#include "Gui/Layouts/VerticalScrollingListLayout.h"
 
 class MyScene : public SnackerEngine::Scene
 {
@@ -95,7 +96,7 @@ public:
 		window.setPosition({ 350, 10 });
 		window.setSize({ 500, 150 });
 		guiManager.registerElement(window);
-		SnackerEngine::ListLayout layout(style);
+		SnackerEngine::VerticalScrollingListLayout layout(style);
 		window.registerChild(layout);
 		{
 			SnackerEngine::GuiSlider<float> slider1("Nathan speed: ", 0.0f, 10.0f, nathanSpeed, style);

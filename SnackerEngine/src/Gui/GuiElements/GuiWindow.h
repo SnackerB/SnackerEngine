@@ -26,10 +26,10 @@ namespace SnackerEngine
 		/// Computes the model matrices
 		void computeResizeButtonModelMatrix();
 	protected:
-		/// Draws this GuiWindow object relative to its parent element. Will also recursively
+		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function gets called when the position changes. Not called by the constructor!
 		virtual void onPositionChange() override;
 		/// This function gets called when the size changes. Not called by the constructor!
@@ -38,9 +38,9 @@ namespace SnackerEngine
 		/// collides with the resize button, given that a collision with this window element was already
 		/// detected
 		bool isCollidingWithResizeButton(const Vec2i& offset);
-		/// Returns true if the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// This function is called by the guiManager after registering this guiElement.
 		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
 		/// This function can e.g. be used for registering callbacks at the guiManager

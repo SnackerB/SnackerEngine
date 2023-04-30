@@ -41,8 +41,8 @@ namespace SnackerEngine
 		friend EditTextEventHandle;
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -51,14 +51,14 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
-		/// Returns how the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
-		/// Returns the first colliding child which collides with the given position vector. The position
-		/// vector is relative to the top left corner of the parent. If zero is returned, this means that
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
+		/// Returns the first colliding child which collides with the given offset vector. The offset
+		/// vector is relative to the top left corner of the guiElement. If zero is returned, this means that
 		/// none of this elements children is colliding. This function will call isColliding() on its children
 		/// recursively.
-		virtual GuiID getCollidingChild(const Vec2i& position) override;
+		virtual GuiID getCollidingChild(const Vec2i& offset) override;
 		/// This function is called by a handle right before the handle is destroyed
 		virtual void onHandleDestruction(GuiHandle& guiHandle) override;
 		/// Overwrite this function if the guiElement owns handles. This function should update the
@@ -115,12 +115,11 @@ namespace SnackerEngine
 
 
 	template<typename T>
-	inline void GuiEditVariable<T>::draw(const Vec2i& parentPosition)
+	inline void GuiEditVariable<T>::draw(const Vec2i& worldPosition)
 	{
-		Vec2i nextPosition = parentPosition + getPosition();
-		drawElement(label->getGuiID(), nextPosition);
-		drawElement(editBox->getGuiID(), nextPosition);
-		GuiElement::draw(parentPosition);
+		drawElement(label->getGuiID(), worldPosition + label->getPosition());
+		drawElement(editBox->getGuiID(), worldPosition + editBox->getPosition());
+		GuiElement::draw(worldPosition);
 	}
 
 	template<typename T>
@@ -151,12 +150,11 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::IsCollidingResult GuiEditVariable<T>::isColliding(const Vec2i& position)
+	inline GuiEditVariable<T>::IsCollidingResult GuiEditVariable<T>::isColliding(const Vec2i& offset)
 	{
-		const Vec2i& myPosition = getPosition();
 		const Vec2i& mySize = getSize();
-		return (position.x > myPosition.x && position.x < myPosition.x + mySize.x
-			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) ?
+		return (offset.x > 0 && offset.x < mySize.x
+			&& offset.y > 0 && offset.y < mySize.y) ?
 			IsCollidingResult::COLLIDE_CHILD : IsCollidingResult::NOT_COLLIDING;
 	}
 
@@ -299,19 +297,19 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiEditVariable<T>::GuiID GuiEditVariable<T>::getCollidingChild(const Vec2i& position)
+	inline GuiEditVariable<T>::GuiID GuiEditVariable<T>::getCollidingChild(const Vec2i& offset)
 	{
-		IsCollidingResult result = GuiElement::isColliding(editBox->getGuiID(), position - getPosition());
+		IsCollidingResult result = GuiElement::isColliding(editBox->getGuiID(), offset - Vec2i(label->getWidth(), 0));
 		if (result != IsCollidingResult::NOT_COLLIDING) {
-			GuiID childCollision = GuiElement::getCollidingChild(result, editBox->getGuiID(), position);
+			GuiID childCollision = GuiElement::getCollidingChild(result, editBox->getGuiID(), offset - Vec2i(label->getWidth(), 0));
 			if (childCollision > 0) return childCollision;
 		}
-		result = GuiElement::isColliding(label->getGuiID(), position - getPosition());
+		result = GuiElement::isColliding(label->getGuiID(), offset);
 		if (result != IsCollidingResult::NOT_COLLIDING) {
-			GuiID childCollision = GuiElement::getCollidingChild(result, label->getGuiID(), position);
+			GuiID childCollision = GuiElement::getCollidingChild(result, label->getGuiID(), offset);
 			if (childCollision > 0) return childCollision;
 		}
-		return GuiElement::getCollidingChild(position);
+		return GuiElement::getCollidingChild(offset);
 	}
 
 	template<typename T>

@@ -207,6 +207,7 @@
     <ClInclude Include="src\Gui\GuiElements\GuiEditVariable.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiImage.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiPanel.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiSelectionBox.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiSlider.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiTextVariable.h" />
@@ -288,6 +289,7 @@
     <ClCompile Include="src\Gui\GuiElements\GuiCheckBox.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiImage.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiSelectionBox.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp" />
     <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp" />

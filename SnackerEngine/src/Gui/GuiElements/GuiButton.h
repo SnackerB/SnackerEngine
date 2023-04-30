@@ -46,9 +46,9 @@ namespace SnackerEngine
 		virtual void callbackMouseLeave(const Vec2d& position) override;
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
-		/// Returns how the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 	public:
 		/// Constructor
 		GuiButton(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const GuiElement::ResizeMode& resizeMode = GuiButton::ResizeMode::RESIZE_RANGE,

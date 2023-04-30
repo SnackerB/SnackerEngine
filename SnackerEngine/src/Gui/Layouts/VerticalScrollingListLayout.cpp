@@ -103,31 +103,29 @@ namespace SnackerEngine
 		computeScrollBar();
 	}
 	
-	void VerticalScrollingListLayout::draw(const Vec2i& parentPosition)
+	void VerticalScrollingListLayout::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		if (backgroundColor.alpha != 0.0f)
 		{
 			backgroundShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
 			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
 			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
 			Renderer::draw(guiManager->getModelSquare());
 		}
-		pushClippingBox(parentPosition);
+		pushClippingBox(worldPosition);
 		// Draw children
 		const auto& children = getChildren();
-		Vec2i newParentPosition = parentPosition + getPosition();
 		for (unsigned int i = firstVisibleElement; i < std::min(static_cast<std::size_t>(lastVisibleElement + 1), children.size()); ++i) {
-			drawElement(children[i], newParentPosition + Vec2i(0, static_cast<int>(std::floor(currentVerticalOffset))));
+			drawElement(children[i], worldPosition + getPosition(children[i]) + Vec2i(0, static_cast<int>(std::floor(currentVerticalOffset))));
 		}
 		// Draw scrollBar
 		if (drawScrollBar) {
 			shaderScrollBar.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shaderScrollBar);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x + getPositionX()), -static_cast<float>(parentPosition.y + getPositionY()), 0.0f));
 			shaderScrollBar.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixScrollBarBackground);
 			shaderScrollBar.setUniform<Color3f>("u_color", scrollBarBackgroundColor);
 			Renderer::draw(guiManager->getModelSquare());
@@ -138,18 +136,18 @@ namespace SnackerEngine
 		popClippingBox();
 	}
 
-	VerticalScrollingListLayout::IsCollidingResult VerticalScrollingListLayout::isColliding(const Vec2i& position)
+	VerticalScrollingListLayout::IsCollidingResult VerticalScrollingListLayout::isColliding(const Vec2i& offset)
 	{
-		if (position.x >= getPositionX() && position.x <= getPositionX() + getWidth() &&
-			position.y >= getPositionY() && position.y <= getPositionY() + getHeight()) {
+		if (offset.x >=0 && offset.x <= getWidth() &&
+			offset.y >=0 && offset.y <= getHeight()) {
 			if (drawScrollBar) {
 				// Check if we are colliding with the scroll bar
 				Vec2i size = getSize();
 				float scrollBarBackgroundHeight = size.y - 2 * border - scrollBarOffsetBottom - scrollBarOffsetTop;
-				if (position.x >= getPositionX() + size.x - scrollBarOffsetRight - scrollBarWidth &&
-					position.x <= getPositionX() + size.x - scrollBarOffsetRight &&
-					position.y >= getPositionY() + scrollBarOffsetTop &&
-					position.y <= getPositionY() + scrollBarOffsetTop + scrollBarBackgroundHeight) {
+				if (offset.x >= size.x - scrollBarOffsetRight - scrollBarWidth &&
+					offset.x <= size.x - scrollBarOffsetRight &&
+					offset.y >= scrollBarOffsetTop &&
+					offset.y <= scrollBarOffsetTop + scrollBarBackgroundHeight) {
 					return IsCollidingResult::COLLIDE_STRONG;
 				}
 			}
@@ -192,9 +190,9 @@ namespace SnackerEngine
 		}
 	}
 
-	VerticalScrollingListLayout::GuiID VerticalScrollingListLayout::getCollidingChild(const Vec2i& position)
+	VerticalScrollingListLayout::GuiID VerticalScrollingListLayout::getCollidingChild(const Vec2i& offset)
 	{
-		return GuiLayout::getCollidingChild(Vec2i(position.x, position.y - static_cast<int>(std::floor(currentVerticalOffset))));
+		return GuiLayout::getCollidingChild(Vec2i(offset.x, offset.y - static_cast<int>(std::floor(currentVerticalOffset))));
 	}
 
 	Vec2i VerticalScrollingListLayout::getChildOffset(const GuiID& childID)

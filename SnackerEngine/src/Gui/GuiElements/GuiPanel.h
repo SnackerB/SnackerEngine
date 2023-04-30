@@ -17,10 +17,10 @@ namespace SnackerEngine
 		/// Computes the modelMatrix
 		void computeModelMatrix();
 	protected:
-		/// Draws this GuiPanel object relative to its parent element. Will also recursively
+		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function is called when the position changes. Can eg. be used to
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
@@ -29,9 +29,9 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
-		/// Returns how the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// Returns a constant reference to the shader
 		const Shader& getPanelShader() const;
 	public:

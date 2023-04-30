@@ -18,6 +18,7 @@
 #include "Gui/GuiStyle.h"
 #include "Gui/Layouts/VerticalScrollingListLayout.h"
 #include "Utility/Alignment.h"
+#include "Gui/GuiElements/GuiSelectionBox.h"
 
 class HelloEventHandle : public SnackerEngine::GuiEventHandle
 {
@@ -44,10 +45,12 @@ class TextureDemo : public SnackerEngine::Scene
 		UTF8_DEBUG,
 		ANIMATION_DEBUG,
 	};
-	DebugVariant debugVariant = DebugVariant::ANIMATION_DEBUG;
+	DebugVariant debugVariant = DebugVariant::WINDOW_DEBUG;
 
 	SnackerEngine::GuiVariableHandleFloat floatSliderHandle;
 	SnackerEngine::GuiVariableHandleDouble doubleSliderHandle;
+	SnackerEngine::GuiVariableHandleInt selectionBoxHandle;
+	SnackerEngine::GuiEventHandle testButtonHandle;
 
 	unsigned int counter;
 	HelloEventHandle helloEventHandle;
@@ -132,11 +135,16 @@ public:
 
 					SnackerEngine::VerticalScrollingListLayout listLayout(style);
 					VerticalLayout.registerChild(listLayout, 1.0);
+					SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "GuiID of verticalListLayout: " << listLayout.getGuiID() << SnackerEngine::LOGGER::ENDL;
 					{
-						SnackerEngine::GuiButton button("Test Button :)", style);
+						SnackerEngine::GuiButton button(testButtonHandle, "Test Button :)", style);
 						button.setDoRecomputeOnSizeChange(true);
 						listLayout.registerChild(button);
 						guiManager.moveElement(std::move(button));
+
+						SnackerEngine::GuiSelectionBox selectionBox(selectionBoxHandle, "select option", { "option1", "option2", "option3" }, style);
+						listLayout.registerChild(selectionBox);
+						guiManager.moveElement<SnackerEngine::GuiSelectionBox>(std::move(selectionBox));
 
 						SnackerEngine::GuiTextVariable<int> textVariable("test int: ", intHandle, style);
 						listLayout.registerChild(textVariable);
@@ -349,7 +357,7 @@ public:
 			guiManager.registerElement(parentWindow);
 			parentWindow.setPosition({ 10, 10 });
 			parentWindow.setSize({ 1180, 680 });
-			SnackerEngine::VerticalListLayout verticalListLayout(10, false, false, SnackerEngine::AlignmentHorizontal::RIGHT, SnackerEngine::AlignmentVertical::CENTER);
+			SnackerEngine::VerticalListLayout verticalListLayout(10, false, false, false, false, SnackerEngine::AlignmentHorizontal::RIGHT, SnackerEngine::AlignmentVertical::CENTER);
 			parentWindow.registerChild(verticalListLayout);
 			{
 				SnackerEngine::GuiPanel panelTemplate;
@@ -458,6 +466,11 @@ public:
 			{
 				SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "Int changed to " << intHandle.get() << SnackerEngine::LOGGER::ENDL;
 				intHandle.reset();
+			}
+			if (testButtonHandle.isActive())
+			{
+				testButtonHandle.reset();
+				SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "Current selection: option " << selectionBoxHandle.get() << SnackerEngine::LOGGER::ENDL;
 			}
 			break;
 		}

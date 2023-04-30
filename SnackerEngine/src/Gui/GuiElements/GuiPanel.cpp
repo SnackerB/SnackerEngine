@@ -10,11 +10,11 @@ namespace SnackerEngine
 		const Vec2i& position = getPosition();
 		const Vec2i& size = getSize();
 		modelMatrix = Mat4f::TranslateAndScale(
-			Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f), 
+			Vec3f(0.0f, static_cast<float>(-size.y), 0.0f), 
 			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 	}
 
-	void GuiPanel::draw(const Vec2i& parentPosition)
+	void GuiPanel::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -22,13 +22,13 @@ namespace SnackerEngine
 		{
 			shader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 			shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
 			shader.setUniform<Color4f>("u_color", backgroundColor);
 			Renderer::draw(guiManager->getModelSquare());
 		}
-		pushClippingBox(parentPosition);
-		GuiElement::draw(parentPosition);
+		pushClippingBox(worldPosition);
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 
@@ -44,12 +44,12 @@ namespace SnackerEngine
 		computeModelMatrix();
 	}
 
-	GuiPanel::IsCollidingResult GuiPanel::isColliding(const Vec2i& position)
+	GuiPanel::IsCollidingResult GuiPanel::isColliding(const Vec2i& offset)
 	{
 		const Vec2i& myPosition = getPosition();
 		const Vec2i& mySize = getSize();
-		return (position.x > myPosition.x && position.x < myPosition.x + mySize.x
-			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) ?
+		return (offset.x > 0 && offset.x < mySize.x
+			&& offset.y > 0 && offset.y < mySize.y) ?
 			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 

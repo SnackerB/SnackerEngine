@@ -167,11 +167,11 @@ namespace SnackerEngine
 	void VerticalListLayout::computeModelMatrix()
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(
-			Vec3f(static_cast<float>(getPositionX()), static_cast<float>(-getPositionY() - getHeight()), 0.0f),
+			Vec3f(0.0f, static_cast<float>(-getHeight()), 0.0f),
 			Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
 	}
 
-	void VerticalListLayout::draw(const Vec2i& parentPosition)
+	void VerticalListLayout::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -179,13 +179,13 @@ namespace SnackerEngine
 		{
 			backgroundShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
 			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b));
 			Renderer::draw(guiManager->getModelSquare());
 		}
-		pushClippingBox(parentPosition);
-		GuiElement::draw(parentPosition);
+		pushClippingBox(worldPosition);
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 

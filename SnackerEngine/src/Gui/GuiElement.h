@@ -72,8 +72,8 @@ namespace SnackerEngine
 		void signOffWithoutNotifyingParents(const GuiID& guiID);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition);
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition);
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -141,17 +141,17 @@ namespace SnackerEngine
 			COLLIDE_CHILD,				/// Check for collisions only on child elements
 			COLLIDE_STRONG,				/// Collision detected, no child elements should be checked!
 		};
-		/// Returns how the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position);
-		/// Helper function used in getCollidingChild(const Vec2i& position): Based on the collision mode
+		virtual IsCollidingResult isColliding(const Vec2i& offset);
+		/// Helper function used in getCollidingChild(const Vec2i& offset): Based on the collision mode
 		/// returns either the child element or a child of the child element!
-		GuiID getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& position);
-		/// Returns the first colliding child which collides with the given position vector. The position
-		/// vector is relative to the top left corner of the parent. If zero is returned, this means that
+		GuiID getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset);
+		/// Returns the first colliding child which collides with the given offset vector. The offset
+		/// vector is relative to the top left corner of the guiElement. If zero is returned, this means that
 		/// none of this elements children is colliding. This function will call isColliding() on its children
 		/// recursively.
-		virtual GuiID getCollidingChild(const Vec2i& position);
+		virtual GuiID getCollidingChild(const Vec2i& offset);
 
 		//==============================================================================================
 		// Events
@@ -169,6 +169,7 @@ namespace SnackerEngine
 			MOUSE_ENTER,
 			MOUSE_LEAVE,
 			UPDATE,
+			DRAW_ON_TOP,
 		};
 
 		/// This function can be called by derived GuiElement objects to register themselves for getting 
@@ -198,6 +199,12 @@ namespace SnackerEngine
 		virtual void callbackMouseLeave(const Vec2d& position) {};
 		/// Update function
 		virtual void update(const double& dt) {};
+		/// Draws this GuiElement object relative to its parent element. This draw call is executed after
+		/// all regular draw calls. This will NOT recursively draw all children of this element.
+		/// If this is the desired behaviour, call the normal draw() function on all children
+		/// in this function.
+		/// worldPosition:		position of the upper left corner of the element in world space
+		virtual void callbackDrawOnTop(const Vec2i& worldPosition) {};
 
 		//==============================================================================================
 		// ClippingBoxes (Scissor test) for rendering
@@ -205,8 +212,8 @@ namespace SnackerEngine
 		
 		/// Pushes a clipping box to the stack and enables the scissor test
 		void pushClippingBox(const Vec4i& clippingBox);
-		/// Computes a clipping box from the parentPosition and pushes it to the stack
-		void pushClippingBox(const Vec2i& parentPosition);
+		/// Computes a clipping box from the worldPosition and pushes it to the stack
+		void pushClippingBox(const Vec2i& worldPosition);
 		/// pops a clipping box from the stack
 		void popClippingBox();
 
@@ -248,12 +255,12 @@ namespace SnackerEngine
 		void setPositionOfChild(const GuiID& guiID, const Vec2i& position);
 		void setPositionXOfChild(const GuiID& guiID, const int& positionX);
 		void setPositionYOfChild(const GuiID& guiID, const int& positionY);
-		void setSizeOfChild(const GuiID& guiID, const Vec2i& position);
+		void setSizeOfChild(const GuiID& guiID, const Vec2i& size);
 		void setWidthOfChild(const GuiID& guiID, const int& width);
 		void setHeightOfChild(const GuiID& guiID, const int& height);
 
 		/// draws a child Element
-		void drawElement(const GuiID& guiID, const Vec2i& newParentPosition);
+		void drawElement(const GuiID& guiID, const Vec2i& worldPosition);
 
 		/// This function can be used to tell the GuiManager that this element wants to enforce its layout
 		/// and the layouts of its child elements if necessary

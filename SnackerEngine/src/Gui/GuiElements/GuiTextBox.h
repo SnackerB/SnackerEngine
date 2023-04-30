@@ -94,15 +94,17 @@ namespace SnackerEngine
 		/// Depending on the textBoxMode the text is scaled appropriately.
 		virtual void computeModelMatrices();
 	protected:
-		/// Draws this GuiTextBox
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// Draws this GuiElement object relative to its parent element. Will also recursively
+		/// draw all children of this element.
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function gets called when the position changes. Not called by the constructor!
 		virtual void onPositionChange() override;
 		/// This function gets called when the size changes. Not called by the constructor!
 		virtual void onSizeChange() override;
-		/// Returns true if the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// This function is called by the guiManager after registering this guiElement.
 		/// When this function is called, the guiManager pointer, the guiID, and the parent element id are set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -200,16 +202,17 @@ namespace SnackerEngine
 		/// Computes the model matrices of the selection boxes
 		void computeModelMatricesSelectionBoxes();
 	protected:
-		/// Draws this guiInteractable object relative to its parent element
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// Draws this GuiElement object relative to its parent element. Will also recursively
+		/// draw all children of this element.
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function gets called when the position changes. Not called by the constructor!
 		virtual void onPositionChange() override;
 		/// This function gets called when the size changes. Not called by the constructor!
 		virtual void onSizeChange() override;
-		/// Returns true if the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// This function is called by the guiManager after registering this guiInteractable object.
 		/// When this function is called, the guiManager pointer is set.
 		/// This function can e.g. be used for registering callbacks at the guiManager

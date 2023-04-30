@@ -45,24 +45,24 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::optional<std::pair<unsigned int, int>> HorizontalLayout::getCollidingBorderAndOffset(const Vec2i& position)
+	std::optional<std::pair<unsigned int, int>> HorizontalLayout::getCollidingBorderAndOffset(const Vec2i& offset)
 	{
 		if (percentages.empty()) return {};
 		int width = getSize().x;
 		// Start from the left
 		for (unsigned int i = 0; i < percentages.size() - 1; ++i) {
 			int currentX = static_cast<int>(static_cast<double>(width) * percentages[i]);
-			if (((currentX - static_cast<int>(resizeAreaWidth)) <= position.x) && (position.x <= (currentX + static_cast<int>(resizeAreaWidth)))) {
-				return std::make_pair(i, position.x - currentX);
+			if (((currentX - static_cast<int>(resizeAreaWidth)) <= offset.x) && (offset.x <= (currentX + static_cast<int>(resizeAreaWidth)))) {
+				return std::make_pair(i, offset.x - currentX);
 			}
 		}
 		return {};
 	}
 	//--------------------------------------------------------------------------------------------------
-	HorizontalLayout::IsCollidingResult HorizontalLayout::isColliding(const Vec2i& position)
+	HorizontalLayout::IsCollidingResult HorizontalLayout::isColliding(const Vec2i& offset)
 	{
-		if (position.y < getPositionY() || position.y > getPositionY() + getHeight()) return IsCollidingResult::NOT_COLLIDING;
-		return getCollidingBorderAndOffset(position) ? IsCollidingResult::COLLIDE_STRONG : IsCollidingResult::COLLIDE_CHILD;
+		if (offset.y < 0 || offset.y > getHeight()) return IsCollidingResult::NOT_COLLIDING;
+		return getCollidingBorderAndOffset(offset) ? IsCollidingResult::COLLIDE_STRONG : IsCollidingResult::COLLIDE_CHILD;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void HorizontalLayout::onRegister()

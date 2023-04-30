@@ -59,12 +59,13 @@ namespace SnackerEngine
 		virtual void onRegister() override;
 		/// Callback function for scrolling the mouse wheel. Parameter the same as in Scene.h
 		virtual void callbackMouseScrollOnElement(const Vec2d& offset) override;
-		/// Draws this guiInteractable object relative to its parent element
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
-		/// Returns true if the given position vector (relative to the top left corner of the parent element)
+		/// Draws this GuiElement object relative to its parent element. Will also recursively
+		/// draw all children of this element.
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// Callback function for mouse button input on this guiElement object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
 		/// Callback function for mouse motion. Parameter the same as in Scene.h
@@ -72,11 +73,11 @@ namespace SnackerEngine
 		virtual void callbackMouseMotion(const Vec2d& position) override;
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
-		/// Returns the first colliding child which collides with the given position vector. The position
-		/// vector is relative to the top left corner of the parent. If zero is returned, this means that
+		/// Returns the first colliding child which collides with the given offset vector. The offset
+		/// vector is relative to the top left corner of the guiElement. If zero is returned, this means that
 		/// none of this elements children is colliding. This function will call isColliding() on its children
 		/// recursively.
-		GuiID getCollidingChild(const Vec2i& position) override;
+		virtual GuiID getCollidingChild(const Vec2i& offset) override;
 		/// Returns the mouse offset of a child element from this element. Can be
 		/// overwritten if the children are displayed at a different place than they
 		/// are (eg. in a scrolling list etc)

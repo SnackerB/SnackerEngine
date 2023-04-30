@@ -15,7 +15,7 @@ namespace SnackerEngine
 
 	void GuiDynamicTextBox::computeModelMatrices()
 	{
-		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(getPositionX()), static_cast<float>(-getPositionY() - getHeight()), 0.0f), Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
+		modelMatrixBackground = Mat4f::TranslateAndScale(Vec3f(0.0f, static_cast<float>(-getHeight()), 0.0f), Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
 		unsigned int DPI = Engine::getDPI().y;
 		scaleFactor = 1.0;
 		switch (textScaleMode)
@@ -53,11 +53,11 @@ namespace SnackerEngine
 		modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), Vec3f(pointsToInches<float>(static_cast<float>(text->getFontSize())) * static_cast<float>(DPI) * scaleFactor));
 	}
 
-	void GuiDynamicTextBox::draw(const Vec2i& parentPosition)
+	void GuiDynamicTextBox::draw(const Vec2i& worldPosition)
 	{
 		GuiManager * const& guiManager = getGuiManager();
 		if (!guiManager) return;
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		// Draw background
 		if (backgroundColor.alpha != 0.0f) {
 			backgroundShader.bind();
@@ -66,7 +66,7 @@ namespace SnackerEngine
 			backgroundShader.setUniform<Color3f>("u_color", Color3f(backgroundColor.r, backgroundColor.g, backgroundColor.b)); // TODO: Transparent background
 			Renderer::draw(guiManager->getModelSquare());
 		}
-		pushClippingBox(parentPosition);
+		pushClippingBox(worldPosition);
 		// Draw text
 		material.bind();
 		guiManager->setUniformViewAndProjectionMatrices(material.getShader());
@@ -74,7 +74,7 @@ namespace SnackerEngine
 		material.getShader().setUniform<float>("u_pxRange", static_cast<float>(text->getFont().getPixelRange()));
 		SnackerEngine::Renderer::draw(text->getModel(), material);
 		// Draw children
-		GuiElement::draw(parentPosition);
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 
@@ -90,10 +90,10 @@ namespace SnackerEngine
 		recomputeTextOnSizeChange();
 	}
 
-	GuiDynamicTextBox::IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& position)
+	GuiDynamicTextBox::IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& offset)
 	{
-		return (position.x > getPositionX() && position.x < getPositionX() + getWidth()
-			&& position.y > getPositionY() && position.y < getPositionY() + getHeight()) ?
+		return (offset.x > 0 && offset.x < getWidth()
+			&& offset.y > 0 && offset.y < getHeight()) ?
 			IsCollidingResult::COLLIDE_CHILD : IsCollidingResult::NOT_COLLIDING;
 	}
 
@@ -230,7 +230,7 @@ namespace SnackerEngine
 		default:
 			break;
 		}
-		Vec2f position = Vec2f(static_cast<float>(getPositionX() + textOffset.x + border), -static_cast<float>(getPositionY() + border) + static_cast<float>(textOffset.y));
+		Vec2f position = Vec2f(static_cast<float>(textOffset.x + border), -static_cast<float>(border) + static_cast<float>(textOffset.y));
 		return position;
 	}
 
@@ -508,11 +508,11 @@ namespace SnackerEngine
 		}
 	}
 
-	void GuiEditTextBox::draw(const Vec2i& parentPosition)
+	void GuiEditTextBox::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		// Draw background
 		if (backgroundColor.alpha != 0.0f) {
 			backgroundShader.bind();
@@ -522,7 +522,7 @@ namespace SnackerEngine
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw selection boxes
-		pushClippingBox(parentPosition);
+		pushClippingBox(worldPosition);
 		for (const auto& modelMatrixSelectionBox : modelMatricesSelectionBoxes) {
 			backgroundShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
@@ -545,7 +545,7 @@ namespace SnackerEngine
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw children
-		GuiElement::draw(parentPosition);
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 
@@ -562,12 +562,12 @@ namespace SnackerEngine
 		computeModelMatricesSelectionBoxes();
 	}
 
-	GuiEditTextBox::IsCollidingResult GuiEditTextBox::isColliding(const Vec2i& position)
+	GuiEditTextBox::IsCollidingResult GuiEditTextBox::isColliding(const Vec2i& offset)
 	{
 		const Vec2i& myPosition = getPosition();
 		const Vec2i& mySize = getSize();
-		return (position.x > myPosition.x && position.x < myPosition.x + mySize.x
-			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) ?
+		return (offset.x > 0 && offset.x < mySize.x
+			&& offset.y > 0 && offset.y < mySize.y) ?
 			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 
@@ -583,7 +583,7 @@ namespace SnackerEngine
 	{
 		if (active && button == MOUSE_BUTTON_LEFT) {
 			if (action == ACTION_PRESS) {
-				if (isColliding(getMouseOffset(getParentID())) == IsCollidingResult::NOT_COLLIDING) {
+				if (isColliding(getMouseOffset(getGuiID())) == IsCollidingResult::NOT_COLLIDING) {
 					active = false;
 					cursorIsVisible = false;
 					signOffEvent(CallbackType::CHARACTER_INPUT);
@@ -796,7 +796,6 @@ namespace SnackerEngine
 		// Get mouse offset to upper left corner of element
 		Vec2d mousePos = getMouseOffset(getGuiID());
 		mousePos = Vec2i(-textOffset.x, -textOffset.y) + Vec2i(mousePos.x, -mousePos.y);
-		mousePos += Vec2i(getPositionX(), -getPositionY());
 		mousePos.x /= DPI.x;
 		mousePos.y /= DPI.y;
 		mousePos /= pointsToInches(1.0);

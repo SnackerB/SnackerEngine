@@ -43,10 +43,10 @@ namespace SnackerEngine
 			/// Helper function that updates the button colors. Should be called when the boolHandle changes its value.
 			void determineState();
 	protected:
-		/// Draws this GuiElement object relative to its parent element. Will also recursively
+		// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -55,14 +55,14 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
-		/// Returns how the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
-		/// Returns the first colliding child which collides with the given position vector. The position
-		/// vector is relative to the top left corner of the parent. If zero is returned, this means that
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
+		/// Returns the first colliding child which collides with the given offset vector. The offset
+		/// vector is relative to the top left corner of the guiElement. If zero is returned, this means that
 		/// none of this elements children is colliding. This function will call isColliding() on its children
 		/// recursively.
-		virtual GuiID getCollidingChild(const Vec2i& position) override;
+		virtual GuiID getCollidingChild(const Vec2i& offset) override;
 		/// This function is called by a handle right before the handle is destroyed
 		virtual void onHandleDestruction(GuiHandle& guiHandle) override;
 		/// Overwrite this function if the guiElement owns handles. This function should update the

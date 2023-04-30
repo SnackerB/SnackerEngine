@@ -20,12 +20,11 @@ namespace SnackerEngine
 		if (guiManager) guiManager->signOffWithoutNotifyingParent(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::draw(const Vec2i& parentPosition)
+	void GuiElement::draw(const Vec2i& worldPosition)
 	{
 		if (!guiManager) return;
-		Vec2i nextPosition = parentPosition + position;
 		for (const auto& childID : children) {
-			guiManager->getElement(childID).draw(nextPosition);
+			guiManager->getElement(childID).draw(worldPosition + guiManager->getElement(childID).getPosition());
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -81,18 +80,18 @@ namespace SnackerEngine
 		guiEventHandle.activate();
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& position)
+	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& offset)
 	{
 		return IsCollidingResult::COLLIDE_CHILD;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiElement::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& position)
+	GuiElement::GuiID GuiElement::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset)
 	{
 		switch (collidingResult)
 		{
 		case IsCollidingResult::COLLIDE_CHILD:
 		{
-			const auto& childCollision = guiManager->getElement(childID).getCollidingChild(position - this->position);
+			const auto& childCollision = guiManager->getElement(childID).getCollidingChild(offset - guiManager->getElement(childID).getPosition());
 			if (childCollision != 0) {
 				return childCollision;
 			}
@@ -100,7 +99,7 @@ namespace SnackerEngine
 		}
 		case IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
 		{
-			const auto& childCollision = guiManager->getElement(childID).getCollidingChild(position - this->position);
+			const auto& childCollision = guiManager->getElement(childID).getCollidingChild(offset - guiManager->getElement(childID).getPosition());
 			if (childCollision != 0) {
 				return childCollision;
 			}
@@ -122,12 +121,12 @@ namespace SnackerEngine
 		return -1;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiElement::getCollidingChild(const Vec2i& position)
+	GuiElement::GuiID GuiElement::getCollidingChild(const Vec2i& offset)
 	{
 		if (!guiManager) return 0;
 		for (const auto& childID : children) {
-			const auto& result = guiManager->getElement(childID).isColliding(position - this->position);
-			const auto& childCollision = getCollidingChild(result, childID, position);
+			const auto& result = guiManager->getElement(childID).isColliding(offset - guiManager->getElement(childID).getPosition());
+			const auto& childCollision = getCollidingChild(result, childID, offset);
 			if (childCollision >= 0) return childCollision;
 		}
 		return 0;
@@ -148,9 +147,9 @@ namespace SnackerEngine
 		if (guiManager) guiManager->pushClippingBox(clippingBox);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::pushClippingBox(const Vec2i& parentPosition)
+	void GuiElement::pushClippingBox(const Vec2i& worldPosition)
 	{
-		pushClippingBox(Vec4i(parentPosition.x + position.x, parentPosition.y + position.y, size.x, size.y));
+		pushClippingBox(Vec4i(worldPosition.x, worldPosition.y, size.x, size.y));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::popClippingBox()
@@ -332,7 +331,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::setSizeOfChild(const GuiID& guiID, const Vec2i& position)
+	void GuiElement::setSizeOfChild(const GuiID& guiID, const Vec2i& size)
 	{
 		if (!guiManager) return;
 		auto& child = guiManager->getElement(guiID);

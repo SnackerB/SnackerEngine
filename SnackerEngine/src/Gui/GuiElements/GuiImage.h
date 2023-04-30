@@ -38,8 +38,8 @@ namespace SnackerEngine
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function is called when the size changes. Can eg. be. be used to
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!

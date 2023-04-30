@@ -81,10 +81,9 @@ namespace SnackerEngine
 
 	GuiButton::IsCollidingResult GuiButton::isColliding(const Vec2i& position)
 	{
-		const Vec2i& myPosition = getPosition();
 		const Vec2i& mySize = getSize();
-		return (position.x > myPosition.x && position.x < myPosition.x + mySize.x
-			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) ?
+		return (position.x > 0 && position.x < mySize.x
+			&& position.y > 0 && position.y < mySize.y) ?
 			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 

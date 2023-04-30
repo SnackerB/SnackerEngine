@@ -7,6 +7,7 @@ namespace SnackerEngine
 	{
 		active = true;
 		onEvent();
+		onHandleUpdate();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEventHandle::GuiEventHandle()

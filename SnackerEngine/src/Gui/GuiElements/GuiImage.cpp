@@ -6,11 +6,11 @@
 namespace SnackerEngine
 {
 
-	void GuiImage::draw(const Vec2i& parentPosition)
+	void GuiImage::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;;
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		if (backgroundColor.alpha > 0.0f && guiImageMode != GuiImageMode::RESIZE_TO_IMAGE_SIZE) {
 			// Draw background
 			backgroundShader.bind();
@@ -26,8 +26,8 @@ namespace SnackerEngine
 		texture.bind();
 		Renderer::draw(guiManager->getModelSquare());
 		// Draw children
-		pushClippingBox(parentPosition);
-		GuiElement::draw(parentPosition);
+		pushClippingBox(worldPosition);
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 	
@@ -41,7 +41,7 @@ namespace SnackerEngine
 			const Vec2i& position = getPosition();
 			const Vec2i& size = getSize();
 			modelMatrixImage = Mat4f::TranslateAndScale(
-				Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f),
+				Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
 				Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 		}
 		case SnackerEngine::GuiImage::GuiImageMode::FIT_IMAGE_TO_SIZE:
@@ -49,7 +49,7 @@ namespace SnackerEngine
 			const Vec2i& position = getPosition();
 			const Vec2i& size = getSize();
 			modelMatrixBackground = Mat4f::TranslateAndScale(
-				Vec3f(static_cast<float>(position.x), static_cast<float>(-position.y - size.y), 0.0f),
+				Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
 				Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 			Vec2i textureSize = texture.getSize();
 			// Make texture as large as possible in x direction
@@ -66,7 +66,7 @@ namespace SnackerEngine
 			textureSize.x = std::min(size.x, textureSize.x);
 			textureSize.y = std::min(size.y, textureSize.y);
 			modelMatrixImage = Mat4f::TranslateAndScale(
-				Vec3f(static_cast<float>(position.x) + static_cast<float>(size.x) / 2.0f - static_cast<float>(textureSize.x) / 2.0f, static_cast<float>(-position.y) - std::min(std::ceil(static_cast<float>(size.y) / 2.0f) + std::ceil(static_cast<float>(textureSize.y) / 2.0f), static_cast<float>(size.y)), 0.0f),
+				Vec3f(static_cast<float>(size.x) / 2.0f - static_cast<float>(textureSize.x) / 2.0f, -std::min(std::ceil(static_cast<float>(size.y) / 2.0f) + std::ceil(static_cast<float>(textureSize.y) / 2.0f), static_cast<float>(size.y)), 0.0f),
 				Vec3f(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y), 0.0f));
 		}
 		default:

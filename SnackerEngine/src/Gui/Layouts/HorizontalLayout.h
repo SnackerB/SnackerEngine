@@ -36,9 +36,9 @@ namespace SnackerEngine
 		/// Helper function that returns the border and offset, if a collision occured.
 		/// position: position of mouse relative to the parent elements (0, 0) coordinate
 		std::optional<std::pair<unsigned int, int>> getCollidingBorderAndOffset(const Vec2i& position);
-		/// Returns true if the given position vector (relative to the top left corner of the parent element)
+		// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager

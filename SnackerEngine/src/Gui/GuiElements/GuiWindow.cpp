@@ -9,19 +9,19 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::computeResizeButtonModelMatrix()
 	{
-		resizeButtonModelMatrix = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(getPositionX() + getWidth() - resizeButtonSize), static_cast<float>(-getPositionY() - getHeight()), 0.0f), Vec3f(static_cast<float>(resizeButtonSize), static_cast<float>(resizeButtonSize), 0.0f));
+		resizeButtonModelMatrix = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(getWidth() - resizeButtonSize), static_cast<float>(-getHeight()), 0.0f), Vec3f(static_cast<float>(resizeButtonSize), static_cast<float>(resizeButtonSize), 0.0f));
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::draw(const Vec2i& parentPosition)
+	void GuiWindow::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		/// Draw the panel first. Also draws all children.
-		GuiPanel::draw(parentPosition);
+		GuiPanel::draw(worldPosition);
 		if (!guiManager) return;
 		getPanelShader().bind();
 		guiManager->setUniformViewAndProjectionMatrices(getPanelShader());
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
-		getPanelShader().setUniform<Mat4f>("u_model", resizeButtonModelMatrix * translationMatrix);
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+		getPanelShader().setUniform<Mat4f>("u_model", translationMatrix * resizeButtonModelMatrix);
 		getPanelShader().setUniform<Color4f>("u_color", resizeButtonColor);
 		Renderer::draw(guiManager->getModelTriangle());
 	}
@@ -43,11 +43,11 @@ namespace SnackerEngine
 		return offset.x >= getWidth() - resizeButtonSize && offset.y >= getHeight() - offset.x + getWidth() - resizeButtonSize;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiWindow::IsCollidingResult GuiWindow::isColliding(const Vec2i& position)
+	GuiWindow::IsCollidingResult GuiWindow::isColliding(const Vec2i& offset)
 	{
-		if (GuiPanel::isColliding(position) != IsCollidingResult::NOT_COLLIDING) {
+		if (GuiPanel::isColliding(offset) != IsCollidingResult::NOT_COLLIDING) {
 			// Check if the resize button was hit
-			if (isCollidingWithResizeButton(position - getPosition())) {
+			if (isCollidingWithResizeButton(offset)) {
 				return IsCollidingResult::COLLIDE_STRONG;
 			}
 			else {

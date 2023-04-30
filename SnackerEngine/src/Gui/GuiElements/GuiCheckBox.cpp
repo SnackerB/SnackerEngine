@@ -24,13 +24,12 @@ namespace SnackerEngine
 		}
 	}
 
-	void GuiCheckBox::draw(const Vec2i& parentPosition)
+	void GuiCheckBox::draw(const Vec2i& worldPosition)
 	{
-		pushClippingBox(parentPosition);
-		Vec2i nextPosition = parentPosition + getPosition();
-		drawElement(label->getGuiID(), nextPosition);
-		drawElement(button->getGuiID(), nextPosition);
-		GuiElement::draw(parentPosition);
+		pushClippingBox(worldPosition);
+		drawElement(label->getGuiID(), worldPosition + label->getPosition());
+		drawElement(button->getGuiID(), worldPosition + button->getPosition());
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 
@@ -45,28 +44,27 @@ namespace SnackerEngine
 		label->setSize(Vec2i(std::min(getWidth(), label->getPreferredWidth()), std::min(getHeight(), label->getPreferredHeight())));
 	}
 
-	GuiCheckBox::IsCollidingResult GuiCheckBox::isColliding(const Vec2i& position)
+	GuiCheckBox::IsCollidingResult GuiCheckBox::isColliding(const Vec2i& offset)
 	{
-		const Vec2i& myPosition = getPosition();
 		const Vec2i& mySize = getSize();
-		return (position.x > myPosition.x && position.x < myPosition.x + mySize.x
-			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) ?
+		return (offset.x > 0 && offset.x < mySize.x
+			&& offset.y > 0 && offset.y < mySize.y) ?
 			IsCollidingResult::COLLIDE_CHILD : IsCollidingResult::NOT_COLLIDING;
 	}
 
-	GuiCheckBox::GuiID GuiCheckBox::getCollidingChild(const Vec2i& position)
+	GuiCheckBox::GuiID GuiCheckBox::getCollidingChild(const Vec2i& offset)
 	{
-		IsCollidingResult result = GuiElement::isColliding(button->getGuiID(), position - getPosition());
+		IsCollidingResult result = GuiElement::isColliding(button->getGuiID(), offset);
 		if (result != IsCollidingResult::NOT_COLLIDING) {
-			GuiID childCollision = GuiElement::getCollidingChild(result, button->getGuiID(), position);
+			GuiID childCollision = GuiElement::getCollidingChild(result, button->getGuiID(), offset);
 			if (childCollision > 0) return childCollision;
 		}
-		result = GuiElement::isColliding(label->getGuiID(), position - getPosition());
+		result = GuiElement::isColliding(label->getGuiID(), offset - Vec2i(button->getWidth(), 0));
 		if (result != IsCollidingResult::NOT_COLLIDING) {
-			GuiID childCollision = GuiElement::getCollidingChild(result, label->getGuiID(), position);
+			GuiID childCollision = GuiElement::getCollidingChild(result, label->getGuiID(), offset - Vec2i(button->getWidth(), 0));
 			if (childCollision > 0) return childCollision;
 		}
-		return GuiElement::getCollidingChild(position);
+		return GuiElement::getCollidingChild(offset);
 	}
 
 	void GuiCheckBox::onHandleDestruction(GuiHandle& guiHandle)

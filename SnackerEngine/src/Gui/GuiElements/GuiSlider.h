@@ -42,8 +42,8 @@ namespace SnackerEngine
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
-		/// parentPosition:		position of the upper left corner of the parent element
-		virtual void draw(const Vec2i& parentPosition) override;
+		/// worldPosition:		position of the upper left corner of the guiElement in world space
+		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
@@ -52,9 +52,9 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
-		/// Returns how the given position vector (relative to the top left corner of the parent element)
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& position) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
 		/// This function is called by a handle right before the handle is destroyed
 		virtual void onHandleDestruction(GuiHandle& guiHandle) override;
 		/// Overwrite this function if the guiElement owns handles. This function should update the
@@ -117,23 +117,22 @@ namespace SnackerEngine
 	};
 
 	template<typename T>
-	inline void GuiSlider<T>::draw(const Vec2i& parentPosition)
+	inline void GuiSlider<T>::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
-		pushClippingBox(parentPosition);
-		Vec2i nextPosition = parentPosition + getPosition();
-		drawElement(label->getGuiID(), nextPosition);
-		drawElement(variableBox->getGuiID(), nextPosition);
+		pushClippingBox(worldPosition);
+		drawElement(label->getGuiID(), worldPosition + label->getPosition());
+		drawElement(variableBox->getGuiID(), worldPosition + variableBox->getPosition());
 		// Draw Slider Button
 		sliderButtonShader.bind();
 		guiManager->setUniformViewAndProjectionMatrices(sliderButtonShader);
-		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(parentPosition.x), static_cast<float>(-parentPosition.y), 0.0f));
+		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		sliderButtonShader.setUniform<Mat4f>("u_model", translationMatrix * sliderButtonModelMatrix);
 		sliderButtonShader.setUniform<Color4f>("u_color", sliderButtonColor);
 		Renderer::draw(guiManager->getModelSquare());
 		// Draw children
-		GuiElement::draw(parentPosition);
+		GuiElement::draw(worldPosition);
 		popClippingBox();
 	}
 
@@ -155,15 +154,13 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline GuiSlider<T>::IsCollidingResult GuiSlider<T>::isColliding(const Vec2i& position)
+	inline GuiSlider<T>::IsCollidingResult GuiSlider<T>::isColliding(const Vec2i& offset)
 	{
-		Vec2i myPosition = getPosition();
 		const Vec2i& mySize = getSize();
-		if (position.x > myPosition.x && position.x < myPosition.x + mySize.x
-			&& position.y > myPosition.y && position.y < myPosition.y + mySize.y) {
+		if (offset.x > 0 && offset.x < mySize.x
+			&& offset.y > 0 && offset.y < mySize.y) {
 			// Check if variableBox was hit
-			myPosition.x += label->getWidth();
-			if (position.x > myPosition.x && position.x < myPosition.x + variableBox->getWidth()) {
+			if (offset.x > label->getWidth()) {
 				return IsCollidingResult::COLLIDE_STRONG;
 			}
 			return IsCollidingResult::COLLIDE_CHILD;
@@ -214,7 +211,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiSlider<T>::computeSliderButtonModelMatrix()
 	{
-		sliderButtonModelMatrix = Mat4f::TranslateAndScale(Vec3i(getPositionX() + label->getWidth() + sliderButtonOffsetX, -getPositionY() - getHeight(), 0), Vec3i(sliderButtonWidth, getHeight(), 0));
+		sliderButtonModelMatrix = Mat4f::TranslateAndScale(Vec3i(label->getWidth() + sliderButtonOffsetX, -getHeight(), 0), Vec3i(sliderButtonWidth, getHeight(), 0));
 	}
 
 	template<typename T>
