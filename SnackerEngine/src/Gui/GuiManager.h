@@ -4,7 +4,6 @@
 #include "Math/Mat.h"
 #include "Graphics/Model.h"
 #include "Graphics/Shader.h"
-#include "Gui/Animation/GuiElementAnimatable.h"
 
 #include <queue>
 #include <unordered_set>
@@ -47,7 +46,6 @@ namespace SnackerEngine
 		GuiID lastMouseHoverElement;
 		/// The current screen dimensions
 		Vec2i screenDims;
-		
 
 		//==============================================================================================
 		// Events
@@ -69,7 +67,9 @@ namespace SnackerEngine
 		std::vector<std::pair<GuiID, GuiElement::CallbackType>> signOffQueue;
 		/// processes the signoff queue by signing off elements from the event sets
 		void processSignOffQueue();
-	protected:
+
+	private:
+
 		/// This function can be called by GuiElement objects to register themselves for getting 
 		/// notified when events happen
 		void signUpEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType);
@@ -84,15 +84,14 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Special Models, Textures etc. stored by the guiManager
 		//==============================================================================================
-		
-	private:
+
 		Model squareModel;
 		Model triangleModel;
 
 		//==============================================================================================
 		// Rectangle clipping (scissor testing)
 		//==============================================================================================
-	protected:
+
 		/// Clipping boxes are pushed onto this stack when a parent is rendered and removed
 		/// when children finished rendering.
 		std::vector<Vec4i> clippingBoxStack;
@@ -106,14 +105,13 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Enforcing Layouts
 		//==============================================================================================
-	private:
+
 		/// Maps that store for each depth a set of GuiIDs that correspond to GuiElements that need their
 		/// Layouts enforced. The maps are cleared when enforceLayouts() is called.
 		std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueUp;
 		std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueDown;
 		/// Removes a guiElement from both LayoutQueues
 		void removeFromEnforceLayoutQueues(const GuiID guiID);
-	protected:
 		/// This is called by GuiElements who need to enforce Layouts up and down the tree, 
 		/// eg. when the size changes. Layouts are enforced whenever the GuiManager updates.
 		void registerForEnforcingLayoutsUpAndDown(const GuiID& guiID);
@@ -130,27 +128,17 @@ namespace SnackerEngine
 		/// after adding a bunch of elements. Layouts are enforced first from the bottom up, and
 		/// then from the top down in two successive sweeps.
 		void enforceLayouts();
-		
+
 		//==============================================================================================
 		// Animations
 		//==============================================================================================
-	private:
-		/// Map that stores all active animations, ordered by which GuiElement they belong to.
-		std::unordered_map<GuiID, std::vector<std::unique_ptr<GuiElementAnimatable>>> animations;
-		/// Deletes all animations of the given element from the animations map. Is called when a
-		/// guiElement is signed off
-		void deleteAnimations(const GuiID& guiID);
-		/// animates all currently registered animations and deletes finished animations
-		void animate(const double& dt);
-	public:
-		/// Registers an animation
-		template<typename GuiElementAnimatableType>
-		void registerAnimation(GuiElementAnimatableType&& animatable);
+	
+		// TODO
 
 		//==============================================================================================
 		// Helper functions
 		//==============================================================================================
-		
+
 	private:
 		/// Returns a new GuiID. The slot in the registeredGuiElements and the ownedGuiElements vectors
 		/// can then be used for registering/storing a new GuiElement object
@@ -159,7 +147,6 @@ namespace SnackerEngine
 		void computeViewAndProjection();
 		/// Helper function that clears all event queues of a given GuiElement object
 		void clearEventQueues(const GuiID& guiID);
-	protected:
 		/// Called by GuiElement objects when they want to be signed off from this GuiManager
 		void signOff(const GuiID& guiElement);
 		/// Helper function that signs off a guiElement without notifying the parent 
@@ -167,8 +154,9 @@ namespace SnackerEngine
 		void signOffWithoutNotifyingParent(const GuiID guiElement);
 		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
 		void updateMoved(GuiElement& guiElement);
-		/// Returns a reference to the guiElement with a given guiID
-		GuiElement& getElement(const GuiID& guiID);
+		/// Returns a pointer to the guiElement with a given guiID if it exists. Returns nullptr if it
+		/// does not exist.
+		GuiElement* getElement(const GuiID& guiID);
 		/// Registers the given element as a child of a different element
 		/// Returns true on success
 		bool registerElementAsChild(GuiElement& parent, GuiElement& child);
@@ -247,21 +235,6 @@ namespace SnackerEngine
 		// Draws the GUI
 		void draw();
 	};
-
-	template<typename GuiElementAnimatableType>
-	inline void GuiManager::registerAnimation(GuiElementAnimatableType&& animatable)
-	{
-		auto it = animations.find(animatable.getGuiElement()->getGuiID());
-		auto ptr = std::make_unique<GuiElementAnimatableType>(std::move(animatable));
-		if (it != animations.end()) {
-			it->second.push_back(std::move(ptr));
-		}
-		else {
-			std::vector<std::unique_ptr<GuiElementAnimatable>> vector;
-			vector.push_back(std::move(ptr));
-			animations.insert(std::make_pair(animatable.getGuiElement()->getGuiID(), std::move(vector)));
-		}
-	}
 
 	template<typename GuiElementType>
 	inline void GuiManager::registerAndMoveElement(GuiElementType&& guiElement)

@@ -1,4 +1,38 @@
 ﻿#include "Core/Engine.h"
+#include "Utility/Json.h"
+#include "Math/Vec.h"
+#include "Graphics/Color.h"
+
+int main()
+{
+	if (!SnackerEngine::Engine::initialize(1200, 700, "Demo: GUI")) {
+		SnackerEngine::errorLogger << SnackerEngine::LOGGER::BEGIN << "startup failed!" << SnackerEngine::LOGGER::ENDL;
+	}
+
+	{
+		auto dataJSON = SnackerEngine::loadJSON("test/data.json");
+		auto defaultJSON = SnackerEngine::loadJSON("test/default.json");
+		if (dataJSON.has_value() && defaultJSON.has_value()) {
+			std::string street = SnackerEngine::parseJSON<std::string>(dataJSON.value()["street"]);
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "street : " << street << SnackerEngine::LOGGER::ENDL;
+			int meaningOfLife = SnackerEngine::parseJSON<int>(dataJSON.value()["meaningOfLife"]);
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "meaningOfLife : " << meaningOfLife << SnackerEngine::LOGGER::ENDL;
+			float pi = SnackerEngine::parseJSON<float>(dataJSON.value()["pi"]);
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "pi : " << pi << SnackerEngine::LOGGER::ENDL;
+			SnackerEngine::Vec2i position = SnackerEngine::parseJSON<SnackerEngine::Vec2i>(dataJSON.value()["position"]);
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "position : " << position << SnackerEngine::LOGGER::ENDL;
+			
+			auto color = SnackerEngine::parseJsonOrReadFromData<SnackerEngine::Color3f>(dataJSON.value()["color"], &defaultJSON.value());
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "color : " << color.value() << SnackerEngine::LOGGER::ENDL;
+		}
+	}
+
+	SnackerEngine::Engine::terminate();
+}
+
+
+/*
+#include "Core/Engine.h"
 #include "Core/Log.h"
 #include "Core/Keys.h"
 #include "Gui/GuiStyle.h"
@@ -546,3 +580,4 @@ int main(int argc, char** argv)
 	SnackerEngine::Engine::terminate();
 
 }
+*/

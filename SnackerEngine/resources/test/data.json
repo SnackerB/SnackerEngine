@@ -1,0 +1,10 @@
+{
+  "street": "Enzianstrasse",
+  "meaningOfLife": 42,
+  "pi": 3.1415,
+  "position": [
+    10,
+    20
+  ],
+  "color" :  "colorRed"
+}

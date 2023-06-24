@@ -6,7 +6,6 @@
 
 namespace SnackerEngine
 {
-
 	//--------------------------------------------------------------------------------------------------
 	class GuiPanel : public GuiElement
 	{
@@ -17,6 +16,17 @@ namespace SnackerEngine
 		/// Computes the modelMatrix
 		void computeModelMatrix();
 	protected:
+		/// Default/Copy/Move constructors which do not perform initial calculations
+		GuiPanel(defaultConstructor_t, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(),
+			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, const Color4f& backgroundColor = Color4f());
+		GuiPanel(defaultConstructor_t, const GuiPanel& other) noexcept;
+		GuiPanel(defaultConstructor_t, GuiPanel&& other) noexcept;
+		/// Copy/Move operators which do not perform initial calculations
+		void copyFromWithoutInitializing(const GuiPanel& other);
+		void moveFromWithoutInitializing(GuiPanel&& other);
+		/// Initializes the GuiElement. Is called after construction. Should be used for setting up modelMatrices,
+		/// and other initial computations. Should call initialize() on the parent element recursively.
+		virtual void initialize();
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space
@@ -31,13 +41,18 @@ namespace SnackerEngine
 		virtual void onSizeChange() override;
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
 		/// Returns a constant reference to the shader
 		const Shader& getPanelShader() const;
+		/// Parses this element from a JSON file (and optionally a data file). This function is used
+		/// for recursive construction from a JSON file
+		virtual void parseFromJSON(const nlohmann::json& json, const nlohmann::json* data) override;
 	public:
 		/// Constructor
 		GuiPanel(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(),
 			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, const Color4f& backgroundColor = Color4f());
+		/// Constructor for loading from JSON file
+		GuiPanel(const nlohmann::json& json, const nlohmann::json* data);
 		/// Setter and Getter for the background color
 		void setBackgroundColor(const Color4f& backgroundColor);
 		Color4f getBackgroundColor() const;
@@ -51,5 +66,4 @@ namespace SnackerEngine
 		virtual ~GuiPanel() {};
 	};
 	//--------------------------------------------------------------------------------------------------
-
 }

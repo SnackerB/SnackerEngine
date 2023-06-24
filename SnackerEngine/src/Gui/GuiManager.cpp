@@ -5,7 +5,7 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::processSignOffQueue()
 	{
 		for (const auto& element : signOffQueue) {
@@ -27,7 +27,7 @@ namespace SnackerEngine
 		}
 		signOffQueue.clear();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::signUpEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType)
 	{
 		processSignOffQueue();
@@ -48,18 +48,18 @@ namespace SnackerEngine
 			break;
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::signOffEvent(const GuiElement& guiElement, const GuiElement::CallbackType& callbackType)
 	{
 		// push into signOffQueue. Event will be signed off the next time update() is called.
 		signOffQueue.push_back(std::make_pair(guiElement.guiID, callbackType));
 	}
-
-	GuiManager::GuiID GuiManager::getCollidingElement()
+	//--------------------------------------------------------------------------------------------------
+	GuiElement::GuiID GuiManager::getCollidingElement()
 	{
 		return registeredGuiElements[parentElement]->getCollidingChild(currentMousePosition);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::pushClippingBox(const Vec4i& clippingBox)
 	{
 		Vec4i alteredClippingBox = clippingBox;
@@ -77,10 +77,10 @@ namespace SnackerEngine
 			alteredClippingBox.z = std::max(0, std::min(alteredClippingBox.z, previousClippingBox.x + previousClippingBox.z - alteredClippingBox.x));
 			alteredClippingBox.w = std::max(0, std::min(alteredClippingBox.w, previousClippingBox.y + previousClippingBox.w - alteredClippingBox.y));
 		}
-		clippingBoxStack.push_back(alteredClippingBox); 
+		clippingBoxStack.push_back(alteredClippingBox);
 		if (doClipping) Renderer::enableScissorTest(alteredClippingBox);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::popClippingBox()
 	{
 		if (!clippingBoxStack.empty()) {
@@ -96,7 +96,7 @@ namespace SnackerEngine
 			Renderer::disableScissorTest();
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::removeFromEnforceLayoutQueues(const GuiID guiID)
 	{
 		if (guiID >= registeredGuiElements.size() || guiID < 0 || !registeredGuiElements[guiID])
@@ -112,13 +112,13 @@ namespace SnackerEngine
 			it2->second.erase(guiID);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerForEnforcingLayoutsUpAndDown(const GuiID& guiID)
 	{
 		registerForEnforcingLayoutsUp(guiID);
 		registerForEnforcingLayoutsDown(guiID);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerForEnforcingLayoutsUp(const GuiID& guiID)
 	{
 		if (guiID >= registeredGuiElements.size() || guiID < 0 || !registeredGuiElements[guiID])
@@ -134,7 +134,7 @@ namespace SnackerEngine
 			enforceLayoutQueueUp.insert(std::make_pair(registeredGuiElements[guiID]->depth, std::set<GuiID>({ guiID })));
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerForEnforcingLayoutsDown(const GuiID& guiID)
 	{
 		if (guiID >= registeredGuiElements.size() || guiID < 0 || !registeredGuiElements[guiID])
@@ -150,7 +150,7 @@ namespace SnackerEngine
 			enforceLayoutQueueDown.insert(std::make_pair(registeredGuiElements[guiID]->depth, std::set<GuiID>({ guiID })));
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::enforceLayouts()
 	{
 		/// First go from bottom to top and enforce all layouts
@@ -181,34 +181,13 @@ namespace SnackerEngine
 		// Callback mouseMotion, because we could collide with moved elements!
 		callbackMouseMotion(currentMousePosition);
 	}
-
-	void GuiManager::deleteAnimations(const GuiID& guiID)
-	{
-		animations.erase(guiID);
-	}
-
-	void GuiManager::animate(const double& dt)
-	{
-		for (auto& it : animations) {
-			auto it2 = it.second.begin();
-			while (it2 != it.second.end())
-			{
-				if ((*it2)->tick(dt)) {
-					it2 = it.second.erase(it2);
-				}
-				else {
-					it2++;
-				}
-			}
-		}
-	}
-
-	GuiManager::GuiID GuiManager::getNewGuiID()
+	//--------------------------------------------------------------------------------------------------
+	GuiElement::GuiID GuiManager::getNewGuiID()
 	{
 		if (registeredGuiElementsCount >= maxGuiElements)
 		{
 			// Resize vector and add new available GuiID slots accordingly. For now: double size everytime this happens and send warning!
-			registeredGuiElements.resize(static_cast<std::size_t>(maxGuiElements) *2 + 1, nullptr);
+			registeredGuiElements.resize(static_cast<std::size_t>(maxGuiElements) * 2 + 1, nullptr);
 			ownedGuiElements.reserve(static_cast<std::size_t>(maxGuiElements) * 2 + 1);
 			for (unsigned int i = maxGuiElements + 1; i < static_cast<std::size_t>(maxGuiElements) * 2 + 1; ++i) {
 				ownedGuiElements.push_back(nullptr);
@@ -227,7 +206,7 @@ namespace SnackerEngine
 		availableGuiIDs.pop();
 		return id;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::computeViewAndProjection()
 	{
 		screenDims = Renderer::getScreenDimensions();
@@ -235,7 +214,7 @@ namespace SnackerEngine
 		projectionMatrix = Mat4f::TranslateAndScale({ -1.0f, 1.0f, 0.0f }, { 2.0f / static_cast<float>(screenDims.x), 2.0f / static_cast<float>(screenDims.y), 0.0f });
 		// TODO: For now this is only for GUI on screen. Later adapt this so that gui can be displayed anywhere!
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::clearEventQueues(const GuiID& guiID)
 	{
 		eventSetMouseButton.erase(guiID);
@@ -248,9 +227,8 @@ namespace SnackerEngine
 		eventSetMouseLeave.erase(guiID);
 		eventSetUpdate.erase(guiID);
 		eventVectorDrawOnTop.erase(std::remove(eventVectorDrawOnTop.begin(), eventVectorDrawOnTop.end(), guiID), eventVectorDrawOnTop.end());
-
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::signOff(const GuiID& guiElement)
 	{
 		if (guiElement <= 0) return;
@@ -269,7 +247,7 @@ namespace SnackerEngine
 		if (registeredGuiElements[element.parentID]) registeredGuiElements[element.parentID]->removeChild(element.getGuiID());
 		else signOffWithoutNotifyingParent(guiElement);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::signOffWithoutNotifyingParent(const GuiID guiElement)
 	{
 		if (guiElement <= 0) return;
@@ -289,7 +267,7 @@ namespace SnackerEngine
 		/// Sign off from EnforceLayoutQueues
 		removeFromEnforceLayoutQueues(guiElement);
 		/// Sign off from animations
-		deleteAnimations(guiElement);
+		// deleteAnimations(guiElement); TODO: Uncomment
 		// Delete element if it is stored by guiManager
 		if (ownedGuiElements[guiElement]) {
 			ownedGuiElements[guiElement] = nullptr;
@@ -298,7 +276,7 @@ namespace SnackerEngine
 		// Add guiID back to queue!
 		availableGuiIDs.push(guiElement);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::updateMoved(GuiElement& guiElement)
 	{
 		if (guiElement.guiID <= 0) return;
@@ -308,31 +286,121 @@ namespace SnackerEngine
 			return;
 		}
 		registeredGuiElements[guiElement.guiID] = &guiElement;
-		auto it = animations.find(guiElement.guiID);
-		if (it != animations.end()) {
-			for (auto& animatablePtr : it->second)
-			{
-				animatablePtr->onGuiElementMove(guiElement);
-			}
-		}
+		// auto it = animations.find(guiElement.guiID); TODO: Uncomment
+		//if (it != animations.end()) {
+		//	for (auto& animatablePtr : it->second)
+		//	{
+		//		animatablePtr->onGuiElementMove(guiElement);
+		//	}
+		//}
 	}
-
-	GuiElement& GuiManager::getElement(const GuiID& guiID)
+	//--------------------------------------------------------------------------------------------------
+	GuiElement* GuiManager::getElement(const GuiID& guiID)
 	{
 		if (guiID < 0 || guiID >= registeredGuiElements.size() || !registeredGuiElements[guiID]) {
 			errorLogger << LOGGER::BEGIN << "Tried to access invalid guiElement with guiID " << guiID << LOGGER::ENDL;
+			return nullptr;
 		}
-		return *registeredGuiElements[guiID];
+		return registeredGuiElements[guiID];
 	}
-
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::registerElementAsChild(GuiElement& parent, GuiElement& child)
+	{
+		if (!parent.isValid()) {
+			warningLogger << LOGGER::BEGIN << "Tried to set guiElement as child of an invalid guiElement!" << LOGGER::ENDL;
+			return false;
+		}
+		GuiID newGuiID = getNewGuiID();
+		registeredGuiElements[newGuiID] = &child;
+		registeredGuiElementsCount++;
+		child.guiID = newGuiID;
+		child.guiManager = this;
+		child.parentID = parent.guiID;
+		child.depth = parent.depth + 1;
+		child.onRegister();
+		registerForEnforcingLayoutsUpAndDown(child.guiID);
+		// Callback mouseMotion, because we could collide with the new element!
+		callbackMouseMotion(currentMousePosition);
+		return true;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiManager::getMouseOffset(GuiID guiID)
+	{
+		Vec2i mouseOffset = currentMousePosition;
+		while (guiID >= 0) {
+			GuiID parentID = registeredGuiElements[guiID]->parentID;
+			if (parentID >= 0) {
+				mouseOffset -= registeredGuiElements[parentID]->getChildOffset(guiID);
+			}
+			else {
+				mouseOffset -= registeredGuiElements[guiID]->position;
+			}
+			guiID = parentID;
+		}
+		return mouseOffset;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiManager::getWorldOffset(GuiID guiID)
+	{
+		Vec2i offset(0, 0);
+		while (guiID > 0) {
+			GuiID parentID = registeredGuiElements[guiID]->parentID;
+			if (parentID >= 0) {
+				offset += registeredGuiElements[parentID]->getChildOffset(guiID);
+			}
+			else {
+				offset += registeredGuiElements[guiID]->position;
+			}
+			guiID = parentID;
+		}
+		return offset;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiElement::GuiID> GuiManager::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
+	{
+		if (eventSet.empty()) return {};
+		return getLowestCollidingChildInEventSet(parentElement, currentMousePosition, eventSet);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiElement::GuiID> GuiManager::getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet)
+	{
+		auto parent = getElement(parentID);
+		if (!parent) return {};
+		for (const auto& childID : parent->children) {
+			auto child = getElement(childID);
+			if (!child) continue;
+			switch (child->isColliding(offset - parent->getChildOffset(childID))) {
+			case GuiElement::IsCollidingResult::COLLIDE_CHILD:
+			case GuiElement::IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
+			{
+				auto result = getLowestCollidingChildInEventSet(childID, offset - parent->getChildOffset(childID), eventSet);
+				if (result.has_value()) return result;
+				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				break;
+			}
+			case GuiElement::IsCollidingResult::COLLIDE_STRONG:
+			{
+				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				return {};
+			}
+			case GuiElement::IsCollidingResult::NOT_COLLIDING:
+			default:
+			{
+				break;
+			}
+			}
+		}
+		return {};
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiManager(const unsigned int& startingSize)
 		: registeredGuiElements(startingSize + 1, nullptr), ownedGuiElements{},
 		availableGuiIDs{}, maxGuiElements(startingSize), registeredGuiElementsCount(0),
 		ownedGuiElementsCount(0), viewMatrix{}, projectionMatrix{}, parentElement(0), currentMousePosition{},
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
-		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, eventVectorDrawOnTop{}, signOffQueue {}, squareModel{},
-		triangleModel{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, animations{},
+		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, eventVectorDrawOnTop{}, signOffQueue{}, squareModel{},
+		triangleModel{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, // animations{}, TODO: Uncomment
 		screenDims{}
 	{
 		ownedGuiElements.reserve(startingSize + 1);
@@ -355,14 +423,14 @@ namespace SnackerEngine
 		// Computes screen dims
 		screenDims = Renderer::getScreenDimensions();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	GuiManager::~GuiManager()
 	{
 		clear();
 		signOff(parentElement);
 		ownedGuiElements.clear();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerElement(GuiElement& guiElement)
 	{
 		GuiID newGuiID = getNewGuiID();
@@ -378,94 +446,7 @@ namespace SnackerEngine
 		// Callback mouseMotion, because we could collide with the new element!
 		callbackMouseMotion(currentMousePosition);
 	}
-
-	bool GuiManager::registerElementAsChild(GuiElement& parent, GuiElement& child)
-	{
-		if (!parent.isValid()) {
-			warningLogger << LOGGER::BEGIN << "Tried to set guiElement as child of an invalid guiElement!" << LOGGER::ENDL;
-			return false;
-		}
-		GuiID newGuiID = getNewGuiID();
-		registeredGuiElements[newGuiID] = &child;
-		registeredGuiElementsCount++;
-		child.guiID = newGuiID;
-		child.guiManager = this;
-		child.parentID = parent.guiID;
-		child.depth = parent.depth + 1;
-		child.onRegister();
-		registerForEnforcingLayoutsUpAndDown(child.guiID);
-		// Callback mouseMotion, because we could collide with the new element!
-		callbackMouseMotion(currentMousePosition);
-		return true;
-	}
-
-	Vec2i GuiManager::getMouseOffset(GuiID guiID)
-	{
-		Vec2i mouseOffset = currentMousePosition;
-		while (guiID >= 0) {
-			GuiID parentID = registeredGuiElements[guiID]->parentID;
-			if (parentID >= 0) {
-				mouseOffset -= registeredGuiElements[parentID]->getChildOffset(guiID);
-			}
-			else {
-				mouseOffset -= registeredGuiElements[guiID]->position;
-			}
-			guiID = parentID;
-		}
-		return mouseOffset;
-	}
-
-	Vec2i GuiManager::getWorldOffset(GuiID guiID)
-	{
-		Vec2i offset(0, 0);
-		while (guiID > 0) {
-			GuiID parentID = registeredGuiElements[guiID]->parentID;
-			if (parentID >= 0) {
-				offset += registeredGuiElements[parentID]->getChildOffset(guiID);
-			} 
-			else {
-				offset += registeredGuiElements[guiID]->position;
-			}
-			guiID = parentID;
-		}
-		return offset;
-	}
-
-	std::optional<GuiManager::GuiID> GuiManager::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
-	{
-		if (eventSet.empty()) return {};
-		return getLowestCollidingChildInEventSet(parentElement, currentMousePosition, eventSet);
-	}
-
-	std::optional<GuiManager::GuiID> GuiManager::getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet)
-	{
- 		GuiElement& parent = getElement(parentID);
-		for (const auto& childID : parent.children) {
-			GuiElement& child = getElement(childID);
-			switch (child.isColliding(offset - parent.getChildOffset(childID))) {
-			case GuiElement::IsCollidingResult::COLLIDE_CHILD:
-			case GuiElement::IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
-			{
-				auto result = getLowestCollidingChildInEventSet(childID, offset - parent.getChildOffset(childID), eventSet);
-				if (result) return result;
-				if (eventSet.find(childID) != eventSet.end()) return { childID };
-				break;
-			}
-			case GuiElement::IsCollidingResult::COLLIDE_STRONG:
-			{
-				if (eventSet.find(childID) != eventSet.end()) return { childID };
-				return {};
-			}
-			case GuiElement::IsCollidingResult::NOT_COLLIDING:
-			default:
-			{
-				break;
-			}
-			}
-		}
-		return {};
-	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::clear()
 	{
 		for (unsigned int i = 1; i < ownedGuiElements.size(); ++i) {
@@ -479,23 +460,23 @@ namespace SnackerEngine
 			}
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader)
 	{
 		shader.setUniform<Mat4f>("u_view", viewMatrix);
 		shader.setUniform<Mat4f>("u_projection", projectionMatrix);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	const Mat4f& GuiManager::getViewMatrix() const
 	{
 		return viewMatrix;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	const Mat4f& GuiManager::getProjectionMatrix() const
 	{
 		return projectionMatrix;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	Model GuiManager::getModelSquare()
 	{
 		if (squareModel.isValid())
@@ -503,7 +484,7 @@ namespace SnackerEngine
 		squareModel = Model(createMeshSquare());
 		return squareModel;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	Model GuiManager::getModelTriangle()
 	{
 		if (triangleModel.isValid())
@@ -511,7 +492,7 @@ namespace SnackerEngine
 		triangleModel = Model(createMeshTriangle());
 		return triangleModel;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiManager::clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement)
 	{
 		if (guiElement > registeredGuiElements.size() || !registeredGuiElements[guiElement]) return Vec2i();
@@ -525,7 +506,7 @@ namespace SnackerEngine
 		result.y = std::max(result.y, minSize.y);
 		return result;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	int GuiManager::clipWidthToMinMaxWidth(const int& width, const GuiID& guiElement)
 	{
 		if (guiElement > registeredGuiElements.size() || !registeredGuiElements[guiElement]) return 0;
@@ -536,7 +517,7 @@ namespace SnackerEngine
 		else
 			return std::max(std::min(width, maxWidth), element.getMinSize().x);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	int GuiManager::clipHeightToMinMaxHeight(const int& height, const GuiID& guiElement)
 	{
 		if (guiElement > registeredGuiElements.size() || !registeredGuiElements[guiElement]) return 0;
@@ -547,25 +528,27 @@ namespace SnackerEngine
 		else
 			return std::max(std::min(height, maxHeight), element.getMinSize().y);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::disableClippingBoxes()
 	{
 		doClipping = false;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::enableClippingBoxes()
 	{
 		doClipping = true;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods)
 	{
 		processSignOffQueue();
-		for (const auto& guiID: eventSetKeyboard) {
-			getElement(guiID).callbackKeyboard(key, scancode, action, mods);
+		for (const auto& guiID : eventSetKeyboard) {
+			auto element = getElement(guiID);
+			if (!element) continue;
+			element->callbackKeyboard(key, scancode, action, mods);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
 		processSignOffQueue();
@@ -573,67 +556,80 @@ namespace SnackerEngine
 		// is registered for mouseButtonOnElement
 		GuiID guiID = lastMouseHoverElement;
 		while (guiID != 0) {
+			auto element = getElement(guiID);
+			if (!element) break;
 			if (eventSetMouseButtonOnElement.find(guiID) != eventSetMouseButtonOnElement.end()) {
-				getElement(guiID).callbackMouseButtonOnElement(button, action, mods);
+				element->callbackMouseButtonOnElement(button, action, mods);
 				break;
 			}
-			guiID = getElement(guiID).parentID;
+			guiID = element->parentID;
 		}
 		for (const auto& guiID : eventSetMouseButton) {
-			getElement(guiID).callbackMouseButton(button, action, mods);
+			auto element = getElement(guiID);
+			if (!element) continue;
+			element->callbackMouseButton(button, action, mods);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackMouseMotion(const Vec2d& position)
 	{
 		processSignOffQueue();
 		currentMousePosition = position;
 		for (const auto& guiID : eventSetMouseMotion) {
-			getElement(guiID).callbackMouseMotion(position);
+			auto element = getElement(guiID);
+			if (!element) continue;
+			element->callbackMouseMotion(position);
 		}
 		auto newMouseHoverElement = getCollidingElement();
 		if (newMouseHoverElement != lastMouseHoverElement) {
-			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end())
-				getElement(lastMouseHoverElement).callbackMouseLeave(position);
-			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end())
-				getElement(newMouseHoverElement).callbackMouseEnter(position);
+			if (eventSetMouseLeave.find(lastMouseHoverElement) != eventSetMouseLeave.end()) {
+				auto element = getElement(lastMouseHoverElement);
+				if (element) element->callbackMouseLeave(position);
+			}
+			if (eventSetMouseEnter.find(newMouseHoverElement) != eventSetMouseEnter.end()) {
+				auto element = getElement(newMouseHoverElement);
+				if (element) element->callbackMouseEnter(position);
+			}
 		}
 		lastMouseHoverElement = newMouseHoverElement;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackWindowResize(const Vec2i& screenDims)
 	{
 		computeViewAndProjection();
 		if (ownedGuiElements[0]) ownedGuiElements[0]->setSize(screenDims);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackMouseScroll(const Vec2d& offset)
 	{
 		processSignOffQueue();
 		auto result = getLowestCollidingElementInEventSet(eventSetMouseScrollOnElement);
 		if (result) {
-			getElement(result.value()).callbackMouseScrollOnElement(offset);
+			auto element = getElement(result.value());
+			if (element) element->callbackMouseScrollOnElement(offset);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackCharacterInput(const unsigned int& codepoint)
 	{
 		processSignOffQueue();
 		for (auto& guiID : eventSetCharacterInput) {
-			getElement(guiID).callbackCharacterInput(codepoint);
+			auto element = getElement(guiID);
+			if (element) element->callbackCharacterInput(codepoint);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::update(const double& dt)
 	{
 		processSignOffQueue();
-		for (auto& guiID: eventSetUpdate) {
-			getElement(guiID).update(dt);
+		for (auto& guiID : eventSetUpdate) {
+			auto element = getElement(guiID);
+			if (element) element->update(dt);
 		}
-		animate(dt);
+		// animate(dt); TODO: Uncomment
 		enforceLayouts();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::draw()
 	{
 		Renderer::disableDepthTesting();
@@ -647,5 +643,5 @@ namespace SnackerEngine
 		}
 		Renderer::enableDepthTesting();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 }

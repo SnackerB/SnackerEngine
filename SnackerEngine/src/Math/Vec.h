@@ -219,5 +219,4 @@ namespace SnackerEngine
 	template<typename T2>
 	inline Vec4<T>::Vec4(const Vec4<T2>& other)
 		: x(static_cast<T>(other.x)), y(static_cast<T>(other.y)), z(static_cast<T>(other.z)), w(static_cast<T>(other.w)) {}
-	//------------------------------------------------------------------------------------------------------
 }

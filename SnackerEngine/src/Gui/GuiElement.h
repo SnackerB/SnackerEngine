@@ -1,11 +1,10 @@
 #pragma once
 
 #include "Math/Vec.h"
-#include "Gui/GuiEventHandles/GuiHandle.h"
-#include "Gui/GuiEventHandles/GuiVariableHandle.h"
-#include "Gui/Animation/GuiElementAnimatable.h"
+#include "Utility/Json.h"
 
 #include <vector>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -13,12 +12,17 @@ namespace SnackerEngine
 	/// Forward declarations
 	class GuiManager;
 	//--------------------------------------------------------------------------------------------------
+	/// Hacky way for differentiating two constructors with same arguments
+	struct defaultConstructor_t {};
+	constexpr defaultConstructor_t defaultConstructor = defaultConstructor_t();
+	//--------------------------------------------------------------------------------------------------
 	/// Base class for all GuiElements, including Layouts!
 	class GuiElement
 	{
 	public:
-		/// Enum that can be used to distinguish different behaviours for resizing done by other 
-		/// GuiElements.
+		/// Enum that can be used to distinguish different behaviours for resizing done by parent
+		/// GuiElements. Note that this does not have to be followed by the parent GuiElement,
+		/// and is more of a resize hint.
 		enum class ResizeMode
 		{
 			SAME_AS_PARENT,		/// Always have the same size as the parent element. Usually the
@@ -27,15 +31,80 @@ namespace SnackerEngine
 			RESIZE_RANGE,		/// Size can be set to anything in between the member variables 
 								/// minSize and maxSize
 		};
-
-	private:
-		friend class GuiManager;
-		friend class GuiHandle;
-	public:
+		/// Values >= 0 denote valid GuiIDs
 		using GuiID = int;
+
+		/// Default constructor
+		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE);
+		/// Constructor for loading from JSON file
+		GuiElement(const nlohmann::json& json, const nlohmann::json* data);
+		/// Destructor
+		virtual ~GuiElement();
+		/// Copy constructor and assignment operator
+		GuiElement(const GuiElement& other) noexcept;
+		GuiElement& operator=(const GuiElement& other) noexcept;
+		/// Move constructor and assignment operator
+		GuiElement(GuiElement&& other) noexcept;
+		GuiElement& operator=(GuiElement&& other) noexcept;
+		/// Adds a child to this guiElement. Returns true on success
+		virtual bool registerChild(GuiElement& guiElement);
+		/// Deletes all children of this guiElement
+		void deleteChildren();
+		/// Returns true if this GuiElement object is managed by a guiManager
+		bool isValid();
+		/// Sets the position of this element. May call enforceLayout() on the parent
+		/// and child elements
+		void setPosition(const Vec2i& position);
+		void setPositionX(const int& positionX);
+		void setPositionY(const int& positionY);
+		/// Sets the size of this element. May call enforceLayout() on the parent
+		/// and child elements
+		void setSize(const Vec2i& size);
+		void setWidth(const int& width);
+		void setHeight(const int& height);
+		/// Sets the position and the size of this element. May call enforceLayout()
+		/// on the parent and child elements. If the position and size is to be set,
+		/// this function should be preferred over two seperate calls of setPosition()
+		/// and setSize()
+		void setPositionAndSize(const Vec2i& position, const Vec2i& size);
+		/// Setters for min/max/preferredSize. May call enforceLayout() on the parent element.
+		void setMinSize(const Vec2i& minSize);
+		void setMinWidth(const int& minWidth);
+		void setMinHeight(const int& minHeight);
+		void setMaxSize(const Vec2i& maxSize);
+		void setMaxWidth(const int& maxWidth);
+		void setMaxHeight(const int& maxHeight);
+		void setPreferredSize(const Vec2i& preferredSize);
+		void setPreferredWidth(const int& preferredWidth);
+		void setPreferredHeight(const int& preferredHeight);
+		/// Getters
+		const std::string& getName() const { return name; }
+		GuiID getGuiID() const { return guiID; }
+		GuiID getParentID() const { return parentID; }
+		unsigned getDepth() const { return depth; }
+		const Vec2i& getPosition() const { return position; }
+		int getPositionX() const { return position.x; }
+		int getPositionY() const { return position.y; }
+		const Vec2i& getSize() const { return size; }
+		const int& getWidth() const { return size.x; }
+		const int& getHeight() const { return size.y; }
+		const ResizeMode& getResizeMode() const { return resizeMode; }
+		const Vec2i& getMinSize() const { return minSize; }
+		const int& getMinWidth() const { return minSize.x; }
+		const int& getMinHeight() const { return minSize.y; }
+		const Vec2i& getMaxSize() const { return maxSize; }
+		const int& getMaxWidth() const { return maxSize.x; }
+		const int& getMaxHeight() const { return maxSize.y; }
+		const Vec2i& getPreferredSize() const { return preferredSize; }
+		const int& getPreferredWidth() const { return preferredSize.x; }
+		const int& getPreferredHeight() const { return preferredSize.y; }
+		const std::vector<GuiID>& getChildren() const { return children; }
+
 	private:
 		/// Pointer to the parent guiManager
 		GuiManager* guiManager;
+		/// Name of this element. Can also be empty
+		std::string name;
 		/// GuiID of this GuiElement object
 		GuiID guiID;
 		/// guiID of the parent GuiElement object. If this is zero, this GuiElement object does not 
@@ -66,7 +135,19 @@ namespace SnackerEngine
 		std::vector<GuiID> children;
 		/// Tells this GuiElement object that the guiManager was deleted.
 		virtual void signOff();
+		/// Friend classes
+		friend class GuiManager;
 	protected:
+		/// Default/Copy/Move constructors which do not perform initial calculations
+		GuiElement(defaultConstructor_t, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE);
+		GuiElement(defaultConstructor_t, const GuiElement& other) noexcept;
+		GuiElement(defaultConstructor_t, GuiElement&& other) noexcept;
+		/// Copy/Move operators which do not perform initial calculations
+		void copyFromWithoutInitializing(const GuiElement& other);
+		void moveFromWithoutInitializing(GuiElement&& other);
+		/// Initializes the GuiElement. Is called after construction. Should be used for setting up modelMatrices,
+		/// and other initial computations. Should call initialize() on the parent element recursively.
+		virtual void initialize();
 		/// Signs off a child element without notifying the parent. Useful if additional children belong to this Element
 		/// which are not listed in the children vector! (ie. GuiCheckBox, GuiEditVariable, etc.)
 		void signOffWithoutNotifyingParents(const GuiID& guiID);
@@ -99,34 +180,39 @@ namespace SnackerEngine
 		/// Returns the mouse offset of a child element from this element. Can be
 		/// overwritten if the children are displayed at a different place than they
 		/// are (eg. in a scrolling list etc)
-		virtual Vec2i getChildOffset(const GuiID& childID);
+		virtual Vec2i getChildOffset(const GuiID& childID) const;
 		/// Returns a const pointer ref to the GuiManager
-		GuiManager * const& getGuiManager() { return guiManager; }
+		GuiManager* const& getGuiManager() { return guiManager; }
+		/// Returns the element with the given ID (if it exists)
+		GuiElement* getElement(GuiID guiID) const;
+		/// Sets position directly without calling OnPositionChange()
+		/// Use only if you know what you're doing!
+		void setPositionInternal(const Vec2i& position);
+		/// Sets size directly without calling OnPositionChange()
+		/// Use only if you know what you're doing!
+		void setSizeInternal(const Vec2i& size);
+		/// This function can be used to tell the GuiManager that this element wants to enforce its layout
+		/// and the layouts of its child elements if necessary
+		void registerEnforceLayoutDown();
+		/// Parses this element from a JSON file (and optionally a data file). This function is used
+		/// for recursive construction from a JSON file
+		virtual void parseFromJSON(const nlohmann::json& json, const nlohmann::json* data);
+		/// Using these setters a guiElement can change the position and size of child elements.
+		/// This will trigger them to enforce layouts on themselves and their children respectively.
+		/// This will of course also call onSizeChange() and/or onPositionChange() on the child element affected.
+		void setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
+		void setPositionOfChild(const GuiID& guiID, const Vec2i& position);
+		void setPositionXOfChild(const GuiID& guiID, const int& positionX);
+		void setPositionYOfChild(const GuiID& guiID, const int& positionY);
+		void setSizeOfChild(const GuiID& guiID, const Vec2i& size);
+		void setWidthOfChild(const GuiID& guiID, const int& width);
+		void setHeightOfChild(const GuiID& guiID, const int& height);
 
 		//==============================================================================================
 		// GuiHandles
 		//==============================================================================================
 
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle) {};
-		/// This function should be called by the guiElement to sign up a new handle
-		void signUpHandle(GuiHandle& guiHandle, const GuiHandle::GuiHandleID& handleID);
-		/// This function should be called to sign off a given eventHandle if it is no longer needed
-		/// (e.g. destruction of a guiElement) 
-		void signOffHandle(GuiHandle& guiHandle);
-		/// This function should be called when moving a guiElement that owns a guiHandle
-		void notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle);
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle) {};
-		/// This function calls activate() on the given GuiEventHandle
-		void activate(GuiEventHandle& guiEventHandle);
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle& guiHandle) {};
-		/// template function used to change a value of a variable handle
-		template<typename T>
-		void setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value);
+		// TODO
 
 		//==============================================================================================
 		// Collisions
@@ -137,21 +223,21 @@ namespace SnackerEngine
 		{
 			NOT_COLLIDING,				/// No collision detected
 			COLLIDE_IF_CHILD_DOES_NOT,	/// Collision detected, but if a childElement is also colliding, 
-										/// choose it instead
+			/// choose it instead
 			COLLIDE_CHILD,				/// Check for collisions only on child elements
 			COLLIDE_STRONG,				/// Collision detected, no child elements should be checked!
 		};
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& offset);
+		virtual IsCollidingResult isColliding(const Vec2i& offset) const;
 		/// Helper function used in getCollidingChild(const Vec2i& offset): Based on the collision mode
 		/// returns either the child element or a child of the child element!
-		GuiID getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset);
+		GuiID getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset) const;
 		/// Returns the first colliding child which collides with the given offset vector. The offset
 		/// vector is relative to the top left corner of the guiElement. If zero is returned, this means that
 		/// none of this elements children is colliding. This function will call isColliding() on its children
 		/// recursively.
-		virtual GuiID getCollidingChild(const Vec2i& offset);
+		virtual GuiID getCollidingChild(const Vec2i& offset) const;
 
 		//==============================================================================================
 		// Events
@@ -209,7 +295,7 @@ namespace SnackerEngine
 		//==============================================================================================
 		// ClippingBoxes (Scissor test) for rendering
 		//==============================================================================================
-		
+
 		/// Pushes a clipping box to the stack and enables the scissor test
 		void pushClippingBox(const Vec4i& clippingBox);
 		/// Computes a clipping box from the worldPosition and pushes it to the stack
@@ -218,216 +304,9 @@ namespace SnackerEngine
 		void popClippingBox();
 
 		//==============================================================================================
-		// Access to (some) functionalities of child elements for derived guiElements
-		//==============================================================================================
-
-		Vec2i getPosition(const GuiID& guiID);
-		int getPositionX(const GuiID& guiID);
-		int getPositionY(const GuiID& guiID);
-		Vec2i getSize(const GuiID& guiID);
-		int getWidth(const GuiID& guiID);
-		int getHeight(const GuiID& guiID);
-		GuiID getParentID(const GuiID& guiID);
-		Vec2i getMouseOffset(const GuiID& guiID);
-		ResizeMode getResizeMode(const GuiID& guiID);
-		Vec2i getMinSize(const GuiID& guiID);
-		int getMinWidth(const GuiID& guiID);
-		int getMinHeight(const GuiID& guiID);
-		Vec2i getMaxSize(const GuiID& guiID);
-		int getMaxWidth(const GuiID& guiID);
-		int getMaxHeight(const GuiID& guiID);
-		Vec2i getPreferredSize(const GuiID& guiID);
-		int getPreferredWidth(const GuiID& guiID);
-		int getPreferredHeight(const GuiID& guiID);
-		IsCollidingResult isColliding(const GuiID& guiID, const Vec2i& parentPosition);
-
-		/// Sets position directly without calling OnPositionChange()
-		/// Use only if you know what you're doing!
-		void setPositionInternal(const Vec2i& position);
-		/// Sets size directly without calling OnPositionChange()
-		/// Use only if you know what you're doing!
-		void setSizeInternal(const Vec2i& size);
-
-		/// Using these setters a guiElement can change the position and size of child elements.
-		/// This will trigger them to enforce layouts on themselves and their children respectively.
-		/// This will of course also call onSizeChange() and/or onPositionChange() on the child element affected.
-		void setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size);
-		void setPositionOfChild(const GuiID& guiID, const Vec2i& position);
-		void setPositionXOfChild(const GuiID& guiID, const int& positionX);
-		void setPositionYOfChild(const GuiID& guiID, const int& positionY);
-		void setSizeOfChild(const GuiID& guiID, const Vec2i& size);
-		void setWidthOfChild(const GuiID& guiID, const int& width);
-		void setHeightOfChild(const GuiID& guiID, const int& height);
-
-		/// draws a child Element
-		void drawElement(const GuiID& guiID, const Vec2i& worldPosition);
-
-		/// This function can be used to tell the GuiManager that this element wants to enforce its layout
-		/// and the layouts of its child elements if necessary
-		void registerEnforceLayoutDown();
-
-		//==============================================================================================
 		// Animatables
 		//==============================================================================================
 
-	private:
-		class PositionAnimatable : public GuiElementAnimatable
-		{
-			friend class GuiElement;
-			Vec2i initial;
-			Vec2i final;
-			PositionAnimatable(GuiElement& guiElement, const Vec2i& initial, const Vec2i & final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
-			void animate(const float& percentage) override
-			{
-				getGuiElement()->setPosition(initial + (final - initial) * percentage);
-			}
-		};
 
-		class PositionXAnimatable : public GuiElementAnimatable
-		{
-			int initial;
-			int final;
-			friend class GuiElement;
-			PositionXAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
-			virtual void animate(const float& percentage) override
-			{
-				getGuiElement()->setPositionX(initial + (final - initial) * percentage);
-			}
-		};
-
-		class PositionYAnimatable : public GuiElementAnimatable
-		{
-			int initial;
-			int final;
-			friend class GuiElement;
-			PositionYAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
-			void animate(const float& percentage) override
-			{
-				getGuiElement()->setPositionY(initial + (final - initial) * percentage);
-			}
-		};
-
-		class SizeAnimatable : public GuiElementAnimatable
-		{
-			Vec2i initial;
-			Vec2i final;
-			friend class GuiElement;
-			SizeAnimatable(GuiElement& guiElement, const Vec2i& initial, const Vec2i& final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
-			void animate(const float& percentage) override
-			{
-				getGuiElement()->setSize(initial + (final - initial) * percentage);
-			}
-		};
-
-		class WidthAnimatable : public GuiElementAnimatable
-		{
-			int initial;
-			int final;
-			friend class GuiElement;
-			WidthAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
-			void animate(const float& percentage) override
-			{
-				getGuiElement()->setWidth(initial + (final - initial) * percentage);
-			}
-		};
-
-		class HeightAnimatable : public GuiElementAnimatable
-		{
-			int initial;
-			int final;
-			friend class GuiElement;
-			HeightAnimatable(GuiElement& guiElement, const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction)
-				: GuiElementAnimatable(guiElement, duration, animationFunction), initial(initial), final(final) {}
-			void animate(const float& percentage) override
-			{
-				getGuiElement()->setHeight(initial + (final - initial) * percentage);
-			}
-		};
-
-	public:
-		void animatePosition(const Vec2i& initial, const Vec2i &final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
-		void animatePositionX(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
-		void animatePositionY(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
-		void animateSize(const Vec2i& initial, const Vec2i &final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
-		void animateWidth(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
-		void animateHeight(const int& initial, const int& final, const double& duration, AnimationFuncT animationFunction = animationFunctionLinear);
-
-	public:
-		/// Default constructor
-		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), 
-			const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE);
-		/// Destructor
-		virtual ~GuiElement();
-		/// Copy constructor and assignment operator
-		GuiElement(const GuiElement& other) noexcept;
-		GuiElement& operator=(const GuiElement& other) noexcept;
-		/// Move constructor and assignment operator
-		GuiElement(GuiElement&& other) noexcept;
-		GuiElement& operator=(GuiElement&& other) noexcept;
-		/// Adds a child to this guiElement. Returns true on success
-		virtual bool registerChild(GuiElement& guiElement);
-		/// Deletes all children of this guiElement
-		void deleteChildren();
-		/// Returns true if this GuiElement object is managed by a guiManager
-		bool isValid();
-		/// Sets the position of this element. May call enforceLayout() on the parent
-		/// and child elements
-		void setPosition(const Vec2i& position);
-		void setPositionX(const int& positionX);
-		void setPositionY(const int& positionY);
-		/// Sets the size of this element. May call enforceLayout() on the parent
-		/// and child elements
-		void setSize(const Vec2i& size);
-		void setWidth(const int& width);
-		void setHeight(const int& height);
-		/// Sets the position and the size of this element. May call enforceLayout()
-		/// on the parent and child elements. If the position and size is to be set,
-		/// this function should be preferred over two seperate calls of setPosition()
-		/// and setSize()
-		void setPositionAndSize(const Vec2i& position, const Vec2i& size);
-		/// Setters for min/max/preferredSize. May call enforceLayout() on the parent element.
-		void setMinSize(const Vec2i& minSize);
-		void setMinWidth(const int& minWidth);
-		void setMinHeight(const int& minHeight);
-		void setMaxSize(const Vec2i& maxSize);
-		void setMaxWidth(const int& maxWidth);
-		void setMaxHeight(const int& maxHeight);
-		void setPreferredSize(const Vec2i& preferredSize);
-		void setPreferredWidth(const int& preferredWidth);
-		void setPreferredHeight(const int& preferredHeight);
-		/// Getters
-		const GuiID& getGuiID() const { return guiID; }
-		const GuiID& getParentID() const { return parentID; }
-		const Vec2i& getPosition() const { return position; }
-		const int& getPositionX() const { return position.x; }
-		const int& getPositionY() const { return position.y; }
-		const Vec2i& getSize() const { return size; }
-		const int& getWidth() const { return size.x; }
-		const int& getHeight() const { return size.y; }
-		const ResizeMode& getResizeMode() const { return resizeMode; }
-		const Vec2i& getMinSize() const { return minSize; }
-		const int& getMinWidth() const { return minSize.x; }
-		const int& getMinHeight() const { return minSize.y; }
-		const Vec2i& getMaxSize() const { return maxSize; }
-		const int& getMaxWidth() const { return maxSize.x; }
-		const int& getMaxHeight() const { return maxSize.y; }
-		const Vec2i& getPreferredSize() const { return preferredSize; }
-		const int& getPreferredWidth() const { return preferredSize.x; }
-		const int& getPreferredHeight() const { return preferredSize.y; }
-		const std::vector<GuiID>& getChildren() const { return children; }
 	};
-
-	template<typename T>
-	inline void GuiElement::setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value)
-	{
-		variableHandle.val = value;
-		variableHandle.activate();
-		variableHandle.onHandleUpdateFromElement(*this);
-	}
-
 }
