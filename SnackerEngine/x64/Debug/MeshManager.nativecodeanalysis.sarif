@@ -1,0 +1,209 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///D:/dev/SnackerEngine/SnackerEngine/src/AssetManager/MeshManager.cpp"
+                },
+                "region": {
+                  "startLine": 67,
+                  "startColumn": 25,
+                  "endLine": 67,
+                  "endColumn": 41
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::MeshManager::getNewMeshID",
+                  "decoratedName": "?getNewMeshID@MeshManager@SnackerEngine@@CAIXZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///D:/dev/SnackerEngine/SnackerEngine/src/AssetManager/MeshManager.cpp"
+                },
+                "region": {
+                  "startLine": 67,
+                  "startColumn": 25,
+                  "endLine": 67,
+                  "endColumn": 37
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::MeshManager::getNewMeshID",
+                  "decoratedName": "?getNewMeshID@MeshManager@SnackerEngine@@CAIXZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C26451",
+          "message": {
+            "text": "Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///D:/dev/SnackerEngine/SnackerEngine/src/AssetManager/MeshManager.cpp"
+                },
+                "region": {
+                  "startLine": 91,
+                  "startColumn": 24,
+                  "endLine": 91,
+                  "endColumn": 39
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "SnackerEngine::MeshManager::initialize",
+                  "decoratedName": "?initialize@MeshManager@SnackerEngine@@KAXAEBI@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31630.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///D:/dev/SnackerEngine/SnackerEngine/src/AssetManager/MeshManager.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "sha-256": "41cd1f2aac788b99ee5b66675fad513c450e7c2bde6fb1414c74e26d052312c4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/assetmanager/meshmanager.h"
+          },
+          "hashes": {
+            "sha-256": "bb4f7725988150b4d21161135fd9dddf3eb2080d67acaa66156644b2662359e2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/mesh.h"
+          },
+          "hashes": {
+            "sha-256": "9f84e625ecc3bd9fd59c66173b7765cfde2cd4edba1e90d0a77e1dfc036fbe1a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexarray.h"
+          },
+          "hashes": {
+            "sha-256": "3ef241c38ba6d62ac883f953b76da9fa2155331a8a18cb3250b077dea0a352a8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexbufferlayout.h"
+          },
+          "hashes": {
+            "sha-256": "a23d4a35ad1b61ba2f115adf33038ffd1240a8e3f3ee8ef926814c27a33630fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "ddb1151fe7e3b62d50da3e32504bdea761cb24937eae8c78c818f39326189bf5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/indexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "df98209f163b957e740ee975de4b44e2c7cf793cff620ff90f58ac098b9abf57"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/core/log.h"
+          },
+          "hashes": {
+            "sha-256": "f44d581b5b74b5208f80e5d12bd5f80ada534e8bf92325084f2c6f65946474db"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/core/assert.h"
+          },
+          "hashes": {
+            "sha-256": "6d90f272639ad0384f9e8845442605beef4da40ec5fa891092340d81707bd4a6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/meshes/cube.h"
+          },
+          "hashes": {
+            "sha-256": "c56fc446078707337b7d14aa78f7dee1ab7c4500c35b10fa39c5ceb1d94e688f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/glew/include/gl/glew.h"
+          },
+          "hashes": {
+            "sha-256": "1a2d50dc00a69940838cb3b5413cf7a7ac3cee8078672f27ffbfa2d3b88ad344"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/glfw/include/glfw/glfw3.h"
+          },
+          "hashes": {
+            "sha-256": "0992a30f01ebaa41c32f3f0588e942961abb8a9a52ca8764bd32ee4d7d71a46d"
+          }
+        }
+      ]
+    }
+  ]
+}

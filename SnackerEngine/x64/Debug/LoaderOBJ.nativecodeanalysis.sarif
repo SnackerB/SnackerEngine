@@ -1,0 +1,139 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31630.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/assetmanager/loaderobj.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "bfe2e9f12d2bc51169d27f0d3da4fd3938d086ba54a976eb138a418351bde5f1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/assetmanager/loaderobj.h"
+          },
+          "hashes": {
+            "sha-256": "0da490bb88b5ce65f4d894128fe933640f73ea66fb81a367c9a1ecf9f879dc7f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/assetmanager/modelmanager.h"
+          },
+          "hashes": {
+            "sha-256": "2c0fb7892ed5e01c61937a6f2a1f85e2277ef7d43e2692bb96731b6a2b834e43"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/model.h"
+          },
+          "hashes": {
+            "sha-256": "1db2e5b792959bc27499427ace58114b500c5bd9e0ca946b0645e620e68797e1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/mesh.h"
+          },
+          "hashes": {
+            "sha-256": "9f84e625ecc3bd9fd59c66173b7765cfde2cd4edba1e90d0a77e1dfc036fbe1a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexarray.h"
+          },
+          "hashes": {
+            "sha-256": "3ef241c38ba6d62ac883f953b76da9fa2155331a8a18cb3250b077dea0a352a8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexbufferlayout.h"
+          },
+          "hashes": {
+            "sha-256": "a23d4a35ad1b61ba2f115adf33038ffd1240a8e3f3ee8ef926814c27a33630fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "ddb1151fe7e3b62d50da3e32504bdea761cb24937eae8c78c818f39326189bf5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/indexbuffer.h"
+          },
+          "hashes": {
+            "sha-256": "df98209f163b957e740ee975de4b44e2c7cf793cff620ff90f58ac098b9abf57"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/core/engine.h"
+          },
+          "hashes": {
+            "sha-256": "e15bae9a8a9c43b1ba827df2a339a1257f6cf809d316cfe58c1803bfe880f0af"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/core/scene.h"
+          },
+          "hashes": {
+            "sha-256": "a0ae2200455e2074759c7b39c0b39679abd41d5be3ba10148640a0b15f351057"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/math/vec.h"
+          },
+          "hashes": {
+            "sha-256": "f83c4e92e158d9885984eec7861b52bdf5f48b71bdca47b54ccde5435d9cecce"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/core/log.h"
+          },
+          "hashes": {
+            "sha-256": "f44d581b5b74b5208f80e5d12bd5f80ada534e8bf92325084f2c6f65946474db"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/assetmanager/meshmanager.h"
+          },
+          "hashes": {
+            "sha-256": "bb4f7725988150b4d21161135fd9dddf3eb2080d67acaa66156644b2662359e2"
+          }
+        }
+      ]
+    }
+  ]
+}

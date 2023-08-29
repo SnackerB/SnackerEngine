@@ -199,8 +199,30 @@
     <ClInclude Include="src\Graphics\VertexBuffer.h" />
     <ClInclude Include="src\Graphics\VertexBufferLayout.h" />
     <ClInclude Include="src\Gui\GuiElement.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiButton.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiEditBox.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiEditVariable.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiImage.h" />
     <ClInclude Include="src\Gui\GuiElements\GuiPanel.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiSlider.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiTextBox.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiTextVariable.h" />
+    <ClInclude Include="src\Gui\GuiElements\GuiWindow.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiEventHandle.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle.h" />
+    <ClInclude Include="src\Gui\GuiLayout.h" />
     <ClInclude Include="src\Gui\GuiManager.h" />
+    <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\HorizontalListLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalListLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\HorizontalLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\PositioningLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalScrollingListLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\HorizontalWeightedLayout.h" />
+    <ClInclude Include="src\Gui\Layouts\VerticalWeightedLayout.h" />
+    <ClInclude Include="src\Gui\SizeHints.h" />
     <ClInclude Include="src\Gui\Text\Font.h" />
     <ClInclude Include="src\Gui\Text\Glyph.h" />
     <ClInclude Include="src\Gui\Text\Text.h" />
@@ -220,6 +242,7 @@
     <ClInclude Include="src\Network\SMP.h" />
     <ClInclude Include="src\Utility\Alignment.h" />
     <ClInclude Include="src\Utility\ByteBuffer.h" />
+    <ClInclude Include="src\Utility\Formatting.h" />
     <ClInclude Include="src\Utility\Json.h" />
   </ItemGroup>
   <ItemGroup>
@@ -260,8 +283,26 @@
     <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\VertexBufferLayout.cpp" />
     <ClCompile Include="src\Gui\GuiElement.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiButton.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiCheckBox.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiEditBox.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiImage.cpp" />
     <ClCompile Include="src\Gui\GuiElements\GuiPanel.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiTextBox.cpp" />
+    <ClCompile Include="src\Gui\GuiElements\GuiWindow.cpp" />
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp" />
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp" />
     <ClCompile Include="src\Gui\GuiManager.cpp" />
+    <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\HorizontalLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\HorizontalListLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\PositioningLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalListLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalScrollingListLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\HorizontalWeightedLayout.cpp" />
+    <ClCompile Include="src\Gui\Layouts\VerticalWeightedLayout.cpp" />
+    <ClCompile Include="src\Gui\SizeHints.cpp" />
     <ClCompile Include="src\Gui\Text\Font.cpp" />
     <ClCompile Include="src\Gui\Text\Glyph.cpp" />
     <ClCompile Include="src\Gui\Text\Text.cpp" />
@@ -275,7 +316,9 @@
     <ClCompile Include="src\Network\OutgoingMessage.cpp" />
     <ClCompile Include="src\Network\SERP.cpp" />
     <ClCompile Include="src\Network\SMP.cpp" />
+    <ClCompile Include="src\Utility\Alignment.cpp" />
     <ClCompile Include="src\Utility\ByteBuffer.cpp" />
+    <ClCompile Include="src\Utility\Formatting.cpp" />
     <ClCompile Include="src\Utility\Json.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -287,6 +330,15 @@
     <None Include="resources\shaders\basic3DText.shader" />
     <None Include="resources\shaders\gui\basic2DText.shader" />
     <None Include="resources\shaders\gui\simpleTransparentColor.shader" />
+    <None Include="resources\test\button.json" />
+    <None Include="resources\test\children.json" />
+    <None Include="resources\test\layouts.json" />
+    <None Include="resources\test\test.json" />
+    <None Include="resources\test\testListLayouts.json" />
+    <None Include="resources\test\textBox.json" />
+    <None Include="resources\test\VerticalList.json" />
+    <None Include="resources\test\window.json" />
+    <None Include="src\Gui\GuiElements\GuiCheckBox.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

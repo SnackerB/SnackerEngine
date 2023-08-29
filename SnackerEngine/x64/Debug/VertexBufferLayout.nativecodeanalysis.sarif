@@ -1,0 +1,75 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31630.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexbufferlayout.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "25ab2147299857964a5dcec9af9104874873c04582c1d617f1631e79ec8468b2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/vertexbufferlayout.h"
+          },
+          "hashes": {
+            "sha-256": "a23d4a35ad1b61ba2f115adf33038ffd1240a8e3f3ee8ef926814c27a33630fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/math/mat.h"
+          },
+          "hashes": {
+            "sha-256": "c978d7a912ea1abf83bb3b527dec30f9ca8539d919fff4501bb8ba3e850954a0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/math/vec.h"
+          },
+          "hashes": {
+            "sha-256": "f83c4e92e158d9885984eec7861b52bdf5f48b71bdca47b54ccde5435d9cecce"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/core/assert.h"
+          },
+          "hashes": {
+            "sha-256": "6d90f272639ad0384f9e8845442605beef4da40ec5fa891092340d81707bd4a6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/glew/include/gl/glew.h"
+          },
+          "hashes": {
+            "sha-256": "1a2d50dc00a69940838cb3b5413cf7a7ac3cee8078672f27ffbfa2d3b88ad344"
+          }
+        }
+      ]
+    }
+  ]
+}

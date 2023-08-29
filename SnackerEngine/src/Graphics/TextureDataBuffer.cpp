@@ -43,22 +43,22 @@ namespace SnackerEngine
 			{
 			case SnackerEngine::Texture::TextureDataPrecision::PRECISION_16:
 			{
-				dataStorage[index + 0] = static_cast<std::byte>(value << 24);
-				dataStorage[index + 1] = static_cast<std::byte>(value << 16);
+				dataStorage[static_cast<std::size_t>(index) + 0] = static_cast<std::byte>(value << 24);
+				dataStorage[static_cast<std::size_t>(index) + 1] = static_cast<std::byte>(value << 16);
 				break;
 			}
 			case SnackerEngine::Texture::TextureDataPrecision::PRECISION_32:
 			{
 				std::int32_t tempVal = static_cast<std::int32_t>(value);
-				dataStorage[index + 0] = static_cast<std::byte>(value << 24);
-				dataStorage[index + 1] = static_cast<std::byte>(value << 16);
-				dataStorage[index + 2] = static_cast<std::byte>(value << 8);
-				dataStorage[index + 3] = static_cast<std::byte>(value);
+				dataStorage[static_cast<std::size_t>(index) + 0] = static_cast<std::byte>(value << 24);
+				dataStorage[static_cast<std::size_t>(index) + 1] = static_cast<std::byte>(value << 16);
+				dataStorage[static_cast<std::size_t>(index) + 2] = static_cast<std::byte>(value << 8);
+				dataStorage[static_cast<std::size_t>(index) + 3] = static_cast<std::byte>(value);
 				break;
 			}
 			default:
 			{
-				dataStorage[index + 0] = static_cast<std::byte>(value << 24);
+				dataStorage[static_cast<std::size_t>(index) + 0] = static_cast<std::byte>(value << 24);
 				break;
 			}
 			}
@@ -209,7 +209,7 @@ namespace SnackerEngine
 		result.bytesPerElement = ntohl(result.bytesPerElement);
 		if (result.bytesPerElement != determineBytesPerElement(result.textureDataPrecision)) return {};
 		offsetBytes += sizeof(unsigned int);
-		unsigned int dataStorageSize = buffer.size() - offsetBytes;
+		unsigned int dataStorageSize = static_cast<unsigned>(buffer.size()) - offsetBytes;
 		if (dataStorageSize != result.dataSize) return {};
 		if (dataStorageSize != result.computeDataStorageSize()) return {};
 		result.dataStorage.resize(dataStorageSize);

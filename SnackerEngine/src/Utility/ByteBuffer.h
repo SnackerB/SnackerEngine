@@ -1,7 +1,7 @@
 #pragma once
 
 #include "External/json.hpp"
-//#include "core/Log.h"
+#include "core/Log.h"
 
 #include <cinttypes>
 #include <vector>
@@ -99,7 +99,7 @@ namespace SnackerEngine
 	{
 		if (offset > buffer.size()) return {};
 		std::string result(reinterpret_cast<const char*>(buffer.data() + offset), buffer.size() - offset);
-		return std::make_pair(std::move(result), buffer.size());
+		return std::make_pair(result, buffer.size());
 	}
 
 	template<>
@@ -119,6 +119,7 @@ namespace SnackerEngine
 		}
 		catch (const std::exception& exception)
 		{
+			warningLogger << LOGGER::BEGIN << "Exception occured while reading from Buffer: " << exception.what() << LOGGER::ENDL;
 			return {};
 		}
 		/*

@@ -11,6 +11,7 @@
 #include <map>
 #include <set>
 #include <optional>
+#include <functional>
 
 namespace SnackerEngine
 {
@@ -19,6 +20,7 @@ namespace SnackerEngine
 	{
 	private:
 		friend class GuiElement;
+		friend class Engine;
 		using GuiID = int;
 		/// Vectors with pointers to all GuiElement objects. GuiIDs are indices into this vector. If no
 		/// element with a given GuiID is known, nullptr is stored instead
@@ -46,7 +48,7 @@ namespace SnackerEngine
 		GuiID lastMouseHoverElement;
 		/// The current screen dimensions
 		Vec2i screenDims;
-
+		
 		//==============================================================================================
 		// Events
 		//==============================================================================================
@@ -136,6 +138,71 @@ namespace SnackerEngine
 		// TODO
 
 		//==============================================================================================
+		// JSON parsing
+		//==============================================================================================
+	
+	private:
+		/// Map containing the different registered GuiElements that can be parsed from JSON
+		using parseFunction = std::unique_ptr<GuiElement>(*)(const nlohmann::json&, const nlohmann::json*, std::set<std::string>*);
+		static std::unordered_map<std::string, parseFunction> elementParsingMap;
+		/// If this is set to true, the guiManager checks the JSON file for unused parameters and prints
+		/// a warning if any are found.
+		bool checkForUnusedParameters = true;
+		/// Helper function that takes a json class and creates a set of parameter names.
+		/// This does not look recursively in classes included in the json file
+		static std::set<std::string> extractParameterNames(const nlohmann::json& json);
+		/// Helper function that prints warnings for all parameter names left in the set
+		static void printWarningsForUnusedParameterNames(const std::set<std::string>& parameterNames);
+		/// Loads a single GuiElement from the given json and data files. Returns nullptr if
+		/// anything goes wrong. No children are parsed. The element is not registered in the GuiManager.
+		/// Erases all parsed parameters from the given parameterNames set.
+		std::unique_ptr<GuiElement> loadGuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		/// Loads a single GuiElement from the given json and data files and registers it as a child
+		/// of the given element. Child element is stored by the GuiManager. Also loads and registers
+		/// all children of the childElement recursively
+		bool loadGuiElementAndRegisterAsChild(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement);
+		/// Loads all GuiElements from the given json and data files. Returns an empty vector if
+		/// no elements could be parsed. No children are parsed. The elements are not registered in the GuiManager.
+		/// Also loads and registers all children of the child elements recursively.
+		bool loadGuiAndRegisterAsChildren(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement);
+		/// Loads the GUI from the given json and data files and loads it into the
+		/// guiManager. Returns true on success.
+	public:
+		/// Loads a single GuiElement from the given json and data files. Returns nullptr if
+		/// anything goes wrong. No children are parsed. The element is not registered in the GuiManager.
+		std::unique_ptr<GuiElement> loadGuiElement(const nlohmann::json& json, const nlohmann::json* data);
+		/// Loads all GuiElements from the given json and data files. Returns an empty vector if
+		/// no elements could be parsed. No children are parsed. The elements are not registered in the GuiManager.
+		std::vector<std::unique_ptr<GuiElement>> loadGui(const nlohmann::json& json, const nlohmann::json* data);
+		/// Loads the GUI from the given json and data files and loads it into the
+		/// guiManager. Returns true on success.
+		bool loadAndRegisterJSON(const nlohmann::json& json, const nlohmann::json* data);
+		/// Loads the GUI from the given json and data files and registers it as children
+		/// of the given parent element in the guiManager. Returns true on success.
+		bool loadAndRegisterAsChildJSON(const nlohmann::json& json, const nlohmann::json* data, GuiID parent);
+		/// Registers the given GuiElementType in the parser logic, such that
+		/// GuiElements of this type can be parsed from JSON.
+		template<typename GuiElementType>
+		static void registerGuiElementType(const std::string& postfix = "");
+
+		//==============================================================================================
+		// Named elements
+		//==============================================================================================
+	private:
+		/// A map storing the GuiIDs of named elements
+		std::unordered_map<std::string, GuiID> namedElements;
+	public:
+		/// Returns the GUiID of the element with the given name, if it exists
+		std::optional<GuiID> getGuiElement(const std::string& name);
+		/// Returns the element with the given name and type, if it exists and is of the correct type.
+		template<typename GuiElementType>
+		GuiElementType* getGuiElement(const std::string& name);
+		/// Clears the namedElements map
+		void clearNamedElements();
+		/// Deletes a single name from the namedElements map
+		void deletElementName(const std::string& name);
+
+		//==============================================================================================
 		// Helper functions
 		//==============================================================================================
 
@@ -156,12 +223,14 @@ namespace SnackerEngine
 		void updateMoved(GuiElement& guiElement);
 		/// Returns a pointer to the guiElement with a given guiID if it exists. Returns nullptr if it
 		/// does not exist.
-		GuiElement* getElement(const GuiID& guiID);
+		GuiElement* getGuiElement(const GuiID& guiID);
 		/// Registers the given element as a child of a different element
 		/// Returns true on success
 		bool registerElementAsChild(GuiElement& parent, GuiElement& child);
 		/// returns the current mouse offset to a given GuiElement
 		Vec2i getMouseOffset(GuiID guiID);
+		int getMouseOffsetX(GuiID guiID);
+		int getMouseOffsetY(GuiID guiID);
 		/// Returns the vector from the parentGuiElement with guiID == 0 to the given guiElement
 		Vec2i getWorldOffset(GuiID guiID);
 		/// Returns the lowest currently colliding element in a given event set. In this context
@@ -171,6 +240,9 @@ namespace SnackerEngine
 		/// child in a given event set, if it exists
 		/// offset: offset from the top left corner of the parent element
 		std::optional<GuiID> getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet);
+		/// Initializes functionality that is the same over several instances of GuiManagers,
+		/// e.g. the parserMap.
+		static void initialize();
 
 		//==============================================================================================
 		// Constructors and public functionality
@@ -190,10 +262,12 @@ namespace SnackerEngine
 		/// Registers the given element as a parent element and moves it to the guiManager.
 		template<typename GuiElementType>
 		void registerAndMoveElement(GuiElementType&& guiElement);
+		void registerAndMoveElementPtr(std::unique_ptr<GuiElement>&& guiElement);
 		/// Moves the given element to the guiManager. Works only if the element was already registered,
 		/// either using the guiManager or a parent element registered at the guiManager.
 		template<typename GuiElementType>
 		void moveElement(GuiElementType&& guiElement);
+		void moveElementPtr(std::unique_ptr<GuiElement>&& guiElement);
 		/// Clears all elements. Elements that are owned by the GuiManager are deleted!
 		void clear();
 		/// Sets the view and projection matrix uniform of the given shader
@@ -237,60 +311,45 @@ namespace SnackerEngine
 	};
 
 	template<typename GuiElementType>
+	inline std::unique_ptr<GuiElement> parseGuiElementJSON(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	{
+		std::unique_ptr<GuiElement> result = std::make_unique<GuiElementType>(json, data, parameterNames);
+		return result;
+	}
+
+	template<typename GuiElementType>
 	inline void GuiManager::registerAndMoveElement(GuiElementType&& guiElement)
 	{
-		if (guiElement.isValid()) {
-			if (guiElement.guiManager == this) {
-				GuiID guiID = guiElement.guiID;
-				ownedGuiElements[guiID] = std::make_unique<GuiElementType>(std::move(guiElement));
-				ownedGuiElementsCount++;
-				registeredGuiElements[guiID] = ownedGuiElements[guiID].get();
-				auto& element = *ownedGuiElements[guiID];
-				if (element.parentID < 0) {
-					element.parentID = 0;
-					registeredGuiElements[parentElement]->children.push_back(element.guiID);
-					element.depth = 1;
-				}
-				element.onRegister();
-				registerForEnforcingLayoutsUpAndDown(element.guiID);
-				// Callback mouseMotion, because we could collide with the new element!
-				callbackMouseMotion(currentMousePosition);
-				return;
-			}
-			else {
-				warningLogger << LOGGER::BEGIN << "Tried to register GuiElement that was already registered at a different GuiManager!" << LOGGER::ENDL;
-				return;
-			}
-		}
-		GuiID newGuiID = getNewGuiID();
-		ownedGuiElements[newGuiID] = std::make_unique<GuiElementType>(std::move(guiElement));
-		ownedGuiElementsCount++;
-		registeredGuiElements[newGuiID] = ownedGuiElements[newGuiID].get();
-		registeredGuiElementsCount++;
-		auto& element = *ownedGuiElements[newGuiID];
-		element.guiID = newGuiID;
-		element.guiManager = this;
-		element.parentID = 0;
-		element.depth = 1;
-		registeredGuiElements[parentElement]->children.push_back(element.guiID);
-		element.onRegister();
-		registerForEnforcingLayoutsUpAndDown(element.guiID);
-		// Callback mouseMotion, because we could collide with the new element!
-		callbackMouseMotion(currentMousePosition);
+		registerAndMoveElementPtr(std::move(std::make_unique<GuiElementType>(std::move(guiElement))));
 	}
 
 	template<typename GuiElementType>
 	inline void GuiManager::moveElement(GuiElementType&& guiElement)
 	{
-		if (!guiElement.isValid()) {
-			warningLogger << LOGGER::BEGIN << "Tried to move an invalid guiElement to a guiManager. Try to register the element first!" << LOGGER::ENDL;
+		moveElementPtr(std::move(std::make_unique<GuiElementType>(std::move(guiElement))));
+	}
+
+	template<typename GuiElementType>
+	inline void GuiManager::registerGuiElementType(const std::string& postfix)
+	{
+		std::string typeName(GuiElementType::typeName.data());
+		typeName.append(postfix);
+		if (GuiManager::elementParsingMap.contains(typeName)) {
+			warningLogger << LOGGER::BEGIN << "Tried to register GuiElementType with typeName " << GuiElementType::typeName
+				<< ", but a GuiElementType with this typeName was already registered!" << LOGGER::ENDL;
 			return;
 		}
-		GuiID guiID = guiElement.guiID;
-		std::unique_ptr<GuiElementType> newPtr = std::make_unique<GuiElementType>(std::move(guiElement));
-		ownedGuiElements[guiID] = std::move(newPtr);
-		registeredGuiElements[guiID] = ownedGuiElements[guiID].get();
-		ownedGuiElementsCount++;
+		parseFunction func = &parseGuiElementJSON<GuiElementType>;
+		GuiManager::elementParsingMap.insert(std::make_pair<>(typeName, func));
+	}
+
+	template<typename GuiElementType>
+	inline GuiElementType* GuiManager::getGuiElement(const std::string& name)
+	{
+		std::optional<GuiID> guiID = getGuiElement(name);
+		if (!guiID.has_value()) return {};
+		GuiElement* guiElement = getGuiElement(guiID.value());
+		return dynamic_cast<GuiElementType*>(guiElement);
 	}
 
 }

@@ -210,13 +210,16 @@ namespace SnackerEngine
 		virtual void onPositionChange() override;
 		/// This function gets called when the size changes. Not called by the constructor!
 		virtual void onSizeChange() override;
+
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) override;
+
 		/// This function is called by the guiManager after registering this guiInteractable object.
 		/// When this function is called, the guiManager pointer is set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
 		virtual void onRegister() override;
+
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
 		// callback function for keyboard input. Parameters the same as in Scene.h

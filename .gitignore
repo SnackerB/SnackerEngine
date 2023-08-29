@@ -28,7 +28,9 @@ bld/
 [Ll]ogs/
 
 *.exe
-SnackerEngine.lib
+*.lib
+
+
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

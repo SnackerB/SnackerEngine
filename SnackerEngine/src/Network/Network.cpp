@@ -34,7 +34,7 @@ namespace SnackerEngine
     /// Creates a UDP Socket. Returns empty optional on failure.
     static std::optional<int> createUDPSocket()
     {
-        int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        int sock = static_cast<int>(socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
         if (sock == -1 || sock == INVALID_SOCKET) {
             errorLogger << LOGGER::BEGIN << "socket() failed with error code " << WSAGetLastError() << LOGGER::ENDL;
             return {};
@@ -192,7 +192,7 @@ namespace SnackerEngine
             // Receive messages
             sockaddr remoteAddr;
             int remoteAddrLen = sizeof(sockaddr); // TODO: Check if this is wrong?
-            while (auto len = networkData.recieveMessage(networkData.clientSocket, remoteAddr, remoteAddrLen).has_value())
+            while (auto len = networkData.recieveMessage(static_cast<int>(networkData.clientSocket), remoteAddr, remoteAddrLen).has_value())
             {
                 if (remoteAddrLen != sizeof(sockaddr_in) || !compareAddresses(*(reinterpret_cast<sockaddr_in*>(&remoteAddr)), networkData.serverAdress)) {
                     warningLogger << LOGGER::BEGIN << "Received a message that was not sent from the SERP server!" << LOGGER::ENDL;

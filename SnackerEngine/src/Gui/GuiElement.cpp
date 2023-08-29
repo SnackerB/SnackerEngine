@@ -4,17 +4,37 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode)
-		: GuiElement(defaultConstructor, position, size, resizeMode)
+	template<> bool isOfType<GuiElement::ResizeMode>(const nlohmann::json& json)
 	{
-		initialize();
+		return (json.is_string() && (
+			json == "SAME_AS_PARENT" ||
+			json == "DO_NOT_RESIZE" ||
+			json == "RESIZE_RANGE"));
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(const nlohmann::json& json, const nlohmann::json* data)
-		: GuiElement(defaultConstructor)
+	template<> GuiElement::ResizeMode parseJSON(const nlohmann::json& json)
 	{
-		parseFromJSON(json, data);
-		initialize();
+		if (json == "SAME_AS_PARENT") return GuiElement::ResizeMode::SAME_AS_PARENT;
+		else if (json == "DO_NOT_RESIZE") return GuiElement::ResizeMode::DO_NOT_RESIZE;
+		else if (json == "RESIZE_RANGE") return GuiElement::ResizeMode::RESIZE_RANGE;
+		else return GuiElement::ResizeMode::RESIZE_RANGE;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiElement::GuiElement(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode)
+		: position(position), size(size), resizeMode(resizeMode)
+	{
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiElement::GuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+		: GuiElement()
+	{
+		parseJsonOrReadFromData(name, "name", json, data, parameterNames);
+		parseJsonOrReadFromData(position, "position", json, data, parameterNames);
+		parseJsonOrReadFromData(size, "size", json, data, parameterNames);
+		parseJsonOrReadFromData(resizeMode, "resizeMode", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.minSize, "minSize", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.maxSize, "maxSize", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.preferredSize, "preferredSize", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::~GuiElement()
@@ -23,28 +43,54 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const GuiElement& other) noexcept
-		: GuiElement(defaultConstructor, other)
+		: guiManager(nullptr), name(""), guiID(-1), parentID(-1), depth(0), position(other.position), size(other.size),
+		resizeMode(other.resizeMode), sizeHints{ other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize },
+		children{}
 	{
-		initialize();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(const GuiElement& other) noexcept
 	{
-		copyFromWithoutInitializing(other);
-		initialize();
+		if (guiManager) guiManager->signOff(guiID);
+		guiManager = nullptr;
+		name = "";
+		guiID = -1;
+		parentID = -1;
+		depth = 0;
+		position = other.position;
+		size = other.size;
+		resizeMode = other.resizeMode;
+		sizeHints = { other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize };
+		children.clear();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
-		: GuiElement(defaultConstructor, std::move(other))
+		: guiManager(other.guiManager), name(other.name), guiID(other.guiID), parentID(other.parentID), depth(other.depth), position(other.position), size(other.size),
+		resizeMode(other.resizeMode), sizeHints{ other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize }, 
+		children(other.children)
 	{
-		initialize();
+		if (guiManager) guiManager->updateMoved(*this);
+		other.children.clear();
+		other.signOff();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(GuiElement&& other) noexcept
 	{
-		moveFromWithoutInitializing(std::move(other));
-		initialize();
+		if (guiManager) guiManager->signOff(guiID);
+		name = other.name;
+		guiManager = other.guiManager;
+		guiID = other.guiID;
+		parentID = other.parentID;
+		depth = other.depth;
+		position = other.position;
+		size = other.size;
+		resizeMode = other.resizeMode;
+		sizeHints = { other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize };
+		children = other.children;
+		if (guiManager) guiManager->updateMoved(*this);
+		other.children.clear();
+		other.signOff();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -57,6 +103,11 @@ namespace SnackerEngine
 			}
 		}
 		return false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiElement::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	{
+		return GuiElement::registerChild(guiElement);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::deleteChildren()
@@ -133,76 +184,130 @@ namespace SnackerEngine
 		setSize(size);
 	}
 	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiElement::clampToMinMaxSize(const Vec2i& size) const
+	{
+		return Vec2i(clampToMinMaxWidth(size.x), clampToMinMaxHeight(size.y));
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::clampToMinMaxWidth(int width) const
+	{
+		if (sizeHints.minSize.x != -1) width = std::max(width, sizeHints.minSize.x);
+		if (sizeHints.maxSize.x != -1) width = std::min(width, sizeHints.maxSize.x);
+		return width;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::clampToMinMaxHeight(int height) const
+	{
+		if (sizeHints.minSize.y != -1) height = std::max(height, sizeHints.minSize.y);
+		if (sizeHints.maxSize.y != -1) height = std::min(height, sizeHints.maxSize.y);
+		return height;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiElement::getPreferredOrCurrentSize() const
+	{
+		return Vec2i(getPreferredOrCurrentWidth(), getPreferredOrCurrentHeight());
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredOrCurrentWidth() const
+	{
+		if (sizeHints.preferredSize.x != -1) return sizeHints.preferredSize.x;
+		else return size.x;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredOrCurrentHeight() const
+	{
+		if (sizeHints.preferredSize.y != -1) return sizeHints.preferredSize.y;
+		else return size.y;
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinSize(const Vec2i& minSize)
 	{
-		if (this->minSize != minSize) {
-			this->minSize = minSize;
+		if (sizeHints.minSize != minSize) {
+			sizeHints.minSize = minSize;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinWidth(const int& minWidth)
 	{
-		if (this->minSize.x != minWidth) {
-			this->minSize.x = minWidth;
+		if (sizeHints.minSize.x != minWidth) {
+			sizeHints.minSize.x = minWidth;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinHeight(const int& minHeight)
 	{
-		if (this->minSize.y != minHeight) {
-			this->minSize.y = minHeight;
+		if (sizeHints.minSize.y != minHeight) {
+			sizeHints.minSize.y = minHeight;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMaxSize(const Vec2i& maxSize)
 	{
-		if (this->maxSize != maxSize) {
-			this->maxSize = maxSize;
+		if (sizeHints.maxSize != maxSize) {
+			sizeHints.maxSize = maxSize;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMaxWidth(const int& maxWidth)
 	{
-		if (this->maxSize.x != maxWidth) {
-			this->maxSize.x = maxWidth;
+		if (sizeHints.maxSize.x != maxWidth) {
+			sizeHints.maxSize.x = maxWidth;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMaxHeight(const int& maxHeight)
 	{
-		if (this->maxSize.y != maxHeight) {
-			this->maxSize.y = maxHeight;
+		if (sizeHints.maxSize.y != maxHeight) {
+			sizeHints.maxSize.y = maxHeight;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPreferredSize(const Vec2i& preferredSize)
 	{
-		if (this->preferredSize != preferredSize) {
-			this->preferredSize = preferredSize;
+		if (sizeHints.preferredSize != preferredSize) {
+			sizeHints.preferredSize = preferredSize;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPreferredWidth(const int& preferredWidth)
 	{
-		if (this->preferredSize.x != preferredWidth) {
-			this->preferredSize.x = preferredWidth;
+		if (sizeHints.preferredSize.x != preferredWidth) {
+			sizeHints.preferredSize.x = preferredWidth;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPreferredHeight(const int& preferredHeight)
 	{
-		if (this->preferredSize.y != preferredHeight) {
-			this->preferredSize.y = preferredHeight;
+		if (sizeHints.preferredSize.y != preferredHeight) {
+			sizeHints.preferredSize.y = preferredHeight;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	const Vec2i GuiElement::getMouseOffset() const
+	{
+		if (guiManager) return guiManager->getMouseOffset(guiID);
+		return Vec2i();
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getMouseOffsetX() const
+	{
+		if (guiManager) return guiManager->getMouseOffsetX(guiID);
+		return 0;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getMouseOffsetY() const
+	{
+		if (guiManager) return guiManager->getMouseOffsetY(guiID);
+		return 0;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signOff()
@@ -214,70 +319,6 @@ namespace SnackerEngine
 			guiManager->signOffWithoutNotifyingParent(childID);
 		}
 		guiManager = nullptr;
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(defaultConstructor_t, const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode)
-		: guiManager(nullptr), name(""), guiID(-1), parentID(-1), depth(0), position(position), size(size),
-		resizeMode(resizeMode), minSize(0, 0), maxSize(-1, -1), preferredSize(-1, -1), children{}
-	{
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(defaultConstructor_t, const GuiElement& other) noexcept
-		: guiManager(nullptr), name(""), guiID(-1), parentID(-1), depth(0), position(other.position), size(other.size),
-		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize),
-		preferredSize(other.preferredSize), children{}
-	{
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(defaultConstructor_t, GuiElement&& other) noexcept
-		: guiManager(other.guiManager), name(other.name), guiID(other.guiID), parentID(other.parentID), depth(other.depth), position(other.position), size(other.size),
-		resizeMode(other.resizeMode), minSize(other.minSize), maxSize(other.maxSize),
-		preferredSize(other.preferredSize), children(other.children)
-	{
-		if (guiManager) guiManager->updateMoved(*this);
-		other.children.clear();
-		other.signOff();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::copyFromWithoutInitializing(const GuiElement& other)
-	{
-		if (guiManager) guiManager->signOff(guiID);
-		guiManager = nullptr;
-		name = "";
-		guiID = -1;
-		parentID = -1;
-		depth = 0;
-		position = other.position;
-		size = other.size;
-		resizeMode = other.resizeMode;
-		minSize = other.minSize;
-		maxSize = other.maxSize;
-		preferredSize = other.preferredSize;
-		children.clear();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::moveFromWithoutInitializing(GuiElement&& other)
-	{
-		if (guiManager) guiManager->signOff(guiID);
-		name = other.name;
-		guiManager = other.guiManager;
-		guiID = other.guiID;
-		parentID = other.parentID;
-		depth = other.depth;
-		position = other.position;
-		size = other.size;
-		resizeMode = other.resizeMode;
-		minSize = other.minSize;
-		maxSize = other.maxSize;
-		preferredSize = other.preferredSize;
-		children = other.children;
-		if (guiManager) guiManager->updateMoved(*this);
-		other.children.clear();
-		other.signOff();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::initialize()
-	{
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signOffWithoutNotifyingParents(const GuiID& guiID)
@@ -294,14 +335,15 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::removeChild(GuiID guiElement)
+	std::optional<unsigned> GuiElement::removeChild(GuiID guiElement)
 	{
-		auto result = std::find(children.begin(), children.end(), guiElement);
-		if (result != children.end())
+		std::optional<unsigned> index = getIndexIntoChildrenVector(guiElement);
+		if (index.has_value())
 		{
-			if (guiManager) guiManager->signOffWithoutNotifyingParent(*result);
-			children.erase(result);
+			if (guiManager) guiManager->signOffWithoutNotifyingParent(children[index.value()]);
+			children.erase(children.begin() + index.value());
 		}
+		return index;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::enforceLayout()
@@ -311,8 +353,26 @@ namespace SnackerEngine
 		for (const auto& childID : children) {
 			auto child = getElement(childID);
 			if (!child) continue;
-			if (child->getResizeMode() == ResizeMode::SAME_AS_PARENT) {
-				setPositionAndSizeOfChild(childID, Vec2i(), size);
+			switch (child->getResizeMode())
+			{
+			case ResizeMode::SAME_AS_PARENT: setPositionAndSizeOfChild(childID, Vec2i(), size); break;
+			case ResizeMode::RESIZE_RANGE:
+			{
+				Vec2i childSize = Vec2i(0, 0);
+				if (child->getPreferredWidth() != -1) childSize.x = child->getPreferredWidth();
+				else {
+					if (child->getMinWidth() != -1) childSize.x = std::max(child->getMinWidth(), child->getWidth());
+					if (child->getMaxWidth() != -1) childSize.x = std::min(child->getMaxWidth(), child->getWidth());
+				}
+				if (child->getPreferredHeight() != -1) childSize.y = child->getPreferredHeight();
+				else {
+					if (child->getMinHeight() != -1) childSize.y = std::max(child->getMinHeight(), child->getHeight());
+					if (child->getMaxHeight() != -1) childSize.y = std::min(child->getMaxHeight(), child->getHeight());
+				}
+				setSizeOfChild(childID, childSize);
+				break;
+			}
+			default: break;
 			}
 		}
 	}
@@ -328,9 +388,17 @@ namespace SnackerEngine
 		return child ? child->getPosition() : Vec2i();
 	}
 	//--------------------------------------------------------------------------------------------------
+	std::optional<unsigned> GuiElement::getIndexIntoChildrenVector(GuiID childID) const
+	{
+		for (unsigned i = 0; i < children.size(); ++i) {
+			if (children[i] == childID) return i;
+		}
+		return {};
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement* GuiElement::getElement(GuiID guiID) const
 	{
-		if (guiManager) return guiManager->getElement(guiID);
+		if (guiManager) return guiManager->getGuiElement(guiID);
 		return nullptr;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -349,31 +417,16 @@ namespace SnackerEngine
 		if (guiManager) guiManager->registerForEnforcingLayoutsDown(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::parseFromJSON(const nlohmann::json& json, const nlohmann::json* data)
+	void GuiElement::drawElement(GuiID element, Vec2i worldPosition)
 	{
-		if (json.contains("name") && json["name"].is_string()) name = json["name"];
-		if (json.contains("position")) parseJsonOrReadFromData(position, json["position"], data);
-		if (json.contains("size")) parseJsonOrReadFromData(size, json["size"], data);
-		if (json.contains("resizeMode") && json["resizeMode"].is_string()) {
-			if (json["resizeMode"] == "DO_NOT_RESIZE") {
-				resizeMode = ResizeMode::DO_NOT_RESIZE;
-			}
-			else if (json["resizeMode"] == "RESIZE_RANGE") {
-				resizeMode = ResizeMode::RESIZE_RANGE;
-			}
-			else if (json["resizeMode"] == "SAME_AS_PARENT") {
-				resizeMode = ResizeMode::SAME_AS_PARENT;
-			}
-		}
-		if (json.contains("minSize")) parseJsonOrReadFromData(minSize, json["minSize"], data);
-		if (json.contains("maxSize")) parseJsonOrReadFromData(maxSize, json["maxSize"], data);
-		if (json.contains("preferredSize")) parseJsonOrReadFromData(preferredSize, json["preferredSize"], data);
+		GuiElement* guiElement = getElement(element);
+		if (guiElement) guiElement->draw(worldPosition);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->position != position)
 		{
@@ -391,7 +444,7 @@ namespace SnackerEngine
 	void GuiElement::setPositionOfChild(const GuiID& guiID, const Vec2i& position)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->position != position)
 		{
@@ -403,7 +456,7 @@ namespace SnackerEngine
 	void GuiElement::setPositionXOfChild(const GuiID& guiID, const int& positionX)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->position.x != positionX)
 		{
@@ -415,7 +468,7 @@ namespace SnackerEngine
 	void GuiElement::setPositionYOfChild(const GuiID& guiID, const int& positionY)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->position.y != positionY)
 		{
@@ -427,7 +480,7 @@ namespace SnackerEngine
 	void GuiElement::setSizeOfChild(const GuiID& guiID, const Vec2i& size)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->size != size)
 		{
@@ -440,7 +493,7 @@ namespace SnackerEngine
 	void GuiElement::setWidthOfChild(const GuiID& guiID, const int& width)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->size.x != size.x)
 		{
@@ -453,7 +506,7 @@ namespace SnackerEngine
 	void GuiElement::setHeightOfChild(const GuiID& guiID, const int& height)
 	{
 		if (!guiManager) return;
-		auto child = guiManager->getElement(guiID);
+		auto child = guiManager->getGuiElement(guiID);
 		if (!child) return;
 		if (child->size.y != size.y)
 		{
@@ -461,6 +514,26 @@ namespace SnackerEngine
 			guiManager->registerForEnforcingLayoutsDown(guiID);
 			child->onSizeChange();
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signUpHandle(GuiHandle& guiHandle, const GuiHandle::GuiHandleID& handleID)
+	{
+		guiHandle.registerHandle(handleID, *this);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signOffHandle(GuiHandle& guiHandle)
+	{
+		guiHandle.signOff(*this);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle)
+	{
+		guiHandle.onMove(oldElement, this);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::activate(GuiEventHandle& guiEventHandle)
+	{
+		guiEventHandle.activate();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& offset) const

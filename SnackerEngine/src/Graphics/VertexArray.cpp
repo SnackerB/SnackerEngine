@@ -83,7 +83,7 @@ namespace SnackerEngine
 			const auto& element = elements[i];
 			GLCall(glEnableVertexAttribArray(i));
 			GLCall(glVertexAttribPointer(i, element.count, element.type,
-				element.normalized, layout.GetStride(), reinterpret_cast<const void*>(offset)));
+				element.normalized, layout.GetStride(), reinterpret_cast<const void*>(static_cast<std::size_t>(offset))));
 			offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
 		}
 		GLCall(glEnableVertexAttribArray(0));

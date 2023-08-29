@@ -53,11 +53,11 @@ namespace SnackerEngine
 	}
 	template<> bool isOfType<float>(const nlohmann::json& json)
 	{
-		return json.is_number_float();
+		return json.is_number();
 	}
 	template<> bool isOfType<double>(const nlohmann::json& json)
 	{
-		return json.is_number_float();
+		return json.is_number();
 	}
 	template<> bool isOfType<bool>(const nlohmann::json& json)
 	{

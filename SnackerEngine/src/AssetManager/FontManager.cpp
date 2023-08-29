@@ -131,7 +131,7 @@ namespace SnackerEngine
         // Success! We can set the font to valid!
         fontDataArray[fontID].valid = true;
         return true;
-    }
+        }
     //------------------------------------------------------------------------------------------------------
     void FontManager::loadDefaultCharset(const FontID& fontID)
     {

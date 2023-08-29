@@ -1,5 +1,7 @@
 #pragma once
 
+#include "External/json.hpp"
+
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------

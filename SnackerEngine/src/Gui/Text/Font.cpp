@@ -9,9 +9,20 @@
 #include <msdfgen.h>
 #include <msdfgen-ext.h>
 #include "Gui/Text/Font.h"
+#include "Utility\Json.h"
 
 namespace SnackerEngine
 {
+	//------------------------------------------------------------------------------------------------------
+	template<> bool isOfType<Font>(const nlohmann::json& json)
+	{
+		return json.is_string();
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Font parseJSON(const nlohmann::json& json)
+	{
+		return Font(parseJSON<std::string>(json));
+	}
 	//------------------------------------------------------------------------------------------------------
 	Font::Font(const FontID& fontID)
 		: fontID(fontID)
@@ -25,8 +36,16 @@ namespace SnackerEngine
 	/// Helper function that takes a string in the format "folder1/folder2/folder3/data.suffix" and returns
 	/// a string of the format "folder1/folder2/folder3/loaded/data"
 	static std::string getLoadedFontPath(const std::string& path) {
-		std::string result = path.substr(0, path.find_last_of("/") + 1) + "loaded";
-		return result + path.substr(path.find_last_of("/"), path.find_last_of(".") - path.find_last_of("/"));
+		auto slashPos = path.find_last_of("/");
+		std::string result = "";
+		if (slashPos < SIZE_MAX)
+			result = path.substr(0, slashPos + 1) + "loaded";
+		else result = "loaded";
+		auto pointPos = path.find_last_of(".");
+		if (slashPos < SIZE_MAX && pointPos < SIZE_MAX && pointPos > slashPos)
+			return result + path.substr(slashPos, pointPos - slashPos);
+		else
+			return "";
 	}
 	//------------------------------------------------------------------------------------------------------
 	Font::Font(const std::string& path)

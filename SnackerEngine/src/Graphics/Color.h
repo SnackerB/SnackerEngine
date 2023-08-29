@@ -47,6 +47,8 @@ namespace SnackerEngine
 		/// Implicit conversion from Color3
 		Color4(Color3<T> color)
 			: r(color.r), g(color.g), b(color.b), alpha(T(1)) {}
+		/// Converts this color to Color3 by dropping the alpha channel
+		Color3<T> rgb() { return Color3<T>(r, g, b); }
 	};
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>

@@ -9,8 +9,8 @@ namespace SnackerEngine
 	std::optional<unsigned int> BasicOutgoingMessage::send(NetworkData& networkData, unsigned int maxLengthBytes)
 	{
 		if (data.size() > maxLengthBytes) return {};
-		networkData.sendMessageToServer(data.data(), data.size());
-		return data.size();
+		networkData.sendMessageToServer(data.data(), static_cast<unsigned>(data.size()));
+		return static_cast<int>(data.size());
 	}
 
 	std::optional<unsigned int> SafeOutgoingMessage::send(NetworkData& networkData, unsigned int maxLengthBytes)
@@ -31,8 +31,8 @@ namespace SnackerEngine
         if (!networkData.connectedToSERPServer) return {};
         if (destinations.size() == 0) return {};
         if (destinations.size() * sizeof(uint16_t) + sizeof(SERP_Header) + sizeof(SMP_Header) >= networkData.maxMessageLength) return {};
-        unsigned int dataLength = message.data.size();
-        unsigned int dataPartSize = networkData.maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t);
+        unsigned int dataLength = static_cast<unsigned>(message.data.size());
+        unsigned int dataPartSize = static_cast<unsigned>(networkData.maxMessageLength - sizeof(SERP_Header) - sizeof(SMP_Header) - destinations.size() * sizeof(uint16_t));
         unsigned int numberPackets = dataLength / dataPartSize;
         if (dataLength % dataPartSize != 0) numberPackets++;
         if (numberPackets == 0) numberPackets = 1;
@@ -48,13 +48,13 @@ namespace SnackerEngine
         else {
             result.dataParts.resize(numberPackets);
             unsigned int offset = 0;
-            for (int i = 0; i < numberPackets - 1; ++i)
+            for (unsigned i = 0; i < numberPackets - 1; ++i)
             {
                 result.dataParts[i].resize(dataPartSize);
                 std::memcpy(result.dataParts[i].data(), message.data.data() + offset, dataPartSize);
                 offset += dataPartSize;
             }
-            unsigned int bytesLeft = message.data.size() - offset;
+            unsigned int bytesLeft = static_cast<unsigned>(message.data.size() - offset);
             result.dataParts.back().resize(bytesLeft);
             std::memcpy(result.dataParts.back().data(), message.data.data() + offset, bytesLeft);
         }
@@ -63,7 +63,7 @@ namespace SnackerEngine
         result.flags = 0 | (0b1 << static_cast<unsigned int>(SERP_Header::FlagType::SAFE_SEND));
         result.smpHeader = message.smpHeader;
         result.destinations = destinations;
-        result.receivedDataPart = std::vector<std::pair<int, std::vector<bool>>>(numberPackets, std::make_pair<int, std::vector<bool>>(destinations.size(), std::vector<bool>(destinations.size(), false)));
+        result.receivedDataPart = std::vector<std::pair<int, std::vector<bool>>>(numberPackets, std::make_pair<int, std::vector<bool>>(static_cast<unsigned>(destinations.size()), std::vector<bool>(static_cast<unsigned>(destinations.size()), false)));
         result.dataPartsNotReceivedCount = numberPackets;
         result.dataPartsNotReceivedCountPerClient = std::vector<int>(destinations.size(), numberPackets);
         for (unsigned int i = 0; i < destinations.size(); ++i)
@@ -104,9 +104,9 @@ namespace SnackerEngine
         if (currentDestinations.size() == 1)
         {
             // We can send the message as singlecast message
-            unsigned int messageLength = sizeof(SERP_Header) + sizeof(SMP_Header) + dataParts[messagePartIndex].size();
+            unsigned int messageLength = static_cast<unsigned>(sizeof(SERP_Header) + sizeof(SMP_Header) + dataParts[messagePartIndex].size());
             if (maxMessageLength > 0 && messageLength > maxMessageLength) return {};
-            SERP_Header serpHeader(networkData.clientID, currentDestinations.front(), messageLength, messagePartIndex, dataParts.size(), messageID);
+            SERP_Header serpHeader(networkData.clientID, currentDestinations.front(), messageLength, messagePartIndex, static_cast<uint16_t>(dataParts.size()), messageID);
             serpHeader.setFlag(SERP_Header::FlagType::SAFE_SEND);
             networkData.sendMessageToServerSinglecast(serpHeader, smpHeader, dataParts[messagePartIndex]);
             timeSinceLastSend = 0.0;
@@ -115,9 +115,9 @@ namespace SnackerEngine
         else
         {
             // We need to send the message as multicast message
-            unsigned int messageLength = sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * dataParts[messagePartIndex].size() + sizeof(uint16_t) * currentDestinations.size();
+            unsigned int messageLength = static_cast<unsigned>(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * dataParts[messagePartIndex].size() + sizeof(uint16_t) * currentDestinations.size());
             if (maxMessageLength > 0 && messageLength > maxMessageLength) return false;
-            SERP_Header serpHeader(networkData.clientID, SERP_DST_MULTICAST, sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * dataParts[messagePartIndex].size(), messagePartIndex, dataParts.size(), messageID);
+            SERP_Header serpHeader(networkData.clientID, SERP_DST_MULTICAST, static_cast<uint16_t>(sizeof(SERP_Header) + sizeof(SMP_Header) + sizeof(std::byte) * dataParts[messagePartIndex].size()), messagePartIndex, static_cast<uint16_t>(dataParts.size()), messageID);
             serpHeader.setFlag(SERP_Header::FlagType::SAFE_SEND);
             networkData.sendMessageToServerMulticast(serpHeader, smpHeader, dataParts[messagePartIndex], currentDestinations);
             timeSinceLastSend = 0.0;

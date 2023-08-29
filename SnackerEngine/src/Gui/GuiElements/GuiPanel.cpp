@@ -5,51 +5,59 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::computeModelMatrix()
-	{
-		const Vec2i& position = getPosition();
-		const Vec2i& size = getSize();
-		modelMatrix = Mat4f::TranslateAndScale(
-			Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
-			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(defaultConstructor_t, const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor)
-		: GuiElement(defaultConstructor, position, size, resizeMode), backgroundColor(backgroundColor), modelMatrix{},
+	GuiPanel::GuiPanel(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor)
+		: GuiElement(position, size, resizeMode), backgroundColor(backgroundColor), modelMatrix{},
 		shader("shaders/gui/simpleAlphaColor.shader")
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(defaultConstructor_t, const GuiPanel& other) noexcept
-		: GuiElement(defaultConstructor, other), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader)
+	GuiPanel::GuiPanel(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+		: GuiElement(json, data, parameterNames)
+	{
+		parseJsonOrReadFromData(backgroundColor, "backgroundColor", json, data, parameterNames);
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiPanel::GuiPanel(const GuiPanel& other) noexcept
+		: GuiElement(other), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader)
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(defaultConstructor_t, GuiPanel&& other) noexcept
-		: GuiElement(defaultConstructor, std::move(other)), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader)
+	GuiPanel& GuiPanel::operator=(const GuiPanel& other) noexcept
 	{
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::copyFromWithoutInitializing(const GuiPanel& other)
-	{
-		GuiElement::copyFromWithoutInitializing(other);
+		GuiElement::operator=(other);
 		backgroundColor = other.backgroundColor;
 		modelMatrix = other.modelMatrix;
 		shader = other.shader;
+		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::moveFromWithoutInitializing(GuiPanel&& other)
+	GuiPanel::GuiPanel(GuiPanel&& other) noexcept
+		: GuiElement(std::move(other)), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader)
 	{
-		GuiElement::moveFromWithoutInitializing(std::move(other));
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiPanel& GuiPanel::operator=(GuiPanel&& other) noexcept
+	{
+		GuiElement::operator=(std::move(other));
 		backgroundColor = other.backgroundColor;
 		modelMatrix = other.modelMatrix;
 		shader = other.shader;
+		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::initialize()
+	void GuiPanel::setBackgroundColor(const Color4f& backgroundColor)
 	{
-		GuiElement::initialize();
-		computeModelMatrix();
+		this->backgroundColor = backgroundColor;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Color4f GuiPanel::getBackgroundColor() const
+	{
+		return backgroundColor;
+	}
+	//--------------------------------------------------------------------------------------------------
+	const Shader& GuiPanel::getPanelShader() const
+	{
+		return shader;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::draw(const Vec2i& worldPosition)
@@ -68,6 +76,11 @@ namespace SnackerEngine
 		pushClippingBox(worldPosition);
 		GuiElement::draw(worldPosition);
 		popClippingBox();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::onRegister()
+	{
+		computeModelMatrix();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::onPositionChange()
@@ -91,64 +104,13 @@ namespace SnackerEngine
 			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const Shader& GuiPanel::getPanelShader() const
+	void GuiPanel::computeModelMatrix()
 	{
-		return shader;
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::parseFromJSON(const nlohmann::json& json, const nlohmann::json* data)
-	{
-		GuiElement::parseFromJSON(json, data);
-		if (json.contains("backgroundColor")) parseJsonOrReadFromData(backgroundColor, json["backgroundColor"], data);
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor)
-		: GuiPanel(defaultConstructor, position, size, resizeMode, backgroundColor)
-	{
-		initialize();
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(const nlohmann::json& json, const nlohmann::json* data)
-		: GuiPanel(defaultConstructor)
-	{
-		parseFromJSON(json, data);
-		initialize();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::setBackgroundColor(const Color4f& backgroundColor)
-	{
-		this->backgroundColor = backgroundColor;
-	}
-	//--------------------------------------------------------------------------------------------------
-	Color4f GuiPanel::getBackgroundColor() const
-	{
-		return backgroundColor;
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(const GuiPanel& other) noexcept
-		: GuiPanel(defaultConstructor, other)
-	{
-		initialize();
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel& GuiPanel::operator=(const GuiPanel& other) noexcept
-	{
-		copyFromWithoutInitializing(other);
-		initialize();
-		return *this;
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(GuiPanel&& other) noexcept
-		: GuiPanel(defaultConstructor, std::move(other))
-	{
-		initialize();
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel& GuiPanel::operator=(GuiPanel&& other) noexcept
-	{
-		moveFromWithoutInitializing(std::move(other));
-		initialize();
-		return *this;
+		const Vec2i& position = getPosition();
+		const Vec2i& size = getSize();
+		modelMatrix = Mat4f::TranslateAndScale(
+			Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
+			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
 	}
 	//--------------------------------------------------------------------------------------------------
 }

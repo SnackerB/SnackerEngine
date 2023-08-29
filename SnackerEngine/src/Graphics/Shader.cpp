@@ -1,9 +1,20 @@
 #include "Graphics/Shader.h"
 #include "AssetManager/ShaderManager.h"
 #include "Graphics/Color.h"
+#include "Utility/Json.h"
 
 namespace SnackerEngine
 {
+	//------------------------------------------------------------------------------------------------------
+	template<> bool isOfType<Shader>(const nlohmann::json& json)
+	{
+		return json.is_string();
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Shader parseJSON(const nlohmann::json& json)
+	{
+		return Shader(parseJSON<std::string>(json));
+	}
 	//------------------------------------------------------------------------------------------------------
 	Shader::Shader(const ShaderID& shaderID)
 		: shaderID(shaderID) 

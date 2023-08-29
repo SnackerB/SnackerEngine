@@ -1,0 +1,267 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31630.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/texture.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "1b3cd885e20e4d93b17fe8305cef2568376ae4a55b7186500cf2edcb679fe2ba"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/texture.h"
+          },
+          "hashes": {
+            "sha-256": "c94f7385faa1c5f56718391e3a71a9ec6836d8186367ff025ac2fb02b4f5950d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/math/vec.h"
+          },
+          "hashes": {
+            "sha-256": "f83c4e92e158d9885984eec7861b52bdf5f48b71bdca47b54ccde5435d9cecce"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/assetmanager/texturemanager.h"
+          },
+          "hashes": {
+            "sha-256": "68f93077cd46571842c460a9e65f5c6cd4097fa90bf726a59f45a14f1b6b8b69"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/snackerengine/src/graphics/texturedatabuffer.h"
+          },
+          "hashes": {
+            "sha-256": "f828b3b22cc7a429e35ed1f055da00bd15c7311f239f8dd9e563af424a03ce2e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/msdfgen.h"
+          },
+          "hashes": {
+            "sha-256": "ba9484afd4c824f9d039051da2a19b94b9fcc03a38f327096a8f7c45c7604427"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/arithmetics.hpp"
+          },
+          "hashes": {
+            "sha-256": "983fe3bc6ffcbd5fa0c0687df9a33feda006587c1d5d57dd22e2275ae07d0b83"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/vector2.h"
+          },
+          "hashes": {
+            "sha-256": "1df4481fe0670b476bfe0faaffada98d2867dede67d28af6390da5e542c683a3"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/projection.h"
+          },
+          "hashes": {
+            "sha-256": "6a3bab0bd6230ab94d439b7b299f40fb086676e1283359dfcc6e83f3b80e0c25"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/scanline.h"
+          },
+          "hashes": {
+            "sha-256": "ab43e5c0569b8699f01982f2706d66284b51468bfdbdc72c42e66291a03b9365"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/shape.h"
+          },
+          "hashes": {
+            "sha-256": "1c23833bfa3f8a47888832aa3473a0ccc6696d1eba3d56dd303cee0e76736930"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/contour.h"
+          },
+          "hashes": {
+            "sha-256": "ebd029dafb7b1711b21babe758fcd8c01a1a6945859c789803348ed908b597d0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/edgeholder.h"
+          },
+          "hashes": {
+            "sha-256": "e2b489c3a8ddf030fdf47dc2df3118f29b7e171cd4c5df14c0e1d456bfd33f13"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/edge-segments.h"
+          },
+          "hashes": {
+            "sha-256": "ab22636281a8041d64dc83a5e436ac68a0db2d6b3b31695e47c91116c861bc76"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/signeddistance.h"
+          },
+          "hashes": {
+            "sha-256": "5077f569d7ce43b797561e79cee036e3e1c5fcc1c3f9fef8fdc6436a81f87163"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/edgecolor.h"
+          },
+          "hashes": {
+            "sha-256": "df700d28a912b4d5021ac1951c238773d5d36438f971badfc73eaadd01b00ecc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/bitmapref.hpp"
+          },
+          "hashes": {
+            "sha-256": "61633623911e83430c2dc3bcf3907aa87906e07cf687ca2be1d4e9caaef9617a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/bitmap.h"
+          },
+          "hashes": {
+            "sha-256": "55b1953ef6d9d8158e13cec55b83d3752201dcc4b129dd745457ff3f374e1b10"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/bitmap.hpp"
+          },
+          "hashes": {
+            "sha-256": "9996dc114869f19e63b6f8f583e81c19d0c7ae9ad776df084c413a08fdd7ac81"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/bitmap-interpolation.hpp"
+          },
+          "hashes": {
+            "sha-256": "9cf7f49e1a0bd7964dac63c6d114327a457bae8290e2ecae32d7280846d0684a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/pixel-conversion.hpp"
+          },
+          "hashes": {
+            "sha-256": "4ff64b5d773c2faa43e411dcace59b15e4cf648b1efe5f142662d108bcec1d98"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/edge-coloring.h"
+          },
+          "hashes": {
+            "sha-256": "b7aa060f024e4578fbf85fbd9c94f37e66d1fe703dde1007095e74138d514412"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/generator-config.h"
+          },
+          "hashes": {
+            "sha-256": "f543df37f8f72d12ad3aa897fd87475b508e7d4122ad9437abf14de6423c82d0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/msdf-error-correction.h"
+          },
+          "hashes": {
+            "sha-256": "edf70fa3e6be3ff5d70ad03baecd958ae6757f8d9076e9301e10b960732517c2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/render-sdf.h"
+          },
+          "hashes": {
+            "sha-256": "522d54d93be69f94b01534928ba68ffb792cd5707a72bfe6d69c6e2eca396b5a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/rasterization.h"
+          },
+          "hashes": {
+            "sha-256": "5deefb4ab0ab7eed85e2b7a3691613cb717f457ea9c856d6e3b13cc813948aa5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/sdf-error-estimation.h"
+          },
+          "hashes": {
+            "sha-256": "dce0cdda34b1db4f91d2c65541d570619150c521ccf481ab93c7dfafb744de1c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/save-bmp.h"
+          },
+          "hashes": {
+            "sha-256": "e17d1003153b41233baa395d297017990de17505065aad5c5da16eda1786e47c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/save-tiff.h"
+          },
+          "hashes": {
+            "sha-256": "99740c8c9985068dbd87c710fe6db65d9b7dc49c64fe262cf1fe296d75a1a3cb"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/dev/snackerengine/dependencies/msdf-atlas-gen-master/msdfgen/core/shape-description.h"
+          },
+          "hashes": {
+            "sha-256": "8974329f269eecbe7ab0aed87837afae22f1e5ee8ef6382e5c2369957bd66c51"
+          }
+        }
+      ]
+    }
+  ]
+}

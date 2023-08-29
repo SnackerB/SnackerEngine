@@ -30,7 +30,7 @@ typename DynamicAtlas<AtlasGenerator>::ChangeFlags DynamicAtlas<AtlasGenerator>:
     if ((int) rectangles.size() > start) {
         int packerStart = start;
         int remaining;
-        while ((remaining = packer.pack(rectangles.data()+packerStart, rectangles.size()-packerStart)) > 0) {
+        while ((remaining = packer.pack(rectangles.data()+packerStart, static_cast<int>(rectangles.size()-packerStart))) > 0) {
             side = (side+!side)<<1;
             while (side*side < totalArea)
                 side <<= 1;
@@ -39,7 +39,7 @@ typename DynamicAtlas<AtlasGenerator>::ChangeFlags DynamicAtlas<AtlasGenerator>:
                 packerStart = 0;
             } else {
                 packer.expand(side+padding, side+padding);
-                packerStart = rectangles.size()-remaining;
+                packerStart = static_cast<int>(rectangles.size()) - remaining;
             }
             changeFlags |= RESIZED;
         }

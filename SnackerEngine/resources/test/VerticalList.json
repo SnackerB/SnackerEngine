@@ -1,0 +1,66 @@
+{
+  "typeID": "GUI_HORIZONTAL_LAYOUT",
+  "allowMoveBorders": true,
+  "children": [
+    {
+      "typeID": "GUI_VERTICAL_SCROLLING_LIST_LAYOUT",
+      "layoutOptions": { "weight": 0.5 },
+      "scrollbarWidth": 100,
+      "scrollbarBorder" : 100,
+      "children": [
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button1"
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button2.1"
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button2.2",
+          "layoutOptions": { "newRow": false }
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button3.1"
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button3.2",
+          "layoutOptions": { "newRow": false }
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button3.3",
+          "layoutOptions": { "newRow": false }
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button4.1"
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button4.2",
+          "minSize": [ 50, -1 ],
+          "layoutOptions": { "newRow": false }
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button4.3",
+          "layoutOptions": { "newRow": false }
+        },
+        {
+          "typeID": "GUI_BUTTON",
+          "text": "button4.4",
+          "layoutOptions": { "newRow": false }
+        }
+      ]
+    },
+    {
+      "typeID": "GUI_PANEL",
+      "backgroundColor": [ 0.35, 0.35, 0.35, 1.0 ],
+      "layoutOptions": { "weight": 0.5 }
+    }
+  ]
+}

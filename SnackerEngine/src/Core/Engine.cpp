@@ -5,6 +5,7 @@
 #include "Core/Timer.h"
 #include "Core/Assert.h"
 #include "Network/Network.h"
+#include "Gui/GuiManager.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -124,6 +125,8 @@ namespace SnackerEngine
 			return false;
 		// Initialize AssetManager class
 		AssetManager::initialize();
+		/// Initialize GuiManager
+		GuiManager::initialize();
 
 		// Register GLFW callbacks
 		GLCall(glfwSetKeyCallback(Renderer::activeWindow, &callbackKeyboard));

@@ -1,10 +1,21 @@
 #include "Graphics/Texture.h"
 #include "AssetManager/TextureManager.h"
+#include "Utility\Json.h"
 
 #include <msdfgen.h>
 
 namespace SnackerEngine
 {
+	//------------------------------------------------------------------------------------------------------
+	template<> bool isOfType<Texture>(const nlohmann::json& json)
+	{
+		return json.is_string();
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Texture parseJSON(const nlohmann::json& json)
+	{
+		return Texture::Load2D(parseJSON<std::string>(json)).first;
+	}
 	//--------------------------------------------------------------------------------------------------
 	Texture::Texture(TextureID textureID)
 		: textureID(textureID)

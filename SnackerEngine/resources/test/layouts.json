@@ -1,0 +1,93 @@
+{
+  "typeID": "GUI_HORIZONTAL_LAYOUT",
+  "allowMoveBorders": true,
+  "children": [
+    {
+      "layoutOptions": { "weight": 0.5 },
+      "typeID": "GUI_PANEL",
+      "backgroundColor": [ 0.0, 1.0, 0.8, 1.0 ],
+      "children": {
+        "typeID": "GUI_POSITIONING_LAYOUT",
+        "mode": "CENTER",
+        "children": [
+          {
+            "typeID": "GUI_PANEL",
+            "size": [ 150, 100 ],
+            "backgroundColor": [ 1.0, 1.0, 1.0, 1.0 ],
+            "children": {
+              "typeID": "GUI_HORIZONTAL_LAYOUT",
+              "allowMoveBorders": true,
+              "children": [
+                {
+                  "layoutOptions": { "weight": 0.3 },
+                  "typeID": "GUI_PANEL",
+                  "backgroundColor": [ 1.0, 0.0, 0.0, 1.0 ]
+                },
+                {
+                  "layoutOptions": { "weight": 0.3 },
+                  "typeID": "GUI_PANEL",
+                  "backgroundColor": [ 0.0, 1.0, 0.0, 1.0 ]
+                },
+                {
+                  "layoutOptions": { "weight": 0.3 },
+                  "typeID": "GUI_PANEL",
+                  "backgroundColor": [ 0.0, 0.0, 1.0, 1.0 ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "layoutOptions": { "weight": 0.3 },
+      "typeID": "GUI_GRID_LAYOUT",
+      "totalRows": 3,
+      "totalColumns": 5,
+      "children": [
+        {
+          "layoutOptions": {
+            "column": 2,
+            "row": 2
+          },
+          "typeID": "GUI_PANEL",
+          "backgroundColor": [0.4, 0.5, 1.0, 1.0]
+        },
+        {
+
+        }
+      ]
+    },
+    {
+      "layoutOptions": { "weight": 0.3 },
+      "typeID": "GUI_PANEL",
+      "backgroundColor": [ 1.0, 0.0, 0.3, 1.0 ],
+      "children": [
+        {
+          "typeID": "GUI_POSITIONING_LAYOUT",
+          "mode": "TOP_LEFT",
+          "children": [
+            {
+              "typeID": "GUI_PANEL",
+              "size": [ 90, 300 ],
+              "backgroundColor": [ 0.0, 1.0, 0.6, 1.0 ],
+              "children": [
+                {
+                  "typeID": "GUI_POSITIONING_LAYOUT",
+                  "mode": "BOTTOM_RIGHT",
+                  "children": [
+                    {
+                      "typeID": "GUI_PANEL",
+                      "size": [ 30, 30 ],
+                      "backgroundColor": [ 0.0, 0.0, 0.0, 1.0 ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

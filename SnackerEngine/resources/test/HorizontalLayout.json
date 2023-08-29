@@ -1,0 +1,36 @@
+{
+  "typeID": "GUI_VERTICAL_LAYOUT",
+  "verticalLayoutMode": "FORCED_WIDTH",
+  "defaultAlignmentHorizontal": "CENTER",
+  "horizontalBorder": 20,
+  "children": [
+    {
+      "typeID": "GUI_PANEL",
+      "size": [ 100, 100 ],
+      "minSize": [ 100, 20 ],
+      "preferredSize": [ 100, -1 ],
+      "maxSize": [ 100, -1 ],
+      "backgroundColor": [ 1.0, 0.0, 0.0, 1.0 ]
+    },
+    {
+      "typeID": "GUI_PANEL",
+      "layoutOptions": { "alignmentHorizontal": "RIGHT" },
+      "position": [ 100, 100 ],
+      "size": [ 100, 100 ],
+      "minSize": [ 2000, 20 ],
+      "preferredSize": [ 3000, 100 ],
+      "maxSize": [ 10000, 100 ],
+      "backgroundColor": [ 0.0, 1.0, 0.0, 1.0 ]
+    },
+    {
+      "typeID": "GUI_PANEL",
+      "layoutOptions":  { "alignmentHorizontal": "LEFT" },
+      "position": [ 200, 200 ],
+      "size": [ 100, 100 ],
+      "minSize": [ 100, 20 ],
+      "preferredSize": [ 100, 200 ],
+      "maxSize": [ 100, 400 ],
+      "backgroundColor": [ 0.0, 0.0, 1.0, 1.0 ]
+    }
+  ]
+}

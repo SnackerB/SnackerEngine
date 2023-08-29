@@ -73,9 +73,11 @@ namespace SnackerEngine
 		StaticText();
 		/// Constuctor using a string and various parameters
 		StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
-		/// Copy and Move constructors
-		StaticText(const StaticText& other) noexcept;
+		/// Copy and Move constructors and operators
+		StaticText(const StaticText& other) = delete;
 		StaticText(StaticText&& other) noexcept;
+		StaticText& operator=(const StaticText& other) = delete;
+		StaticText& operator=(StaticText&& other) noexcept;
 	};
 	//--------------------------------------------------------------------------------------------------
 	/// A DynamicText object does everything a StaticText object does, but has functions that can be used
@@ -84,23 +86,23 @@ namespace SnackerEngine
 	{
 	protected:
 		/// The font in which the text is written
-		Font font;
+		Font font{};
 		/// The font size in pt
-		double fontSize;
+		double fontSize = 0.0;
 		/// The width of the text in pt
-		double textWidth;
+		double textWidth = 0.0;
 		/// The contents of the text
-		std::string text;
+		std::string text = "";
 		/// The mode used while parsing
-		ParseMode parseMode;
+		ParseMode parseMode = ParseMode::CHARACTERS;
 		/// The alignment of the text
-		Alignment alignment;
+		Alignment alignment = Alignment::LEFT;
 		/// The right border of the text, in pt. Gets set when the model is constructed
-		double right;
+		double right = 0.0;
 		/// Vector of unicode characters
-		std::vector<Character> characters;
+		std::vector<Character> characters{};
 		/// Vector of lines
-		std::vector<Line> lines;
+		std::vector<Line> lines{};
 		/// Constructs the model from the text member variable using parse mode 'CHARACTERS'
 		virtual Model parseTextCharacters();
 		/// Constructs the model from the text member variable using parse mode 'WORD_BY_WORD'
@@ -114,29 +116,32 @@ namespace SnackerEngine
 		DynamicText();
 		/// Constuctor using a string and various parameters
 		DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
-		/// Copy and Move constructors
+		/// Copy and Move constructors and operators
 		DynamicText(const DynamicText& other) noexcept;
 		DynamicText(DynamicText&& other) noexcept;
+		DynamicText& operator=(const DynamicText& other) noexcept;
+		DynamicText& operator=(DynamicText&& other) noexcept;
 		/// Getters
 		const Font& getFont() const;
-		const double& getFontSize() const;
-		const double& getTextWidth() const;
+		double getFontSize() const;
+		double getTextWidth() const;
+		Vec2d getTextSize() const;
 		virtual const std::string& getText();
 		const Model& getModel() const;
 		const ParseMode& getParseMode() const;
 		const Alignment& getAlignment() const;
 		/// Returns the y coordinate of the top of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
-		double getTop();
+		double getTop() const;
 		/// Returns the y coordinate of the bottom of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
-		double getBottom();
+		double getBottom() const;
 		/// Returns the x coordinate of the left-most point in the text (in pt)
-		double getLeft();
+		double getLeft() const;
 		/// Returns the x coordinate of the right-most point in the text (in pt)
-		double getRight();
+		double getRight() const;
 		/// Returns most right point of the given line (in pt)
-		double getRight(const unsigned int& lineIndex);
+		double getRight(const unsigned int& lineIndex) const;
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
@@ -219,9 +224,11 @@ namespace SnackerEngine
 		EditableText();
 		/// Constuctor using a string and various parameters
 		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
-		/// Copy and Move constructors
+		/// Copy and Move constructors and operators
 		EditableText(const EditableText& other) noexcept;
 		EditableText(EditableText&& other) noexcept;
+		EditableText& operator=(const EditableText& other) noexcept;
+		EditableText& operator=(EditableText&& other) noexcept;
 		/// Sets the cursor position
 		/// index: index of unciode character in front of which the cursor is shown. Indices start at zero
 		/// If moveSelection is set to false, a selection will be made/changed (eg. use when pressing shift)

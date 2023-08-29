@@ -1,3 +1,8 @@
+#include "GuiTextBox.h"
+#include "GuiTextBox.h"
+#include "GuiTextBox.h"
+#include "GuiTextBox.h"
+#include "GuiTextBox.h"
 #include "Gui/GuiElements/GuiTextBox.h"
 
 #include "Core/Engine.h"
@@ -90,8 +95,15 @@ namespace SnackerEngine
 		recomputeTextOnSizeChange();
 	}
 
-	GuiDynamicTextBox::IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& offset)
+	IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& offset) const
 	{
+		return IsCollidingResult();
+	}
+
+	GuiDynamicTextBox::IsCollidingResult GuiDynamicTextBox::isColliding(const Vec2i& offset)
+	{return (offset.x > 0 && offset.x < getWidth()
+			&& offset.y > 0 && offset.y < getHeight()) ?
+			IsCollidingResult::COLLIDE_CHILD : IsCollidingResult::NOT_COLLIDING;
 		return (offset.x > 0 && offset.x < getWidth()
 			&& offset.y > 0 && offset.y < getHeight()) ?
 			IsCollidingResult::COLLIDE_CHILD : IsCollidingResult::NOT_COLLIDING;
@@ -284,6 +296,22 @@ namespace SnackerEngine
 		doRecomputeOnSizeChange(doRecomputeOnSizeChange), lastSizeOnRecomputeText(Vec2i(-1, -1))
 	{
 		recomputeText();
+	}
+
+	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text)
+	{
+	}
+
+	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text, const nlohmann::json* styleData)
+	{
+	}
+
+	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text, const double& fontSize, const nlohmann::json* styleData)
+	{
+	}
+
+	GuiDynamicTextBox::GuiDynamicTextBox(const std::string& text, const Font& font, const double& fontSize, const nlohmann::json* styleData)
+	{
 	}
 
 	GuiDynamicTextBox::GuiDynamicTextBox(const Vec2i& position, const Vec2i& size, const GuiElement::ResizeMode& resizeMode, const std::string& text, const Font& font, const double& fontSize, Color4f textColor, Color4f backgroundColor, const StaticText::ParseMode& parseMode, const StaticText::Alignment& alignment, const int& border, const TextScaleMode& textScaleMode, const SizeHintModes sizeHintModes, bool doRecomputeOnSizeChange)

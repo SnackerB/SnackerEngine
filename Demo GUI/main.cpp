@@ -2,29 +2,122 @@
 #include "Utility/Json.h"
 #include "Math/Vec.h"
 #include "Graphics/Color.h"
+#include "Gui/GuiManager.h"
+#include "Gui/GuiElements/GuiPanel.h"
+#include "Core/Keys.h"
+#include "Gui/GuiManager.h"
+#include "Gui/GuiElements/GuiButton.h"
+#include "Gui/GuiElements/GuiSlider.h"
+#include "Utility\Formatting.h"
 
-int main()
+class GuiDemoScene : public SnackerEngine::Scene
+{
+	SnackerEngine::GuiManager guiManager;
+	SnackerEngine::GuiEventHandle buttonHandle;
+	SnackerEngine::GuiVariableHandle<double> doubleHandle;
+public:
+	GuiDemoScene()
+	{
+		std::unique_ptr<SnackerEngine::GuiPanel> panel = std::make_unique<SnackerEngine::GuiPanel>(SnackerEngine::Vec2i(100, 100), SnackerEngine::Vec2i(500, 300), SnackerEngine::GuiElement::ResizeMode::DO_NOT_RESIZE, SnackerEngine::Color4f(1.0f, 0.0f, 0.0f, 1.0f));
+		//SnackerEngine::GuiPanel panel({ 100, 100 }, { 500, 300 }, SnackerEngine::GuiElement::ResizeMode::DO_NOT_RESIZE, { 1.0f, 0.0f, 0.0f, 1.0f });
+		guiManager.registerAndMoveElementPtr(std::move(panel));
+	}
+
+	void draw() override
+	{
+		guiManager.draw();
+	}
+
+	void callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods) override
+	{
+		if (key == KEY_R && action == ACTION_PRESS) 
+		{
+			guiManager.clear();
+			auto json = SnackerEngine::loadJSON("test/window.json");
+			//auto json = SnackerEngine::loadJSON("test/testListLayouts.json");
+			//auto json = SnackerEngine::loadJSON("test/test.json");
+			if (json.has_value()) {
+				guiManager.loadAndRegisterJSON(json.value(), nullptr);
+			}
+			SnackerEngine::GuiButton* button = guiManager.getGuiElement<SnackerEngine::GuiButton>("button1");
+			if (button) {
+				button->setEventHandle(buttonHandle);
+			}
+			SnackerEngine::GuiSlider<double>* slider = guiManager.getGuiElement<SnackerEngine::GuiSlider<double>>("slider1");
+			if (slider) {
+				slider->setVariableHandle(doubleHandle);
+			}
+		}
+		guiManager.callbackKeyboard(key, scancode, action, mods);
+	}
+
+	virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override
+	{
+		guiManager.callbackMouseButton(button, action, mods);
+	}
+
+	virtual void callbackMouseMotion(const SnackerEngine::Vec2d& position) override
+	{
+		guiManager.callbackMouseMotion(position);
+	}
+
+	void callbackWindowResize(const SnackerEngine::Vec2i& screenDims) override
+	{
+		guiManager.callbackWindowResize(screenDims);
+	}
+
+	void callbackMouseScroll(const SnackerEngine::Vec2d& offset) override
+	{
+		guiManager.callbackMouseScroll(offset);
+	}
+
+	virtual void callbackCharacterInput(const unsigned int& codepoint) override
+	{
+		guiManager.callbackCharacterInput(codepoint);
+	}
+
+	virtual void update(const double& dt) override
+	{
+		guiManager.update(dt);
+		if (buttonHandle.isActive()) {
+			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN <<
+				"Button pressed!!" << SnackerEngine::LOGGER::ENDL;
+			buttonHandle.reset();
+		}
+	}
+};
+
+void main()
 {
 	if (!SnackerEngine::Engine::initialize(1200, 700, "Demo: GUI")) {
 		SnackerEngine::errorLogger << SnackerEngine::LOGGER::BEGIN << "startup failed!" << SnackerEngine::LOGGER::ENDL;
+		return;
 	}
 
+	SnackerEngine::DoubleFormatter formatter(10, 20);
+	double x = 12445.123871;
+	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << formatter.to_string(x) << SnackerEngine::LOGGER::ENDL;
+
 	{
-		auto dataJSON = SnackerEngine::loadJSON("test/data.json");
-		auto defaultJSON = SnackerEngine::loadJSON("test/default.json");
-		if (dataJSON.has_value() && defaultJSON.has_value()) {
-			std::string street = SnackerEngine::parseJSON<std::string>(dataJSON.value()["street"]);
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "street : " << street << SnackerEngine::LOGGER::ENDL;
-			int meaningOfLife = SnackerEngine::parseJSON<int>(dataJSON.value()["meaningOfLife"]);
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "meaningOfLife : " << meaningOfLife << SnackerEngine::LOGGER::ENDL;
-			float pi = SnackerEngine::parseJSON<float>(dataJSON.value()["pi"]);
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "pi : " << pi << SnackerEngine::LOGGER::ENDL;
-			SnackerEngine::Vec2i position = SnackerEngine::parseJSON<SnackerEngine::Vec2i>(dataJSON.value()["position"]);
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "position : " << position << SnackerEngine::LOGGER::ENDL;
-			
-			auto color = SnackerEngine::parseJsonOrReadFromData<SnackerEngine::Color3f>(dataJSON.value()["color"], &defaultJSON.value());
-			SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "color : " << color.value() << SnackerEngine::LOGGER::ENDL;
-		}
+		//auto dataJSON = SnackerEngine::loadJSON("test/data.json");
+		//auto defaultJSON = SnackerEngine::loadJSON("test/default.json");
+		//if (dataJSON.has_value() && defaultJSON.has_value()) {
+		//	std::string street = SnackerEngine::parseJSON<std::string>(dataJSON.value()["street"]);
+		//	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "street : " << street << SnackerEngine::LOGGER::ENDL;
+		//	int meaningOfLife = SnackerEngine::parseJSON<int>(dataJSON.value()["meaningOfLife"]);
+		//	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "meaningOfLife : " << meaningOfLife << SnackerEngine::LOGGER::ENDL;
+		//	float pi = SnackerEngine::parseJSON<float>(dataJSON.value()["pi"]);
+		//	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "pi : " << pi << SnackerEngine::LOGGER::ENDL;
+		//	SnackerEngine::Vec2i position = SnackerEngine::parseJSON<SnackerEngine::Vec2i>(dataJSON.value()["position"]);
+		//	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "position : " << position << SnackerEngine::LOGGER::ENDL;
+		//	
+		//	auto color = SnackerEngine::parseJsonOrReadFromData<SnackerEngine::Color3f>(dataJSON.value()["color"], &defaultJSON.value());
+		//	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "color : " << color.value() << SnackerEngine::LOGGER::ENDL;
+		//}
+
+		GuiDemoScene scene;
+		SnackerEngine::Engine::setActiveScene(scene);
+		SnackerEngine::Engine::startup();
 	}
 
 	SnackerEngine::Engine::terminate();

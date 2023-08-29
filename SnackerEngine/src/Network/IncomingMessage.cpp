@@ -22,13 +22,13 @@ namespace SnackerEngine
     {
         unsigned int totalSize = 0;
         for (const auto& dataPart : dataParts) {
-            totalSize += dataPart.size();
+            totalSize += static_cast<unsigned>(dataPart.size());
         }
         std::vector<std::byte> data(totalSize);
         unsigned int offset = 0;
         for (const auto& dataPart : dataParts) {
             std::memcpy(data.data() + offset, dataPart.data(), dataPart.size());
-            offset += dataPart.size();
+            offset += static_cast<unsigned>(dataPart.size());
         }
         return SMP_Message(src, smpHeader, std::move(data));
     }

@@ -15,22 +15,22 @@ namespace SnackerEngine
 	class TextureDataBuffer {
 		/// TextureManager needs friend access
 		friend class TextureManager;
-		Texture::TextureDataType textureDataType;
-		Texture::TextureDataPrecision textureDataPrecision;
-		Texture::TextureDataFormat textureDataFormat;
+		Texture::TextureDataType textureDataType = Texture::TextureDataType::UNSIGNED_BYTE;
+		Texture::TextureDataPrecision textureDataPrecision = Texture::TextureDataPrecision::PRECISION_NOT_SPECIFIED;
+		Texture::TextureDataFormat textureDataFormat = Texture::TextureDataFormat::RGBA;
 		/// Size of the buffer in pixels
-		Vec2i size;
+		Vec2i size = Vec2i();
 		/// Stride between neighbouring elements, in bytes
-		unsigned int stride;
+		unsigned int stride = 0;
 		// Total size of the data vector in bytes
-		unsigned int dataSize;
+		unsigned int dataSize = 0;
 		// padding in bytes after each row necessary for OpenGL texture Storage
-		unsigned int padding;
+		unsigned int padding = 0;
 		/// Number of bytes per element (PRECISION_32: bytesPerElement = 4, PRECISION_16: bytesPerElement = 2,
 		/// else: bytesPerElement = 1)
-		unsigned int bytesPerElement;
+		unsigned int bytesPerElement = 1;
 		/// Vector holding the actual data
-		std::vector<std::byte> dataStorage;
+		std::vector<std::byte> dataStorage{};
 		/// Helper function that computes the index into the storageArray of a 2D position
 		unsigned int computeIndex(const Vec2i& position) const;
 		/// Helper function that sets a value starting at the given index. Automatically uses the correct precision
