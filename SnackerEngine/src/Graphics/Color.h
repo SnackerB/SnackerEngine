@@ -18,7 +18,7 @@ namespace SnackerEngine
 		Color3() = default;
 		/// Converts from a color vector where each color is in [0, 255]
 		template<typename T2>
-		static Color3<T> fromColor256(Color3<T2> color256);
+		static Color3<T> fromColor256(const Color3<T2>& color256);
 		Color3<T> operator*(const T& scalar) const { return Color3<T>(r * scalar, g * scalar, b * scalar); }
 	};
 	//------------------------------------------------------------------------------------------------------
@@ -43,9 +43,9 @@ namespace SnackerEngine
 		Color4() = default;
 		/// Converts from a color vector where each color is in [0, 255]
 		template<typename T2>
-		static Color4<T> fromColor256(Color4<T2> color256);
+		static Color4<T> fromColor256(const Color4<T2>& color256);
 		/// Implicit conversion from Color3
-		Color4(Color3<T> color)
+		Color4(const Color3<T>& color)
 			: r(color.r), g(color.g), b(color.b), alpha(T(1)) {}
 		/// Converts this color to Color3 by dropping the alpha channel
 		Color3<T> rgb() { return Color3<T>(r, g, b); }
@@ -62,16 +62,21 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>
 	template<typename T2>
-	inline Color3<T> Color3<T>::fromColor256(Color3<T2> color256)
+	inline Color3<T> Color3<T>::fromColor256(const Color3<T2>& color256)
 	{
 		return Color3<T>(static_cast<T>(color256.r) / T(255), static_cast<T>(color256.g) / T(255), static_cast<T>(color256.b) / T(255));
 	}
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>
 	template<typename T2>
-	inline Color4<T> Color4<T>::fromColor256(Color4<T2> color256)
+	inline Color4<T> Color4<T>::fromColor256(const Color4<T2>& color256)
 	{
 		return Color4<T>(static_cast<T>(color256.r) / T(255), static_cast<T>(color256.g) / T(255), static_cast<T>(color256.b) / T(255), static_cast<T>(color256.alpha) / T(255));
 	}
 	//------------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline Color4<T> scaleRGB(const Color4<T>& color, T scalar)
+	{
+		return Color4<T>(color.r * scalar, color.g * scalar, color.b * scalar, color.alpha);
+	}
 }

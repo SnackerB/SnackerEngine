@@ -10,7 +10,13 @@ namespace SnackerEngine
 	template<typename T>
 	struct Vec2
 	{
-		T x, y;
+		union {
+			struct {
+				T x;
+				T y;
+			};
+			T values[2];
+		};
 		/// Constructors
 		Vec2(const T& x, const T& y)
 			: x(x), y(y) {}
@@ -31,6 +37,8 @@ namespace SnackerEngine
 		void operator/=(const T& scalar) { x /= scalar; y /= scalar; }
 		bool operator==(const Vec2<T>& other) const { return x == other.x && y == other.y; }
 		bool operator!=(const Vec2<T>& other) const { return x != other.x || y != other.y; }
+		/// Getter
+		T& operator[](unsigned i) { return values[i]; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
@@ -46,7 +54,14 @@ namespace SnackerEngine
 	template<typename T>
 	struct Vec3
 	{
-		T x, y, z;
+		union {
+			struct {
+				T x;
+				T y;
+				T z;
+			};
+			T values[3];
+		};
 		/// Constructors
 		Vec3(const T& x, const T& y, const T& z)
 			: x(x), y(y), z(z) {}
@@ -68,6 +83,8 @@ namespace SnackerEngine
 		void operator/=(const T& scalar) { x /= scalar; y /= scalar; z /= scalar; }
 		bool operator==(const Vec3<T>& other) const { return x == other.x && y == other.y && z == other.z; }
 		bool operator!=(const Vec3<T>& other) const { return x != other.x || y != other.y || z != other.z; }
+		/// Getter
+		T& operator[](unsigned i) { return values[i]; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
@@ -83,7 +100,15 @@ namespace SnackerEngine
 	template<typename T>
 	struct Vec4
 	{
-		T x, y, z, w;
+		union {
+			struct {
+				T x;
+				T y;
+				T z;
+				T w;
+			};
+			T values[4];
+		};
 		/// Constructors
 		Vec4(const T& x, const T& y, const T& z, const T& w)
 			: x(x), y(y), z(z), w(w) {}
@@ -103,6 +128,8 @@ namespace SnackerEngine
 		void operator/=(const T& scalar) const { x /= scalar; y /= scalar; z /= scalar; w /= scalar; }
 		bool operator==(const Vec4<T>& other) const { return x == other.x && y == other.y && z == other.z && w == other.w; }
 		bool operator!=(const Vec4<T>& other) const { return x != other.x || y != other.y || z != other.z || w != other.w; }
+		/// Getter
+		T& operator[](unsigned i) { return values[i]; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z + w * w; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }

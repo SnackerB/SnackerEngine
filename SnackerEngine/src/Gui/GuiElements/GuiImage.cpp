@@ -5,7 +5,9 @@
 
 namespace SnackerEngine
 {
-
+	//------------------------------------------------------------------------------------------------------
+	Shader GuiImage::defaultImageShader{};
+	Texture GuiImage::defaultTexture{};
 	//------------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiImage::GuiImageMode>(const nlohmann::json& json)
 	{

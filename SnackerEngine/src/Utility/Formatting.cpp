@@ -37,7 +37,7 @@ namespace SnackerEngine
 		{
 			return std::stof(string);
 		}
-		catch (const std::exception& exception)
+		catch (const std::exception&)
 		{
 			return {};
 		}
@@ -50,7 +50,7 @@ namespace SnackerEngine
 		{
 			return std::stod(string);
 		}
-		catch (const std::exception& exception)
+		catch (const std::exception&)
 		{
 			return {};
 		}
@@ -63,7 +63,7 @@ namespace SnackerEngine
 		{
 			return std::stoi(string);
 		}
-		catch (const std::exception& exception)
+		catch (const std::exception&)
 		{
 			return {};
 		}
@@ -76,7 +76,7 @@ namespace SnackerEngine
 		{
 			return static_cast<unsigned>(std::stoul(string));
 		}
-		catch (const std::exception& exception)
+		catch (const std::exception&)
 		{
 			return {};
 		}

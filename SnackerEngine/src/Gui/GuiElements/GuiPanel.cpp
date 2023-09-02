@@ -5,6 +5,9 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	Color4f GuiPanel::defaultBackgroundColor = Color4f(0.0f, 1.0f);
+	Shader GuiPanel::defaultBackgroundShader{};
+	//--------------------------------------------------------------------------------------------------
 	GuiPanel::GuiPanel(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor)
 		: GuiElement(position, size, resizeMode), backgroundColor(backgroundColor), modelMatrix{},
 		shader("shaders/gui/simpleAlphaColor.shader")
@@ -93,15 +96,6 @@ namespace SnackerEngine
 	{
 		GuiElement::onSizeChange();
 		computeModelMatrix();
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPanel::IsCollidingResult GuiPanel::isColliding(const Vec2i& offset) const
-	{
-		const Vec2i& myPosition = getPosition();
-		const Vec2i& mySize = getSize();
-		return (offset.x > 0 && offset.x < mySize.x
-			&& offset.y > 0 && offset.y < mySize.y) ?
-			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::computeModelMatrix()

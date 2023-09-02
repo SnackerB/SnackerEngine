@@ -45,6 +45,20 @@ namespace SnackerEngine
 		ShaderManager::increaseReferenceCount(*this);
 	}
 	//------------------------------------------------------------------------------------------------------
+	Shader& Shader::operator=(Shader&& other) noexcept
+	{
+		ShaderManager::decreaseReferenceCount(*this);
+		shaderID = other.shaderID;
+		other.shaderID = 0;
+		return *this;
+	}
+	//------------------------------------------------------------------------------------------------------
+	Shader::Shader(Shader&& other) noexcept
+		: shaderID(other.shaderID)
+	{
+		other.shaderID = 0;
+	}
+	//------------------------------------------------------------------------------------------------------
 	void Shader::bind() const
 	{
 		ShaderManager::bind(*this);

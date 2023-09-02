@@ -5,21 +5,20 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	unsigned GuiHorizontalLayout::defaultVerticalBorder = 0;
+	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiHorizontalLayout::HorizontalLayoutMode>(const nlohmann::json& json)
 	{
 		return json.is_string() && (
-			json == "VARIABLE_HEIGHT" ||
-			json == "FORCED_HEIGHT" ||
-			json == "FORCE_CHILD_HEIGHT"
-			);
+			json == "CHILD_HEIGHT_RANGE" ||
+			json == "CHILD_HEIGHT_TO_LAYOUT_HEIGHT");
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<> GuiHorizontalLayout::HorizontalLayoutMode parseJSON(const nlohmann::json& json)
 	{
-		if (json == "VARIABLE_HEIGHT") return GuiHorizontalLayout::HorizontalLayoutMode::VARIABLE_HEIGHT;
-		else if (json == "FORCED_HEIGHT") return GuiHorizontalLayout::HorizontalLayoutMode::FORCED_HEIGHT;
-		else if (json == "FORCE_CHILD_HEIGHT") return GuiHorizontalLayout::HorizontalLayoutMode::FORCE_CHILD_HEIGHT;
-		return GuiHorizontalLayout::HorizontalLayoutMode::VARIABLE_HEIGHT;
+		if (json == "CHILD_HEIGHT_RANGE") return GuiHorizontalLayout::HorizontalLayoutMode::CHILD_HEIGHT_RANGE;
+		else if (json == "CHILD_HEIGHT_TO_LAYOUT_HEIGHT") return GuiHorizontalLayout::HorizontalLayoutMode::CHILD_HEIGHT_TO_LAYOUT_HEIGHT;
+		return GuiHorizontalLayout::HorizontalLayoutMode::CHILD_HEIGHT_RANGE;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalLayout::setAlignmentVertical(GuiID childID, AlignmentVertical alignmentVertical)
@@ -46,6 +45,36 @@ namespace SnackerEngine
 	{
 		alignmentsVertical.push_back(alignmentVertical);
 	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalLayout::computeHeightHintsFromChildren()
+	{
+		int minHeight = 0;
+		std::optional<int> preferredHeight = std::nullopt;
+		for (auto childID : getChildren()) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				// Set minHeight to largest minHeight (+ vertical borders)
+				minHeight = std::max(minHeight, child->getMinHeight() + 2 * static_cast<int>(verticalBorder));
+				// If all children have the same preferred height, this will be the layouts preferred height. Otherwise, set
+				// preferredHeight to SIZE_HINT_ARBITRARY. If any child has preferredHeight of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
+				// set the layouts preferredHeight to SIZE_HINT_AS_LARGE_AS_POSSIBLE
+				if (preferredHeight.has_value()) {
+					if (preferredHeight.value() >= 0) {
+						int tempPreferredHeight = child->getPreferredHeight();
+						if (tempPreferredHeight != preferredHeight.value()) preferredHeight = SIZE_HINT_ARBITRARY;
+					}
+				}
+				else {
+					int tempPreferredHeight = child->getPreferredHeight();
+					if (tempPreferredHeight >= 0) preferredHeight = tempPreferredHeight;
+				}
+				if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+			}
+		}
+		setMinHeight(minHeight);
+		if (preferredHeight.has_value()) setPreferredHeight(preferredHeight.value());
+		else setPreferredHeight(SIZE_HINT_ARBITRARY);
+	}	
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalLayout::GuiHorizontalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiLayout(json, data, parameterNames)
@@ -126,38 +155,13 @@ namespace SnackerEngine
 		const auto& children = getChildren();
 		switch (horizontalLayoutMode)
 		{
-		case SnackerEngine::GuiHorizontalLayout::HorizontalLayoutMode::VARIABLE_HEIGHT:
-		{
-			int minHeight = 0;
-			int preferredHeight = -1;
-			int maxHeight = 0;
-			for (unsigned i = 0; i < children.size(); ++i) {
-				GuiElement* child = getElement(children[i]);
-				if (!child) continue;
-				if (child->getMinHeight() + 2 * static_cast<int>(verticalBorder) > minHeight) minHeight = child->getMinHeight() + 2 * verticalBorder;
-				if (child->getPreferredHeight() != -1 && child->getPreferredHeight() + static_cast<int>(2 * verticalBorder) > preferredHeight) preferredHeight = child->getPreferredHeight() + 2 * verticalBorder;
-				if (maxHeight != -1) {
-					if (child->getMaxHeight() == -1) maxHeight = -1;
-					else if (child->getMaxHeight() + 2 * static_cast<int>(verticalBorder) > maxHeight) maxHeight = child->getMaxHeight() + 2 * verticalBorder;
-				}
-				int childHeight = child->getPreferredHeight() != -1 ? child->getPreferredHeight() : child->getHeight();
-				childHeight = std::min(childHeight, getHeight() - 2 * static_cast<int>(verticalBorder));
-				childHeight = child->clampToMinMaxHeight(childHeight);
-				child->setHeight(childHeight);
-				child->setPositionY(computeChildPositionY(child->getHeight(), alignmentsVertical[i]));
-			}
-			if (preferredHeight != -1 && preferredHeight < minHeight) preferredHeight = minHeight;
-			setMinHeight(minHeight);
-			setPreferredHeight(preferredHeight);
-			setMaxHeight(maxHeight);
-			break;
-		}
-		case SnackerEngine::GuiHorizontalLayout::HorizontalLayoutMode::FORCED_HEIGHT:
+		case HorizontalLayoutMode::CHILD_HEIGHT_RANGE:
 		{
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;
-				int childHeight = child->getPreferredHeight() != -1 ? child->getPreferredHeight() : child->getHeight();
+				int childHeight = child->getPreferredHeight();
+				if (childHeight < 0) childHeight = child->getMaxHeight() >= 0 ? child->getMaxHeight() : getHeight() - 2 * static_cast<int>(verticalBorder);
 				childHeight = std::min(childHeight, getHeight() - 2 * static_cast<int>(verticalBorder));
 				childHeight = child->clampToMinMaxHeight(childHeight);
 				child->setHeight(childHeight);
@@ -165,7 +169,7 @@ namespace SnackerEngine
 			}
 			break;
 		}
-		case SnackerEngine::GuiHorizontalLayout::HorizontalLayoutMode::FORCE_CHILD_HEIGHT:
+		case HorizontalLayoutMode::CHILD_HEIGHT_TO_LAYOUT_HEIGHT:
 		{
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
@@ -175,9 +179,8 @@ namespace SnackerEngine
 			}
 			break;
 		}
-		default:
-			break;
 		}
+		computeHeightHintsFromChildren();
 	}
 	//--------------------------------------------------------------------------------------------------
 }

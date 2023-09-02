@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include "Gui/GuiEventHandles/GuiEventHandle.h"
 
@@ -43,14 +42,14 @@ namespace SnackerEngine
 	inline void GuiVariableHandle<T>::set(const T& value)
 	{
 		val = value;
-		onHandleUpdate();
+		activate();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiVariableHandle<T>::operator=(const T& value)
 	{
 		val = value;
-		onHandleUpdate();
+		activate();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>

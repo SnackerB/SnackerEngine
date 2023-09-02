@@ -5,6 +5,8 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	unsigned GuiVerticalLayout::defaultHorizontalBorder = 0;
+	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiVerticalLayout::VerticalLayoutMode>(const nlohmann::json& json)
 	{
 		return json.is_string() && (

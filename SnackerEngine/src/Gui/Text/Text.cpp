@@ -126,7 +126,7 @@ namespace SnackerEngine
 		currentBaseline.y -= font.getLineHeight();
 		// Update the lines vector!
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
-		lines.push_back(StaticText::Line{ currentBaseline.y, static_cast<unsigned int>(characters.size()),
+		lines.push_back(StaticText::Line{ static_cast<double>(currentBaseline.y), static_cast<unsigned int>(characters.size()),
 			static_cast<unsigned int>(characters.size()) });
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ namespace SnackerEngine
 		currentBaseline.y -= font.getLineHeight();
 		// Update the lines vector!
 		lines.back().endIndex = firstCharacterOnNewlineIndex - 1;
-		lines.push_back(StaticText::Line{ currentBaseline.y, firstCharacterOnNewlineIndex,
+		lines.push_back(StaticText::Line{ static_cast<double>(currentBaseline.y), firstCharacterOnNewlineIndex,
 			firstCharacterOnNewlineIndex });
 	}
 	//--------------------------------------------------------------------------------------------------

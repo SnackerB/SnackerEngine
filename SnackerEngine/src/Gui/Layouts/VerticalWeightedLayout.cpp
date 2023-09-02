@@ -5,6 +5,9 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	int GuiVerticalWeightedLayout::defaultResizeAreaHeight = 5;
+	int GuiVerticalWeightedLayout::defaultVerticalBorder = 0;
+	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalWeightedLayout::stopResizing()
 	{
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_MOTION);

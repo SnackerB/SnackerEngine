@@ -49,6 +49,12 @@ namespace SnackerEngine
 			SizeHintModes(SizeHintMode sizeHintMode)
 				: sizeHintModeMinSize(sizeHintMode), sizeHintModeMaxSize(sizeHintMode), sizeHintModePreferredSize(sizeHintMode) {}
 		};
+	public:
+		/// Static default Attributes
+		static Color4f defaultTextColor;
+		static Color4f defaultBackgroundColor;
+		static unsigned defaultRecomputeTries;
+		static SizeHintModes defaultSizeHintModes;
 	protected:
 		/// The text object. This needs to be a pointer such that the Edit text class can save an 
 		/// EditableText object in this variable instead (thus avoiding code duplication)
@@ -71,20 +77,20 @@ namespace SnackerEngine
 		/// MaterialData is of type SimpleTextMaterialData
 		Material material = {};
 		/// Text color
-		Color4f textColor = Color4f(1.0f, 1.0f);
+		Color4f textColor = defaultTextColor;
 		/// Model matrices of the text
 		Mat4f modelMatrixText = {};
 		/// Text scale mode
 		TextScaleMode textScaleMode = TextScaleMode::DONT_SCALE;
 		/// Size hint modes
-		SizeHintModes sizeHintModes = { SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY };
+		SizeHintModes sizeHintModes = defaultSizeHintModes;
 		/// border between the box and the text in pixels
-		int border = 2;
+		int border = GuiElement::defaultBorderSmall;
 		/// The normal font size of the text (without any rescaling)
-		double fontSize = 20.0;
+		double fontSize = GuiElement::defaultFontSizeNormal;
 		/// The number of tries that are being made to resize the text when the textBoxMode is set to 
 		/// FORCE_SIZE_RECOMPUTE_SCALE_DOWN or FORCE_SIZE_RECOMPUTE_SCALE
-		unsigned int recomputeTries = 10;
+		unsigned int recomputeTries = defaultRecomputeTries;
 		/// If this is set to false, the text will not be recomputed on size changes, which can be useful
 		/// to save resources. The text will still be rescaled according to the textScaleMode.
 		/// Default value: True
@@ -94,11 +100,11 @@ namespace SnackerEngine
 		/// The displayed text
 		std::string text = "";
 		/// The parse mode
-		StaticText::ParseMode parseMode = StaticText::ParseMode::WORD_BY_WORD;
+		StaticText::ParseMode parseMode = StaticText::ParseMode::SINGLE_LINE;
 		/// The text alignment
 		StaticText::Alignment alignment = StaticText::Alignment::LEFT;
 		/// The font of the text
-		Font font = Font("fonts/Arial.ttf");
+		Font font = GuiElement::defaultFont;
 		/// Helper function that Computes the modelMatrix of the text and the background box.
 		/// Depending on the textBoxMode the text is scaled appropriately.
 		void computeModelMatrices();
@@ -117,7 +123,7 @@ namespace SnackerEngine
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_TEXT_BOX";
 		/// Default constructor
-		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = Font("fonts/arial.ttf"), const double& fontSize = 10);
+		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
 		/// Constructor from JSON
 		GuiTextBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor

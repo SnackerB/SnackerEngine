@@ -3,6 +3,48 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::computeSizeHintsFromChildren()
+	{
+		Vec2i minSize = 0;
+		std::optional<int> preferredWidth = std::nullopt;
+		std::optional<int> preferredHeight = std::nullopt;
+		for (auto childID : getChildren()) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				// Set minSize to largest minSize
+				minSize.x = std::max(minSize.x, child->getMinWidth());
+				minSize.y = std::max(minSize.y, child->getMinHeight());
+				// If all children have the same preferred width/height, this will be the layouts preferred width/height. 
+				// Otherwise, set the preferred width/height to -1 (arbitrary)
+				if (preferredWidth.has_value()) {
+					if (preferredWidth.value() != -1) {
+						int tempPreferredWidth = child->getPreferredWidth();
+						if (tempPreferredWidth != preferredWidth.value()) preferredWidth = -1;
+					}
+				}
+				else {
+					int tempPreferredWidth = child->getPreferredWidth();
+					if (tempPreferredWidth != -1) preferredWidth = tempPreferredWidth;
+				}
+				if (preferredHeight.has_value()) {
+					if (preferredHeight.value() != -1) {
+						int tempPreferredHeight = child->getPreferredHeight();
+						if (tempPreferredHeight != preferredHeight.value()) preferredHeight = -1;
+					}
+				}
+				else {
+					int tempPreferredHeight = child->getPreferredHeight();
+					if (tempPreferredHeight != -1) preferredHeight = tempPreferredHeight;
+				}
+			}
+		}
+		setMinSize(minSize);
+		if (preferredHeight.has_value()) setPreferredHeight(preferredHeight.value());
+		else setPreferredHeight(-1);
+		if (preferredWidth.has_value()) setPreferredWidth(preferredWidth.value());
+		else setPreferredWidth(-1);
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiPositioningLayout::GuiPositioningLayout(Mode mode)
 		: GuiLayout(), mode(mode) {}
 	//--------------------------------------------------------------------------------------------------
@@ -75,7 +117,10 @@ namespace SnackerEngine
 		{
 			GuiElement* child = getElement(childID);
 			if (!child) continue;
-			Vec2i childSize = child->clampToMinMaxSize(child->getPreferredOrCurrentSize());
+			Vec2i childSize = child->getPreferredSize();
+			if (childSize.x < 0) childSize.x = child->getMaxWidth();
+			if (childSize.y < 0) childSize.y = child->getMaxHeight();
+			childSize = child->clampToMinMaxSize(childSize);
 			// Compute position
 			Vec2i childPosition;
 			switch (mode)

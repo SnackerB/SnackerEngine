@@ -5,27 +5,36 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
+	int GuiWindow::defaultResizeButtonSize = -1;
+	Color4f GuiWindow::defaultResizeButtonColor = Color4f(0.1f, 0.1f, 1.0f, 0.8f);
+	Color4f GuiWindow::defaultTopBarBackgroundColor = Color4f(0.2f, 0.2f, 1.0f, 1.0f);
+	Color4f GuiWindow::defaultBackgroundColor = Color4f(0.1f, 0.1f, 0.1f, 1.0f);
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::computeResizeButtonModelMatrix()
 	{
 		resizeButtonModelMatrix = Mat4f::TranslateAndScale(Vec3f(static_cast<float>(getWidth() - resizeButtonSize), static_cast<float>(-getHeight()), 0.0f), Vec3f(static_cast<float>(resizeButtonSize), static_cast<float>(resizeButtonSize), 0.0f));
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	bool GuiWindow::isCollidingWithResizeButton(const Vec2i& offset) const
 	{
 		return offset.x >= getWidth() - resizeButtonSize && offset.y >= getHeight() - offset.x + getWidth() - resizeButtonSize;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	GuiWindow::GuiWindow(const Vec2i& position, const Vec2i& size, const std::string& name)
-		: GuiPanel(position, size)
+		: GuiPanel(position, size, ResizeMode::RESIZE_RANGE, defaultBackgroundColor)
 	{
 		topBar = GuiTextBox(Vec2i(), Vec2i(), name);
 		topBar.setParseMode(StaticText::ParseMode::SINGLE_LINE);
+		topBar.setBackgroundColor(defaultTopBarBackgroundColor);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	GuiWindow::GuiWindow(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiPanel(json, data, parameterNames)
 	{
+		topBar = GuiTextBox(Vec2i(), Vec2i(), "");
+		topBar.setParseMode(StaticText::ParseMode::SINGLE_LINE);
+		topBar.setBackgroundColor(defaultTopBarBackgroundColor);
 		parseJsonOrReadFromData(resizeButtonSize, "resizeButtonSize", json, data, parameterNames);
 		std::optional<int> topBarHeight = parseJsonOrReadFromData<int>("topBarHeight", json, data, parameterNames);
 		if (topBarHeight.has_value()) topBar.setHeight(topBarHeight.value());
@@ -40,15 +49,15 @@ namespace SnackerEngine
 		std::optional<Color4f> textColor = parseJsonOrReadFromData<Color4f>("textColor", json, data, parameterNames);
 		if (textColor.has_value()) topBar.setTextColor(textColor.value());
 		parseJsonOrReadFromData(resizeButtonColor, "resizeButtonColor", json, data, parameterNames);
-		topBar.setParseMode(StaticText::ParseMode::SINGLE_LINE);
+		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::setResizeButtonSize(int resizeButtonSize)
 	{
 		this->resizeButtonSize = resizeButtonSize;
 		computeResizeButtonModelMatrix();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
@@ -65,7 +74,7 @@ namespace SnackerEngine
 		getPanelShader().setUniform<Color4f>("u_color", resizeButtonColor);
 		Renderer::draw(guiManager->getModelTriangle());
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::onRegister()
 	{
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
@@ -73,22 +82,21 @@ namespace SnackerEngine
 		topBar.setSizeHintModeMinSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
 		topBar.setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
 		topBar.setSizeHintModeMaxSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
+		if (resizeButtonSize == SIZE_HINT_ARBITRARY) setResizeButtonSize(topBar.getPreferredHeight());
 		onSizeChange();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::onSizeChange()
 	{
 		GuiPanel::onSizeChange();
 		computeResizeButtonModelMatrix();
 		topBar.setSize(Vec2i(getWidth(), topBar.getPreferredHeight()));
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::enforceLayout()
 	{
 		/// this is similar to enforceLayout() from the base GuiElement class,
 		/// but only for the part below the topBar!
-
-		// Set size and position of each child that has resizeMode == SAME_AS_PARENT
 		Vec2i position = Vec2i(0, topBar.getHeight());
 		Vec2i size = getSize() - Vec2i(0, position.y);
 		for (const auto& childID : getChildren()) {
@@ -100,15 +108,15 @@ namespace SnackerEngine
 			case ResizeMode::RESIZE_RANGE:
 			{
 				Vec2i childSize = Vec2i(0, 0);
-				if (child->getPreferredWidth() != -1) childSize.x = child->getPreferredWidth();
+				if (child->getPreferredWidth() >= 0) childSize.x = child->getPreferredWidth();
 				else {
-					if (child->getMinWidth() != -1) childSize.x = std::max(child->getMinWidth(), child->getWidth());
-					if (child->getMaxWidth() != -1) childSize.x = std::min(child->getMaxWidth(), child->getWidth());
+					if (child->getPreferredWidth() == SIZE_HINT_ARBITRARY) childSize.x = child->clampToMinMaxWidth(child->getWidth());
+					else if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) childSize.x = child->getMaxWidth();
 				}
-				if (child->getPreferredHeight() != -1) childSize.y = child->getPreferredHeight();
+				if (child->getPreferredHeight() >= 0) childSize.y = child->getPreferredHeight();
 				else {
-					if (child->getMinHeight() != -1) childSize.y = std::max(child->getMinHeight(), child->getHeight());
-					if (child->getMaxHeight() != -1) childSize.y = std::min(child->getMaxHeight(), child->getHeight());
+					if (child->getPreferredHeight() == SIZE_HINT_ARBITRARY) childSize.y = child->clampToMinMaxHeight(child->getHeight());
+					else if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) childSize.y = child->getMaxHeight();
 				}
 				setSizeOfChild(childID, childSize);
 				break;
@@ -117,12 +125,12 @@ namespace SnackerEngine
 			}
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiWindow::isColliding(const Vec2i& offset) const
 	{
-		if (GuiPanel::isColliding(offset) != IsCollidingResult::NOT_COLLIDING) {
+		if (isCollidingBoundingBox(offset)) {
 			// Check if the resize button or top bar was hit
-			if (isCollidingWithResizeButton(offset) || topBar.isColliding(offset - getPosition()) != IsCollidingResult::NOT_COLLIDING) {
+			if (isCollidingWithResizeButton(offset) || topBar.isCollidingBoundingBox(offset - getPosition())) {
 				return IsCollidingResult::COLLIDE_STRONG;
 			}
 			else {
@@ -131,7 +139,7 @@ namespace SnackerEngine
 		}
 		return IsCollidingResult::NOT_COLLIDING;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
 		if (button == MOUSE_BUTTON_LEFT && action == ACTION_RELEASE) {
@@ -140,7 +148,7 @@ namespace SnackerEngine
 			signOffEvent(CallbackType::MOUSE_MOTION);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::callbackMouseMotion(const Vec2d& position)
 	{
 		if (isMoving) {
@@ -158,7 +166,7 @@ namespace SnackerEngine
 			setSize(newSize);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)
 	{
 		if (button == MOUSE_BUTTON_LEFT && action == ACTION_PRESS) {
@@ -176,5 +184,5 @@ namespace SnackerEngine
 			signUpEvent(CallbackType::MOUSE_BUTTON);
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 }

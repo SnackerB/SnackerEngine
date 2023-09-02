@@ -6,10 +6,13 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T> 
 	class GuiTextVariable : public GuiTextBox
 	{
+	public:
+		/// Static default Attributes
+		static std::optional<Formatter<T>> defaultFormatter;
 	private:
 		/// The handle to the variable that is shown in this textBox
 		GuiVariableHandle<T>* variableHandle = nullptr;
@@ -23,7 +26,7 @@ namespace SnackerEngine
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_TEXT_VARIABLE";
 		/// Default constructor
-		GuiTextVariable(const T& value, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = Font("fonts/arial.ttf"), const double& fontSize = 10);
+		GuiTextVariable(const T& value, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal);
 		/// Constructor from JSON
 		GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
@@ -57,14 +60,14 @@ namespace SnackerEngine
 		/// delete the previous event handle first!^Returns true on success
 		bool setVariableHandle(GuiVariableHandle<T>& variableHandle);
 	};
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiTextVariable<T>::updateText()
 	{
 		if (!formatter) setText(to_string(value));
 		else setText(formatter->to_string(value));
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const T& value, const Vec2i& position, const Vec2i& size, const Font& font, const double& fontSize)
 		: GuiTextBox(position, size, to_string(value), font, fontSize), variableHandle(nullptr), value(value)
@@ -72,7 +75,7 @@ namespace SnackerEngine
 		setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiTextBox(json, data, parameterNames)
@@ -85,18 +88,18 @@ namespace SnackerEngine
 		updateText();
 
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::~GuiTextVariable()
 	{
 		if (variableHandle) signOffHandle(*variableHandle);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const GuiTextVariable& other) noexcept
 		: GuiTextBox(other), variableHandle(nullptr), value(other.value),
 		formatter(other.formatter ? std::make_unique(*other.formatter) : nullptr) {}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>& GuiTextVariable<T>::operator=(const GuiTextVariable& other) noexcept
 	{
@@ -106,7 +109,7 @@ namespace SnackerEngine
 		this->value = other.value;
 		return *this;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(GuiTextVariable&& other) noexcept
 		: GuiTextBox(std::move(other)), variableHandle(std::move(other.variableHandle)), value(std::move(other.value)),
@@ -114,7 +117,7 @@ namespace SnackerEngine
 	{
 		if (variableHandle) onHandleMove(*variableHandle);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>& GuiTextVariable<T>::operator=(GuiTextVariable&& other) noexcept
 	{
@@ -126,7 +129,7 @@ namespace SnackerEngine
 		formatter = std::move(other.formatter);
 		return *this;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiTextVariable<T>::setValue(const T& value)
 	{
@@ -136,19 +139,19 @@ namespace SnackerEngine
 			updateText();
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiTextVariable<T>::onHandleMove(GuiHandle& guiHandle)
 	{
 		variableHandle = &static_cast<GuiVariableHandle<T>&>(guiHandle);
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiTextVariable<T>::onHandleDestruction(GuiHandle& guiHandle)
 	{
 		variableHandle = nullptr;
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiTextVariable<T>::onHandleUpdate(GuiHandle& guiHandle)
 	{
@@ -157,7 +160,7 @@ namespace SnackerEngine
 			updateText();
 		}
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline bool GuiTextVariable<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)
 	{
@@ -166,5 +169,22 @@ namespace SnackerEngine
 		signUpHandle(variableHandle, 1);
 		return true;
 	}
-
+	//--------------------------------------------------------------------------------------------------
+	using GuiTextVariableFloat = GuiTextVariable<float>;
+	using GuiTextVariableDouble = GuiTextVariable<double>;
+	using GuiTextVariableInt = GuiTextVariable<int>;
+	using GuiTextVariableUnsignedInt = GuiTextVariable<unsigned>;
+	//--------------------------------------------------------------------------------------------------
+	using GuiTextVariableVec2f = GuiTextVariable<Vec2f>;
+	using GuiTextVariableVec2d = GuiTextVariable<Vec2d>;
+	using GuiTextVariableVec2i = GuiTextVariable<Vec2i>;
+	//--------------------------------------------------------------------------------------------------
+	using GuiTextVariableVec3f = GuiTextVariable<Vec3f>;
+	using GuiTextVariableVec3d = GuiTextVariable<Vec3d>;
+	using GuiTextVariableVec3i = GuiTextVariable<Vec3i>;
+	//--------------------------------------------------------------------------------------------------
+	using GuiTextVariableVec4f = GuiTextVariable<Vec4f>;
+	using GuiTextVariableVec4d = GuiTextVariable<Vec4d>;
+	using GuiTextVariableVec4i = GuiTextVariable<Vec4i>;
+	//--------------------------------------------------------------------------------------------------
 }

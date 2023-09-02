@@ -7,7 +7,7 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class GuiVerticalScrollingListLayout : public GuiVerticalListLayout
 	{
 	public:
@@ -15,10 +15,11 @@ namespace SnackerEngine
 		static Color4f defaultBackgroundColor;
 		static unsigned defaultScrollBarWidth;
 		static Color4f defaultScrollbarColor;
-		static Color4f defaultScrollbarHoverColor;
-		static Color4f defaultScrollbarPressedColor;
 		static Color4f defaultScrollbarBackgroundColor;
-		static unsigned defaultScrollbarBorder;
+		static unsigned defaultScrollbarBorderRight;
+		static unsigned defaultScrollbarBorderTop;
+		static unsigned defaultScrollbarBorderBottom;
+		static float defaultScrollSpeed;
 	private:
 		/// current total vertical size of the list, including offset at the beginning and end
 		unsigned currentVerticalHeight = 0;
@@ -26,7 +27,7 @@ namespace SnackerEngine
 		/// to the current upper corner of the guiElement. Used for scrolling through the list)
 		int currentVerticalOffset = 0;
 		/// Speed when scrolling
-		float scrollSpeed = 1.0f;
+		float scrollSpeed = defaultScrollSpeed;
 		/// Boolean that controls wether the scrollbar is drawn
 		bool drawScrollBar = false;
 		/// Boolean that controls wether the scrollbar is currently pressed down or not
@@ -38,8 +39,6 @@ namespace SnackerEngine
 		/// Colors for the scrollbar
 		Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor;
 		Color4f scrollbarColor = defaultScrollbarColor;
-		Color4f scrollbarHoverColor = defaultScrollbarHoverColor;
-		Color4f scrollbarPressedColor = defaultScrollbarPressedColor;
 		/// model matrix for the scrollbar and its background
 		Mat4f modelMatrixScrollbar{};
 		Mat4f modelMatrixScrollbarBackground{};
@@ -48,20 +47,20 @@ namespace SnackerEngine
 		/// The width of the scrollbar
 		unsigned scrollbarWidth = defaultScrollBarWidth;
 		/// Offset from the top, bottom and right border to the scroll bar
-		unsigned scrollbarBorder = defaultScrollbarBorder;
+		unsigned scrollbarBorderRight = defaultScrollbarBorderRight;
+		unsigned scrollbarBorderTop = defaultScrollbarBorderTop;
+		unsigned scrollbarBorderBottom = defaultScrollbarBorderBottom;
 		/// vertical offset from the top of the scroll bar to the mouse (used for scrolling through
 		/// the list with the mouse)
 		float mouseOffsetFromScrollBar = 0.0f;
 		/// The first and last visible element in the children vector
 		unsigned firstVisibleElement = 0;
 		unsigned lastVisibleElement = 0;
-
 	public:
-
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_SCROLLING_LIST_LAYOUT";
 		/// Default constructor
-		GuiVerticalScrollingListLayout(Color4f backgroundColor = defaultBackgroundColor, Color4f scrollbarColor = defaultScrollbarColor, Color4f scrollbarHoverColor = defaultScrollbarHoverColor, Color4f scrollbarPressedColor = defaultScrollbarPressedColor, Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor);
+		GuiVerticalScrollingListLayout(Color4f backgroundColor = defaultBackgroundColor, Color4f scrollbarColor = defaultScrollbarColor, Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor);
 		/// Constructor from JSON.
 		GuiVerticalScrollingListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
@@ -72,9 +71,7 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		GuiVerticalScrollingListLayout(GuiVerticalScrollingListLayout&& other) noexcept;
 		GuiVerticalScrollingListLayout& operator=(GuiVerticalScrollingListLayout&& other) noexcept;
-
 	protected:
-
 		/// Computes the percentages and wether the scrollbar should be visible
 		void computeScrollBar();
 		/// Computes the scrollbarModelMatrix and scrollbarBackgroundModelMatrix
@@ -96,7 +93,7 @@ namespace SnackerEngine
 		/// Returns the mouse offset of a child element from this element. Can be
 		/// overwritten if the children are displayed at a different place than they
 		/// are (eg. in a scrolling list etc)
-		virtual Vec2i getChildOffset(const GuiID& childID) const override;
+		Vec2i getChildOffset(const GuiID& childID) const override;
 
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
@@ -120,13 +117,6 @@ namespace SnackerEngine
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
 		/// Callback function for scrolling the mouse wheel. Parameter the same as in Scene.h
 		virtual void callbackMouseScrollOnElement(const Vec2d& offset) override;
-		/// Callback function for the mouse entering the element. Parameter the same as in Scene.h
-		/// position:	position relative to this elements top left corner
-		virtual void callbackMouseEnter(const Vec2d& position) override;
-		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
-		/// position:	position relative to this elements top left corner
-		virtual void callbackMouseLeave(const Vec2d& position) override;
-
 	};
-
+	//--------------------------------------------------------------------------------------------------
 }

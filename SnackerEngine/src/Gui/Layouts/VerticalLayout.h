@@ -18,6 +18,9 @@ namespace SnackerEngine
 			FORCE_CHILD_WIDTH = 2,	/// This layout will not change its width, the width of child elements will be set to the layouts
 									/// width if possible
 		};
+	public:
+		/// Static default Attributes
+		static unsigned defaultHorizontalBorder;
 	private:
 		/// The mode of this layout
 		VerticalLayoutMode verticalLayoutMode = VerticalLayoutMode::VARIABLE_WIDTH;
@@ -26,7 +29,7 @@ namespace SnackerEngine
 		/// Vector storing the alignments of all children
 		std::vector<AlignmentHorizontal> alignmentsHorizontal{};
 		/// border between the left/right and the children
-		unsigned horizontalBorder = 0;
+		unsigned horizontalBorder = defaultHorizontalBorder;
 		/// Helper function that computes the position of a child
 		int computeChildPositionX(int childWidth, AlignmentHorizontal alignmentHorizontal) const;
 		/// Helper function that gets called when a child is registered

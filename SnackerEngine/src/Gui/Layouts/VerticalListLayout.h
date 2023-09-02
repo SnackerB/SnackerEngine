@@ -10,13 +10,17 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	class GuiVerticalListLayout : public GuiVerticalLayout
 	{
+	public:
+		/// Static default Attributes
+		static unsigned defaultVerticalBorder;
+		static Color4f defaultBackgroundColor;
 	private:
 		/// Vertical alignment of the layout
 		AlignmentVertical alignmentVertical = AlignmentVertical::TOP;
 		/// Border between different elements and between top/bottom of layout and elements, in pixels
-		unsigned verticalBorder = 10;
+		unsigned verticalBorder = defaultVerticalBorder;
 		/// Background color
-		Color4f backgroundColor = Color4f(0.1f, 1.0f);
+		Color4f backgroundColor = defaultBackgroundColor;
 		/// model matrix of the background
 		Mat4f modelMatrixBackground{};
 		/// Shader for drawing the background

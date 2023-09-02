@@ -9,17 +9,16 @@ namespace SnackerEngine
 	public:
 		/// Static default Attributes
 		static Color4f defaultDefaultColor;
-		static Color4f defaultHiverColor;
+		static Color4f defaultHoverColor;
 		static Color4f defaultPressedColor;
 		static Color4f defaultPressedHoverColor;
 		static Color4f defaultLockedColor;
-		static Vec2i defaultSize;
 	private:
 		/// The event that happens when the button is pressed
 		GuiEventHandle* eventHandle = nullptr;
 		/// Different colors of the button for the different stages
 		Color4f defaultColor = defaultDefaultColor;
-		Color4f hoverColor = defaultHiverColor;
+		Color4f hoverColor = defaultHoverColor;
 		Color4f pressedColor = defaultPressedColor;
 		Color4f pressedHoverColor = defaultPressedHoverColor;
 		Color4f lockedColor = defaultLockedColor;

@@ -5,11 +5,10 @@ namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
 	Color4f GuiButton::defaultDefaultColor = Color4f(0.5f, 0.5f, 0.7f, 1.0f);
-	Color4f GuiButton::defaultHiverColor = Color4f(GuiButton::defaultDefaultColor.r * 0.9f, GuiButton::defaultDefaultColor.g * 0.9f, GuiButton::defaultDefaultColor.b * 0.9f, 1.0f);
-	Color4f GuiButton::defaultPressedColor = Color4f(GuiButton::defaultDefaultColor.r * 0.8f, GuiButton::defaultDefaultColor.g * 0.8f, GuiButton::defaultDefaultColor.b * 0.8f, 1.0f);
-	Color4f GuiButton::defaultPressedHoverColor = Color4f(GuiButton::defaultDefaultColor.r * 0.7f, GuiButton::defaultDefaultColor.g * 0.7f, GuiButton::defaultDefaultColor.b * 0.7f, 1.0f);
+	Color4f GuiButton::defaultHoverColor = scaleRGB(GuiButton::defaultDefaultColor, 0.9f);
+	Color4f GuiButton::defaultPressedColor = scaleRGB(GuiButton::defaultDefaultColor, 0.8f); 
+	Color4f GuiButton::defaultPressedHoverColor = scaleRGB(GuiButton::defaultDefaultColor, 0.7f); 
 	Color4f GuiButton::defaultLockedColor = Color4f(0.5f, 1.0f);
-	Vec2i GuiButton::defaultSize = Vec2i(250, 0);
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::onButtonPress()
 	{
@@ -28,7 +27,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(const std::string& text)
-		: GuiButton(Vec2i(), defaultSize, text) {}
+		: GuiButton(Vec2i(), Vec2i(), text) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiTextBox(json, data, parameterNames)
@@ -40,7 +39,6 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(lockedColor, "lockedColor", json, data, parameterNames);
 		parseJsonOrReadFromData(locked, "locked", json, data, parameterNames);
 		if (!json.contains("size")) {
-			setSize(defaultSize);
 			if (!getText().empty()) {
 				setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 				setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);

@@ -18,7 +18,7 @@ class GuiDemoScene : public SnackerEngine::Scene
 public:
 	GuiDemoScene()
 	{
-		std::unique_ptr<SnackerEngine::GuiPanel> panel = std::make_unique<SnackerEngine::GuiPanel>(SnackerEngine::Vec2i(100, 100), SnackerEngine::Vec2i(500, 300), SnackerEngine::GuiElement::ResizeMode::DO_NOT_RESIZE, SnackerEngine::Color4f(1.0f, 0.0f, 0.0f, 1.0f));
+		std::unique_ptr<SnackerEngine::GuiPanel> panel = std::make_unique<SnackerEngine::GuiPanel>(SnackerEngine::Vec2i(100, 100), SnackerEngine::Vec2i(500, 300), SnackerEngine::GuiElement::ResizeMode::RESIZE_RANGE, SnackerEngine::Color4f(1.0f, 0.0f, 0.0f, 1.0f));
 		//SnackerEngine::GuiPanel panel({ 100, 100 }, { 500, 300 }, SnackerEngine::GuiElement::ResizeMode::DO_NOT_RESIZE, { 1.0f, 0.0f, 0.0f, 1.0f });
 		guiManager.registerAndMoveElementPtr(std::move(panel));
 	}
@@ -33,7 +33,9 @@ public:
 		if (key == KEY_R && action == ACTION_PRESS) 
 		{
 			guiManager.clear();
-			auto json = SnackerEngine::loadJSON("test/window.json");
+			//auto json = SnackerEngine::loadJSON("test/gridLayoutTest.json");
+			auto json = SnackerEngine::loadJSON("test/normalDebugWindow.json");
+			//auto json = SnackerEngine::loadJSON("test/window.json");
 			//auto json = SnackerEngine::loadJSON("test/testListLayouts.json");
 			//auto json = SnackerEngine::loadJSON("test/test.json");
 			if (json.has_value()) {
@@ -87,11 +89,11 @@ public:
 	}
 };
 
-void main()
+int main()
 {
 	if (!SnackerEngine::Engine::initialize(1200, 700, "Demo: GUI")) {
 		SnackerEngine::errorLogger << SnackerEngine::LOGGER::BEGIN << "startup failed!" << SnackerEngine::LOGGER::ENDL;
-		return;
+		return 0;
 	}
 
 	SnackerEngine::DoubleFormatter formatter(10, 20);

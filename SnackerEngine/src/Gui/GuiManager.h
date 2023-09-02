@@ -4,6 +4,7 @@
 #include "Math/Mat.h"
 #include "Graphics/Model.h"
 #include "Graphics/Shader.h"
+#include "Gui\Group.h"
 
 #include <queue>
 #include <unordered_set>
@@ -203,6 +204,52 @@ namespace SnackerEngine
 		void deletElementName(const std::string& name);
 
 		//==============================================================================================
+		// Groups
+		//==============================================================================================
+	private:
+		/// Map mapping group names to group IDs
+		std::map<std::string, GuiGroupID> guiGroupMap;
+		/// Vector of groups
+		std::vector<std::unique_ptr<GuiGroup>> guiGroups;
+		/// Counts the number of groups
+		GuiGroupID registeredGuiGroupsCount;
+		/// Queue holding available GuiGroupIDs
+		std::queue<GuiGroupID> availableGuiGroupIDs;
+		/// Maximum amnount of guiGroups
+		GuiGroupID maxGuiGroups;
+		/// Returns a new GuiGroupID
+		GuiGroupID getNewGroupID();
+		/// Tries to add element to the group with the given name and return the group ID. If the group 
+		/// does not exist, an empty optional is returned instead.
+		std::optional<GuiGroupID> joinGroup(GuiID guiID, const std::string& groupName);
+		/// Tries to add element to the group with the given groupID. If the group 
+		/// does not exist, false is returned.
+		bool joinGroup(GuiID guiID, GuiGroupID groupID);
+		/// Tries to create a group with the given name and return a new group ID. 
+		/// If a group with this name already exists, an empty optional is returned instead.
+		/// If the name is the empty string, it is ignored and the group is created in any case.
+		/// The element creating the group is directly added to it.
+		std::optional<GuiGroupID> createGroup(GuiID guiID, std::unique_ptr<GuiGroup>&& group);
+		/// Checks if a group with the given name exists. Returns the groupID if it does, and
+		/// an empty optional if it does not.
+		std::optional<GuiGroupID> groupExists(const std::string& groupName);
+		/// Checks if a group with the given ID exists
+		bool groupExists(GuiGroupID groupID);
+		/// Returns a reference to the group with the given name, if it exists
+		GuiGroup* getGroup(const std::string& groupName);
+		/// Returns a reference to the group with the given ID, if it exists
+		GuiGroup* getGroup(GuiGroupID groupID);
+		/// Removes the element from the group with the given name. 
+		/// If the group is empty after this, the group is deleted.
+		void leaveGroup(GuiID guiID, const std::string& groupName);
+		/// Removes the element from the group with the given ID.
+		/// If the group is empty after this, the group is deleted.
+		void leaveGroup(GuiID guiID, GuiGroupID groupID);
+	public:
+		/// Returns the current number of groups
+		int getGroupCount() { return registeredGuiGroupsCount; }
+
+		//==============================================================================================
 		// Helper functions
 		//==============================================================================================
 
@@ -221,9 +268,11 @@ namespace SnackerEngine
 		void signOffWithoutNotifyingParent(const GuiID guiElement);
 		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
 		void updateMoved(GuiElement& guiElement);
+	public:
 		/// Returns a pointer to the guiElement with a given guiID if it exists. Returns nullptr if it
 		/// does not exist.
 		GuiElement* getGuiElement(const GuiID& guiID);
+	private:
 		/// Registers the given element as a child of a different element
 		/// Returns true on success
 		bool registerElementAsChild(GuiElement& parent, GuiElement& child);
@@ -243,6 +292,8 @@ namespace SnackerEngine
 		/// Initializes functionality that is the same over several instances of GuiManagers,
 		/// e.g. the parserMap.
 		static void initialize();
+		/// Is called when the engine is terminated
+		static void terminate();
 
 		//==============================================================================================
 		// Constructors and public functionality

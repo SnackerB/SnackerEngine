@@ -3,8 +3,6 @@
   "name": "Hello Window :)",
   "position": [ 0, 0 ],
   "size": [ 1000, 500 ],
-  "backgroundColor": [ 1.0, 1.0, 1.0, 1.0 ],
-  "topBarColor": [ 1.0, 0.0, 0.0, 1.0 ],
   "children": [
     {
       "typeID": "GUI_VERTICAL_SCROLLING_LIST_LAYOUT",
@@ -18,7 +16,7 @@
             {
               "typeID": "GUI_PANEL",
               "backgroundColor": [ 1.0, 0.6, 0.6, 1.0 ],
-              "minSize": [ 100, 100 ],s
+              "minSize": [ 100, 100 ],
               "preferredSize": [ -1, 200 ],
               "maxSize": [ 500, 200 ]
             },

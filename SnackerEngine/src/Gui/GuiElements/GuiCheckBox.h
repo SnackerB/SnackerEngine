@@ -4,24 +4,47 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class GuiCheckBox : public GuiButton
 	{
+	public:
+		/// Static default Attributes
+		static int defaultCheckBoxSize;
+		static Color4f defaultColorDefaultTrue;
+		static Color4f defaultColorHoverTrue;
+		static Color4f defaultColorPressedTrue;
+		static Color4f defaultColorHoverPressedTrue;
+		static Color4f defaultColorDefaultFalse;
+		static Color4f defaultColorHoverFalse;
+		static Color4f defaultColorPressedFalse;
+		static Color4f defaultColorHoverPressedFalse;
+		static Color4f defaultCheckMarkColor;
+		static Texture defaultCheckMarkTexture;
+		static Shader defaultCheckMarkShader;
+		static bool defaultDrawCheckMark;
 	private:
 		/// Wether the GuiCheckBox is currently checked or not
 		bool checked = false;
 		/// Variable Handle for bool
 		GuiVariableHandle<bool>* boolHandle = nullptr;
 		/// Button colors for when the bool is set to true
-		Color4f colorDefaultTrue = Color4f(0.0f, 1.0f, 0.0f, 1.0f);
-		Color4f colorHoverTrue = Color4f(0.0f, 0.8f, 0.0f, 1.0f);
-		Color4f colorPressedTrue = Color4f(0.0f, 0.6f, 0.0f, 1.0f);
-		Color4f colorHoverPressedTrue = Color4f(0.0f, 0.4f, 0.0f, 1.0f);
+		Color4f colorDefaultTrue = defaultColorDefaultTrue;
+		Color4f colorHoverTrue = defaultColorHoverTrue;
+		Color4f colorPressedTrue = defaultColorPressedTrue;
+		Color4f colorHoverPressedTrue = defaultColorHoverPressedTrue;
 		/// Button colors for when the bool is set to false
-		Color4f colorDefaultFalse = Color4f(1.0f, 0.0f, 0.0f, 1.0f);
-		Color4f colorHoverFalse = Color4f(0.8f, 0.0f, 0.0f, 1.0f);
-		Color4f colorPressedFalse = Color4f(0.6f, 0.0f, 0.0f, 1.0f);
-		Color4f colorHoverPressedFalse = Color4f(0.4f, 0.0f, 0.0f, 1.0f);
+		Color4f colorDefaultFalse = defaultColorDefaultFalse;
+		Color4f colorHoverFalse = defaultColorHoverFalse;
+		Color4f colorPressedFalse = defaultColorPressedFalse;
+		Color4f colorHoverPressedFalse = defaultColorHoverPressedFalse;
+		/// Checkmark color
+		Color4f checkMarkColor = defaultCheckMarkColor;
+		/// Checkmark texture
+		Texture checkMarkTexture = defaultCheckMarkTexture;
+		/// Shader for srawing the ckeck mark
+		Shader checkMarkShader = defaultCheckMarkShader;
+		/// If this is set to true, a checkmark will be drawn if the ckeckbox is checked
+		bool drawCheckMark = defaultDrawCheckMark;
 	protected:
 		/// Helper function that is called when the button is pressed.
 		/// Overwritten from class GuiButton
@@ -33,7 +56,7 @@ namespace SnackerEngine
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_CHECK_BOX";
 		/// Default constructor
-		GuiCheckBox(int size = 30); // NOTE: All parameters must have default values!
+		GuiCheckBox(int size = defaultCheckBoxSize);
 		/// Constructor from JSON
 		GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
@@ -54,6 +77,10 @@ namespace SnackerEngine
 		const Color4f& getColorHoverFalse() const { return colorHoverFalse; }
 		const Color4f& getColorPressedFalse() const { return colorPressedFalse; }
 		const Color4f& getColorHoverPressedFalse() const { return colorHoverPressedFalse; }
+		const Color4f& getCheckMarkColor() const { return checkMarkColor; }
+		const Texture& getCheckMarkTexture() const { return checkMarkTexture; }
+		const Shader& getCheckMarkShader() const { return checkMarkShader; }
+		const bool isDrawCheckMark() const { return drawCheckMark; }
 		/// Setters
 		void setChecked(bool checked);
 		void setColorDefaultTrue(const Color4f& colorDefaultTrue) { this->colorDefaultTrue = colorDefaultTrue; updateButtonColor(); }
@@ -64,6 +91,10 @@ namespace SnackerEngine
 		void setColorHoverFalse(const Color4f& colorHoverFalse) { this->colorHoverFalse = colorHoverFalse; updateButtonColor(); }
 		void setColorPressedFalse(const Color4f& colorPressedFalse) { this->colorPressedFalse = colorPressedFalse; updateButtonColor(); }
 		void setColorHoverPressedFalse(const Color4f& colorHoverPressedFalse) { this->colorHoverPressedFalse = colorHoverPressedFalse; updateButtonColor(); }
+		void setCheckMarkColor(const Color4f& checkMarkColor) { this->checkMarkColor = checkMarkColor; }
+		void setCheckMarkTexture(const Texture& checkMarkTexture) { this->checkMarkTexture = checkMarkTexture; }
+		void setCheckMarkShader(const Shader& checkMarkShader) { this->checkMarkShader = checkMarkShader; }
+		void setDrawCheckMark(bool drawCheckMark) { this->drawCheckMark = drawCheckMark; }
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
@@ -87,4 +118,5 @@ namespace SnackerEngine
 		/// delete the previous event handle first! Returns true on success
 		bool setBoolHandle(GuiVariableHandle<bool>& boolHandle);
 	};
+	//--------------------------------------------------------------------------------------------------
 }

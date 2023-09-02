@@ -20,9 +20,12 @@ namespace SnackerEngine
 		Shader();
 		/// Load shader from a given path relative to the resource directory
 		explicit Shader(const std::string& path);
-		// Copy constructor and assignment operator
+		/// Copy constructor and assignment operator
 		Shader& operator=(const Shader& other) noexcept;
-		explicit Shader(const Shader& other) noexcept;
+		Shader(const Shader& other) noexcept;
+		/// Move constructor and assignment operator
+		Shader& operator=(Shader&& other) noexcept;
+		Shader(Shader&& other) noexcept;
 		/// Binds this shader. Should be called before doing other operations, eg. setting uniforms
 		void bind() const;
 		/// Unbinds all shaders

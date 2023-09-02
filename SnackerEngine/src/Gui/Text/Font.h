@@ -24,7 +24,10 @@ namespace SnackerEngine
 		explicit Font(const std::string& path);
 		// Copy constructor and assignment operator
 		Font& operator=(const Font& other) noexcept;
-		explicit Font(const Font& other) noexcept;
+		Font(const Font& other) noexcept;
+		// Move constructor and assignment operator
+		Font& operator=(Font&& other) noexcept;
+		Font(Font&& other) noexcept;
 		/// Binds this font. Should be called before rendering text
 		void bind(const unsigned int& slot = 0) const;
 		/// Unbinds all fonts

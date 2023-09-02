@@ -12,30 +12,33 @@ namespace SnackerEngine
 		/// Enum that controls the mode of this layout
 		enum class HorizontalLayoutMode
 		{
-			VARIABLE_HEIGHT = 0,	/// This layout will set its preferred, min and max height according to child elements
-			FORCED_HEIGHT = 1,		/// This layout will not change its height, the height of child elements is set according
-									/// to their min, max and preferred height
-			FORCE_CHILD_HEIGHT = 2,	/// This layout will not change its height, the height of child elements will be set to the layouts
-									/// height if possible
+			CHILD_HEIGHT_RANGE = 0,				/// The height of child elements is set according to their min, max and preferred height
+			CHILD_HEIGHT_TO_LAYOUT_HEIGHT = 1,	/// The height of child elements will be set to the layouts height if possible
 		};
+	public:
+		/// Static default Attributes
+		static unsigned defaultVerticalBorder;
 	private:
 		/// The mode of this layout
-		HorizontalLayoutMode horizontalLayoutMode = HorizontalLayoutMode::VARIABLE_HEIGHT;
+		HorizontalLayoutMode horizontalLayoutMode = HorizontalLayoutMode::CHILD_HEIGHT_RANGE;
 		/// The default alignment
 		AlignmentVertical defaultAlignmentVertical = AlignmentVertical::TOP;
 		/// Vector storing the alignments of all children
 		std::vector<AlignmentVertical> alignmentsVertical{};
 		/// border between the top/bottom and the children
-		unsigned verticalBorder = 0;
+		unsigned verticalBorder = defaultVerticalBorder;
 		/// Helper function that computes the position of a child
 		int computeChildPositionY(int childHeight, AlignmentVertical alignmentVertical) const;
 		/// Helper function that gets called when a child is registered
 		void onRegisterChild(AlignmentVertical alignmentVertical);
+		/// Computes the minHeight, preferredHeight and m maxHeight of this layout from the size hints of its children
+		void computeHeightHintsFromChildren();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_HORIZONTAL_LAYOUT";
 		/// Constructor
-		GuiHorizontalLayout() {};
+		GuiHorizontalLayout(HorizontalLayoutMode horizontalLayoutMode = HorizontalLayoutMode::CHILD_HEIGHT_RANGE)
+			: horizontalLayoutMode(horizontalLayoutMode) {}
 		/// Constructor from JSON
 		GuiHorizontalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor

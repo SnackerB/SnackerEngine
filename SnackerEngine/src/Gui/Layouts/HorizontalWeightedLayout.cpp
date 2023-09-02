@@ -5,6 +5,9 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	int GuiHorizontalWeightedLayout::defaultResizeAreaWidth = 5;
+	int GuiHorizontalWeightedLayout::defaultHorizontalBorder = 0;
+	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::stopResizing()
 	{
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_MOTION);
@@ -40,11 +43,37 @@ namespace SnackerEngine
 		registerEnforceLayoutDown();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::computeWidthHintsFromChildren()
+	{
+		int totalMinWidth = 0;
+		int totalPreferredWidth = SIZE_HINT_ARBITRARY;
+		for (auto childID : getChildren()) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				totalMinWidth += child->getMinWidth();
+				if (totalPreferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					int tempPreferredWidth = child->getPreferredWidth();
+					if (tempPreferredWidth >= 0) {
+						if (totalPreferredWidth >= 0) totalPreferredWidth += tempPreferredWidth;
+						else totalPreferredWidth = tempPreferredWidth;
+					}
+					else if (tempPreferredWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE) totalPreferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+				}
+			}
+		}
+		int totalBorders = 2 * outerHorizontalBorder + static_cast<int>((getChildren().size() - 1)) * horizontalBorder;
+		totalMinWidth += totalBorders;
+		if (totalPreferredWidth >= 0) totalPreferredWidth += totalBorders;
+		setMinWidth(totalMinWidth);
+		setPreferredWidth(totalPreferredWidth);
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalWeightedLayout::GuiHorizontalWeightedLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiHorizontalLayout(json, data, parameterNames)
 	{
-		if (!json.contains("horizontalLayoutMode")) setHorizontalLayoutMode(HorizontalLayoutMode::FORCE_CHILD_HEIGHT);
+		if (!json.contains("horizontalLayoutMode")) setHorizontalLayoutMode(HorizontalLayoutMode::CHILD_HEIGHT_TO_LAYOUT_HEIGHT);
 		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data);
+		parseJsonOrReadFromData(outerHorizontalBorder, "outerHorizontalBorder", json, data);
 		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
 		parseJsonOrReadFromData(resizeAreaWidth, "resizeAreaWidth", json, data, parameterNames);
 		parseJsonOrReadFromData(allowMoveBorders, "allowMoveBorders", json, data, parameterNames);
@@ -115,6 +144,14 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::setOuterHorizontalBorder(int outerHorizontalBorder)
+	{
+		if (this->outerHorizontalBorder != outerHorizontalBorder) {
+			this->outerHorizontalBorder = outerHorizontalBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal)
 	{
 		if (this->alignmentHorizontal != alignmentHorizontal) {
@@ -161,7 +198,7 @@ namespace SnackerEngine
 	void GuiHorizontalWeightedLayout::enforceLayout()
 	{
 		GuiHorizontalLayout::enforceLayout();
-		unsigned totalRemainingWidth = getWidth() - static_cast<int>(weights.size() + 1) * horizontalBorder;
+		unsigned totalRemainingWidth = getWidth() - static_cast<int>(weights.size() == 0 ? 0 : weights.size() - 1) * horizontalBorder - 2 * outerHorizontalBorder;
 		double remainingPercentage = 1.0f;
 		const auto& children = getChildren();
 		std::vector<int> widths(children.size());
@@ -180,7 +217,7 @@ namespace SnackerEngine
 				GuiElement* child = getElement(children[*it]);
 				if (child) {
 					int width = static_cast<int>(percentages[*it] / remainingPercentage * static_cast<double>(totalRemainingWidth));
-					if (child->getMaxWidth() != -1 && width > child->getMaxWidth()) {
+					if (child->getMaxWidth() >= 0 && width > child->getMaxWidth()) {
 						// If the percentage width is too large, we just set the child to its maximum width
 						widths[*it] = child->getMaxWidth();
 						totalRemainingWidth -= widths[*it];
@@ -208,7 +245,7 @@ namespace SnackerEngine
 		}
 		// Now we can actually position and resize the elements
 		if (alignmentHorizontal == AlignmentHorizontal::LEFT || alignmentHorizontal == AlignmentHorizontal::CENTER) {
-			int position = horizontalBorder;
+			int position = outerHorizontalBorder;
 			if (alignmentHorizontal == AlignmentHorizontal::CENTER) {
 				int totalWidth = horizontalBorder * static_cast<int>((children.size() - 1));
 				for (auto width : widths) totalWidth += width;
@@ -224,7 +261,7 @@ namespace SnackerEngine
 			}
 		}
 		else {
-			int position = getWidth() - horizontalBorder;
+			int position = getWidth() - outerHorizontalBorder;
 			for (int i = static_cast<int>(children.size() - 1); i >= 0; --i) {
 				GuiElement* child = getElement(children[i]);
 				position -= widths[i];
@@ -235,6 +272,8 @@ namespace SnackerEngine
 				position -= horizontalBorder;
 			}
 		}
+		// Compute the min width of this layout from its children
+		computeWidthHintsFromChildren();
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<std::pair<unsigned int, int>> GuiHorizontalWeightedLayout::getCollidingBorderAndOffset(const Vec2i& offset) const
@@ -274,13 +313,13 @@ namespace SnackerEngine
 			// New left width is too small!
 			newWidthLeft = leftChild->getMinWidth();
 			newWidthRight = rightChild->getPositionX() + rightChild->getWidth() - leftChild->getPositionX() - newWidthLeft;
-			if (newWidthRight < rightChild->getMinWidth() || (rightChild->getMaxWidth() != -1 && newWidthRight > rightChild->getMaxWidth())) return;
+			if (newWidthRight < rightChild->getMinWidth() || (rightChild->getMaxWidth() >= 0 && newWidthRight > rightChild->getMaxWidth())) return;
 		}
-		else if (leftChild->getMaxWidth() != -1 && newWidthLeft > leftChild->getMaxWidth()) {
+		else if (leftChild->getMaxWidth() >= 0 && newWidthLeft > leftChild->getMaxWidth()) {
 			// New left width is too large!
 			newWidthLeft = leftChild->getMaxWidth();
 			newWidthRight = rightChild->getPositionX() + rightChild->getWidth() - leftChild->getPositionX() - newWidthLeft;
-			if (newWidthRight < rightChild->getMinWidth() || (rightChild->getMaxWidth() != -1 && newWidthRight > rightChild->getMaxWidth())) return;
+			if (newWidthRight < rightChild->getMinWidth() || (rightChild->getMaxWidth() >= 0 && newWidthRight > rightChild->getMaxWidth())) return;
 		}
 		else {
 			newWidthRight = rightChild->getPositionX() + rightChild->getWidth() - borderPos;
@@ -288,13 +327,13 @@ namespace SnackerEngine
 				// New right width is too small!
 				newWidthRight = rightChild->getMinWidth();
 				newWidthLeft = rightChild->getPositionX() + rightChild->getWidth() - newWidthRight - leftChild->getPositionX();
-				if (newWidthLeft < leftChild->getMinWidth() || (leftChild->getMaxWidth() != -1 && newWidthLeft > leftChild->getMaxWidth())) return;
+				if (newWidthLeft < leftChild->getMinWidth() || (leftChild->getMaxWidth() >= 0 && newWidthLeft > leftChild->getMaxWidth())) return;
 			}
-			else if (rightChild->getMaxWidth() != -1 && newWidthRight > rightChild->getMaxWidth()) {
+			else if (rightChild->getMaxWidth() >= 0 && newWidthRight > rightChild->getMaxWidth()) {
 				// New right width is too large!
 				newWidthRight = rightChild->getMaxWidth();
 				newWidthLeft = rightChild->getPositionX() + rightChild->getWidth() - newWidthRight - leftChild->getPositionX();
-				if (newWidthLeft < leftChild->getMinWidth() || (leftChild->getMaxWidth() != -1 && newWidthLeft > leftChild->getMaxWidth())) return;
+				if (newWidthLeft < leftChild->getMinWidth() || (leftChild->getMaxWidth() >= 0 && newWidthLeft > leftChild->getMaxWidth())) return;
 			}
 		}
 		leftChild->setWidth(newWidthLeft);

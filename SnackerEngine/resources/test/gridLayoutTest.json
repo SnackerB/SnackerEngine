@@ -1,0 +1,152 @@
+{
+	"typeID": "GUI_WINDOW",
+	"name": "Hello Window :)",
+	"position": [ 0, 0 ],
+	"size": [ 2000, 1300 ],
+	"children": [
+		{
+			"typeID": "GUI_GRID_LAYOUT",
+			"alignmentVertical": "TOP",
+			"alignmentHorizontal": "CENTER",
+			"mode": "SPLIT_CELLS_EQUALLY_SHRINK",
+			"border": 10,
+			"outerBorder": 50,
+			"totalRows": 3,
+			"totalColumns": 4,
+			"children": [
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 200, 100 ],
+					"maxSize": [ -1, -1 ],
+					"backgroundColor": [ 0.0, 1.0, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 0,
+						"column": 0
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ 100, 100 ],
+					"backgroundColor": [ 0.0, 0.8, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 0,
+						"column": 1
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"backgroundColor": [ 0.0, 0.6, 0.0, 1.0 ],
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ 100, 100 ],
+					"layoutOptions": {
+						"row": 0,
+						"column": 2
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ 100, 100 ],
+					"backgroundColor": [ 0.0, 0.4, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 0,
+						"column": 3
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ -1, -1 ],
+					"maxSize": [ 200, 300 ],
+					"backgroundColor": [ 0.0, 0.0, 1.0, 1.0 ],
+					"layoutOptions": {
+						"row": 1,
+						"column": 0
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ 100, 100 ],
+					"backgroundColor": [ 0.0, 0.0, 0.8, 1.0 ],
+					"layoutOptions": {
+						"row": 1,
+						"column": 1
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 200, 200 ],
+					"preferredSize": [ 300, 400 ],
+					"maxSize": [ 300, 400 ],
+					"backgroundColor": [ 0.0, 0.0, 0.6, 1.0 ],
+					"layoutOptions": {
+						"row": 1,
+						"column": 2
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 200, 200 ],
+					"maxSize": [ 200, 200 ],
+					"backgroundColor": [ 0.0, 0.0, 0.4, 1.0 ],
+					"layoutOptions": {
+						"row": 1,
+						"column": 3
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ -1, -1 ],
+					"maxSize": [ -1, -1 ],
+					"backgroundColor": [ 1.0, 0.0, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 2,
+						"column": 0
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ 100, 100 ],
+					"backgroundColor": [ 0.8, 0.0, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 2,
+						"column": 1
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ 100, 100 ],
+					"backgroundColor": [ 0.6, 0.0, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 2,
+						"column": 2
+					}
+				},
+				{
+					"typeID": "GUI_PANEL",
+					"minSize": [ 100, 100 ],
+					"preferredSize": [ 100, 100 ],
+					"maxSize": [ -1, -1 ],
+					"backgroundColor": [ 0.4, 0.0, 0.0, 1.0 ],
+					"layoutOptions": {
+						"row": 2,
+						"column": 3
+					}
+				}
+			]
+		}
+	]
+}

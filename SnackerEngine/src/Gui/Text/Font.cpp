@@ -68,6 +68,20 @@ namespace SnackerEngine
 		FontManager::increaseReferenceCount(*this);
 	}
 	//------------------------------------------------------------------------------------------------------
+	Font& Font::operator=(Font&& other) noexcept
+	{
+		FontManager::decreaseReferenceCount(*this);
+		fontID = other.fontID;
+		other.fontID = 0;
+		return *this;
+	}
+	//------------------------------------------------------------------------------------------------------
+	Font::Font(Font&& other) noexcept
+		: fontID(other.fontID)
+	{
+		other.fontID = 0;
+	}
+	//------------------------------------------------------------------------------------------------------
 	void Font::bind(const unsigned int& slot) const
 	{
 		FontManager::bind(*this);

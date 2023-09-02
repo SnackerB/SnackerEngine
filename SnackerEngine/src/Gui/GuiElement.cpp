@@ -4,18 +4,26 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	double GuiElement::defaultFontSizeSmall = 15.0;
+	double GuiElement::defaultFontSizeNormal = 20.0;
+	double GuiElement::defaultFontSizeBig = 30.0;
+	double GuiElement::defaultFontSizeHuge = 50.0;
+	Font GuiElement::defaultFont{};
+	int GuiElement::defaultBorderSmall = 2;
+	int GuiElement::defaultBorderNormal = 5;
+	int GuiElement::defaultBorderLarge = 10;
+	int GuiElement::defaultBorderHuge = 20;
+	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiElement::ResizeMode>(const nlohmann::json& json)
 	{
 		return (json.is_string() && (
 			json == "SAME_AS_PARENT" ||
-			json == "DO_NOT_RESIZE" ||
 			json == "RESIZE_RANGE"));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<> GuiElement::ResizeMode parseJSON(const nlohmann::json& json)
 	{
 		if (json == "SAME_AS_PARENT") return GuiElement::ResizeMode::SAME_AS_PARENT;
-		else if (json == "DO_NOT_RESIZE") return GuiElement::ResizeMode::DO_NOT_RESIZE;
 		else if (json == "RESIZE_RANGE") return GuiElement::ResizeMode::RESIZE_RANGE;
 		else return GuiElement::ResizeMode::RESIZE_RANGE;
 	}
@@ -191,33 +199,16 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	int GuiElement::clampToMinMaxWidth(int width) const
 	{
-		if (sizeHints.minSize.x != -1) width = std::max(width, sizeHints.minSize.x);
-		if (sizeHints.maxSize.x != -1) width = std::min(width, sizeHints.maxSize.x);
+		width = std::max(width, sizeHints.minSize.x);
+		if (sizeHints.maxSize.x >= 0) width = std::min(width, sizeHints.maxSize.x);
 		return width;
 	}
 	//--------------------------------------------------------------------------------------------------
 	int GuiElement::clampToMinMaxHeight(int height) const
 	{
-		if (sizeHints.minSize.y != -1) height = std::max(height, sizeHints.minSize.y);
-		if (sizeHints.maxSize.y != -1) height = std::min(height, sizeHints.maxSize.y);
+		height = std::max(height, sizeHints.minSize.y);
+		if (sizeHints.maxSize.y >= 0) height = std::min(height, sizeHints.maxSize.y);
 		return height;
-	}
-	//--------------------------------------------------------------------------------------------------
-	Vec2i GuiElement::getPreferredOrCurrentSize() const
-	{
-		return Vec2i(getPreferredOrCurrentWidth(), getPreferredOrCurrentHeight());
-	}
-	//--------------------------------------------------------------------------------------------------
-	int GuiElement::getPreferredOrCurrentWidth() const
-	{
-		if (sizeHints.preferredSize.x != -1) return sizeHints.preferredSize.x;
-		else return size.x;
-	}
-	//--------------------------------------------------------------------------------------------------
-	int GuiElement::getPreferredOrCurrentHeight() const
-	{
-		if (sizeHints.preferredSize.y != -1) return sizeHints.preferredSize.y;
-		else return size.y;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setMinSize(const Vec2i& minSize)
@@ -359,15 +350,15 @@ namespace SnackerEngine
 			case ResizeMode::RESIZE_RANGE:
 			{
 				Vec2i childSize = Vec2i(0, 0);
-				if (child->getPreferredWidth() != -1) childSize.x = child->getPreferredWidth();
+				if (child->getPreferredWidth() >= 0) childSize.x = child->getPreferredWidth();
 				else {
-					if (child->getMinWidth() != -1) childSize.x = std::max(child->getMinWidth(), child->getWidth());
-					if (child->getMaxWidth() != -1) childSize.x = std::min(child->getMaxWidth(), child->getWidth());
+					if (child->getPreferredWidth() == SIZE_HINT_ARBITRARY) childSize.x = child->clampToMinMaxWidth(child->getWidth());
+					else if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) childSize.x = child->getMaxWidth();
 				}
-				if (child->getPreferredHeight() != -1) childSize.y = child->getPreferredHeight();
+				if (child->getPreferredHeight() >= 0) childSize.y = child->getPreferredHeight();
 				else {
-					if (child->getMinHeight() != -1) childSize.y = std::max(child->getMinHeight(), child->getHeight());
-					if (child->getMaxHeight() != -1) childSize.y = std::min(child->getMaxHeight(), child->getHeight());
+					if (child->getPreferredHeight() == SIZE_HINT_ARBITRARY) childSize.y = child->clampToMinMaxHeight(child->getHeight());
+					else if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) childSize.y = child->getMaxHeight();
 				}
 				setSizeOfChild(childID, childSize);
 				break;
@@ -541,6 +532,14 @@ namespace SnackerEngine
 		return IsCollidingResult::COLLIDE_CHILD;
 	}
 	//--------------------------------------------------------------------------------------------------
+	bool GuiElement::isCollidingBoundingBox(const Vec2i& offset) const
+	{
+		const Vec2i& myPosition = getPosition();
+		const Vec2i& mySize = getSize();
+		return (offset.x > 0 && offset.x < mySize.x
+			&& offset.y > 0 && offset.y < mySize.y);
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiID GuiElement::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset) const
 	{
 		switch (collidingResult)
@@ -549,7 +548,7 @@ namespace SnackerEngine
 		{
 			auto child = getElement(childID);
 			GuiID childCollision = child ? child->getCollidingChild(offset - child->getPosition()) : -1;
-			if (childCollision != 0) {
+			if (childCollision > 0) {
 				return childCollision;
 			}
 			break;
@@ -558,7 +557,7 @@ namespace SnackerEngine
 		{
 			auto child = getElement(childID);
 			GuiID childCollision = child ? child->getCollidingChild(offset - child->getPosition()) : -1;
-			if (childCollision != 0) {
+			if (childCollision > 0) {
 				return childCollision;
 			}
 			else {
@@ -586,7 +585,7 @@ namespace SnackerEngine
 			auto child = getElement(childID);
 			IsCollidingResult result = child ? child->isColliding(offset - child->getPosition()) : IsCollidingResult::NOT_COLLIDING;
 			GuiID childCollision = getCollidingChild(result, childID, offset);
-			if (childCollision >= 0) return childCollision;
+			if (childCollision > 0) return childCollision;
 		}
 		return 0;
 	}
@@ -614,6 +613,47 @@ namespace SnackerEngine
 	void GuiElement::popClippingBox()
 	{
 		if (guiManager) guiManager->popClippingBox();
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiElement::joinGroup(GuiGroupID groupID)
+	{
+		if (guiManager) return guiManager->joinGroup(guiID, groupID);
+		return false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiGroupID> GuiElement::createGroup(std::unique_ptr<GuiGroup>&& group)
+	{
+		if (guiManager) return guiManager->createGroup(this->guiID, std::move(group));
+		return {};
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiGroupID> GuiElement::groupExists(const std::string& groupName)
+	{
+		if (guiManager) return guiManager->groupExists(groupName);
+		return false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiElement::groupExists(GuiGroupID groupID)
+	{
+		if (guiManager) return guiManager->groupExists(groupID);
+		return false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiGroup* GuiElement::getGroup(const std::string& groupName)
+	{
+		if (guiManager) return guiManager->getGroup(groupName);
+		return nullptr;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiGroup* GuiElement::getGroup(GuiGroupID groupID)
+	{
+		if (guiManager) return guiManager->getGroup(groupID);
+		return nullptr;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::leaveGroup(GuiGroupID groupID)
+	{
+		if (guiManager) guiManager->leaveGroup(guiID, groupID);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

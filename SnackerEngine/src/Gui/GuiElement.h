@@ -4,6 +4,7 @@
 #include "Utility/Json.h"
 #include "Gui/GuiEventHandles/GuiVariableHandle.h"
 #include "Gui/SizeHints.h"
+#include "Gui\Text\Font.h"
 
 #include <vector>
 #include <optional>
@@ -14,6 +15,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	/// Forward declarations
 	class GuiManager;
+	class GuiGroup;
+	using GuiGroupID = int;
 	//--------------------------------------------------------------------------------------------------
 	/// Base class for all GuiElements, including Layouts!
 	class GuiElement
@@ -26,17 +29,25 @@ namespace SnackerEngine
 		{
 			SAME_AS_PARENT,		/// Always have the same size as the parent element. Usually the
 								/// go-to mode for Layout objects
-			DO_NOT_RESIZE,		/// Size is set by this element, should not be resized
 			RESIZE_RANGE,		/// Size can be set to anything in between the member variables 
 								/// minSize and maxSize
 		};
 		/// Values >= 0 denote valid GuiIDs
 		using GuiID = int;
+		/// Static default Attributes
+		static double defaultFontSizeSmall;
+		static double defaultFontSizeNormal;
+		static double defaultFontSizeBig;
+		static double defaultFontSizeHuge;
+		static Font defaultFont;
+		static int defaultBorderSmall;
+		static int defaultBorderNormal;
+		static int defaultBorderLarge;
+		static int defaultBorderHuge;
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_ELEMENT";
-
 		/// Default constructor
-		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::DO_NOT_RESIZE);
+		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE);
 		/// Constructor from JSON
 		GuiElement(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
@@ -74,10 +85,6 @@ namespace SnackerEngine
 		Vec2i clampToMinMaxSize(const Vec2i& size) const;
 		int clampToMinMaxWidth(int width) const;
 		int clampToMinMaxHeight(int height) const;
-		/// Returns the preferredSize, or the current size, if no preferredSize is specified
-		Vec2i getPreferredOrCurrentSize() const;
-		int getPreferredOrCurrentWidth() const;
-		int getPreferredOrCurrentHeight() const;
 		/// Setters for min/max/preferredSize. May May register children and/or parent for
 		/// enforcing layouts as well
 		void setMinSize(const Vec2i& minSize);
@@ -117,7 +124,6 @@ namespace SnackerEngine
 		const Vec2i getMouseOffset() const;
 		int getMouseOffsetX() const;
 		int getMouseOffsetY() const;
-
 	private:
 		friend class GuiManager;
 		friend class GuiHandle;
@@ -140,10 +146,9 @@ namespace SnackerEngine
 		Vec2i size = Vec2i();
 		/// The resize mode of this element. For more explanation see the definition of
 		/// the enum class above
-		ResizeMode resizeMode = ResizeMode::DO_NOT_RESIZE;
+		ResizeMode resizeMode = ResizeMode::RESIZE_RANGE;
 		/// The resizeHints of this element. See definition of GuiSizeHints struct.
 		GuiSizeHints sizeHints;
-
 		/// Vector of child elements. Sorted in the order they will be drawn (but this can be
 		/// changed in derived elements by overwriting draw())
 		std::vector<GuiID> children{};
@@ -199,9 +204,11 @@ namespace SnackerEngine
 		/// Sets size directly without calling OnPositionChange()
 		/// Use only if you know what you're doing!
 		void setSizeInternal(const Vec2i& size);
+	public:
 		/// This function can be used to tell the GuiManager that this element wants to enforce its layout
 		/// and the layouts of its child elements if necessary
 		void registerEnforceLayoutDown();
+	protected:
 		/// Draws a child
 		void drawElement(GuiID element, Vec2i worldPosition);
 		/// Using these setters a guiElement can change the position and size of child elements.
@@ -257,6 +264,9 @@ namespace SnackerEngine
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) const;
+		/// Helper function that returns true if a collision occured inside the bounding box given by
+		/// the position and size of this element
+		bool isCollidingBoundingBox(const Vec2i& offset) const;
 	protected:
 		/// Helper function used in getCollidingChild(const Vec2i& offset): Based on the collision mode
 		/// returns either the child element or a child of the child element!
@@ -338,8 +348,31 @@ namespace SnackerEngine
 		// TODO
 
 		//==============================================================================================
-		// Anchor Points
+		// Groups
 		//==============================================================================================
+	protected:
+		/// Tries to add the element to the group with the given groupID. If the group 
+		/// does not exist, false is returned.
+		bool joinGroup(GuiGroupID groupID);
+		/// Tries to create a group with the given name and return a new group ID. 
+		/// If a group with this name already exists, an empty optional is returned instead.
+		/// If the name is the empty string, it is ignored and the group is created in any case.
+		std::optional<GuiGroupID> createGroup(std::unique_ptr<GuiGroup>&& group);
+		/// Checks if a group with the given name exists. Returns the groupID if it does, and
+		/// an empty optional if it does not.
+		std::optional<GuiGroupID> groupExists(const std::string& groupName);
+		/// Checks if a group with the given ID exists
+		bool groupExists(GuiGroupID groupID);
+		/// Returns a reference to the group with the given name, if it exists
+		GuiGroup* getGroup(const std::string& groupName);
+		/// Returns a reference to the group with the given ID, if it exists
+		GuiGroup* getGroup(GuiGroupID groupID);
+		/// Removes the element from the group with the given ID.
+		/// If the group is empty after this, the group is deleted.
+		void leaveGroup(GuiGroupID groupID);
+		/// Removes the element from all groups it is currently in. Must be overwritten if this element
+		/// belongs to any groups
+		virtual void leaveAllGroups() {};
 
 	};
 
@@ -489,6 +522,14 @@ namespace SnackerEngine
 		//==============================================================================================
 
 		// TODO
+
+		//==============================================================================================
+		// Groups
+		//==============================================================================================
+	protected:
+		/// Removes the element from all groups it is currently in. Must be overwritten if this element
+		/// belongs to any groups
+		virtual void leaveAllGroups() {};
 	};
 
 	GuiElementType::GuiElementType(...)

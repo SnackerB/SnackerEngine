@@ -282,6 +282,21 @@
     <ClInclude Include="src\Gui\GuiElements\GuiEditVariable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Gui\Group.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\VectorElements\GuiEditVariableVec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVecVariableHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\VectorElements\GuiVariableVec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiElements\VectorElements\GuiSliderVec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp">
@@ -506,6 +521,15 @@
     <ClCompile Include="src\Utility\Formatting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Gui\Group.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiElements\VectorElements\GuiVariableVec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\gui\simpleColor.shader" />
@@ -525,5 +549,8 @@
     <None Include="resources\test\test.json" />
     <None Include="resources\test\window.json" />
     <None Include="src\Gui\GuiElements\GuiCheckBox.h" />
+    <None Include="resources\test\normalDebugWindow.json" />
+    <None Include="resources\test\gridLayoutTest.json" />
+    <None Include="resources\shaders\gui\msdfShader.shader" />
   </ItemGroup>
 </Project>

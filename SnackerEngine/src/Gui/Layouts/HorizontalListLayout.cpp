@@ -5,6 +5,139 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	unsigned GuiHorizontalListLayout::defaultHorizontalBorder = 10;
+	Color4f GuiHorizontalListLayout::defaultBackgroundColor = Color4f(0.0f, 0.0f);
+	//--------------------------------------------------------------------------------------------------
+	std::vector<int> GuiHorizontalListLayout::computeChildWidths(const std::vector<int>& minWidths, const std::vector<int>& preferredWidths, const std::vector<int>& maxWidths, int width)
+	{
+		std::vector<int> widths{};
+		int totalMinWidth = 0;
+		int totalPreferredWidth = 0;
+		for (std::size_t i = 0; i < minWidths.size(); ++i) {
+			widths.push_back(minWidths[i]);
+			totalMinWidth += minWidths[i];
+			if (preferredWidths[i] == SIZE_HINT_AS_LARGE_AS_POSSIBLE) totalPreferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+			else if (preferredWidths[i] >= 0 && totalPreferredWidth >= 0) totalPreferredWidth += preferredWidths[i] == SIZE_HINT_ARBITRARY ? minWidths[i] : preferredWidths[i];
+		}
+		int remainingWidth = width - totalMinWidth;
+		if (remainingWidth > 0) {
+			// If the total min Width is smaller than the available Width, we can afford to make
+			// elements larger!
+			if (totalPreferredWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE || totalPreferredWidth - totalMinWidth >= remainingWidth) {
+				// If the totalPreferredWidth is larger than the available width, we need to distribute the available width
+				// between the elements
+				// First, create a vector of indices of children where the width is still undecided, and where there is
+				// actually a preferredWidth larger than the minWidth
+				std::vector<unsigned> indicesOfChildrenLeftToResize;
+				for (unsigned i = 0; i < minWidths.size(); ++i) {
+					if (preferredWidths[i] == SIZE_HINT_AS_LARGE_AS_POSSIBLE || preferredWidths[i] > minWidths[i]) indicesOfChildrenLeftToResize.push_back(i);
+				}
+				bool problemOccured = true;
+				while (problemOccured && !indicesOfChildrenLeftToResize.empty() && remainingWidth > 0) {
+					problemOccured = false;
+					int widthSlice = remainingWidth / static_cast<int>(indicesOfChildrenLeftToResize.size());
+					int firstWidthSlice = widthSlice + remainingWidth % indicesOfChildrenLeftToResize.size();
+					// Handle first child
+					int childIndex = indicesOfChildrenLeftToResize[0];
+					if (preferredWidths[childIndex] != SIZE_HINT_AS_LARGE_AS_POSSIBLE && preferredWidths[childIndex] < minWidths[childIndex] + firstWidthSlice) {
+						widths[childIndex] = preferredWidths[childIndex];
+						remainingWidth -= preferredWidths[childIndex] - minWidths[childIndex];
+						indicesOfChildrenLeftToResize.erase(indicesOfChildrenLeftToResize.begin());
+						problemOccured = true;
+						continue;
+					}
+					else {
+						widths[childIndex] = minWidths[childIndex] + firstWidthSlice;
+					}
+					// Handle remaining childs
+					for (auto it = indicesOfChildrenLeftToResize.begin() + 1; it != indicesOfChildrenLeftToResize.end(); ++it) {
+						if (preferredWidths[childIndex] != SIZE_HINT_AS_LARGE_AS_POSSIBLE && preferredWidths[*it] < minWidths[*it] + widthSlice) {
+							widths[*it] = preferredWidths[*it];
+							remainingWidth -= preferredWidths[*it] - minWidths[*it];
+							indicesOfChildrenLeftToResize.erase(it);
+							problemOccured = true;
+							break;
+						}
+						else {
+							widths[*it] = minWidths[*it] + widthSlice;
+						}
+					}
+				}
+			}
+			else {
+				// If instead the total preferred width is smaller than the available width, we can set all children to their
+				// preferred width! We also make a list of children who still want to have a larger width, i.e. who dont have a
+				// preferred width but are still not at their max width, or don't have a max width as well.
+				std::vector<unsigned> indicesOfChildrenLeftToResize;
+				for (unsigned i = 0; i < minWidths.size(); ++i) {
+					if (preferredWidths[i] >= 0) {
+						widths[i] = preferredWidths[i];
+						remainingWidth -= preferredWidths[i] - minWidths[i];
+					}
+					else if (maxWidths[i] == SIZE_HINT_ARBITRARY || maxWidths[i] > minWidths[i]) indicesOfChildrenLeftToResize.push_back(i);
+				}
+				bool problemOccured = true;
+				while (problemOccured && !indicesOfChildrenLeftToResize.empty() && remainingWidth > 0)
+				{
+					problemOccured = false;
+					int widthSlice = remainingWidth / static_cast<int>(indicesOfChildrenLeftToResize.size());
+					int firstWidthSlice = widthSlice + remainingWidth % indicesOfChildrenLeftToResize.size();
+					// Handle first child
+					int childIndex = indicesOfChildrenLeftToResize[0];
+					if (maxWidths[childIndex] != SIZE_HINT_ARBITRARY && maxWidths[childIndex] < minWidths[childIndex] + firstWidthSlice) {
+						remainingWidth -= maxWidths[childIndex] - minWidths[childIndex];
+						widths[childIndex] = maxWidths[childIndex];
+						indicesOfChildrenLeftToResize.erase(indicesOfChildrenLeftToResize.begin());
+						problemOccured = true;
+						continue;
+					}
+					else {
+						widths[childIndex] = minWidths[childIndex] + firstWidthSlice;
+					}
+					// Handle remaining childs
+					for (auto it = indicesOfChildrenLeftToResize.begin() + 1; it != indicesOfChildrenLeftToResize.end(); ++it) {
+						if (maxWidths[*it] != SIZE_HINT_ARBITRARY && maxWidths[*it] < minWidths[*it] + widthSlice) {
+							remainingWidth -= maxWidths[*it] - minWidths[*it];
+							widths[*it] = maxWidths[*it];
+							indicesOfChildrenLeftToResize.erase(it);
+							problemOccured = true;
+							break;
+						}
+						else {
+							widths[*it] = minWidths[*it] + widthSlice;
+						}
+					}
+				}
+			}
+		}
+		return widths;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::computeWidthHintsFromChildren()
+	{
+		int totalMinWidth = 0;
+		int totalPreferredWidth = SIZE_HINT_ARBITRARY;
+		for (auto childID : getChildren()) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				totalMinWidth += child->getMinWidth();
+				if (totalPreferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					int tempPreferredWidth = child->getPreferredWidth();
+					if (tempPreferredWidth >= 0) {
+						if (totalPreferredWidth == SIZE_HINT_ARBITRARY) totalPreferredWidth = tempPreferredWidth;
+						else totalPreferredWidth += tempPreferredWidth;
+					}
+					else if (tempPreferredWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE) totalPreferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+				}
+			}
+		}
+		int totalBorders = 2 * outerHorizontalBorder + static_cast<int>((getChildren().size() - 1)) * horizontalBorder;
+		totalMinWidth += totalBorders;
+		if (totalPreferredWidth >= 0) totalPreferredWidth += totalBorders;
+		setMinWidth(totalMinWidth);
+		setPreferredWidth(totalPreferredWidth);
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout(Color4f backgroundColor)
 		: GuiHorizontalLayout(), backgroundColor(backgroundColor) {}
 	//--------------------------------------------------------------------------------------------------
@@ -15,6 +148,67 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(backgroundColor, "backgroundColor", json, data, parameterNames);
 		parseJsonOrReadFromData(backgroundShader, "backgroundShader", json, data, parameterNames);
+		parseJsonOrReadFromData(groupName, "horizontalLayoutGroupName", json, data, parameterNames);
+		parseJsonOrReadFromData(outerHorizontalBorder, "outerHorizontalBorder", json, data, parameterNames);
+		if (!json.contains("outerHorizontalBorder")) outerHorizontalBorder = horizontalBorder;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiHorizontalListLayout::~GuiHorizontalListLayout()
+	{
+		leaveAllGroups();
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiHorizontalListLayout::GuiHorizontalListLayout(const GuiHorizontalListLayout& other) noexcept
+		: GuiHorizontalLayout(other), alignmentHorizontal(other.alignmentHorizontal), 
+		horizontalBorder(other.horizontalBorder), backgroundColor(other.backgroundColor), 
+		modelMatrixBackground(other.modelMatrixBackground), backgroundShader(other.backgroundShader),
+		groupID(-1), groupName("")
+	{
+		if (other.groupID != -1) setHorizontalLayoutGroupID(other.groupID);
+		else if (!other.groupName.empty()) setHorizontalLayoutGroupName(other.groupName);
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiHorizontalListLayout& GuiHorizontalListLayout::operator=(const GuiHorizontalListLayout& other) noexcept
+	{
+		GuiHorizontalLayout::operator=(other);
+		if (groupID != -1) leaveGroup(groupID);
+		alignmentHorizontal = other.alignmentHorizontal;
+		horizontalBorder = other.horizontalBorder;
+		backgroundColor = other.backgroundColor;
+		modelMatrixBackground = other.modelMatrixBackground;
+		backgroundShader = other.backgroundShader;
+		groupID = -1;
+		groupName = "";
+		if (other.groupID != -1) setHorizontalLayoutGroupID(other.groupID);
+		else if (!other.groupName.empty()) setHorizontalLayoutGroupName(other.groupName);
+		return *this;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiHorizontalListLayout::GuiHorizontalListLayout(GuiHorizontalListLayout&& other) noexcept
+		: GuiHorizontalLayout(std::move(other)), alignmentHorizontal(other.alignmentHorizontal),
+		horizontalBorder(other.horizontalBorder), backgroundColor(other.backgroundColor),
+		modelMatrixBackground(other.modelMatrixBackground), 
+		backgroundShader(std::move(other.backgroundShader)),
+		groupID(other.groupID), groupName(std::move(other.groupName))
+	{
+		other.groupID = -1;
+		other.groupName = "";
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiHorizontalListLayout& GuiHorizontalListLayout::operator=(GuiHorizontalListLayout&& other) noexcept
+	{
+		GuiHorizontalLayout::operator=(std::move(other));
+		if (groupID != -1) leaveGroup(groupID);
+		alignmentHorizontal = other.alignmentHorizontal;
+		horizontalBorder = other.horizontalBorder;
+		backgroundColor = other.backgroundColor;
+		modelMatrixBackground = other.modelMatrixBackground;
+		backgroundShader = std::move(other.backgroundShader);
+		groupID = other.groupID;
+		groupName = std::move(other.groupName);
+		other.leaveGroup(other.groupID);
+		other.groupID = -1;
+		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::setHorizontalBorder(unsigned horizontalBorder)
@@ -23,6 +217,47 @@ namespace SnackerEngine
 			this->horizontalBorder = horizontalBorder;
 			registerEnforceLayoutDown();
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::setOuterHorizontalBorder(unsigned outerHorizontalBorder)
+	{
+		if (outerHorizontalBorder != this->outerHorizontalBorder) {
+			this->outerHorizontalBorder = outerHorizontalBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiHorizontalListLayout::setHorizontalLayoutGroupID(GuiGroupID groupID)
+	{
+		if (this->groupID != -1) return false;
+		if (!groupExists(groupID)) return false;
+		GuiGroup* group = getGroup(groupID);
+		if (group == nullptr || group->getGroupType() != "HORIZONTAL_LAYOUT_GROUP") return false;
+		if (joinGroup(groupID)) {
+			this->groupID = groupID;
+			return true;
+		}
+		return false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiHorizontalListLayout::setHorizontalLayoutGroupName(const std::string& groupName)
+	{
+		if (this->groupID != -1) return false;
+		this->groupName = groupName;
+		std::optional<GuiGroupID> tempGroupID = groupExists(groupName);
+		if (!tempGroupID.has_value()) {
+			// Create new group!
+			std::unique_ptr<HorizontalLayoutGroup> group = std::make_unique<HorizontalLayoutGroup>(groupName);
+			auto result = createGroup(std::move(group));
+			if (result.has_value()) {
+				groupID = result.value();
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		return setHorizontalLayoutGroupID(tempGroupID.value());
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::computeModelMatrix()
@@ -59,144 +294,55 @@ namespace SnackerEngine
 	{
 		GuiLayout::onRegister();
 		computeModelMatrix();
+		if (groupName != "" && groupID == -1) setHorizontalLayoutGroupName(groupName);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::onSizeChange()
 	{
 		GuiLayout::onSizeChange();
 		computeModelMatrix();
+		if (groupID != -1) {
+			GuiGroup* groupPointer = getGroup(groupID);
+			if (groupPointer) static_cast<HorizontalLayoutGroup*>(groupPointer)->markForRecompute();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::enforceLayout()
 	{
 		GuiHorizontalLayout::enforceLayout();
-		const auto& childIDs = getChildren();
-		std::vector<int> widths{};
-		int totalMinWidth = 0;
-		int totalPreferredWidth = 0;
-		for (const auto& childID : childIDs) {
-			GuiElement* child = getElement(childID);
-			if (child) {
-				widths.push_back(child->getMinWidth());
-				totalMinWidth += child->getMinWidth();
-				totalPreferredWidth += child->getPreferredWidth() == -1 ? child->getMinWidth() : child->getPreferredWidth();
+		std::vector<int> widths;
+		if (groupID != -1 && groupExists(groupID)) {
+			GuiGroup* groupPointer = getGroup(groupID);
+			if (groupPointer != nullptr) {
+				HorizontalLayoutGroup* horizontalLayoutGroupPointer = static_cast<HorizontalLayoutGroup*>(groupPointer);
+				horizontalLayoutGroupPointer->recomputeWidths();
+				widths = horizontalLayoutGroupPointer->getWidths();
 			}
-			else widths.push_back(0);
 		}
-		int remainingWidth = getWidth() - static_cast<int>(horizontalBorder * (getChildren().size() + 1)) - totalMinWidth;
-		if (remainingWidth > 0) {
-			// If the total min Width is smaller than the available Width, we can afford to make
-			// elements larger!
-			if (totalPreferredWidth - totalMinWidth >= remainingWidth) {
-				// If the totalPreferredWidth is larger than the available width, we need to distribute the available width
-				// between the elements
-				// First, create a vector of indices of children where the width is still undecided, and where there is
-				// actually a preferredWidth larger than the minWidth
-				std::vector<unsigned> indicesOfChildrenLeftToResize;
-				for (unsigned i = 0; i < childIDs.size(); ++i) {
-					GuiElement* child = getElement(childIDs[i]);
-					if (child && child->getPreferredWidth() > child->getMinWidth()) indicesOfChildrenLeftToResize.push_back(i);
+		const auto& childIDs = getChildren();
+		if (childIDs.empty()) return;
+		if (widths.empty()) {
+			std::vector<int> minWidths;
+			std::vector<int> preferredWidths;
+			std::vector<int> maxWidths;
+			for (auto childId : childIDs) {
+				GuiElement* child = getElement(childId);
+				if (child) {
+					minWidths.push_back(child->getMinWidth());
+					preferredWidths.push_back(child->getPreferredWidth());
+					maxWidths.push_back(child->getMaxWidth());
 				}
-				bool problemOccured = true;
-				while (problemOccured && !indicesOfChildrenLeftToResize.empty() && remainingWidth > 0) {
-					problemOccured = false;
-					int widthSlice = remainingWidth / static_cast<int>(indicesOfChildrenLeftToResize.size());
-					int firstWidthSlice = widthSlice + remainingWidth % indicesOfChildrenLeftToResize.size();
-					// Handle first child
-					GuiElement* child = getElement(childIDs[indicesOfChildrenLeftToResize[0]]);
-					if (child) {
-						if (child->getPreferredWidth() < child->getMinWidth() + firstWidthSlice) {
-							widths[indicesOfChildrenLeftToResize[0]] = child->getPreferredWidth();
-							remainingWidth -= child->getPreferredWidth() - child->getMinWidth();
-							indicesOfChildrenLeftToResize.erase(indicesOfChildrenLeftToResize.begin());
-							problemOccured = true;
-							continue;
-						}
-						else {
-							widths[indicesOfChildrenLeftToResize[0]] = child->getMinWidth() + firstWidthSlice;
-						}
-					}
-					else {
-						indicesOfChildrenLeftToResize.erase(indicesOfChildrenLeftToResize.begin());
-						bool problemOccured = true;
-						continue;
-					}
-					// Handle remaining childs
-					for (auto it = indicesOfChildrenLeftToResize.begin() + 1; it != indicesOfChildrenLeftToResize.end(); ++it) {
-						GuiElement* child = getElement(childIDs[*it]);
-						if (child->getPreferredWidth() < child->getMinWidth() + widthSlice) {
-							widths[*it] = child->getPreferredWidth();
-							remainingWidth -= child->getPreferredWidth() - child->getMinWidth();
-							indicesOfChildrenLeftToResize.erase(it);
-							problemOccured = true;
-							break;
-						}
-						else {
-							widths[*it] = child->getMinWidth() + widthSlice;
-						}
-					}
+				else {
+					minWidths.push_back(0);
+					preferredWidths.push_back(SIZE_HINT_ARBITRARY);
+					maxWidths.push_back(SIZE_HINT_ARBITRARY);
 				}
 			}
-			else {
-				// If instead the total preferred width is smaller than the available width, we can set all children to their
-				// preferred width! We also make a list of children who still want to have a larger width, i.e. who dont have a
-				// preferred width but are still not at their max width, or don't have a max width as well.
-				std::vector<unsigned> indicesOfChildrenLeftToResize;
-				for (unsigned i = 0; i < childIDs.size(); ++i) {
-					GuiElement* child = getElement(childIDs[i]);
-					if (child) {
-						if (child->getPreferredWidth() != -1) {
-							widths[i] = child->getPreferredWidth();
-							remainingWidth -= child->getPreferredWidth() - child->getMinWidth();
-						}
-						else if (child->getMaxWidth() == -1 || child->getMaxWidth() > child->getMinWidth()) indicesOfChildrenLeftToResize.push_back(i);
-					}
-				}
-				bool problemOccured = true;
-				while (problemOccured && !indicesOfChildrenLeftToResize.empty() && remainingWidth > 0)
-				{
-					problemOccured = false;
-					int widthSlice = remainingWidth / static_cast<int>(indicesOfChildrenLeftToResize.size());
-					int firstWidthSlice = widthSlice + remainingWidth % indicesOfChildrenLeftToResize.size();
-					// Handle first child
-					GuiElement* child = getElement(childIDs[indicesOfChildrenLeftToResize[0]]);
-					if (child) {
-						if (child->getMaxWidth() != -1 && child->getMaxWidth() < child->getMinWidth() + firstWidthSlice) {
-							remainingWidth -= child->getMaxWidth() - child->getMinWidth();
-							widths[indicesOfChildrenLeftToResize[0]] = child->getMaxWidth();
-							indicesOfChildrenLeftToResize.erase(indicesOfChildrenLeftToResize.begin());
-							problemOccured = true;
-							continue;
-						}
-						else {
-							widths[indicesOfChildrenLeftToResize[0]] = child->getMinWidth() + firstWidthSlice;
-						}
-					}
-					else {
-						indicesOfChildrenLeftToResize.erase(indicesOfChildrenLeftToResize.begin());
-						bool problemOccured = true;
-						continue;
-					}
-					// Handle remaining childs
-					for (auto it = indicesOfChildrenLeftToResize.begin() + 1; it != indicesOfChildrenLeftToResize.end(); ++it) {
-						GuiElement* child = getElement(childIDs[*it]);
-						if (child->getMaxWidth() != -1 && child->getMaxWidth() < child->getMinWidth() + widthSlice) {
-							remainingWidth -= child->getMaxWidth() - child->getMinWidth();
-							widths[*it] = child->getMaxWidth();
-							indicesOfChildrenLeftToResize.erase(it);
-							problemOccured = true;
-							break;
-						}
-						else {
-							widths[*it] = child->getMinWidth() + widthSlice;
-						}
-					}
-				}
-			}
+			widths = computeChildWidths(minWidths, preferredWidths, maxWidths, getWidth() - static_cast<int>(horizontalBorder * (getChildren().size() - 1)) - static_cast<int>(outerHorizontalBorder * 2));
 		}
 		// Now we can actually position and resize the elements
 		if (alignmentHorizontal == AlignmentHorizontal::LEFT || alignmentHorizontal == AlignmentHorizontal::CENTER) {
-			int position = horizontalBorder;
+			int position = outerHorizontalBorder;
 			if (alignmentHorizontal == AlignmentHorizontal::CENTER) {
 				int totalWidth = horizontalBorder * (static_cast<int>(childIDs.size()) - 1);
 				for (auto width : widths) totalWidth += width;
@@ -223,6 +369,86 @@ namespace SnackerEngine
 				position -= horizontalBorder;
 			}
 		}
+		// Compute new minWidth
+		computeWidthHintsFromChildren();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::leaveAllGroups()
+	{
+		if (groupID != -1) {
+			leaveGroup(groupID);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::HorizontalLayoutGroup::onElementJoin(GuiElement::GuiID element, std::size_t position)
+	{
+		GuiManager* guiManager = getGuiManager();
+		if (guiManager) {
+			for (auto element : getElements()) {
+				GuiElement* guiElement = guiManager->getGuiElement(element);
+				if (guiElement) guiElement->registerEnforceLayoutDown();
+			}
+		}
+		upToDate = false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::HorizontalLayoutGroup::onElementLeave(GuiElement::GuiID element, std::size_t position)
+	{
+		onElementJoin(element, 0);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::HorizontalLayoutGroup::recomputeWidths()
+	{
+		if (upToDate) return;
+		upToDate = true;
+		widths.clear();
+		GuiManager* guiManager = getGuiManager();
+		if (!guiManager) return;
+		const std::vector<GuiID>& elements = getElements();
+		if (elements.empty()) return;
+		// Compute horizontal border from first element
+		GuiElement* firstElement = guiManager->getGuiElement(elements[0]);
+		if (!firstElement) return;
+		int horizontalBorder = static_cast<GuiHorizontalListLayout*>(firstElement)->getHorizontalBorder();
+		int outerHorizontalBorder = static_cast<GuiHorizontalListLayout*>(firstElement)->getOuterHorizontalBorder();
+		// First find out the total width. For this, we choose the smallest width of all elements in the group.
+		// Additionally we need to compute the highest number of children one element has, and the largest horizontal border.
+		int width = SIZE_HINT_ARBITRARY;
+		std::size_t numberOfChildren = 0;
+		for (const auto& element : elements) {
+			GuiElement* guiElement = guiManager->getGuiElement(element);
+			if (guiElement) {
+				int tempWidth = guiElement->getWidth();
+				if (tempWidth < width || width == SIZE_HINT_ARBITRARY) width = tempWidth;
+				int numberOfChildrenTemp = guiElement->getChildren().size();
+				if (numberOfChildrenTemp > numberOfChildren) numberOfChildren = numberOfChildrenTemp;
+			}
+		}
+		if (width == SIZE_HINT_ARBITRARY) width = 0;
+		// Next, we need to collect information about the elements' children: The maximal minWidth, the maximal preferredWidth,
+		// and the maximal maxWidth!
+		std::vector<int> minWidths(numberOfChildren, 0);
+		std::vector<int> preferredWidths(numberOfChildren, SIZE_HINT_ARBITRARY);
+		std::vector<int> maxWidths(numberOfChildren, 0);
+		std::size_t index = 0;
+		for (const auto& element : elements) {
+			GuiElement* guiElement = guiManager->getGuiElement(element);
+			if (guiElement) {
+				const std::vector<GuiID>& children = guiElement->getChildren();
+				for (std::size_t i = 0; i < std::min(numberOfChildren, children.size()); ++i) {
+					GuiElement* child = guiManager->getGuiElement(children[i]);
+					minWidths[i] = std::max(child->getMinWidth(), minWidths[i]);
+					if (preferredWidths[i] != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+						int tempPreferredWidth = child->getPreferredWidth();
+						if (tempPreferredWidth >= 0 && tempPreferredWidth > preferredWidths[i]) preferredWidths[i] = tempPreferredWidth;
+						else if (tempPreferredWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredWidths[i] = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					}
+					int tempMaxWidth = child->getMaxWidth();
+					if (tempMaxWidth == SIZE_HINT_ARBITRARY || (maxWidths[i] != SIZE_HINT_ARBITRARY && tempMaxWidth > maxWidths[i])) maxWidths[i] = tempMaxWidth;
+				}
+			}
+		}
+		widths = GuiHorizontalListLayout::computeChildWidths(minWidths, preferredWidths, maxWidths, width - (minWidths.size() - 1) * horizontalBorder - 2 * outerHorizontalBorder);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

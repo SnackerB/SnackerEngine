@@ -15,7 +15,7 @@ namespace SnackerEngine
 		GuiLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 			: GuiElement(json, data, parameterNames) 
 		{
-			setResizeMode(ResizeMode::SAME_AS_PARENT);
+			if (!json.contains("resizeMode")) setResizeMode(ResizeMode::SAME_AS_PARENT);
 		}
 		/// Removes the given child from this GuiElement object
 		std::optional<unsigned> removeChild(GuiID guiElement)
@@ -24,6 +24,12 @@ namespace SnackerEngine
 			if (result.has_value()) registerEnforceLayoutDown();
 			return result;
 		}
+	protected:
+		/// Helper function that distributes remaining size between children.
+		/// This assumes that the sum of the childrens minSizes is smaller than the layouts size,
+		/// but the sum of the childrens preferredSizes is larger than the layouts size.
+		/// The remaining size is the difference of the layouts size to the sum of the childrens minSizes.
+		static std::vector<int> distributeSizeBetweenChildren(const std::vector<int>& minSizes, const std::vector<int>& preferredSizes, int remainingSize);
 	};
 	//--------------------------------------------------------------------------------------------------
 }

@@ -23,6 +23,8 @@ namespace SnackerEngine
 		};
 	private:
 		Mode mode;
+		/// Helper function that computes the sizeHints of this layout based on the sizeHints of its children
+		void computeSizeHintsFromChildren();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_POSITIONING_LAYOUT";

@@ -7,6 +7,10 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	class GuiHorizontalWeightedLayout : public GuiHorizontalLayout
 	{
+	public:
+		/// Static default Attributes
+		static int defaultResizeAreaWidth;
+		static int defaultHorizontalBorder;
 	private:
 		/// Total weight
 		double totalWeight = 0.0;
@@ -14,12 +18,14 @@ namespace SnackerEngine
 		std::vector<double> weights = {};
 		/// Vector of stored width percentages
 		std::vector<double> percentages = {};
-		/// border between elements
-		int horizontalBorder = 0;
+		/// Border between elements
+		int horizontalBorder = defaultHorizontalBorder;
+		/// Border between elements and the left/right border of the layout
+		int outerHorizontalBorder = defaultHorizontalBorder;
 		/// Horizontal alignment
 		AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT;
 		/// The width of the resize area (in pixels)
-		int resizeAreaWidth = 5;
+		int resizeAreaWidth = defaultResizeAreaWidth;
 		/// The offset of the mouse to the border (used for resizing the layout)
 		int mouseOffset = 0;
 		/// The border that is currently being resized. Counting from the left, starting at 0.
@@ -37,6 +43,8 @@ namespace SnackerEngine
 		void computeWeightsFromPercentages();
 		/// Helper function that get called when a child is registered
 		void onRegisterChild(double weight = 1.0);
+		/// Helper function that computes the minWidth of the layout from its childElements.
+		void computeWidthHintsFromChildren();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_HORIZONTAL_WEIGHTED_LAYOUT";
@@ -63,6 +71,7 @@ namespace SnackerEngine
 		std::optional<double> getWeight(GuiID childID) const;
 		std::optional<double> getPercentage(GuiID childID) const;
 		unsigned getHorizontalBorder() const { return horizontalBorder; }
+		unsigned getOuterHorizontalBorder() const { return outerHorizontalBorder; }
 		AlignmentHorizontal getAlignmentHorizontal() const { return alignmentHorizontal; }
 		unsigned getResizeAreaWidth() const { return resizeAreaWidth; }
 		bool isAllowMoveBorders() const { return allowMoveBorders; }
@@ -70,6 +79,7 @@ namespace SnackerEngine
 		void setWeight(GuiID childID, double weight);
 		void setPercentage(GuiID childID, double percentage);
 		void setHorizontalBorder(int horizontalBorder);
+		void setOuterHorizontalBorder(int outerHorizontalBorder);
 		void setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal);
 		void setResizeAreaWidth(unsigned resizeAreaWidth) { this->resizeAreaWidth = resizeAreaWidth; }
 		void setAllowMoveBorders(bool allowMoveBorders);

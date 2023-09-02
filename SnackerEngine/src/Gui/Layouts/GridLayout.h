@@ -5,33 +5,39 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class GuiGridLayout : public GuiLayout
 	{
 	public:
-		/// Enum for specifying the layout mode
+		/// Enum for specifying the layout mode. Regardless the mode, each child element is positioned in the center
+		/// of its respective grid cell, and resized to the size of the grid cell, if possible
 		enum class Mode
 		{
 			SPLIT_CELLS_EQUALLY,		/// Splits the available total space equally
-										/// between the grid cells and forces children
-										/// to be the correct size. Default mode.
+										/// between the grid cells and tries to resize children
+										/// to the correct size. Tries to make the grid as large 
+										/// the size of the layout.
 
-			ADAPT_CELLS_EQUALLY,		/// Tries to find a size that fits all children.
-										/// All cells will have the same size. The total
-										/// grid will fit inside the parent bounding box.
-										/// Use the Alignment enum to specify where the
-										/// grid is placed inside the parent bounding box.
-
-			ADAPT_CELLS_EQUALLY_WEAK,	/// Same as ADAPT_CELLS_EQUALLY, but the grid is not
-										/// forced to fit inside the parent bounding box
+			SPLIT_CELLS_EQUALLY_SHRINK, /// Same as SPLIT_CELLS_EQUALLY, but tries to shrink the grid
+										/// to the childrens preferredSize/minSize and positions it according
+										/// to the alignmentHorizontal and alignmentVertical
+										/// member variables
+										
+			ADAPT_CELLS_SHRINK,			/// Adapts width and heights of the different rows and
+										/// columns to best fit the child elements. Tries to shrink the grid
+										/// to the childrens preferredSize/minSize and positions it according
+										/// to the alignmentHorizontal and alignmentVertical
+										/// member variables
 		};
 	private:
 		/// Total number of columns in the grid
 		unsigned totalColumns = 1;
 		/// Total number of rows in the grid
 		unsigned totalRows = 1;
-		/// size of the border between grid cells, in pixels
+		/// Size of the border between grid cells, in pixels
 		unsigned border = 0;
+		/// Size of the border between grid cells and the outer edge, in pixels
+		unsigned outerBorder = 0;
 		/// mode of the layout
 		Mode mode = Mode::SPLIT_CELLS_EQUALLY;
 		/// Alignment enums
@@ -44,16 +50,26 @@ namespace SnackerEngine
 		};
 		// Vector of stored layoutOptions
 		std::vector<LayoutOptions> layoutOptions{};
-		/// Helper function, that computes the layout as if the mode were set to SPLIT_CELLS_EQUALLY,
-		/// but with the given element size and using the centering method specified in the member variables.
-		void enforceLayoutSplitCellsEqually(const Vec2i& elementSize);
-		/// Helper function that computes the layout when the mode is set to SPLIT_CELLS_EQUALLY
+		/// Helper function that computes the largest minSize and preferredSize of all children
+		std::pair<Vec2i, Vec2i> computeLargestMinSizeAndPreferredSize() const;
+		/// Helper functions that compute the total amount of borders in x and y directions
+		int computeTotalBorderX() const;
+		int computeTotalBorderY() const;
+		/// Computes the anchor point of the grid (upper left corner)
+		Vec2i computeAnchorPoint(const Vec2i& firstGridCellSize, const Vec2i& gridCellSize, int totalBorderX, int totalBorderY) const;
+		Vec2i computeAnchorPoint(int totalGridWidth, int totalGridHeight) const;
+		/// Helper function that positions all child elements according to the given anchor point and cell sizes
+		void positionChildren(const Vec2i& anchorPoint, const Vec2i& firstCellSize, const Vec2i& cellSize);
+		void positionChildren(const Vec2i& anchorPoint, const std::vector<int>& gridCellWidths, const std::vector<int>& gridCellHeights);
+		/// Helper function for enforcing the layout in the different modes
 		void enforceLayoutSplitCellsEqually();
+		void enforceLayoutSplitCellsEquallyShrink();
+		void enforceLayoutAdaptCellsShrink();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_GRID_LAYOUT";
 		/// Default constructor
-		GuiGridLayout(const unsigned& totalColumns = 1, const unsigned& totalRows = 1, const Mode& mode = Mode::SPLIT_CELLS_EQUALLY, const unsigned& border = 0); // NOTE: All parameters must have default values!
+		GuiGridLayout(unsigned totalColumns = 1, unsigned totalRows = 1, Mode mode = Mode::SPLIT_CELLS_EQUALLY, unsigned border = 0, unsigned outerBorder = 0); // NOTE: All parameters must have default values!
 		/// Constructor from JSON
 		GuiGridLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
@@ -71,9 +87,7 @@ namespace SnackerEngine
 		bool registerChild(GuiElement& guiElement, unsigned row, unsigned column);
 		/// Adds a child to this guiElement, with options given in JSON
 		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
-
 	protected:
-
 		/// Removes the given child from this GuiElement object
 		virtual std::optional<unsigned> removeChild(GuiID guiElement) override;
 		/// Sets the position and size of the children of this element according to
@@ -81,5 +95,5 @@ namespace SnackerEngine
 		/// children as well
 		virtual void enforceLayout() override;
 	};
-
+	//--------------------------------------------------------------------------------------------------
 }

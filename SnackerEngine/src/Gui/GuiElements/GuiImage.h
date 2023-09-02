@@ -16,20 +16,24 @@ namespace SnackerEngine
 			RESIZE_TO_IMAGE_SIZE,
 			FIT_IMAGE_TO_SIZE,
 		};
+	public:
+		/// Static default Attributes
+		static Shader defaultImageShader;
+		static Texture defaultTexture;
 	private:
 		/// Model matrix for the image
 		Mat4f modelMatrixImage{};
 		/// Shader for the image
-		Shader imageShader = Shader("shaders/gui/basicTexture.shader");
+		Shader imageShader = defaultImageShader;
 		/// The texture/image that is displayed
-		Texture texture{};
+		Texture texture = defaultTexture;
 		/// The image mode
 		GuiImageMode guiImageMode = GuiImageMode::FIT_IMAGE_TO_SIZE;
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_IMAGE";
 		/// Default constructor
-		GuiImage(Texture texture = Texture{}, GuiImageMode imageMode = GuiImageMode::FIT_IMAGE_TO_SIZE);
+		GuiImage(Texture texture = defaultTexture, GuiImageMode imageMode = GuiImageMode::FIT_IMAGE_TO_SIZE);
 		/// Constructor from JSON
 		GuiImage(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor

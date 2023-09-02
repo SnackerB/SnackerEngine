@@ -2,12 +2,39 @@
 
 #include <string>
 #include <optional>
+#include "Math\Vec.h"
 
 namespace SnackerEngine
 {
 
 	template<typename T>
 	std::string to_string(const T& val);
+
+
+	template<typename T>
+	std::string to_string(const Vec2<T>& val)
+	{
+		std::ostringstream result;
+
+		result << "(" << to_string<T>(val.x) << ", " << to_string<T>(val.y) << ")";
+		return result.str();
+	}
+
+	template<typename T>
+	std::string to_string(const Vec3<T>& val)
+	{
+		std::ostringstream result;
+		result << "(" << to_string(val.x) << ", " << to_string(val.y) << ", " << to_string(val.z) << ")";
+		return result.str();
+	}
+
+	template<typename T>
+	std::string to_string(const Vec4<T>& val) 
+	{
+		std::ostringstream result;
+		result << "(" << to_string(val.x) << ", " << to_string(val.y) << ", " << to_string(val.z) << ", " << to_string(val.w) << ")";
+		return result.str();
+	}
 
 	template<typename T>
 	std::optional<T> from_string(const std::string& string);

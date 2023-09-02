@@ -9,6 +9,11 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
+	Color4f GuiTextBox::defaultTextColor = Color4f(1.0f, 1.0f);
+	Color4f GuiTextBox::defaultBackgroundColor = Color4f(0.0f, 0.0f);
+	unsigned GuiTextBox::defaultRecomputeTries = 10;
+	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY };
+	//--------------------------------------------------------------------------------------------------
 	/// Helper functions for parsing JSON
 	template<> bool isOfType<GuiTextBox::TextScaleMode>(const nlohmann::json& json)
 	{
@@ -333,8 +338,8 @@ namespace SnackerEngine
 			font, textColor)));
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiTextBox::GuiTextBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize)
-		: GuiPanel(position, size), fontSize(fontSize), text(text), font(font) {}
+	GuiTextBox::GuiTextBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, const Color4f& backgroundColor)
+		: GuiPanel(position, size, ResizeMode::RESIZE_RANGE, backgroundColor), fontSize(fontSize), text(text), font(font) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiTextBox::GuiTextBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiPanel(json, data, parameterNames)
@@ -352,6 +357,7 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(parseMode, "parseMode", json, data, parameterNames);
 		parseJsonOrReadFromData(alignment, "alignment", json, data, parameterNames);
 		parseJsonOrReadFromData(font, "font", json, data, parameterNames);
+		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiTextBox::GuiTextBox(const GuiTextBox& other) noexcept

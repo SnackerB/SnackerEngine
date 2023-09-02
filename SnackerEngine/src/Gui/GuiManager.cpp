@@ -22,6 +22,8 @@
 #include "Gui\GuiElements\GuiImage.h"
 #include "Gui\GuiElements\GuiTextVariable.h"
 #include "Gui\GuiElements\GuiEditVariable.h"
+#include "Gui\GuiElements\VectorElements\GuiEditVariableVec.h"
+#include "Gui\GuiElements\VectorElements\GuiSliderVec.h"
 
 namespace SnackerEngine
 {
@@ -233,6 +235,99 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	GuiGroupID GuiManager::getNewGroupID()
+	{
+		if (registeredGuiGroupsCount >= maxGuiGroups)
+		{
+			// Resize vector and add new available GuiGroupID slots accordingly. For now: double size everytime this happens and send warning!
+			guiGroups.reserve(static_cast<std::size_t>(maxGuiGroups) * 2);
+			for (GuiID id = maxGuiGroups; id < 2 * maxGuiGroups; ++id)
+			{
+				availableGuiGroupIDs.push(id);
+				guiGroups.push_back(nullptr);
+			}
+			warningLogger << LOGGER::BEGIN << "maximum amount of guiGroups exceeded. Resizing guiManager to be able to store "
+				<< 2 * maxGuiGroups << " guiGroups!" << LOGGER::ENDL;
+			maxGuiGroups *= 2;
+		}
+		// Take ID from the front of the queue
+		GuiID id = availableGuiGroupIDs.front();
+		availableGuiGroupIDs.pop();
+		return id;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiGroupID> GuiManager::joinGroup(GuiID guiID, const std::string& groupName)
+	{
+		auto it = guiGroupMap.find(groupName);
+		if (it != guiGroupMap.end()) {
+			if (joinGroup(guiID, it->second)) return it->second;
+		}
+		return {};
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::joinGroup(GuiID guiID, GuiGroupID groupID)
+	{
+		if (groupID >= 0 && groupID < guiGroups.size() && guiGroups[groupID] != nullptr) {
+			return guiGroups[groupID]->join(guiID);
+		}
+		return false;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiGroupID> GuiManager::createGroup(GuiID guiID, std::unique_ptr<GuiGroup>&& group)
+	{
+		if (!group->name.empty() && groupExists(group->name)) return {};
+		GuiGroupID groupID = getNewGroupID();
+		if (!group->name.empty()) guiGroupMap.insert(std::make_pair(group->name, groupID));
+		guiGroups[groupID] = std::move(group);
+		guiGroups[groupID]->guiManager = this;
+		registeredGuiGroupsCount++;
+		guiGroups[groupID]->join(guiID);
+		return groupID;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<GuiGroupID> GuiManager::groupExists(const std::string& groupName)
+	{
+		auto it = guiGroupMap.find(groupName);
+		if (it != guiGroupMap.end()) return it->second;
+		return {};
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::groupExists(GuiGroupID groupID)
+	{
+		return groupID >= 0 && groupID < guiGroups.size() && guiGroups[groupID] != nullptr;
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiGroup* GuiManager::getGroup(const std::string& groupName)
+	{
+		auto it = guiGroupMap.find(groupName);
+		if (it != guiGroupMap.end()) return getGroup(it->second);
+		return {};
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiGroup* GuiManager::getGroup(GuiGroupID groupID)
+	{
+		if (groupExists(groupID)) return guiGroups[groupID].get();
+		else return {};
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::leaveGroup(GuiID guiID, const std::string& groupName)
+	{
+		auto it = guiGroupMap.find(groupName);
+		if (it != guiGroupMap.end()) leaveGroup(guiID, it->second);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::leaveGroup(GuiID guiID, GuiGroupID groupID)
+	{
+		if (!groupExists(groupID)) return;
+		guiGroups[groupID]->leave(guiID);
+		if (guiGroups[groupID]->elements.empty()) {
+			if (!guiGroups[groupID]->name.empty()) guiGroupMap.erase(guiGroups[groupID]->name);
+			guiGroups[groupID] = nullptr;
+			availableGuiGroupIDs.push(groupID);
+			registeredGuiGroupsCount--;
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiID GuiManager::getNewGuiID()
 	{
 		if (registeredGuiElementsCount >= maxGuiElements)
@@ -308,6 +403,8 @@ namespace SnackerEngine
 			return;
 		}
 		GuiElement& element = *registeredGuiElements[guiElement];
+		// If the element is in any groups, it should leave them
+		element.leaveAllGroups();
 		// Sign off element which will in turn sign off its children
 		element.signOff();
 		registeredGuiElements[guiElement] = nullptr;
@@ -317,9 +414,9 @@ namespace SnackerEngine
 		if (lastMouseHoverElement == guiElement) lastMouseHoverElement = 0;
 		/// Sign off from EnforceLayoutQueues
 		removeFromEnforceLayoutQueues(guiElement);
-		/// Sign off from animations
+		// Sign off from animations
 		// deleteAnimations(guiElement); TODO: Uncomment
-		/// If the element has a name, delete from namedElements map
+		// If the element has a name, delete from namedElements map
 		if (!element.name.empty()) {
 			namedElements.erase(element.name);
 		}
@@ -482,6 +579,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::initialize()
 	{
+		// Initialize parser map by registering all standard GuiElement derived classes
 		registerGuiElementType<GuiElement>();
 		registerGuiElementType<GuiPanel>();
 		registerGuiElementType<GuiTextBox>();
@@ -493,25 +591,72 @@ namespace SnackerEngine
 		registerGuiElementType<GuiGridLayout>();
 		registerGuiElementType<GuiVerticalLayout>();
 		registerGuiElementType<GuiButton>();
-		registerGuiElementType<GuiSlider<float>>("_FLOAT");
-		registerGuiElementType<GuiSlider<double>>("_DOUBLE");
-		registerGuiElementType<GuiSlider<int>>("_INT");
-		registerGuiElementType<GuiSlider<unsigned int>>("_UNSIGNED_INT");
+		registerGuiElementType<GuiSliderFloat>("_FLOAT");
+		registerGuiElementType<GuiSliderDouble>("_DOUBLE");
+		registerGuiElementType<GuiSliderInt>("_INT");
+		registerGuiElementType<GuiSliderUnsignedInt>("_UNSIGNED_INT");
 		registerGuiElementType<GuiVerticalListLayout>();
 		registerGuiElementType<GuiVerticalScrollingListLayout>();
 		registerGuiElementType<GuiWindow>();
 		registerGuiElementType<GuiEditBox>();
 		registerGuiElementType<GuiCheckBox>();
 		registerGuiElementType<GuiImage>();
-		registerGuiElementType<GuiTextVariable<float>>("_FLOAT");
-		registerGuiElementType<GuiTextVariable<double>>("_DOUBLE");
-		registerGuiElementType<GuiTextVariable<int>>("_INT");
-		registerGuiElementType<GuiTextVariable<unsigned int>>("_UNSIGNED_INT");    
-		registerGuiElementType<GuiEditVariable<float>>("_FLOAT");
-		registerGuiElementType<GuiEditVariable<double>>("_DOUBLE");
-		registerGuiElementType<GuiEditVariable<int>>("_INT");
-		registerGuiElementType<GuiEditVariable<unsigned int>>("_UNSIGNED_INT");
-
+		registerGuiElementType<GuiTextVariableFloat>("_FLOAT");
+		registerGuiElementType<GuiTextVariableDouble>("_DOUBLE");
+		registerGuiElementType<GuiTextVariableInt>("_INT");
+		registerGuiElementType<GuiTextVariableUnsignedInt>("_UNSIGNED_INT");
+		registerGuiElementType<GuiTextVariableVec2f>("_VEC2_FLOAT");
+		registerGuiElementType<GuiTextVariableVec2d>("_VEC2_DOUBLE");
+		registerGuiElementType<GuiTextVariableVec2i>("_VEC2_INT");
+		registerGuiElementType<GuiTextVariableVec3f>("_VEC3_FLOAT");
+		registerGuiElementType<GuiTextVariableVec3d>("_VEC3_DOUBLE");
+		registerGuiElementType<GuiTextVariableVec3i>("_VEC3_INT");
+		registerGuiElementType<GuiTextVariableVec4f>("_VEC4_FLOAT");
+		registerGuiElementType<GuiTextVariableVec4d>("_VEC4_DOUBLE");
+		registerGuiElementType<GuiTextVariableVec4i>("_VEC4_INT");
+		registerGuiElementType<GuiEditVariableFloat>("_FLOAT");
+		registerGuiElementType<GuiEditVariableDouble>("_DOUBLE");
+		registerGuiElementType<GuiEditVariableInt>("_INT");
+		registerGuiElementType<GuiEditVariableUnsignedInt>("_UNSIGNED_INT");
+		registerGuiElementType<GuiEditVariableVec2f>("_FLOAT");
+		registerGuiElementType<GuiEditVariableVec2d>("_DOUBLE");
+		registerGuiElementType<GuiEditVariableVec2i>("_INT");
+		registerGuiElementType<GuiEditVariableVec3f>("_FLOAT");
+		registerGuiElementType<GuiEditVariableVec3d>("_DOUBLE");
+		registerGuiElementType<GuiEditVariableVec3i>("_INT");
+		registerGuiElementType<GuiEditVariableVec4f>("_FLOAT");
+		registerGuiElementType<GuiEditVariableVec4d>("_DOUBLE");
+		registerGuiElementType<GuiEditVariableVec4i>("_INT");
+		registerGuiElementType<GuiSliderVec2f>("_FLOAT");
+		registerGuiElementType<GuiSliderVec2d>("_DOUBLE");
+		registerGuiElementType<GuiSliderVec2i>("_INT");
+		registerGuiElementType<GuiSliderVec3f>("_FLOAT");
+		registerGuiElementType<GuiSliderVec3d>("_DOUBLE");
+		registerGuiElementType<GuiSliderVec3i>("_INT");
+		registerGuiElementType<GuiSliderVec4f>("_FLOAT");
+		registerGuiElementType<GuiSliderVec4d>("_DOUBLE");
+		registerGuiElementType<GuiSliderVec4i>("_INT");
+		// Initialize static default font
+		GuiElement::defaultFont = Font("fonts/Arial.ttf");
+		// Initialize static default background shader
+		GuiPanel::defaultBackgroundShader = Shader("shaders/gui/simpleAlphaColor.shader");
+		// Initialize static default image shader
+		GuiImage::defaultImageShader = Shader("shaders/gui/basicTexture.shader");
+		/// Initialize static default checkmark texture
+		auto result = Texture::Load2D("gui/textures/checkmark.png");
+		if (result.second) GuiCheckBox::defaultCheckMarkTexture = result.first;
+		/// Initialize static default checkmark shader
+		GuiCheckBox::defaultCheckMarkShader = Shader("shaders/gui/msdfShader.shader");
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::terminate()
+	{
+		// Cleanup
+		GuiElement::defaultFont = Font();
+		GuiPanel::defaultBackgroundShader = Shader();
+		GuiImage::defaultImageShader = Shader();
+		GuiCheckBox::defaultCheckMarkShader = Shader();
+		GuiCheckBox::defaultCheckMarkTexture = Texture();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiManager(const unsigned int& startingSize)
@@ -522,8 +667,10 @@ namespace SnackerEngine
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, eventVectorDrawOnTop{}, signOffQueue{}, squareModel{},
 		triangleModel{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, // animations{}, TODO: Uncomment
-		screenDims{}
+		screenDims{}, namedElements{}, guiGroupMap{}, guiGroups{},
+		registeredGuiGroupsCount(0), availableGuiGroupIDs{}, maxGuiGroups(startingSize)
 	{
+		/// Initializes the vector of owned GuiElements
 		ownedGuiElements.reserve(std::size_t(startingSize) + 1);
 		for (unsigned int i = 0; i < startingSize + 1; ++i) {
 			ownedGuiElements.push_back(nullptr);
@@ -533,10 +680,17 @@ namespace SnackerEngine
 		{
 			availableGuiIDs.push(id);
 		}
+		// Initializes group vector and the queue with all possible GuiGroupIDs
+		guiGroups.reserve(startingSize);
+		for (GuiGroupID id = 0; id < static_cast<int>(startingSize); ++id)
+		{
+			guiGroups.push_back(nullptr);
+			availableGuiGroupIDs.push(id);
+		}
 		// Compute view and projection matrix
 		computeViewAndProjection();
 		// Initialize parent GuiElement
-		ownedGuiElements[parentElement] = std::make_unique<GuiElement>(Vec2i(0, 0), Renderer::getScreenDimensions(), GuiElement::ResizeMode::DO_NOT_RESIZE);
+		ownedGuiElements[parentElement] = std::make_unique<GuiElement>(Vec2i(0, 0), Renderer::getScreenDimensions(), GuiElement::ResizeMode::RESIZE_RANGE);
 		ownedGuiElements[parentElement]->guiID = 0;
 		ownedGuiElements[parentElement]->parentID = -1;
 		ownedGuiElements[parentElement]->guiManager = this;
@@ -551,6 +705,8 @@ namespace SnackerEngine
 		signOff(parentElement);
 		ownedGuiElements.clear();
 		namedElements.clear();
+		guiGroups.clear();
+		guiGroupMap.clear();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerElement(GuiElement& guiElement)

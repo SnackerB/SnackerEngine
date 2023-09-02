@@ -3,65 +3,294 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	void GuiGridLayout::enforceLayoutSplitCellsEqually(const Vec2i& elementSize)
+	std::pair<Vec2i, Vec2i> GuiGridLayout::computeLargestMinSizeAndPreferredSize() const
 	{
-		// Compute alignment
-		const Vec2i totalSize = Vec2i(elementSize.x * totalColumns + border * (totalColumns + 1),
-			elementSize.y * totalRows + border * (totalRows + 1));
-		Vec2i topLeft = Vec2i(0, 0);
-		const Vec2i mySize = getSize();
+		const auto& children = getChildren();
+		// Find the largest minWidth and minHeight, and the largest preferredWidth and preferredHeight
+		Vec2i largestMinSize(0, 0);
+		Vec2i largestPreferredSize(SIZE_HINT_ARBITRARY, SIZE_HINT_ARBITRARY);
+		for (auto childID : children) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				largestMinSize.x = std::max(largestMinSize.x, child->getMinWidth());
+				largestMinSize.y = std::max(largestMinSize.y, child->getMinHeight());
+				if (largestPreferredSize.x != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					if (child->getPreferredWidth() >= 0) {
+						largestPreferredSize.x = std::max(largestPreferredSize.x, child->getPreferredWidth());
+					}
+					else if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) largestPreferredSize.x = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+				}
+				if (largestPreferredSize.y != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					if (child->getPreferredHeight() >= 0) {
+						largestPreferredSize.y = std::max(largestPreferredSize.y, child->getPreferredHeight());
+					}
+					else if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) largestPreferredSize.y = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+				}
+			}
+		}
+		return std::make_pair(largestMinSize, largestPreferredSize);
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiGridLayout::computeTotalBorderX() const
+	{
+		return 2 * outerBorder + (totalColumns - 1) * border;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiGridLayout::computeTotalBorderY() const
+	{
+		return 2 * outerBorder + (totalRows - 1) * border;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiGridLayout::computeAnchorPoint(const Vec2i& firstGridCellSize, const Vec2i& gridCellSize, int totalBorderX, int totalBorderY) const
+	{
+		return computeAnchorPoint(
+			firstGridCellSize.x + gridCellSize.x * (totalColumns - 1) + totalBorderX,
+			firstGridCellSize.y + gridCellSize.y * (totalRows - 1) + totalBorderY
+		);
+	}
+	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiGridLayout::computeAnchorPoint(int totalGridWidth, int totalGridHeight) const
+	{
+		Vec2i anchorPoint(0, 0);
 		switch (alignmentHorizontal)
 		{
-		case AlignmentHorizontal::LEFT: break;
-		case AlignmentHorizontal::CENTER: topLeft.x = (mySize.x - totalSize.x) / 2; break;
-		case AlignmentHorizontal::RIGHT: topLeft.x = mySize.x - totalSize.x; break;
-		default: break;
+		case SnackerEngine::AlignmentHorizontal::LEFT:
+			anchorPoint.x = 0;
+			break;
+		case SnackerEngine::AlignmentHorizontal::CENTER:
+			anchorPoint.x = (getWidth() - totalGridWidth) / 2;
+			break;
+		case SnackerEngine::AlignmentHorizontal::RIGHT:
+			anchorPoint.x = getWidth() - totalGridWidth;
+			break;
+		default:
+			break;
 		}
 		switch (alignmentVertical)
 		{
-		case AlignmentVertical::TOP: break;
-		case AlignmentVertical::CENTER: topLeft.y = (mySize.y - totalSize.y) / 2; break;
-		case AlignmentVertical::BOTTOM: topLeft.y = mySize.y - totalSize.y; break;
-		default: break;
+		case SnackerEngine::AlignmentVertical::TOP:
+			anchorPoint.y = 0;
+			break;
+		case SnackerEngine::AlignmentVertical::CENTER:
+			anchorPoint.y = (getHeight() - totalGridHeight) / 2;
+			break;
+		case SnackerEngine::AlignmentVertical::BOTTOM:
+			anchorPoint.y = getHeight() - totalGridHeight;
+			break;
+		default:
+			break;
 		}
-		// Place child elements
-		auto& children = getChildren();
+		return anchorPoint;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::positionChildren(const Vec2i& anchorPoint, const Vec2i& firstCellSize, const Vec2i& cellSize)
+	{
+		const auto& children = getChildren();
 		for (unsigned i = 0; i < children.size(); ++i) {
-			// Compute size
-			Vec2i currentSize = elementSize;
-			// Compute position
-			Vec2i currentPosition = topLeft;
-			currentPosition += Vec2i((elementSize.x + border) * (layoutOptions[i].column - 1) + border, (elementSize.y + border) * (layoutOptions[i].row - 1) + border);
-			// Set attributes and enforce layouts
-			setPositionAndSizeOfChild(children[i], currentPosition, currentSize);
+			GuiElement* child = getElement(children[i]);
+			if (child) {
+				Vec2i currentCellSize = cellSize;
+				Vec2i cellPosition = anchorPoint + Vec2i(outerBorder, outerBorder);
+				if (layoutOptions[i].column == 0) currentCellSize.x = firstCellSize.x;
+				else cellPosition.x += firstCellSize.x + border + (cellSize.x + border) * (layoutOptions[i].column - 1);
+				if (layoutOptions[i].row == 0) currentCellSize.y = firstCellSize.y;
+				else cellPosition.y += firstCellSize.y + border + (cellSize.y + border) * (layoutOptions[i].row - 1);
+				Vec2i childSize = child->clampToMinMaxSize(cellSize);
+				Vec2i childPosition = cellPosition + (cellSize - childSize) / 2;
+				child->setPosition(childPosition);
+				child->setSize(childSize);
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::positionChildren(const Vec2i& anchorPoint, const std::vector<int>& gridCellWidths, const std::vector<int>& gridCellHeights)
+	{
+		std::vector<int> cellPositionsX;
+		cellPositionsX.push_back(anchorPoint.x + outerBorder);
+		for (int i = 0; i < totalColumns - 1; ++i) cellPositionsX.push_back(cellPositionsX.back() + gridCellWidths[i] + border);
+		std::vector<int> cellPositionsY;
+		cellPositionsY.push_back(anchorPoint.y + outerBorder);
+		for (int i = 0; i < totalRows - 1; ++i) cellPositionsY.push_back(cellPositionsY.back() + gridCellHeights[i] + border);
+		const auto& children = getChildren();
+		for (unsigned i = 0; i < children.size(); ++i) {
+			GuiElement* child = getElement(children[i]);
+			if (child) {
+				Vec2i cellPosition(cellPositionsX[layoutOptions[i].column], cellPositionsY[layoutOptions[i].row]);
+				Vec2i cellSize(gridCellWidths[layoutOptions[i].column], gridCellHeights[layoutOptions[i].row]);
+				Vec2i childSize = child->clampToMinMaxSize(cellSize);
+				Vec2i childPosition = cellPosition + (cellSize - childSize) / 2;
+				child->setPosition(childPosition);
+				child->setSize(childSize);
+			}
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiGridLayout::enforceLayoutSplitCellsEqually()
 	{
-		unsigned borderPerElementX = border * (totalColumns + 1) / totalColumns;
-		unsigned borderPerElementY = border * (totalRows + 1) / totalRows;
-		const Vec2i& mySize = getSize();
-		Vec2i elementSize = Vec2i(mySize.x / totalColumns - borderPerElementX, mySize.y / totalRows - borderPerElementY);
-		Vec2i lastElementSize = elementSize + Vec2i(mySize.x % totalColumns, mySize.y % totalRows);
-		lastElementSize.x -= border * (totalColumns + 1) % totalColumns;
-		lastElementSize.y -= border * (totalRows + 1) % totalRows;
-		const auto& children = getChildren();
-		for (unsigned i = 0; i < children.size(); ++i) {
-			// Compute size
-			Vec2i currentSize = elementSize;
-			if (layoutOptions[i].column == totalColumns) currentSize.x = lastElementSize.x;
-			if (layoutOptions[i].row == totalRows) currentSize.y = lastElementSize.y;
-			// Compute position
-			Vec2i currentPosition = Vec2i((elementSize.x + border) * (layoutOptions[i].column - 1) + border, (elementSize.y + border) * (layoutOptions[i].row - 1) + border);
-			// Set attributes and enforce layouts
-			setPositionAndSizeOfChild(children[i], currentPosition, currentSize);
+		// Find the largest minWidth and minHeight, and the largest preferredWidth and preferredHeight
+		auto result = computeLargestMinSizeAndPreferredSize();
+		Vec2i& largestMinSize = result.first;
+		Vec2i& largestPreferredSize = result.second;
+		// Compute the total borders in x and y direction
+		int totalBorderX = computeTotalBorderX();
+		int totalBorderY = computeTotalBorderY();
+		// Compute the size of the grid cells
+		Vec2i cellSize(
+			(getWidth() - totalBorderX) / static_cast<int>(totalColumns),
+			(getHeight() - totalBorderY) / static_cast<int>(totalRows)
+		);
+		Vec2i firstCellSize = cellSize;
+		if (largestMinSize.x > cellSize.x) {
+			cellSize.x = largestMinSize.x;
+			firstCellSize.x = largestMinSize.x;
 		}
+		else {
+			firstCellSize.x += (getWidth() - totalBorderX) % totalColumns;
+		}
+		if (largestMinSize.y > cellSize.y) {
+			cellSize.y = largestMinSize.y;
+			firstCellSize.y = largestMinSize.y;
+		}
+		else {
+			firstCellSize.y += (getHeight() - totalBorderY) % totalRows;
+		}
+		/// Compute the upper left point of the grid
+		Vec2i anchorPoint = computeAnchorPoint(firstCellSize, cellSize, totalBorderX, totalBorderY);
+		// Position all elements!
+		positionChildren(anchorPoint, firstCellSize, cellSize);
+		// Change minSize and preferredSize of the layout
+		setMinSize(Vec2i(largestMinSize.x * totalColumns + totalBorderX, largestMinSize.x * totalRows + totalBorderY));
+		setPreferredSize(Vec2i(largestPreferredSize.x * totalColumns + totalBorderX, largestPreferredSize.x * totalRows + totalBorderY));
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiGridLayout::GuiGridLayout(const unsigned& totalColumns, const unsigned& totalRows, const Mode& mode, const unsigned& border)
-		: GuiLayout(), totalColumns(totalColumns), totalRows(totalRows), mode(mode), border(border)
+	void GuiGridLayout::enforceLayoutSplitCellsEquallyShrink()
 	{
+		// Find the largest minWidth and minHeight, and the largest preferredWidth and preferredHeight
+		auto result = computeLargestMinSizeAndPreferredSize();
+		Vec2i& largestMinSize = result.first;
+		Vec2i& largestPreferredSize = result.second;
+		// Compute the total borders in x and y direction
+		int totalBorderX = computeTotalBorderX();
+		int totalBorderY = computeTotalBorderY();
+		// Compute the size of the grid cells
+		Vec2i cellSize(
+			largestPreferredSize.x >= 0 ? largestMinSize.x : largestPreferredSize.x,
+			largestPreferredSize.y >= 0 ? largestMinSize.y : largestPreferredSize.y
+		);
+		Vec2i firstCellSize = cellSize;
+		Vec2i cellSizeEvenSplit(
+			(getWidth() - totalBorderX) / static_cast<int>(totalColumns),
+			(getHeight() - totalBorderY) / static_cast<int>(totalRows)
+		);
+		if (cellSizeEvenSplit.x < largestPreferredSize.x) {
+			if (cellSizeEvenSplit.x <= largestMinSize.x) {
+				cellSize.x = largestMinSize.x;
+				firstCellSize.x = largestMinSize.x;
+			}
+			else {
+				cellSize.x = cellSizeEvenSplit.x;
+				firstCellSize.x = cellSizeEvenSplit.x + (getWidth() - totalBorderX) % totalColumns;
+			}
+		}
+		if (cellSizeEvenSplit.y < largestPreferredSize.y) {
+			if (cellSizeEvenSplit.y <= largestMinSize.y) {
+				cellSize.y = largestMinSize.y;
+				firstCellSize.y = largestMinSize.y;
+			}
+			else {
+				cellSize.y = cellSizeEvenSplit.y;
+				firstCellSize.y = cellSizeEvenSplit.y + (getHeight() - totalBorderY) % totalRows;
+			}
+		}
+		/// Compute the upper left point of the grid
+		Vec2i anchorPoint = computeAnchorPoint(cellSize, firstCellSize, totalBorderX, totalBorderY);
+		// Position all elements!
+		positionChildren(anchorPoint, cellSize, firstCellSize);
+		// Change minSize and preferredSize of the layout
+		setMinSize(Vec2i(largestMinSize.x * totalColumns + totalBorderX, largestMinSize.x * totalRows + totalBorderY));
+		setPreferredSize(Vec2i(largestPreferredSize.x * totalColumns + totalBorderX, largestPreferredSize.x * totalRows + totalBorderY));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::enforceLayoutAdaptCellsShrink()
+	{
+		const auto& children = getChildren();
+		// Find the largest minWidth and preferredWidth of each column
+		// and the largest minHeight and preferredHeight of each row
+		std::vector<int> largestMinWidths(totalColumns, 0);
+		std::vector<int> largestPreferredWidths(totalColumns, SIZE_HINT_ARBITRARY);
+		std::vector<int> largestMinHeights(totalRows, 0);
+		std::vector<int> largestPreferredHeights(totalRows, SIZE_HINT_ARBITRARY);
+		for (unsigned i = 0; i < children.size(); ++i) {
+			GuiElement* child = getElement(children[i]);
+			if (child) {
+				const Vec2i& childMinSize = child->getMinSize();
+				if (childMinSize.x > largestMinWidths[layoutOptions[i].column]) largestMinWidths[layoutOptions[i].column] = childMinSize.x;
+				if (childMinSize.y > largestMinHeights[layoutOptions[i].row]) largestMinHeights[layoutOptions[i].row] = childMinSize.y;
+				const Vec2i& childPreferredSize = child->getPreferredSize();
+				if (childPreferredSize.x >= 0 && childPreferredSize.x > largestPreferredWidths[layoutOptions[i].column])
+					largestPreferredWidths[layoutOptions[i].column] = childPreferredSize.x;
+				if (childPreferredSize.y >= 0 && childPreferredSize.y > largestPreferredHeights[layoutOptions[i].row])
+					largestPreferredHeights[layoutOptions[i].row] = childPreferredSize.y;
+			} 
+		}
+		// Compute the total borders in x and y direction
+		int totalBorderX = computeTotalBorderX();
+		int totalBorderY = computeTotalBorderY();
+		// Compute the widths of the grid cells
+		std::vector<int> gridCellWidths(totalColumns, 0);
+		int totalPreferredWidth = totalBorderX;
+		int totalMinWidth = totalBorderX;
+		int totalGridWidth = 0;
+		for (unsigned i = 0; i < totalColumns; ++i) {
+			totalMinWidth += largestMinWidths[i];
+			totalPreferredWidth += largestPreferredWidths[i] >= 0 ? largestMinWidths[i] : largestPreferredWidths[i];
+		}
+		if (totalPreferredWidth <= getWidth()) {
+			// Set all widths to preferredWidth!
+			for (unsigned i = 0; i < totalColumns; ++i) gridCellWidths[i] = largestPreferredWidths[i] >= 0 ? largestMinWidths[i] : largestPreferredWidths[i];
+			totalGridWidth = totalPreferredWidth;
+		}
+		else if (totalMinWidth >= getWidth()) {
+			// Set all widths to minWidth!
+			gridCellWidths = largestMinWidths;
+			totalGridWidth = totalMinWidth;
+		}
+		else {
+			// Distribute remaining width evenly between columns
+			gridCellWidths = distributeSizeBetweenChildren(largestMinWidths, largestPreferredWidths, getWidth() - totalMinWidth);
+			totalGridWidth = getWidth();
+		}
+		// Compute the heights of the grid cells
+		std::vector<int> gridCellHeights(totalRows, 0);
+		int totalPreferredHeight = totalBorderY;
+		int totalMinHeight = totalBorderY;
+		int totalGridHeight = 0;
+		for (unsigned i = 0; i < totalRows; ++i) {
+			totalMinHeight += largestMinHeights[i];
+			totalPreferredHeight += largestPreferredHeights[i] >= 0 ? largestMinHeights[i] : largestPreferredHeights[i];
+		}
+		if (totalPreferredHeight <= getHeight()) {
+			// Set all heights to preferredHeight!
+			for (unsigned i = 0; i < totalRows; ++i) gridCellHeights[i] = largestPreferredHeights[i] >= 0 ? largestMinHeights[i] : largestPreferredHeights[i];
+			totalGridHeight = totalPreferredHeight;
+		}
+		else if (totalMinHeight >= getHeight()) {
+			// Set all heights to minHeight!
+			gridCellHeights = largestMinHeights;
+			totalGridHeight = totalMinHeight;
+		}
+		else {
+			// Distribute remaining height evenly between rows
+			gridCellHeights = distributeSizeBetweenChildren(largestMinHeights, largestPreferredHeights, getHeight() - totalMinHeight);
+			totalGridHeight = getHeight();
+		}
+		/// Compute the upper left point of the grid
+		Vec2i anchorPoint = computeAnchorPoint(totalGridWidth, totalGridHeight);
+		// Position all elements!
+		positionChildren(anchorPoint, gridCellWidths, gridCellHeights);
+		// Change minSize and preferredSize of the layout
+		setMinSize(Vec2i(totalMinWidth, totalMinHeight));
+		setPreferredSize(Vec2i(totalPreferredWidth, totalPreferredHeight));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiGridLayout::Mode>(const nlohmann::json& json)
@@ -71,8 +300,8 @@ namespace SnackerEngine
 			return false;
 		}
 		if (json == "SPLIT_CELLS_EQUALLY" ||
-			json == "ADAPT_CELLS_EQUALLY" ||
-			json == "ADAPT_CELLS_EQUALLY_WEAK") return true;
+			json == "SPLIT_CELLS_EQUALLY_SHRINK" ||
+			json == "ADAPT_CELLS_SHRINK") return true;
 		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid GuiGridLayout::Mode." << LOGGER::ENDL;
 		return false;
 	}
@@ -80,25 +309,30 @@ namespace SnackerEngine
 	template<> GuiGridLayout::Mode parseJSON(const nlohmann::json& json)
 	{
 		if (json == "SPLIT_CELLS_EQUALLY") return GuiGridLayout::Mode::SPLIT_CELLS_EQUALLY;
-		if (json == "ADAPT_CELLS_EQUALLY") return GuiGridLayout::Mode::ADAPT_CELLS_EQUALLY;
-		if (json == "ADAPT_CELLS_EQUALLY_WEAK") return GuiGridLayout::Mode::ADAPT_CELLS_EQUALLY_WEAK;
+		if (json == "SPLIT_CELLS_EQUALLY_SHRINK") return GuiGridLayout::Mode::SPLIT_CELLS_EQUALLY_SHRINK;
+		if (json == "ADAPT_CELLS_SHRINK") return GuiGridLayout::Mode::ADAPT_CELLS_SHRINK;
 		return GuiGridLayout::Mode::SPLIT_CELLS_EQUALLY;
 	}
+	//--------------------------------------------------------------------------------------------------
+	GuiGridLayout::GuiGridLayout(unsigned totalColumns, unsigned totalRows, Mode mode, unsigned border, unsigned outerBorder)
+		: GuiLayout(), totalColumns(totalColumns), totalRows(totalRows), mode(mode), border(border), outerBorder(outerBorder) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiGridLayout::GuiGridLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiLayout(json, data, parameterNames)
 	{
-		parseJsonOrReadFromData(totalColumns, "totalColumns", json, data);
-		parseJsonOrReadFromData(totalRows, "totalRows", json, data);
-		parseJsonOrReadFromData(border, "border", json, data);
-		parseJsonOrReadFromData(mode, "mode", json, data);
-		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data);
-		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data);
+		parseJsonOrReadFromData(totalColumns, "totalColumns", json, data, parameterNames);
+		parseJsonOrReadFromData(totalRows, "totalRows", json, data, parameterNames);
+		parseJsonOrReadFromData(border, "border", json, data, parameterNames);
+		parseJsonOrReadFromData(outerBorder, "outerBorder", json, data, parameterNames);
+		parseJsonOrReadFromData(mode, "mode", json, data, parameterNames);
+		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
+		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiGridLayout::GuiGridLayout(const GuiGridLayout& other) noexcept
 		: GuiLayout(other), totalColumns(other.totalColumns), totalRows(other.totalRows),
-		border(other.border), mode(other.mode), alignmentHorizontal(other.alignmentHorizontal),
+		border(other.border), outerBorder(other.outerBorder), mode(other.mode), 
+		alignmentHorizontal(other.alignmentHorizontal),
 		alignmentVertical(other.alignmentVertical), layoutOptions{}
 	{
 	}
@@ -109,6 +343,7 @@ namespace SnackerEngine
 		totalColumns = other.totalColumns;
 		totalRows = other.totalRows;
 		border = other.border;
+		outerBorder = other.outerBorder;
 		mode = other.mode;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
@@ -118,7 +353,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiGridLayout::GuiGridLayout(GuiGridLayout&& other) noexcept
 		: GuiLayout(std::move(other)), totalColumns(other.totalColumns), totalRows(other.totalRows),
-		border(other.border), mode(other.mode), alignmentHorizontal(other.alignmentHorizontal),
+		border(other.border), outerBorder(other.outerBorder), mode(other.mode), 
+		alignmentHorizontal(other.alignmentHorizontal),
 		alignmentVertical(other.alignmentVertical), layoutOptions(std::move(other.layoutOptions))
 	{
 		other.layoutOptions.clear();
@@ -130,6 +366,7 @@ namespace SnackerEngine
 		totalColumns = other.totalColumns;
 		totalRows = other.totalRows;
 		border = other.border;
+		outerBorder = other.outerBorder;
 		mode = other.mode;
 		alignmentHorizontal = other.alignmentHorizontal;
 		alignmentVertical = other.alignmentVertical;
@@ -180,55 +417,14 @@ namespace SnackerEngine
 			enforceLayoutSplitCellsEqually();
 			break;
 		}
-		case SnackerEngine::GuiGridLayout::Mode::ADAPT_CELLS_EQUALLY:
+		case SnackerEngine::GuiGridLayout::Mode::SPLIT_CELLS_EQUALLY_SHRINK:
 		{
-			// First we need to find a size range that suits all children
-			const Vec2i& mySize = getSize();
-			Vec2i minElementSize = Vec2i(0, 0);
-			Vec2i maxElementSize = Vec2i(mySize.x / static_cast<int>(totalColumns) - static_cast<int>(std::ceil(border * (totalColumns + 1) / totalColumns)),
-				mySize.y / static_cast<int>(totalRows) - static_cast<int>(std::ceil(border * (totalRows + 1) / totalRows)));
-			for (const auto& childID : getChildren()) {
-				GuiElement* child = getElement(childID);
-				if (!child) continue;
-				const Vec2i childMinSize = child->getMinSize();
-				const Vec2i childMaxSize = child->getMaxSize();
-				if (childMinSize.x > minElementSize.x) minElementSize.x = childMinSize.x;
-				if (childMinSize.y > minElementSize.y) minElementSize.y = childMinSize.y;
-				if (childMaxSize.x >= 0 && childMaxSize.x < maxElementSize.x) maxElementSize.x = childMaxSize.x;
-				if (childMaxSize.y >= 0 && childMaxSize.y < maxElementSize.y) maxElementSize.y = childMaxSize.y;
-			}
-			Vec2i elementSize(-1, -1);
-			// Choose best size
-			if (maxElementSize.x >= 0 && minElementSize.x > maxElementSize.x) {
-				elementSize.x = std::min(maxElementSize.x, static_cast<int>(mySize.x / totalColumns - std::ceil(border * (totalColumns + 1) / totalColumns)));
-			}
-			if (minElementSize.y >= 0 && minElementSize.y > maxElementSize.y) {
-				elementSize.y = std::min(maxElementSize.y, static_cast<int>(mySize.y / totalRows - std::ceil(border * (totalRows + 1) / totalRows)));
-			}
-			for (const auto& childID : getChildren()) {
-				GuiElement* child = getElement(childID);
-				if (!child) continue;
-				const Vec2i childPreferredSize = child->getPreferredSize();
-				if (elementSize.x == -1 && childPreferredSize.x != -1 && childPreferredSize.x >= minElementSize.x
-					&& childPreferredSize.x <= maxElementSize.x) {
-					elementSize.x = childPreferredSize.x;
-					if (elementSize.y != -1) break;
-				}
-				if (elementSize.y == -1 && childPreferredSize.y != -1 && childPreferredSize.y >= minElementSize.y
-					&& childPreferredSize.y <= maxElementSize.y) {
-					elementSize.y = childPreferredSize.y;
-					if (elementSize.x != -1) break;
-				}
-			}
-			// If no child had a preferredSize: Make as large as possible!
-			if (elementSize.x == -1) elementSize.x = maxElementSize.x;
-			if (elementSize.y == -1) elementSize.y = maxElementSize.y;
-			enforceLayoutSplitCellsEqually(elementSize);
+			enforceLayoutSplitCellsEquallyShrink();
 			break;
 		}
-		case SnackerEngine::GuiGridLayout::Mode::ADAPT_CELLS_EQUALLY_WEAK:
+		case SnackerEngine::GuiGridLayout::Mode::ADAPT_CELLS_SHRINK:
 		{
-			// TODO: Implement
+			enforceLayoutAdaptCellsShrink();
 			break;
 		}
 		default:

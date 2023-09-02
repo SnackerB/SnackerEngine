@@ -145,6 +145,7 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	void Engine::terminate()
 	{
+		GuiManager::terminate();
 		AssetManager::terminate();
 		NetworkManager::cleanup();
 		Renderer::terminate();
@@ -209,7 +210,7 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	Vec2<unsigned int> Engine::getDPI()
 	{
-		Vec2<unsigned int> result{};
+		Vec2<unsigned int> result;
 		HRESULT temp = GetDpiForMonitor(
 			MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY),
 			MDT_EFFECTIVE_DPI,

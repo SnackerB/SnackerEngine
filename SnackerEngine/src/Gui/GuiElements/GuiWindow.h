@@ -5,16 +5,22 @@
 
 namespace SnackerEngine
 {
-
+	//--------------------------------------------------------------------------------------------------
 	class GuiWindow : public GuiPanel
 	{
+	public:
+		/// Static default Attributes
+		static int defaultResizeButtonSize;
+		static Color4f defaultResizeButtonColor;
+		static Color4f defaultTopBarBackgroundColor;
+		static Color4f defaultBackgroundColor;
 	private:
 		/// The size of the resize button in pixels
-		int resizeButtonSize = 50;
+		int resizeButtonSize = defaultResizeButtonSize;
 		/// The top bar
 		GuiTextBox topBar{};
 		/// The color of the resize button
-		Color4f resizeButtonColor = Color4f(0.0f, 0.0f, 1.0f, 1.0f);
+		Color4f resizeButtonColor = defaultResizeButtonColor;
 		/// The model matrix of the resize button
 		Mat4f resizeButtonModelMatrix{};
 		/// if this is set to true, the window is currently being moved
@@ -84,6 +90,7 @@ namespace SnackerEngine
 		// Collisions
 		//==============================================================================================
 
+	public:
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
@@ -92,6 +99,7 @@ namespace SnackerEngine
 		// Events
 		//==============================================================================================
 
+	protected:
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
 		/// Callback function for mouse motion. Parameter the same as in Scene.h
@@ -100,5 +108,5 @@ namespace SnackerEngine
 		/// Callback function for mouse button input on this GuiElement object. Parameters the same as in Scene.h
 		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
 	};
-
+	//--------------------------------------------------------------------------------------------------
 }

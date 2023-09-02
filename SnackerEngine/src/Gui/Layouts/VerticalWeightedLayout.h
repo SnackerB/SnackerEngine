@@ -7,6 +7,10 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	class GuiVerticalWeightedLayout : public GuiVerticalLayout
 	{
+	public:
+		/// Static default Attributes
+		static int defaultResizeAreaHeight;
+		static int defaultVerticalBorder;
 	private:
 		/// Total weight
 		double totalWeight = 0.0;
@@ -15,11 +19,11 @@ namespace SnackerEngine
 		/// Vector of stored height percentages
 		std::vector<double> percentages = {};
 		/// border between elements
-		int verticalBorder = 0;
+		int verticalBorder = defaultVerticalBorder;
 		/// Vertical alignment
 		AlignmentVertical alignmentVertical = AlignmentVertical::TOP;
 		/// The height of the resize area (in pixels)
-		unsigned int resizeAreaHeight = 5;
+		int resizeAreaHeight = defaultResizeAreaHeight;
 		/// The offset of the mouse to the border (used for resizing the layout)
 		int mouseOffset = 0;
 		/// The border that is currently being resized. Counting from the top, starting at 0.

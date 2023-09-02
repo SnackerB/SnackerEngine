@@ -8,11 +8,18 @@ namespace SnackerEngine
 
 	class GuiEditBox : public GuiTextBox
 	{
+	public:
+		/// Static default Attributes
+		static Color4f defaultSelectionBoxColor;
+		static Color4f defaultBackgroundColor;
+		static float defaultCursorWidth;
+		static double defaultCursorBlinkingTime;
+		static SizeHintModes defaultSizeHintModes;
 	private:
 		/// Color of the selection Box
-		Color4f selectionBoxColor = Color4f(1.0f, 0.0f, 0.0f, 0.5f);
+		Color4f selectionBoxColor = defaultSelectionBoxColor;
 		/// The width of the cursor
-		float cursorWidth = 0.1f;
+		float cursorWidth = defaultCursorWidth;
 		/// If this is set to true, the text box is currently being edited. This also means that the
 		/// cursor should be blinking.
 		bool active = false;
@@ -20,7 +27,7 @@ namespace SnackerEngine
 		/// on and off while the cursor is blinking
 		bool cursorIsVisible = false;
 		/// The timer controlling the blinking time
-		Timer cursorBlinkingTimer = Timer(0.5);
+		Timer cursorBlinkingTimer = Timer(defaultCursorBlinkingTime);
 		/// The model matrix of the cursor
 		Mat4f modelMatrixCursor{};
 		/// The model matrices of the selection boxes
@@ -44,7 +51,7 @@ namespace SnackerEngine
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_EDIT_BOX";
 		/// Default constructor
-		GuiEditBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = Font("fonts/arial.ttf"), const double& fontSize = 10);
+		GuiEditBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
 		/// Constructor from JSON
 		GuiEditBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
@@ -102,7 +109,7 @@ namespace SnackerEngine
 	public:
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& offset) const;
+		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
 	
 	protected:
 
