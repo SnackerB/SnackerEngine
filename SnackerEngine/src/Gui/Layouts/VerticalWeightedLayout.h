@@ -7,29 +7,26 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	class GuiVerticalWeightedLayout : public GuiVerticalLayout
 	{
-	public:
-		/// Static default Attributes
-		static int defaultResizeAreaHeight;
-		static int defaultVerticalBorder;
 	private:
 		/// Total weight
 		double totalWeight = 0.0;
 		/// Vector of stored weights
 		std::vector<double> weights = {};
-		/// Vector of stored height percentages
+		/// Vector of stored width percentages
 		std::vector<double> percentages = {};
-		/// border between elements
-		int verticalBorder = defaultVerticalBorder;
+		/// Border between elements
+		int verticalBorder = 0;
+		/// Border between elements and the top/bottom border of the layout
+		int outerVerticalBorder = 0;
 		/// Vertical alignment
 		AlignmentVertical alignmentVertical = AlignmentVertical::TOP;
 		/// The height of the resize area (in pixels)
-		int resizeAreaHeight = defaultResizeAreaHeight;
+		int resizeAreaHeight = defaultBorderNormal;
 		/// The offset of the mouse to the border (used for resizing the layout)
 		int mouseOffset = 0;
 		/// The border that is currently being resized. Counting from the top, starting at 0.
-		unsigned int resizeBorder = 0;
-		/// If this is set to true, moving the border with the mouse is possible. If this is set
-		/// to false, this layout is the same as an ordinary GuiWeughtedHorizontalLayout
+		int resizeBorder = 0;
+		/// If this is set to true, moving the border with the mouse is possible.
 		bool allowMoveBorders = false;
 		/// This is set to true if we are currently resizing a border
 		bool isResizing = false;
@@ -41,6 +38,8 @@ namespace SnackerEngine
 		void computeWeightsFromPercentages();
 		/// Helper function that get called when a child is registered
 		void onRegisterChild(double weight = 1.0);
+		/// Helper function that computes the minHeight of the layout from its childElements.
+		void computeHeightHintsFromChildren();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_WEIGHTED_LAYOUT";
@@ -67,13 +66,15 @@ namespace SnackerEngine
 		std::optional<double> getWeight(GuiID childID) const;
 		std::optional<double> getPercentage(GuiID childID) const;
 		unsigned getVerticalBorder() const { return verticalBorder; }
+		unsigned getOuterVerticalBorder() const { return outerVerticalBorder; }
 		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		unsigned getResizeAreaHeight() const { return resizeAreaHeight; }
 		bool isAllowMoveBorders() const { return allowMoveBorders; }
 		/// Setters
 		void setWeight(GuiID childID, double weight);
 		void setPercentage(GuiID childID, double percentage);
-		void setVerticalBorder(int verticalBorder);
+		void setVerticalBorder(int horizontalBorder);
+		void setOuterVerticalBorder(int outerHorizontalBorder);
 		void setAlignmentVertical(AlignmentVertical alignmentVertical);
 		void setResizeAreaHeight(unsigned resizeAreaHeight) { this->resizeAreaHeight = resizeAreaHeight; }
 		void setAllowMoveBorders(bool allowMoveBorders);

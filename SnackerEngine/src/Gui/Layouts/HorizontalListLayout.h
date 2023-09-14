@@ -13,7 +13,6 @@ namespace SnackerEngine
 	{
 	public:
 		/// Static default Attributes
-		static unsigned defaultHorizontalBorder;
 		static Color4f defaultBackgroundColor;
 	private:
 		/// Class that is used for grouping multiple horizontal layouts together
@@ -34,7 +33,7 @@ namespace SnackerEngine
 			/// Constructor
 			HorizontalLayoutGroup(const std::string& name = "")
 				: GuiGroup(name) {}
-			/// If upToDate is set to false, the positionsX and widths vectors are recomputed and
+			/// If upToDate is set to false, the widths vector is recomputed and
 			/// upToDate is set to true.
 			void recomputeWidths();
 			/// Getters
@@ -42,14 +41,15 @@ namespace SnackerEngine
 			const std::vector<int>& getWidths() const { return widths; }
 			/// Setters
 			void markForRecompute() { if (upToDate) onElementJoin(-1, -1); };
+			void setShrinkWidthToChildren(bool shrinkWidthToChildren);
 		};
 		friend class HorizontalLayoutGroup;
 		/// Horizontal alignment of the layout
 		AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT;
 		/// Border between different elements and between left/right edge of layout and elements, in pixels
-		unsigned horizontalBorder = defaultHorizontalBorder;
+		unsigned horizontalBorder = defaultBorderNormal;
 		/// Border between left/right edge of layout and elements in pixels
-		unsigned outerHorizontalBorder = defaultHorizontalBorder;
+		unsigned outerHorizontalBorder = defaultBorderNormal;
 		/// Background color
 		Color4f backgroundColor = defaultBackgroundColor;
 		/// model matrix of the background
@@ -60,6 +60,9 @@ namespace SnackerEngine
 		GuiGroupID groupID = -1;
 		/// The name of the HorizontalLayoutGroup this element is in
 		std::string groupName = "";
+		/// If this is set to true, the layouts minWidth and preferredWidth are set according
+		/// to child elements
+		bool shrinkWidthToChildren = true;
 		/// Helper function for enforcing the layout
 		static std::vector<int> computeChildWidths(const std::vector<int>& minWidths, const std::vector<int>& preferredWidths, const std::vector<int>& maxWidths, int width);
 	protected:
@@ -87,6 +90,7 @@ namespace SnackerEngine
 		Shader& getBackgroundShader() { return backgroundShader; }
 		std::optional<GuiGroupID> getHorizontalLayoutGroupID() const { return groupID == -1 ? std::optional<GuiGroupID>() : groupID; }
 		const std::string* getHorizontalLayoutGroupName() const { return groupID == -1 ? nullptr : &groupName; }
+		bool isShrinkWidthToChildren() const { return this->shrinkWidthToChildren; }
 		/// Setters
 		void setHorizontalBorder(unsigned horizontalBorder);
 		void setOuterHorizontalBorder(unsigned outerHorizontalBorder);
@@ -94,6 +98,7 @@ namespace SnackerEngine
 		void setBackgroundShader(Shader backgroundShader) { this->backgroundShader = backgroundShader; };
 		bool setHorizontalLayoutGroupID(GuiGroupID groupID);
 		bool setHorizontalLayoutGroupName(const std::string& groupName);
+		void setShrinkWidthToChildren(bool shrinkWidthToChildren);
 	protected:
 		/// Computes the background model matrix
 		void computeModelMatrix();

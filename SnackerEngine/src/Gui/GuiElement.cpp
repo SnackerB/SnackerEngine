@@ -4,15 +4,15 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	double GuiElement::defaultFontSizeSmall = 15.0;
-	double GuiElement::defaultFontSizeNormal = 20.0;
-	double GuiElement::defaultFontSizeBig = 30.0;
-	double GuiElement::defaultFontSizeHuge = 50.0;
+	double GuiElement::defaultFontSizeSmall{};
+	double GuiElement::defaultFontSizeNormal{};
+	double GuiElement::defaultFontSizeBig{};
+	double GuiElement::defaultFontSizeHuge{};
 	Font GuiElement::defaultFont{};
-	int GuiElement::defaultBorderSmall = 2;
-	int GuiElement::defaultBorderNormal = 5;
-	int GuiElement::defaultBorderLarge = 10;
-	int GuiElement::defaultBorderHuge = 20;
+	int GuiElement::defaultBorderSmall{};
+	int GuiElement::defaultBorderNormal{};
+	int GuiElement::defaultBorderLarge{};
+	int GuiElement::defaultBorderHuge{};
 	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiElement::ResizeMode>(const nlohmann::json& json)
 	{
@@ -37,11 +37,21 @@ namespace SnackerEngine
 		: GuiElement()
 	{
 		parseJsonOrReadFromData(name, "name", json, data, parameterNames);
+		parseJsonOrReadFromData(position.x, "positionX", json, data, parameterNames);
+		parseJsonOrReadFromData(position.y, "positionY", json, data, parameterNames);
 		parseJsonOrReadFromData(position, "position", json, data, parameterNames);
+		parseJsonOrReadFromData(size.x, "width", json, data, parameterNames);
+		parseJsonOrReadFromData(size.y, "height", json, data, parameterNames);
 		parseJsonOrReadFromData(size, "size", json, data, parameterNames);
 		parseJsonOrReadFromData(resizeMode, "resizeMode", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.minSize.x, "minWidth", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.minSize.y, "minHeight", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHints.minSize, "minSize", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.maxSize.x, "maxWidth", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.maxSize.y, "maxHeight", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHints.maxSize, "maxSize", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.preferredSize.x, "preferredWidth", json, data, parameterNames);
+		parseJsonOrReadFromData(sizeHints.preferredSize.y, "preferredHeight", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHints.preferredSize, "preferredSize", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -53,7 +63,7 @@ namespace SnackerEngine
 	GuiElement::GuiElement(const GuiElement& other) noexcept
 		: guiManager(nullptr), name(""), guiID(-1), parentID(-1), depth(0), position(other.position), size(other.size),
 		resizeMode(other.resizeMode), sizeHints{ other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize },
-		children{}
+		children{}, sortedChildren{}
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -70,16 +80,18 @@ namespace SnackerEngine
 		resizeMode = other.resizeMode;
 		sizeHints = { other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize };
 		children.clear();
+		sortedChildren.clear();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
 		: guiManager(other.guiManager), name(other.name), guiID(other.guiID), parentID(other.parentID), depth(other.depth), position(other.position), size(other.size),
 		resizeMode(other.resizeMode), sizeHints{ other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize }, 
-		children(other.children)
+		children(std::move(other.children)), sortedChildren(std::move(other.sortedChildren))
 	{
 		if (guiManager) guiManager->updateMoved(*this);
 		other.children.clear();
+		other.sortedChildren.clear();
 		other.signOff();
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -95,9 +107,11 @@ namespace SnackerEngine
 		size = other.size;
 		resizeMode = other.resizeMode;
 		sizeHints = { other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize };
-		children = other.children;
+		children = std::move(other.children);
+		sortedChildren = std::move(other.sortedChildren);
 		if (guiManager) guiManager->updateMoved(*this);
 		other.children.clear();
+		other.sortedChildren.clear();
 		other.signOff();
 		return *this;
 	}
@@ -107,6 +121,7 @@ namespace SnackerEngine
 		if (guiManager) {
 			if (guiManager->registerElementAsChild(*this, guiElement)) {
 				children.push_back(guiElement.guiID);
+				sortedChildren.push_back(guiElement.guiID);
 				return true;
 			}
 		}
@@ -130,6 +145,11 @@ namespace SnackerEngine
 	bool GuiElement::isValid()
 	{
 		return guiManager != nullptr;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::bringToForeground()
+	{
+		if (guiManager) guiManager->bringToForeground(*this);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPosition(const Vec2i& position)
@@ -320,7 +340,7 @@ namespace SnackerEngine
 	void GuiElement::draw(const Vec2i& worldPosition)
 	{
 		if (!guiManager) return;
-		for (const auto& childID : children) {
+		for (const auto& childID : sortedChildren) {
 			auto child = getElement(childID);
 			if (child) child->draw(worldPosition + child->getPosition());
 		}
@@ -333,6 +353,12 @@ namespace SnackerEngine
 		{
 			if (guiManager) guiManager->signOffWithoutNotifyingParent(children[index.value()]);
 			children.erase(children.begin() + index.value());
+			for (auto it = sortedChildren.begin(); it != sortedChildren.end(); ++it) {
+				if (*it == guiElement) {
+					sortedChildren.erase(it);
+					return index;
+				}
+			}
 		}
 		return index;
 	}
@@ -401,6 +427,17 @@ namespace SnackerEngine
 	void GuiElement::setSizeInternal(const Vec2i& size)
 	{
 		this->size = size;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::bringChildToForeground(GuiID childID)
+	{
+		for (auto it = sortedChildren.begin(); it != sortedChildren.end(); it++) {
+			if (*it == childID) {
+				sortedChildren.erase(it);
+				sortedChildren.push_back(childID);
+				return;
+			}
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::registerEnforceLayoutDown()
@@ -529,7 +566,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& offset) const
 	{
-		return IsCollidingResult::COLLIDE_CHILD;
+		return IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT;
 	}
 	//--------------------------------------------------------------------------------------------------
 	bool GuiElement::isCollidingBoundingBox(const Vec2i& offset) const
@@ -581,10 +618,10 @@ namespace SnackerEngine
 	GuiElement::GuiID GuiElement::getCollidingChild(const Vec2i& offset) const
 	{
 		if (!guiManager) return 0;
-		for (const auto& childID : children) {
-			auto child = getElement(childID);
+		for (auto it = sortedChildren.rbegin(); it != sortedChildren.rend(); ++it) {
+			auto child = getElement(*it);
 			IsCollidingResult result = child ? child->isColliding(offset - child->getPosition()) : IsCollidingResult::NOT_COLLIDING;
-			GuiID childCollision = getCollidingChild(result, childID, offset);
+			GuiID childCollision = getCollidingChild(result, *it, offset);
 			if (childCollision > 0) return childCollision;
 		}
 		return 0;

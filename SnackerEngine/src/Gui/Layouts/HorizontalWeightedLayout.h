@@ -7,10 +7,6 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	class GuiHorizontalWeightedLayout : public GuiHorizontalLayout
 	{
-	public:
-		/// Static default Attributes
-		static int defaultResizeAreaWidth;
-		static int defaultHorizontalBorder;
 	private:
 		/// Total weight
 		double totalWeight = 0.0;
@@ -19,19 +15,18 @@ namespace SnackerEngine
 		/// Vector of stored width percentages
 		std::vector<double> percentages = {};
 		/// Border between elements
-		int horizontalBorder = defaultHorizontalBorder;
+		int horizontalBorder = 0;
 		/// Border between elements and the left/right border of the layout
-		int outerHorizontalBorder = defaultHorizontalBorder;
+		int outerHorizontalBorder = 0;
 		/// Horizontal alignment
 		AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT;
 		/// The width of the resize area (in pixels)
-		int resizeAreaWidth = defaultResizeAreaWidth;
+		int resizeAreaWidth = defaultBorderNormal;
 		/// The offset of the mouse to the border (used for resizing the layout)
 		int mouseOffset = 0;
 		/// The border that is currently being resized. Counting from the left, starting at 0.
 		int resizeBorder = 0;
-		/// If this is set to true, moving the border with the mouse is possible. If this is set
-		/// to false, this layout is the same as an ordinary GuiWeughtedHorizontalLayout
+		/// If this is set to true, moving the border with the mouse is possible.
 		bool allowMoveBorders = false;
 		/// This is set to true if we are currently resizing a border
 		bool isResizing = false;

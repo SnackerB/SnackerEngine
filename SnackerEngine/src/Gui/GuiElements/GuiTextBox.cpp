@@ -12,7 +12,7 @@ namespace SnackerEngine
 	Color4f GuiTextBox::defaultTextColor = Color4f(1.0f, 1.0f);
 	Color4f GuiTextBox::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	unsigned GuiTextBox::defaultRecomputeTries = 10;
-	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY };
+	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT };
 	//--------------------------------------------------------------------------------------------------
 	/// Helper functions for parsing JSON
 	template<> bool isOfType<GuiTextBox::TextScaleMode>(const nlohmann::json& json)
@@ -341,6 +341,9 @@ namespace SnackerEngine
 	GuiTextBox::GuiTextBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, const Color4f& backgroundColor)
 		: GuiPanel(position, size, ResizeMode::RESIZE_RANGE, backgroundColor), fontSize(fontSize), text(text), font(font) {}
 	//--------------------------------------------------------------------------------------------------
+	GuiTextBox::GuiTextBox(const std::string& text)
+		: GuiPanel({}, {}, ResizeMode::RESIZE_RANGE, defaultBackgroundColor), text(text) {}
+	//--------------------------------------------------------------------------------------------------
 	GuiTextBox::GuiTextBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiPanel(json, data, parameterNames)
 	{
@@ -358,10 +361,16 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(alignment, "alignment", json, data, parameterNames);
 		parseJsonOrReadFromData(font, "font", json, data, parameterNames);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
+		if (!json.contains("sizeHintModeMinSize")) {
+			if (json.contains("minSize") || (json.contains("minWdith") && json.contains("minHeight"))) setSizeHintModeMinSize(SizeHintMode::ARBITRARY);
+			else if (json.contains("minWidth")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+			else if (json.contains("minHeight")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_WIDTH);
+		}
+		if (!json.contains("sizeHintModePreferredSize") && (json.contains("preferredSize") || json.contains("preferredHeight"))) setSizeHintModePreferredSize(SizeHintMode::ARBITRARY);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiTextBox::GuiTextBox(const GuiTextBox& other) noexcept
-		: GuiPanel(other), dynamicText(std::make_unique<DynamicText>(*other.dynamicText)), 
+		: GuiPanel(other), dynamicText(other.dynamicText ? std::make_unique<DynamicText>(*other.dynamicText) : nullptr),
 		material(other.material), textColor(other.textColor),
 		modelMatrixText(other.modelMatrixText), textScaleMode(other.textScaleMode),
 		sizeHintModes(other.sizeHintModes), border(other.border), scaleFactor(other.scaleFactor),
@@ -373,7 +382,7 @@ namespace SnackerEngine
 	GuiTextBox& GuiTextBox::operator=(const GuiTextBox& other) noexcept
 	{
 		GuiPanel::operator=(other);
-		dynamicText = std::make_unique<DynamicText>(*other.dynamicText);
+		dynamicText = other.dynamicText ? std::make_unique<DynamicText>(*other.dynamicText) : nullptr;
 		material = other.material;
 		textColor = other.textColor;
 		modelMatrixText = other.modelMatrixText;

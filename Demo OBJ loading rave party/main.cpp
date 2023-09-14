@@ -15,6 +15,7 @@
 #include "Graphics/Camera.h"
 #include "Core/Keys.h"
 #include "Math/Utility.h"
+#include "Utility/Random.h"
 
 #include "Gui/GuiManager.h"
 #include "Gui/GuiElements/GuiButton.h"
@@ -22,6 +23,8 @@
 #include "Gui/GuiElements/GuiEditVariable.h"
 #include "Gui/GuiElements/GuiSlider.h"
 #include "Gui/Layouts/VerticalScrollingListLayout.h"
+#include "Gui/Layouts/HorizontalListLayout.h"
+#include "Gui/GuiElements/GuiCheckBox.h"
 
 class MyScene : public SnackerEngine::Scene
 {
@@ -44,11 +47,12 @@ class MyScene : public SnackerEngine::Scene
 
 	float objPlanetRotationSpeed;
 
+	SnackerEngine::GuiVariableHandle<bool> isNathanTime;
 	SnackerEngine::GuiVariableHandleFloat nathanSpeed;
 	SnackerEngine::GuiVariableHandleFloat nathanRadius;
+	SnackerEngine::GuiVariableHandleFloat nathanRaveFactor;
 
 	// GUI
-	SnackerEngine::GuiButton nathanTimeButton;
 	SnackerEngine::GuiManager guiManager;
 
 public:
@@ -62,8 +66,13 @@ public:
 		modelMatrices[1] = SnackerEngine::Mat4f::Translate({ -2.5f, 0.0f, 10.0f }) 
 			* SnackerEngine::Mat4f::RotateZ(planetTime);
 		// Nathan
+		SnackerEngine::Vec3f randomOffset{};
+		if (isNathanTime) {
+			randomOffset = SnackerEngine::Vec3f{ SnackerEngine::randomFloat(0.0f, 1.0f), SnackerEngine::randomFloat(0.0f, 1.0f), SnackerEngine::randomFloat(0.0f, 1.0f) } * nathanRaveFactor;
+		}
 		modelMatrices[2] = SnackerEngine::Mat4f::Translate(SnackerEngine::Vec3f(2.5, 0.0f, 10.0f)
-			+ nathanRadius.get() * SnackerEngine::Vec3f(sin(nathanTime), 0.0f, cos(nathanTime)));
+			+ nathanRadius.get() * SnackerEngine::Vec3f(sin(nathanTime), 0.0f, cos(nathanTime))
+			+ randomOffset);
 	}
 
 	MyScene(unsigned int fps)
@@ -71,7 +80,7 @@ public:
 		camera{}, clearColorA(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned>(226, 151, 67))),
 		clearColorB(SnackerEngine::Color3f::fromColor256(SnackerEngine::Color3<unsigned>(226, 67, 89))),
 		nathanTime(0.0f), burgerTime(0.0f), planetTime(0.0f), maxWobbleBurger(-0.5f, 0.5f, -0.5f), burgerWobbleSpeed(5.0f), objPlanetRotationSpeed
-		(0.2f), nathanSpeed(4.0f), nathanRadius(1.0f), nathanTimeButton(), guiManager{}
+		(0.2f), nathanSpeed(4.0f), nathanRadius(1.0f), guiManager{}
 	{
 		camera.setAngleSpeed(0.0125f);
 		camera.setFarPlane(1000.0f);
@@ -91,43 +100,83 @@ public:
 		//modelMatrices.push_back(SnackerEngine::Mat4f::Translate({ 7.5f, 0.0f, 10.0f }));
 
 		// Setup GUI
-		SnackerEngine::GuiStyle style = SnackerEngine::getDefaultStyle();
-		SnackerEngine::GuiWindow window(style);
-		window.setPosition({ 350, 10 });
-		window.setSize({ 500, 150 });
+		SnackerEngine::GuiWindow window(SnackerEngine::Vec2i{ 325, 10 }, SnackerEngine::Vec2i{ 600, 250 }, "CNCU (central nathan controlling unit)");
+		window.setBackgroundColor(SnackerEngine::Color4f(0.0f, 0.0f, 0.0f, 0.5f));
 		guiManager.registerElement(window);
-		SnackerEngine::VerticalScrollingListLayout layout(style);
-		window.registerChild(layout);
+		SnackerEngine::GuiVerticalScrollingListLayout scrollingListLayout;
+		window.registerChild(scrollingListLayout);
 		{
-			SnackerEngine::GuiSlider<float> slider1("Nathan speed: ", 0.0f, 10.0f, nathanSpeed, style);
-			layout.registerChild(slider1);
-			guiManager.moveElement(std::move(slider1));
-			SnackerEngine::GuiSlider<float> slider2("Nathan radius: ", 0.0f, 10.0f, nathanRadius, style);
-			layout.registerChild(slider2);
-			guiManager.moveElement(std::move(slider2));
+			SnackerEngine::GuiHorizontalListLayout tempLayout;
+			scrollingListLayout.registerChild(tempLayout);
+			SnackerEngine::GuiCheckBox nathanTimeCheckBox;
+			tempLayout.registerChild(nathanTimeCheckBox);
+			nathanTimeCheckBox.setBoolHandle(isNathanTime);
+			SnackerEngine::GuiTextBox nathanTimeText(std::string("nathan time"));
+			tempLayout.registerChild(nathanTimeText);
+			guiManager.moveElement(std::move(tempLayout));
+			guiManager.moveElement(std::move(nathanTimeCheckBox));
+			guiManager.moveElement(std::move(nathanTimeText));
+
+			tempLayout = SnackerEngine::GuiHorizontalListLayout();
+			tempLayout.setHorizontalLayoutGroupName("A");
+			scrollingListLayout.registerChild(tempLayout);
+			SnackerEngine::GuiTextBox nathanSpeedText(std::string("nathan speed:"));
+			tempLayout.registerChild(nathanSpeedText);
+			SnackerEngine::GuiSlider<float> nathanSpeedSlider(0.0f, 10.0f, 5.0f);
+			tempLayout.registerChild(nathanSpeedSlider);
+			nathanSpeedSlider.setVariableHandle(nathanSpeed);
+			guiManager.moveElement(std::move(tempLayout));
+			guiManager.moveElement(std::move(nathanSpeedText));
+			guiManager.moveElement(std::move(nathanSpeedSlider));
+
+			tempLayout = SnackerEngine::GuiHorizontalListLayout();
+			tempLayout.setHorizontalLayoutGroupName("A");
+			scrollingListLayout.registerChild(tempLayout);
+			SnackerEngine::GuiTextBox nathanRadiusText(std::string("nathan radius"));
+			tempLayout.registerChild(nathanRadiusText);
+			SnackerEngine::GuiSlider<float> nathanRadiusSlider(0.0f, 10.0f, 2.0f);
+			tempLayout.registerChild(nathanRadiusSlider);
+			nathanRadiusSlider.setVariableHandle(nathanRadius);
+			guiManager.moveElement(std::move(tempLayout));
+			guiManager.moveElement(std::move(nathanRadiusText));
+			guiManager.moveElement(std::move(nathanRadiusSlider));
+
+			tempLayout = SnackerEngine::GuiHorizontalListLayout();
+			tempLayout.setHorizontalLayoutGroupName("A");
+			scrollingListLayout.registerChild(tempLayout);
+			SnackerEngine::GuiTextBox nathanRaveFactorText(std::string("nathan rave factor"));
+			tempLayout.registerChild(nathanRaveFactorText);
+			SnackerEngine::GuiSlider<float> nathanRaveFactorSlider(0.0f, 1.0f, 0.0f);
+			tempLayout.registerChild(nathanRaveFactorSlider);
+			nathanRaveFactorSlider.setVariableHandle(nathanRaveFactor);
+			guiManager.moveElement(std::move(tempLayout));
+			guiManager.moveElement(std::move(nathanRaveFactorText));
+			guiManager.moveElement(std::move(nathanRaveFactorSlider));
 		}
-		guiManager.moveElement(std::move(layout));
+		guiManager.moveElement(std::move(scrollingListLayout));
 		guiManager.moveElement(std::move(window));
 	}
 
 	void update(const double& dt) override
 	{
-		auto timerResult = timer.tick(dt);
-		if (timerResult.first) {
-			//std::cout << "update, counter = " << counter << std::endl;
-			counter++;
-			if (counter % 2 == 0) {
-				SnackerEngine::Renderer::setClearColor(clearColorA);
-			}
-			else {
-				SnackerEngine::Renderer::setClearColor(clearColorB);
-			}
-		}
 		//SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << dt << SnackerEngine::LOGGER::ENDL;
 		camera.update(dt);
-		nathanTime += dt * nathanSpeed;
-		burgerTime += dt * burgerWobbleSpeed;
-		planetTime += dt * objPlanetRotationSpeed;
+		if (isNathanTime) {
+			auto timerResult = timer.tick(dt);
+			if (timerResult.first) {
+				//std::cout << "update, counter = " << counter << std::endl;
+				counter++;
+				if (counter % 2 == 0) {
+					SnackerEngine::Renderer::setClearColor(clearColorA);
+				}
+				else {
+					SnackerEngine::Renderer::setClearColor(clearColorB);
+				}
+			}
+			nathanTime += static_cast<float>(dt) * nathanSpeed;
+			burgerTime += static_cast<float>(dt) * burgerWobbleSpeed;
+			planetTime += static_cast<float>(dt) * objPlanetRotationSpeed;
+		}
 		guiManager.update(dt);
 	}
 
@@ -191,7 +240,7 @@ public:
 int main(int argc, char** argv)
 {
 
-	if (!SnackerEngine::Engine::initialize(1200, 700, "deformed sphere rave party")) {
+	if (!SnackerEngine::Engine::initialize(1200, 700, "Model Loading Rave Party")) {
 		std::cout << "startup failed!" << std::endl;
 	}
 

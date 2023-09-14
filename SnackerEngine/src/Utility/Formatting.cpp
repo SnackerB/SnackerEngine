@@ -123,12 +123,12 @@ namespace SnackerEngine
 		if (digitsBeforeDecimal > 0) result[digitsBeforeDecimal] = '.';
 		int scalar = 1;
 		int valueAsInt = static_cast<int>(val);
-		for (unsigned i = 0; i < digitsBeforeDecimal; ++i) {
+		for (int i = 0; i < digitsBeforeDecimal; ++i) {
 			result[static_cast<std::size_t>(digitsBeforeDecimal) - 1 - i] = digitToChar((valueAsInt % (scalar * 10)) / scalar);
 			scalar *= 10;
 		}
 		double scalar2 = 10.0;
-		for (unsigned i = 0; i < digitsAfterDecimal; ++i) {
+		for (int i = 0; i < digitsAfterDecimal; ++i) {
 			result[static_cast<std::size_t>(digitsBeforeDecimal) + 1 + i] = digitToChar(static_cast<std::size_t>(val * scalar2) % static_cast<std::size_t>(10));
 			scalar2 *= 10.0;
 		}

@@ -40,8 +40,8 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(locked, "locked", json, data, parameterNames);
 		if (!json.contains("size")) {
 			if (!getText().empty()) {
-				setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-				setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+				if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+				if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 			}
 			if (!json.contains("resizeMode")) setResizeMode(ResizeMode::RESIZE_RANGE);
 		}

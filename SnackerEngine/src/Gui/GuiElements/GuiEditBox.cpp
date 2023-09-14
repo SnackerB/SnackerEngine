@@ -10,7 +10,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	Color4f GuiEditBox::defaultSelectionBoxColor = Color4f(0.8f, 0.8f, 1.0f, 0.5f);
 	Color4f GuiEditBox::defaultBackgroundColor = Color4f(0.0f, 1.0f);
-	float GuiEditBox::defaultCursorWidth = 0.1f;
+	float GuiEditBox::defaultCursorWidth{};
 	double GuiEditBox::defaultCursorBlinkingTime = 0.5;
 	GuiTextBox::SizeHintModes GuiEditBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::ARBITRARY };
 	//--------------------------------------------------------------------------------------------------

@@ -4,8 +4,6 @@
 
 namespace SnackerEngine
 {
-	//--------------------------------------------------------------------------------------------------
-	unsigned GuiHorizontalListLayout::defaultHorizontalBorder = 10;
 	Color4f GuiHorizontalListLayout::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	//--------------------------------------------------------------------------------------------------
 	std::vector<int> GuiHorizontalListLayout::computeChildWidths(const std::vector<int>& minWidths, const std::vector<int>& preferredWidths, const std::vector<int>& maxWidths, int width)
@@ -115,6 +113,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::computeWidthHintsFromChildren()
 	{
+		if (getResizeMode() != ResizeMode::RESIZE_RANGE) return;
 		int totalMinWidth = 0;
 		int totalPreferredWidth = SIZE_HINT_ARBITRARY;
 		for (auto childID : getChildren()) {
@@ -151,6 +150,7 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(groupName, "horizontalLayoutGroupName", json, data, parameterNames);
 		parseJsonOrReadFromData(outerHorizontalBorder, "outerHorizontalBorder", json, data, parameterNames);
 		if (!json.contains("outerHorizontalBorder")) outerHorizontalBorder = horizontalBorder;
+		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::~GuiHorizontalListLayout()
@@ -160,9 +160,9 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout(const GuiHorizontalListLayout& other) noexcept
 		: GuiHorizontalLayout(other), alignmentHorizontal(other.alignmentHorizontal), 
-		horizontalBorder(other.horizontalBorder), backgroundColor(other.backgroundColor), 
-		modelMatrixBackground(other.modelMatrixBackground), backgroundShader(other.backgroundShader),
-		groupID(-1), groupName("")
+		horizontalBorder(other.horizontalBorder), outerHorizontalBorder(other.outerHorizontalBorder),
+		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground), 
+		backgroundShader(other.backgroundShader), groupID(-1), groupName("")
 	{
 		if (other.groupID != -1) setHorizontalLayoutGroupID(other.groupID);
 		else if (!other.groupName.empty()) setHorizontalLayoutGroupName(other.groupName);
@@ -174,6 +174,7 @@ namespace SnackerEngine
 		if (groupID != -1) leaveGroup(groupID);
 		alignmentHorizontal = other.alignmentHorizontal;
 		horizontalBorder = other.horizontalBorder;
+		outerHorizontalBorder = other.outerHorizontalBorder;
 		backgroundColor = other.backgroundColor;
 		modelMatrixBackground = other.modelMatrixBackground;
 		backgroundShader = other.backgroundShader;
@@ -186,8 +187,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout(GuiHorizontalListLayout&& other) noexcept
 		: GuiHorizontalLayout(std::move(other)), alignmentHorizontal(other.alignmentHorizontal),
-		horizontalBorder(other.horizontalBorder), backgroundColor(other.backgroundColor),
-		modelMatrixBackground(other.modelMatrixBackground), 
+		horizontalBorder(other.horizontalBorder), outerHorizontalBorder(other.outerHorizontalBorder),
+		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground), 
 		backgroundShader(std::move(other.backgroundShader)),
 		groupID(other.groupID), groupName(std::move(other.groupName))
 	{
@@ -201,6 +202,7 @@ namespace SnackerEngine
 		if (groupID != -1) leaveGroup(groupID);
 		alignmentHorizontal = other.alignmentHorizontal;
 		horizontalBorder = other.horizontalBorder;
+		outerHorizontalBorder = other.outerHorizontalBorder;
 		backgroundColor = other.backgroundColor;
 		modelMatrixBackground = other.modelMatrixBackground;
 		backgroundShader = std::move(other.backgroundShader);
@@ -258,6 +260,15 @@ namespace SnackerEngine
 			}
 		}
 		return setHorizontalLayoutGroupID(tempGroupID.value());
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::setShrinkWidthToChildren(bool shrinkWidthToChildren)
+	{
+		if (this->shrinkWidthToChildren != shrinkWidthToChildren) {
+			this->shrinkWidthToChildren = shrinkWidthToChildren;
+			if (shrinkWidthToChildren) computeWidthHintsFromChildren();
+			else setPreferredWidth(SIZE_HINT_ARBITRARY);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::computeModelMatrix()
@@ -420,7 +431,7 @@ namespace SnackerEngine
 			if (guiElement) {
 				int tempWidth = guiElement->getWidth();
 				if (tempWidth < width || width == SIZE_HINT_ARBITRARY) width = tempWidth;
-				int numberOfChildrenTemp = guiElement->getChildren().size();
+				int numberOfChildrenTemp = static_cast<int>(guiElement->getChildren().size());
 				if (numberOfChildrenTemp > numberOfChildren) numberOfChildren = numberOfChildrenTemp;
 			}
 		}
@@ -448,7 +459,7 @@ namespace SnackerEngine
 				}
 			}
 		}
-		widths = GuiHorizontalListLayout::computeChildWidths(minWidths, preferredWidths, maxWidths, width - (minWidths.size() - 1) * horizontalBorder - 2 * outerHorizontalBorder);
+		widths = GuiHorizontalListLayout::computeChildWidths(minWidths, preferredWidths, maxWidths, width - static_cast<int>(minWidths.size() - 1) * horizontalBorder - 2 * outerHorizontalBorder);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

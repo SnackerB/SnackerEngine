@@ -83,6 +83,8 @@ namespace SnackerEngine
 		/// used for mouse enter/leave and mouse button events. 
 		/// If zero is returned, this means that no element is colliding
 		GuiID getCollidingElement();
+		/// This function is called by a guiElement that wants to be brought to the foreground
+		void bringToForeground(const GuiElement& guiElement);
 
 		//==============================================================================================
 		// Special Models, Textures etc. stored by the guiManager
@@ -185,6 +187,11 @@ namespace SnackerEngine
 		/// GuiElements of this type can be parsed from JSON.
 		template<typename GuiElementType>
 		static void registerGuiElementType(const std::string& postfix = "");
+		/// Changes the scale of the GUI and recomputes default initialization parameters
+		/// A scale of 1.0 corresponds to the scale on a 4K monitor.
+		static void recomputeDefaultGuiElementValues(double scale);
+		/// Removes the given element
+		void removeElement(GuiID guiID);
 
 		//==============================================================================================
 		// Named elements

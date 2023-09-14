@@ -5,9 +5,6 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	int GuiVerticalWeightedLayout::defaultResizeAreaHeight = 5;
-	int GuiVerticalWeightedLayout::defaultVerticalBorder = 0;
-	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalWeightedLayout::stopResizing()
 	{
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_MOTION);
@@ -43,11 +40,38 @@ namespace SnackerEngine
 		registerEnforceLayoutDown();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalWeightedLayout::computeHeightHintsFromChildren()
+	{
+		if (getResizeMode() != ResizeMode::RESIZE_RANGE) return;
+		int totalMinHeight = 0;
+		int totalPreferredHeight = SIZE_HINT_ARBITRARY;
+		for (auto childID : getChildren()) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				totalMinHeight += child->getMinHeight();
+				if (totalPreferredHeight != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					int tempPreferredHeight = child->getPreferredHeight();
+					if (tempPreferredHeight >= 0) {
+						if (totalPreferredHeight >= 0) totalPreferredHeight += tempPreferredHeight;
+						else totalPreferredHeight = tempPreferredHeight;
+					}
+					else if (tempPreferredHeight == SIZE_HINT_AS_LARGE_AS_POSSIBLE) totalPreferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+				}
+			}
+		}
+		int totalBorders = 2 * outerVerticalBorder + static_cast<int>((getChildren().size() - 1)) * verticalBorder;
+		totalMinHeight += totalBorders;
+		if (totalPreferredHeight >= 0) totalPreferredHeight += totalBorders;
+		setMinHeight(totalMinHeight);
+		setPreferredHeight(totalPreferredHeight);
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiVerticalWeightedLayout::GuiVerticalWeightedLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiVerticalLayout(json, data, parameterNames)
 	{
-		if (!json.contains("verticalLayoutMode")) setVerticalLayoutMode(VerticalLayoutMode::FORCE_CHILD_WIDTH);
+		if (!json.contains("verticalLayoutMode")) setVerticalLayoutMode(VerticalLayoutMode::CHILD_WIDTH_TO_LAYOUT_WIDTH);
 		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data);
+		parseJsonOrReadFromData(outerVerticalBorder, "outerVerticalBorder", json, data);
 		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
 		parseJsonOrReadFromData(resizeAreaHeight, "resizeAreaHeight", json, data, parameterNames);
 		parseJsonOrReadFromData(allowMoveBorders, "allowMoveBorders", json, data, parameterNames);
@@ -118,6 +142,14 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalWeightedLayout::setOuterVerticalBorder(int outerVerticalBorder)
+	{
+		if (this->outerVerticalBorder != outerVerticalBorder) {
+			this->outerVerticalBorder = outerVerticalBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalWeightedLayout::setAlignmentVertical(AlignmentVertical alignmentVertical)
 	{
 		if (this->alignmentVertical != alignmentVertical) {
@@ -164,10 +196,10 @@ namespace SnackerEngine
 	void GuiVerticalWeightedLayout::enforceLayout()
 	{
 		GuiVerticalLayout::enforceLayout();
-		int totalRemainingHeight = getHeight() - static_cast<int>(weights.size() + 1) * verticalBorder;
+		unsigned totalRemainingHeight = getHeight() - static_cast<int>(weights.size() == 0 ? 0 : weights.size() - 1) * verticalBorder - 2 * outerVerticalBorder;
 		double remainingPercentage = 1.0f;
 		const auto& children = getChildren();
-		std::vector<unsigned> heights(children.size());
+		std::vector<int> heights(children.size());
 		std::vector<unsigned> indicesOfChildrenLeftToResize;
 		if (alignmentVertical == AlignmentVertical::TOP || alignmentVertical == AlignmentVertical::CENTER) {
 			for (unsigned i = 0; i < children.size(); ++i) indicesOfChildrenLeftToResize.push_back(i);
@@ -182,18 +214,18 @@ namespace SnackerEngine
 			for (auto it = indicesOfChildrenLeftToResize.begin(); it != indicesOfChildrenLeftToResize.end(); ++it) {
 				GuiElement* child = getElement(children[*it]);
 				if (child) {
-					int height = static_cast<int>(percentages[*it] / remainingPercentage * totalRemainingHeight);
-					if (child->getMaxHeight() != -1 && height > child->getMaxHeight()) {
+					int height = static_cast<int>(percentages[*it] / remainingPercentage * static_cast<double>(totalRemainingHeight));
+					if (child->getMaxHeight() >= 0 && height > child->getMaxHeight()) {
 						// If the percentage height is too large, we just set the child to its maximum height
 						heights[*it] = child->getMaxHeight();
-						totalRemainingHeight -= heights[*it];
+						totalRemainingHeight = heights[*it];
 						remainingPercentage -= percentages[*it];
 						indicesOfChildrenLeftToResize.erase(it);
 						problemOccured = true;
 						break;
 					}
 					else if (height < child->getMinHeight()) {
-						// If the percentage height is too small, we just set the child to its minimum height
+						// If the percentage hegight is too small, we just set the child to its minimum height
 						heights[*it] = child->getMinHeight();
 						totalRemainingHeight -= heights[*it];
 						remainingPercentage -= percentages[*it];
@@ -211,9 +243,9 @@ namespace SnackerEngine
 		}
 		// Now we can actually position and resize the elements
 		if (alignmentVertical == AlignmentVertical::TOP || alignmentVertical == AlignmentVertical::CENTER) {
-			int position = verticalBorder;
+			int position = outerVerticalBorder;
 			if (alignmentVertical == AlignmentVertical::CENTER) {
-				int totalHeight = verticalBorder * static_cast<int>(children.size() - 1);
+				int totalHeight = verticalBorder * static_cast<int>((children.size() - 1));
 				for (auto height : heights) totalHeight += height;
 				position = (getHeight() - totalHeight) / 2;
 			}
@@ -227,7 +259,7 @@ namespace SnackerEngine
 			}
 		}
 		else {
-			int position = getHeight() - verticalBorder;
+			int position = getHeight() - outerVerticalBorder;
 			for (int i = static_cast<int>(children.size() - 1); i >= 0; --i) {
 				GuiElement* child = getElement(children[i]);
 				position -= heights[i];
@@ -238,16 +270,18 @@ namespace SnackerEngine
 				position -= verticalBorder;
 			}
 		}
+		// Compute the min height of this layout from its children
+		computeHeightHintsFromChildren();
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<std::pair<unsigned int, int>> GuiVerticalWeightedLayout::getCollidingBorderAndOffset(const Vec2i& offset) const
 	{
 		const auto& children = getChildren();
-		for (int i = 1; i < children.size(); ++i) {
+		for (unsigned i = 1; i < children.size(); ++i) {
 			GuiElement* child = getElement(children[i]);
 			if (child) {
-				if (child->getPositionY() > offset.y + static_cast<int>(resizeAreaHeight)) return {};
-				else if (child->getPositionY() > offset.y - static_cast<int>(resizeAreaHeight)) return { { i - 1, offset.y - child->getPositionY() } };
+				if (child->getPositionY() > offset.y + resizeAreaHeight) return {};
+				else if (child->getPositionY() > offset.y - resizeAreaHeight) return { { i - 1, offset.y - child->getPositionY() } };
 			}
 		}
 		return {};
@@ -269,47 +303,47 @@ namespace SnackerEngine
 	void GuiVerticalWeightedLayout::callbackMouseMotion(const Vec2d& position)
 	{
 		int borderPos = getMouseOffsetY() - mouseOffset;
-		GuiElement* topChild = getElement(getChildren()[resizeBorder]);
-		GuiElement* bottomChild = getElement(getChildren()[static_cast<std::size_t>(resizeBorder) + 1]);
-		int newHeightTop = borderPos - topChild->getPositionY();
-		int newHeightBottom = 0;
-		if (newHeightTop < topChild->getMinHeight()) {
-			// New top height is too small!
-			newHeightTop = topChild->getMinHeight();
-			newHeightBottom = bottomChild->getPositionY() + bottomChild->getHeight() - topChild->getPositionY() - newHeightTop;
-			if (newHeightBottom < bottomChild->getMinHeight() || (bottomChild->getMaxHeight() != -1 && newHeightBottom > bottomChild->getMaxHeight())) return;
+		GuiElement* upperChild = getElement(getChildren()[resizeBorder]);
+		GuiElement* lowerChild = getElement(getChildren()[resizeBorder + 1]);
+		int newHeightUp = borderPos - upperChild->getPositionY();
+		int newHeightDown = 0;
+		if (newHeightUp < upperChild->getMinHeight()) {
+			// New upper height is too small!
+			newHeightUp = upperChild->getMinHeight();
+			newHeightDown = lowerChild->getPositionY() + lowerChild->getHeight() - upperChild->getPositionY() - newHeightUp;;
+			if (newHeightDown < lowerChild->getMinHeight() || (upperChild->getMaxHeight() >= 0 && newHeightDown > lowerChild->getMaxHeight())) return;
 		}
-		else if (topChild->getMaxHeight() != -1 && newHeightTop > topChild->getMaxHeight()) {
-			// New top height is too large!
-			newHeightTop = topChild->getMaxHeight();
-			newHeightBottom = bottomChild->getPositionY() + bottomChild->getHeight() - topChild->getPositionY() - newHeightTop;
-			if (newHeightBottom < bottomChild->getMinHeight() || (bottomChild->getMaxHeight() != -1 && newHeightBottom > bottomChild->getMaxHeight())) return;
+		else if (upperChild->getMaxHeight() >= 0 && newHeightUp > upperChild->getMaxHeight()) {
+			// New upper height is too large!
+			newHeightUp = upperChild->getMaxHeight();
+			newHeightDown = lowerChild->getPositionY() + lowerChild->getHeight() - upperChild->getPositionY() - newHeightUp;
+			if (newHeightDown < lowerChild->getMinHeight() || (lowerChild->getMaxHeight() >= 0 && newHeightDown > lowerChild->getMaxHeight())) return;
 		}
 		else {
-			newHeightBottom = bottomChild->getPositionY() + bottomChild->getHeight() - borderPos;
-			if (newHeightBottom < bottomChild->getMinHeight()) {
-				// New bottom height is too small!
-				newHeightBottom = bottomChild->getMinHeight();
-				newHeightTop = bottomChild->getPositionY() + bottomChild->getHeight() - newHeightBottom - topChild->getPositionY();
-				if (newHeightTop < topChild->getMinHeight() || (topChild->getMaxHeight() != -1 && newHeightTop > topChild->getMaxHeight())) return;
+			newHeightDown = lowerChild->getPositionY() + lowerChild->getHeight() - borderPos;
+			if (newHeightDown < lowerChild->getMinHeight()) {
+				// New lower height is too small!
+				newHeightDown = lowerChild->getMinHeight();
+				newHeightUp = upperChild->getPositionY() + lowerChild->getHeight() - newHeightDown - upperChild->getPositionY();
+				if (newHeightUp < upperChild->getMinHeight() || (upperChild->getMaxHeight() >= 0 && newHeightUp > upperChild->getMaxHeight())) return;
 			}
-			else if (bottomChild->getMaxHeight() != -1 && newHeightBottom > bottomChild->getMaxHeight()) {
-				// New bottom height is too large!
-				newHeightBottom = bottomChild->getMaxHeight();
-				newHeightTop = bottomChild->getPositionY() + bottomChild->getHeight() - newHeightBottom - topChild->getPositionY();
-				if (newHeightTop < topChild->getMinHeight() || (topChild->getMaxHeight() != -1 && newHeightTop > topChild->getMaxHeight())) return;
+			else if (lowerChild->getMaxHeight() >= 0 && newHeightDown > lowerChild->getMaxHeight()) {
+				// New lower height is too large!
+				newHeightDown = lowerChild->getMaxHeight();
+				newHeightDown = lowerChild->getPositionY() + lowerChild->getHeight() - newHeightDown - upperChild->getPositionY();
+				if (newHeightUp < upperChild->getMinHeight() || (upperChild->getMaxHeight() >= 0 && newHeightUp > upperChild->getMaxHeight())) return;
 			}
 		}
-		topChild->setHeight(newHeightTop);
-		bottomChild->setHeight(newHeightBottom);
-		bottomChild->setPositionY(topChild->getPositionY() + newHeightTop);
+		upperChild->setHeight(newHeightUp);
+		lowerChild->setHeight(newHeightDown);
+		lowerChild->setPositionY(upperChild->getPositionY() + newHeightUp);
 		// Compute new percentages and weights
-		double totalPercentage = percentages[resizeBorder] + percentages[static_cast<std::size_t>(resizeBorder) + 1];
-		double totalHeight = static_cast<double>(newHeightTop + newHeightBottom);
-		percentages[resizeBorder] = static_cast<double>(newHeightTop) / totalHeight * totalPercentage;
-		percentages[static_cast<std::size_t>(resizeBorder) + 1] = static_cast<double>(newHeightBottom) / totalHeight * totalPercentage;
+		double totalPercentage = percentages[resizeBorder] + percentages[resizeBorder + 1];
+		double totalHeight = static_cast<double>(newHeightUp + newHeightDown);
+		percentages[resizeBorder] = static_cast<double>(newHeightUp) / totalHeight * totalPercentage;
+		percentages[resizeBorder + 1] = static_cast<double>(newHeightDown) / totalHeight * totalPercentage;
 		weights[resizeBorder] = getTotalWeight() * percentages[resizeBorder];
-		weights[static_cast<std::size_t>(resizeBorder) + 1] = getTotalWeight() * percentages[static_cast<std::size_t>(resizeBorder) + 1];
+		weights[resizeBorder + 1] = getTotalWeight() * percentages[resizeBorder + 1];
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalWeightedLayout::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)

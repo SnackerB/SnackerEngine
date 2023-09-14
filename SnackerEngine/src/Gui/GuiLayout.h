@@ -30,6 +30,9 @@ namespace SnackerEngine
 		/// but the sum of the childrens preferredSizes is larger than the layouts size.
 		/// The remaining size is the difference of the layouts size to the sum of the childrens minSizes.
 		static std::vector<int> distributeSizeBetweenChildren(const std::vector<int>& minSizes, const std::vector<int>& preferredSizes, int remainingSize);
+		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
+		/// collides with this element
+		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
 	};
 	//--------------------------------------------------------------------------------------------------
 }

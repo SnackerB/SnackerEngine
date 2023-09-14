@@ -79,12 +79,12 @@ namespace SnackerEngine
 			Vec2i textureSize = texture.getSize();
 			// Make texture as large as possible in x direction
 			float factor = static_cast<float>(size.x) / static_cast<float>(textureSize.x);
-			textureSize.y *= factor;
-			textureSize.x = size.x;
+			textureSize.y = static_cast<int>(textureSize.y * factor);
+			textureSize.x = static_cast<int>(textureSize.x * factor);
 			// Make texture fit in y direction
 			if (textureSize.y > size.y) {
 				factor = static_cast<float>(size.y) / static_cast<float>(textureSize.y);
-				textureSize.x *= factor;
+				textureSize.x *= static_cast<int>(textureSize.x * factor);
 				textureSize.y = size.y;
 			}
 			// Clip

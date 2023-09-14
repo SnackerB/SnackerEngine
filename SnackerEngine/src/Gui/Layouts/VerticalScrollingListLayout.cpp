@@ -6,7 +6,7 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	Color4f GuiVerticalScrollingListLayout::defaultBackgroundColor = Color4f(0.4f, 1.0f);
+	Color4f GuiVerticalScrollingListLayout::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	unsigned GuiVerticalScrollingListLayout::defaultScrollBarWidth = 23;
 	Color4f GuiVerticalScrollingListLayout::defaultScrollbarColor = Color4f(0.0f, 0.0f, 1.0f, 1.0f);
 	Color4f GuiVerticalScrollingListLayout::defaultScrollbarBackgroundColor = Color4f(0.0f, 1.0f);

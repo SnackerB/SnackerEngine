@@ -107,10 +107,10 @@ namespace SnackerEngine
 	{
 		std::vector<int> cellPositionsX;
 		cellPositionsX.push_back(anchorPoint.x + outerBorder);
-		for (int i = 0; i < totalColumns - 1; ++i) cellPositionsX.push_back(cellPositionsX.back() + gridCellWidths[i] + border);
+		for (int i = 0; i < static_cast<int>(totalColumns) - 1; ++i) cellPositionsX.push_back(cellPositionsX.back() + gridCellWidths[i] + border);
 		std::vector<int> cellPositionsY;
 		cellPositionsY.push_back(anchorPoint.y + outerBorder);
-		for (int i = 0; i < totalRows - 1; ++i) cellPositionsY.push_back(cellPositionsY.back() + gridCellHeights[i] + border);
+		for (int i = 0; i < static_cast<int>(totalRows) - 1; ++i) cellPositionsY.push_back(cellPositionsY.back() + gridCellHeights[i] + border);
 		const auto& children = getChildren();
 		for (unsigned i = 0; i < children.size(); ++i) {
 			GuiElement* child = getElement(children[i]);
@@ -159,8 +159,10 @@ namespace SnackerEngine
 		// Position all elements!
 		positionChildren(anchorPoint, firstCellSize, cellSize);
 		// Change minSize and preferredSize of the layout
-		setMinSize(Vec2i(largestMinSize.x * totalColumns + totalBorderX, largestMinSize.x * totalRows + totalBorderY));
-		setPreferredSize(Vec2i(largestPreferredSize.x * totalColumns + totalBorderX, largestPreferredSize.x * totalRows + totalBorderY));
+		if (getResizeMode() == ResizeMode::RESIZE_RANGE) {
+			setMinSize(Vec2i(largestMinSize.x * totalColumns + totalBorderX, largestMinSize.x * totalRows + totalBorderY));
+			setPreferredSize(Vec2i(largestPreferredSize.x * totalColumns + totalBorderX, largestPreferredSize.x * totalRows + totalBorderY));
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiGridLayout::enforceLayoutSplitCellsEquallyShrink()
@@ -207,8 +209,10 @@ namespace SnackerEngine
 		// Position all elements!
 		positionChildren(anchorPoint, cellSize, firstCellSize);
 		// Change minSize and preferredSize of the layout
-		setMinSize(Vec2i(largestMinSize.x * totalColumns + totalBorderX, largestMinSize.x * totalRows + totalBorderY));
-		setPreferredSize(Vec2i(largestPreferredSize.x * totalColumns + totalBorderX, largestPreferredSize.x * totalRows + totalBorderY));
+		if (getResizeMode() == ResizeMode::RESIZE_RANGE) {
+			setMinSize(Vec2i(largestMinSize.x * totalColumns + totalBorderX, largestMinSize.x * totalRows + totalBorderY));
+			setPreferredSize(Vec2i(largestPreferredSize.x * totalColumns + totalBorderX, largestPreferredSize.x * totalRows + totalBorderY));
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiGridLayout::enforceLayoutAdaptCellsShrink()
@@ -289,8 +293,10 @@ namespace SnackerEngine
 		// Position all elements!
 		positionChildren(anchorPoint, gridCellWidths, gridCellHeights);
 		// Change minSize and preferredSize of the layout
-		setMinSize(Vec2i(totalMinWidth, totalMinHeight));
-		setPreferredSize(Vec2i(totalPreferredWidth, totalPreferredHeight));
+		if (getResizeMode() == ResizeMode::RESIZE_RANGE) {
+			setMinSize(Vec2i(totalMinWidth, totalMinHeight));
+			setPreferredSize(Vec2i(totalPreferredWidth, totalPreferredHeight));
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiGridLayout::Mode>(const nlohmann::json& json)

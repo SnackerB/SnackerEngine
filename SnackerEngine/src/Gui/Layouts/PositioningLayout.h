@@ -40,6 +40,9 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		GuiPositioningLayout(GuiPositioningLayout&& other) noexcept;
 		GuiPositioningLayout& operator=(GuiPositioningLayout&& other) noexcept;
+		/// Getters
+		Mode getMode() const { return mode; }
+		void setMode(Mode mode);
 	protected:
 		/// Sets the position and size of the children of this element according to
 		/// layout rules, if there are any. May recursively call setLayout() on the

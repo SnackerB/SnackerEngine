@@ -2,7 +2,6 @@
 
 #include "Gui\Layouts\HorizontalWeightedLayout.h"
 #include "Gui\GuiElements\GuiEditVariable.h"
-#include "Gui\GuiEventHandles\GuiVecVariableHandle.h"
 #include "Gui\GuiElements\VectorElements\GuiVariableVec.h"
 
 namespace SnackerEngine

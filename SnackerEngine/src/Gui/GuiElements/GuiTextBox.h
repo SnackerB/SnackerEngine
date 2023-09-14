@@ -94,7 +94,7 @@ namespace SnackerEngine
 		/// If this is set to false, the text will not be recomputed on size changes, which can be useful
 		/// to save resources. The text will still be rescaled according to the textScaleMode.
 		/// Default value: True
-		bool doRecomputeOnSizeChange = false;
+		bool doRecomputeOnSizeChange = true;
 		/// Saving the last size the text was computed with. Useful for not doing unnecessary resizes.
 		Vec2i lastSizeOnRecomputeText = Vec2i(-1, -1);
 		/// The displayed text
@@ -124,6 +124,7 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_TEXT_BOX";
 		/// Default constructor
 		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
+		GuiTextBox(const std::string& text);
 		/// Constructor from JSON
 		GuiTextBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor

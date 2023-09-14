@@ -283,13 +283,16 @@ namespace SnackerEngine
 	Model loadModelOBJ(const std::string& path, const bool& printDebug)
 	{
 		// Get path
-		std::string full_path = Engine::getResourcePath();
-		full_path.append(path);
-
-		std::ifstream file(full_path);
+		std::optional<std::string> fullPath = Engine::getFullPath(path);
+		if (!fullPath.has_value())
+		{
+			warningLogger << LOGGER::BEGIN << "Could not find object file at " << path << LOGGER::ENDL;
+			return Model();
+		}
+		std::ifstream file(fullPath.value());
 		if (!file.is_open())
 		{
-			warningLogger << LOGGER::BEGIN << "Could not load object file at " << full_path << LOGGER::ENDL;
+			warningLogger << LOGGER::BEGIN << "Could not load object file at " << fullPath.value()  << LOGGER::ENDL;
 			return Model();
 		}
 

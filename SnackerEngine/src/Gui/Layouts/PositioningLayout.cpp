@@ -108,6 +108,14 @@ namespace SnackerEngine
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setMode(Mode mode)
+	{
+		if (this->mode != mode) {
+			this->mode = mode; 
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiPositioningLayout::enforceLayout()
 	{
 		const std::vector<GuiID>& children = getChildren();
@@ -118,8 +126,11 @@ namespace SnackerEngine
 			GuiElement* child = getElement(childID);
 			if (!child) continue;
 			Vec2i childSize = child->getPreferredSize();
-			if (childSize.x < 0) childSize.x = child->getMaxWidth();
-			if (childSize.y < 0) childSize.y = child->getMaxHeight();
+			if (child->getResizeMode() == ResizeMode::SAME_AS_PARENT) childSize = getSize();
+			else {
+				if (childSize.x < 0) childSize.x = getWidth();
+				if (childSize.y < 0) childSize.y = getHeight();
+			}
 			childSize = child->clampToMinMaxSize(childSize);
 			// Compute position
 			Vec2i childPosition;

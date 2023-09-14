@@ -40,7 +40,7 @@ namespace SnackerEngine
 		T minValue{};
 		T maxValue{};
 		/// mouse offset when the moving of the slider button started
-		int mouseOffset;
+		int mouseOffset{};
 		/// Transforms the value to a UTF8 encoded string. May apply additional rounding operation.
 		virtual std::string toText(const T& value) { return std::to_string(value); }
 		/// Sets the value in the variable handle to a given value and updates the text
@@ -147,7 +147,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline Color4f GuiSlider<T>::defaultBackgroundColor = Color4f(0.0f, 1.0f);
 	template<typename T>
-	inline GuiTextBox::SizeHintModes GuiSlider<T>::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::ARBITRARY };
+	inline GuiTextBox::SizeHintModes GuiSlider<T>::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT, GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT };
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiSlider<T>::setVariable(const T& value)
@@ -161,13 +161,15 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const Vec2i& position, const Vec2i& size)
-		: GuiTextBox(position, size, toText(T{}))
+		: GuiTextBox(position, size, "")
 	{
 		setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		if (size.y == 0) {
+		if (size.y <= 0) {
 			setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 			setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 			setResizeMode(ResizeMode::RESIZE_RANGE);
+			setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+			setMaxWidth(SIZE_HINT_ARBITRARY);
 		}
 		setAlignment(StaticText::Alignment::CENTER);
 		setBackgroundColor(defaultBackgroundColor);
@@ -176,14 +178,14 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const T& minValue, const T& maxValue, const T& value)
-		: GuiTextBox(position, size, toText(T{})), value(value), minValue(minValue), maxValue(maxValue)
+		:GuiTextBox(Vec2i{}, Vec2i{}, ""), value(value), minValue(minValue), maxValue(maxValue)
 	{
 		setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		if (size.y == 0) {
-			setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-			setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-			setResizeMode(ResizeMode::RESIZE_RANGE);
-		}
+		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+		setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_SIZE);
+		setResizeMode(ResizeMode::RESIZE_RANGE);
+		setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+		setMaxWidth(SIZE_HINT_ARBITRARY);
 		setAlignment(StaticText::Alignment::CENTER);
 		setBackgroundColor(defaultBackgroundColor);
 		setSizeHintModes(defaultSizeHintModes);
@@ -203,6 +205,8 @@ namespace SnackerEngine
 			setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 			setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 			if (!json.contains("resizeMode")) setResizeMode(ResizeMode::RESIZE_RANGE);
+			setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+			setMaxWidth(SIZE_HINT_ARBITRARY);
 		}
 		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::CENTER);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);

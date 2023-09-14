@@ -1,27 +1,24 @@
 #include "Gui/Layouts/VerticalLayout.h"
-#include "Core/Keys.h"
+#include "core/Keys.h"
 #include "Graphics/Renderer.h"
 
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	unsigned GuiVerticalLayout::defaultHorizontalBorder = 0;
-	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType<GuiVerticalLayout::VerticalLayoutMode>(const nlohmann::json& json)
 	{
 		return json.is_string() && (
-			json == "VARIABLE_WIDTH" ||
-			json == "FORCED_WIDTH" ||
-			json == "FORCE_CHILD_WIDTH"
-			);
+			json == "CHILD_WIDTH_RANGE" ||
+			json == "CHILD_WIDTH_TO_LAYOUT_WIDTH" ||
+			json == "LARGEST_PREFERRED_WIDTH");
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<> GuiVerticalLayout::VerticalLayoutMode parseJSON(const nlohmann::json& json)
 	{
-		if (json == "VARIABLE_WIDTH") return GuiVerticalLayout::VerticalLayoutMode::VARIABLE_WIDTH;
-		else if (json == "FORCED_WIDTH") return GuiVerticalLayout::VerticalLayoutMode::FORCED_WIDTH;
-		else if (json == "FORCE_CHILD_WIDTH") return GuiVerticalLayout::VerticalLayoutMode::FORCE_CHILD_WIDTH;
-		return GuiVerticalLayout::VerticalLayoutMode::VARIABLE_WIDTH;
+		if (json == "CHILD_WIDTH_RANGE") return GuiVerticalLayout::VerticalLayoutMode::CHILD_WIDTH_RANGE;
+		else if (json == "CHILD_WIDTH_TO_LAYOUT_WIDTH") return GuiVerticalLayout::VerticalLayoutMode::CHILD_WIDTH_TO_LAYOUT_WIDTH;
+		else if (json == "LARGEST_PREFERRED_WIDTH") return GuiVerticalLayout::VerticalLayoutMode::LARGEST_PREFERRED_WIDTH;
+		return GuiVerticalLayout::VerticalLayoutMode::CHILD_WIDTH_RANGE;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalLayout::setAlignmentHorizontal(GuiID childID, AlignmentHorizontal alignmentHorizontal)
@@ -49,16 +46,61 @@ namespace SnackerEngine
 		alignmentsHorizontal.push_back(alignmentHorizontal);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalLayout::setShrinkWidthToChildren(bool shrinkWidthToChildren)
+	{
+		if (this->shrinkWidthToChildren != shrinkWidthToChildren) {
+			this->shrinkWidthToChildren = shrinkWidthToChildren;
+			if (shrinkWidthToChildren) computeWidthHintsFromChildren();
+			else setPreferredWidth(SIZE_HINT_ARBITRARY);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalLayout::computeWidthHintsFromChildren()
+	{
+		int minWidth = 0;
+		std::optional<int> preferredWidth = std::nullopt;
+		for (auto childID : getChildren()) {
+			GuiElement* child = getElement(childID);
+			if (child) {
+				// Set minWidth to largest minWidth (+ vertical borders)
+				minWidth = std::max(minWidth, child->getMinWidth() + 2 * static_cast<int>(horizontalBorder));
+				// If all children have the same preferred width, this will be the layouts preferred width. Otherwise, set
+				// preferredWidth to SIZE_HINT_ARBITRARY. If any child has preferredWidth of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
+				// set the layouts preferredWidth to SIZE_HINT_AS_LARGE_AS_POSSIBLE
+				if (preferredWidth.has_value()) {
+					if (preferredWidth.value() >= 0) {
+						int tempPreferredWidth = child->getPreferredWidth();
+						if (tempPreferredWidth != preferredWidth.value()) preferredWidth = SIZE_HINT_ARBITRARY;
+					}
+				}
+				else {
+					int tempPreferredWidth = child->getPreferredWidth();
+					if (tempPreferredWidth >= 0) preferredWidth = tempPreferredWidth;
+				}
+				if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+			}
+		}
+		setMinWidth(minWidth);
+		if ((getResizeMode() == ResizeMode::RESIZE_RANGE || shrinkWidthToChildren) && preferredWidth.has_value()) {
+			setPreferredWidth(preferredWidth.value() + 2 * horizontalBorder);
+		}
+		else setPreferredWidth(SIZE_HINT_ARBITRARY);
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout::GuiVerticalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiLayout(json, data, parameterNames)
 	{
 		parseJsonOrReadFromData(verticalLayoutMode, "verticalLayoutMode", json, data, parameterNames);
 		parseJsonOrReadFromData(defaultAlignmentHorizontal, "defaultAlignmentHorizontal", json, data, parameterNames);
 		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data, parameterNames);
+		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout::GuiVerticalLayout(const GuiVerticalLayout& other) noexcept
-		: GuiLayout(other), verticalLayoutMode(other.verticalLayoutMode), defaultAlignmentHorizontal(other.defaultAlignmentHorizontal), alignmentsHorizontal{}, horizontalBorder(other.horizontalBorder) {}
+		: GuiLayout(other), verticalLayoutMode(other.verticalLayoutMode),
+		defaultAlignmentHorizontal(other.defaultAlignmentHorizontal),
+		alignmentsHorizontal{}, horizontalBorder(other.horizontalBorder),
+		shrinkWidthToChildren{ other.shrinkWidthToChildren } {}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout& GuiVerticalLayout::operator=(const GuiVerticalLayout& other) noexcept
 	{
@@ -67,12 +109,16 @@ namespace SnackerEngine
 		defaultAlignmentHorizontal = other.defaultAlignmentHorizontal;
 		alignmentsHorizontal.clear();
 		horizontalBorder = other.horizontalBorder;
+		shrinkWidthToChildren = other.shrinkWidthToChildren;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout::GuiVerticalLayout(GuiVerticalLayout&& other) noexcept
-		: GuiLayout(std::move(other)), verticalLayoutMode(other.verticalLayoutMode), defaultAlignmentHorizontal(other.defaultAlignmentHorizontal),
-		alignmentsHorizontal(std::move(other.alignmentsHorizontal)), horizontalBorder(other.horizontalBorder) {}
+		: GuiLayout(std::move(other)), verticalLayoutMode(other.verticalLayoutMode), 
+		defaultAlignmentHorizontal(other.defaultAlignmentHorizontal),
+		alignmentsHorizontal(std::move(other.alignmentsHorizontal)), 
+		horizontalBorder(other.horizontalBorder),
+		shrinkWidthToChildren{ other.shrinkWidthToChildren } {}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout& GuiVerticalLayout::operator=(GuiVerticalLayout&& other) noexcept
 	{
@@ -81,6 +127,7 @@ namespace SnackerEngine
 		defaultAlignmentHorizontal = other.defaultAlignmentHorizontal;
 		alignmentsHorizontal = std::move(other.alignmentsHorizontal);
 		horizontalBorder = other.horizontalBorder;
+		shrinkWidthToChildren = other.shrinkWidthToChildren;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -128,38 +175,13 @@ namespace SnackerEngine
 		const auto& children = getChildren();
 		switch (verticalLayoutMode)
 		{
-		case SnackerEngine::GuiVerticalLayout::VerticalLayoutMode::VARIABLE_WIDTH:
-		{
-			int minWidth= 0;
-			int preferredWidth = -1;
-			int maxWidth = 0;
-			for (unsigned i = 0; i < children.size(); ++i) {
-				GuiElement* child = getElement(children[i]);
-				if (!child) continue;
-				if (child->getMinWidth() + 2 * static_cast<int>(horizontalBorder) > minWidth) minWidth = child->getMinWidth() + 2 * horizontalBorder;
-				if (child->getPreferredWidth() + 2 * static_cast<int>(horizontalBorder) > preferredWidth) preferredWidth = child->getPreferredWidth() + 2 * horizontalBorder;
-				if (maxWidth != -1) {
-					if (child->getMaxWidth() == -1) maxWidth = -1;
-					else if (child->getMaxWidth() + 2 * static_cast<int>(horizontalBorder) > maxWidth) maxWidth = child->getMaxWidth() + 2 * horizontalBorder;
-				}
-				int childWidth = child->getPreferredWidth() != -1 ? child->getPreferredWidth() : child->getWidth();
-				childWidth = std::min(childWidth, getWidth() - 2 * static_cast<int>(horizontalBorder));
-				childWidth = child->clampToMinMaxWidth(childWidth);
-				child->setWidth(childWidth);
-				child->setPositionX(computeChildPositionX(child->getWidth(), alignmentsHorizontal[i]));
-			}
-			if (preferredWidth != -1 && preferredWidth < minWidth) preferredWidth = minWidth;
-			setMinWidth(minWidth);
-			setPreferredWidth(preferredWidth);
-			setMaxWidth(maxWidth);
-			break;
-		}
-		case SnackerEngine::GuiVerticalLayout::VerticalLayoutMode::FORCED_WIDTH:
+		case VerticalLayoutMode::CHILD_WIDTH_RANGE:
 		{
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;
-				int childWidth = child->getPreferredWidth() != -1 ? child->getPreferredWidth() : child->getWidth();
+				int childWidth = child->getPreferredWidth();
+				if (childWidth < 0) childWidth = child->getMaxWidth() >= 0 ? child->getMaxWidth() : getWidth() - 2 * static_cast<int>(horizontalBorder);
 				childWidth = std::min(childWidth, getWidth() - 2 * static_cast<int>(horizontalBorder));
 				childWidth = child->clampToMinMaxWidth(childWidth);
 				child->setWidth(childWidth);
@@ -167,7 +189,7 @@ namespace SnackerEngine
 			}
 			break;
 		}
-		case SnackerEngine::GuiVerticalLayout::VerticalLayoutMode::FORCE_CHILD_WIDTH:
+		case VerticalLayoutMode::CHILD_WIDTH_TO_LAYOUT_WIDTH:
 		{
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
@@ -177,9 +199,33 @@ namespace SnackerEngine
 			}
 			break;
 		}
-		default:
+		case VerticalLayoutMode::LARGEST_PREFERRED_WIDTH:
+		{
+			// Determine largest preferredWidth
+			int largestPreferredWidth = -1;
+			for (auto childID : children) {
+				GuiElement* child = getElement(childID);
+				if (child) {
+					int preferredWidth = child->getPreferredWidth();
+					if (preferredWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+						largestPreferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+						break;
+					}
+					else if (preferredWidth > largestPreferredWidth) largestPreferredWidth = preferredWidth;
+				}
+			}
+			largestPreferredWidth = std::min(largestPreferredWidth, getWidth() - 2 * static_cast<int>(horizontalBorder));
+			if (largestPreferredWidth == SIZE_HINT_ARBITRARY) largestPreferredWidth = getWidth() - 2 * static_cast<int>(horizontalBorder);
+			for (unsigned i = 0; i < children.size(); ++i) {
+				GuiElement* child = getElement(children[i]);
+				if (!child) continue;
+				child->setWidth(child->clampToMinMaxWidth(largestPreferredWidth));
+				child->setPositionX(computeChildPositionX(child->getWidth(), alignmentsHorizontal[i]));
+			}
 			break;
 		}
+		}
+		computeWidthHintsFromChildren();
 	}
 	//--------------------------------------------------------------------------------------------------
 }

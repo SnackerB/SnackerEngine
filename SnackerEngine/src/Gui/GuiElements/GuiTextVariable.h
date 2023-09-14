@@ -10,9 +10,6 @@ namespace SnackerEngine
 	template<typename T> 
 	class GuiTextVariable : public GuiTextBox
 	{
-	public:
-		/// Static default Attributes
-		static std::optional<Formatter<T>> defaultFormatter;
 	private:
 		/// The handle to the variable that is shown in this textBox
 		GuiVariableHandle<T>* variableHandle = nullptr;
@@ -82,7 +79,7 @@ namespace SnackerEngine
 	{
 		parseJsonOrReadFromData(value, "value", json, data, parameterNames);
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		if (!json.contains("sizeHintModeMinSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::LEFT);
 		updateText();
@@ -167,6 +164,7 @@ namespace SnackerEngine
 		if (this->variableHandle) return false;
 		this->variableHandle = &variableHandle;
 		signUpHandle(variableHandle, 1);
+		onHandleUpdate(variableHandle);
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------

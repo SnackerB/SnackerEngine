@@ -2,7 +2,7 @@
   "typeID": "GUI_WINDOW",
   "name": "Hello Window :)",
   "position": [ 0, 0 ],
-  "size": [ 2000, 1300 ],
+  "size": [ 1000, 700 ],
   "children": [
     {
       "typeID": "GUI_VERTICAL_SCROLLING_LIST_LAYOUT",

@@ -60,7 +60,7 @@ namespace SnackerEngine
 		/// Constructor from JSON
 		GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
-		virtual ~GuiCheckBox() {};
+		virtual ~GuiCheckBox();
 		/// Copy constructor and assignment operator
 		GuiCheckBox(const GuiCheckBox& other) noexcept;
 		GuiCheckBox& operator=(const GuiCheckBox& other) noexcept;

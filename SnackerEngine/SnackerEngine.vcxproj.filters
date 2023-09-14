@@ -288,13 +288,25 @@
     <ClInclude Include="src\Gui\GuiElements\VectorElements\GuiEditVariableVec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiVecVariableHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Gui\GuiElements\VectorElements\GuiVariableVec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Gui\GuiElements\VectorElements\GuiSliderVec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utility\Random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Network\HTTP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Network\HTTPResponseStatusCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVectorEventHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVectorVariableHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -530,6 +542,18 @@
     <ClCompile Include="src\Gui\GuiElements\VectorElements\GuiVariableVec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Utility\Random.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\HTTP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Network\HTTPResponseStatusCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiVectorEventHandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\gui\simpleColor.shader" />
@@ -552,5 +576,6 @@
     <None Include="resources\test\normalDebugWindow.json" />
     <None Include="resources\test\gridLayoutTest.json" />
     <None Include="resources\shaders\gui\msdfShader.shader" />
+    <None Include="resources\test\testMultipleWindows.json" />
   </ItemGroup>
 </Project>

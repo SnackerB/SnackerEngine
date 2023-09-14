@@ -217,6 +217,7 @@ namespace SnackerEngine
 		if (this->variableHandle) return false;
 		this->variableHandle = &variableHandle;
 		signUpHandle(variableHandle, 2);
+		onHandleUpdate(variableHandle);
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------

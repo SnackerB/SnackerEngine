@@ -5,6 +5,7 @@
 #include <string>
 #include <chrono>
 #include <random>
+#include <vector>
 
 //----------------------------------------------------------------------------------------------------------
 /// Forward declaration of GLFWindow class
@@ -18,7 +19,7 @@ namespace SnackerEngine
 	class Engine
 	{
 		/// Path to resource folder
-		inline static std::string resourcePath = "";
+		inline static std::vector<std::string> resourcePaths{};
 		/// Currently active scene
 		inline static Scene* activeScene = nullptr;
 		/// The last time the active scene was updated
@@ -44,10 +45,6 @@ namespace SnackerEngine
 		static bool initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName, const std::string& resourceFolderPath = "");
 		/// Terminates the engine
 		static void terminate();
-		/// Obtains resource path
-		static const std::string& getResourcePath();
-		/// Sets resource path
-		static void setResourcePath(const std::string& path);
 		/// Sets the active scene
 		static void setActiveScene(Scene& scene);
 		/// Starts the main loop
@@ -61,6 +58,14 @@ namespace SnackerEngine
 		static std::default_random_engine& getRandomEngine() { return randomEngine; }
 		/// Stops the engine, can be called by scenes, eg. when a "Return to Desktop" button is clicked
 		static void stopEngine();
+		/// Adds a new resource folder path. Paths are relative to the executable
+		static void addResourceFolderPath(const std::string& path);
+		/// Checks if the given file exists relative to any of the known resource folder
+		/// paths. If it does, the full path is returned (relative to the executable). If it does not, 
+		/// an empty optional is returned instead
+		static std::optional<std::string> getFullPath(const std::string& path);
+		/// Returns the default resource path (the first of the known resource paths)
+		static const std::string& getDefaultResourcePath();
 		/// Deleted destructor: this is a static class!
 		Engine() = delete;
 	};

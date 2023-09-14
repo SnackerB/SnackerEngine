@@ -215,7 +215,8 @@
     <ClInclude Include="src\Gui\GuiEventHandles\GuiEventHandle.h" />
     <ClInclude Include="src\Gui\GuiEventHandles\GuiHandle.h" />
     <ClInclude Include="src\Gui\GuiEventHandles\GuiVariableHandle.h" />
-    <ClInclude Include="src\Gui\GuiEventHandles\GuiVecVariableHandle.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVectorEventHandle.h" />
+    <ClInclude Include="src\Gui\GuiEventHandles\GuiVectorVariableHandle.h" />
     <ClInclude Include="src\Gui\GuiLayout.h" />
     <ClInclude Include="src\Gui\GuiManager.h" />
     <ClInclude Include="src\Gui\Layouts\GridLayout.h" />
@@ -239,6 +240,8 @@
     <ClInclude Include="src\Math\Vec.h" />
     <ClInclude Include="src\Graphics\Renderer.h" />
     <ClInclude Include="src\Math\VectorAlgorithms.h" />
+    <ClInclude Include="src\Network\HTTP.h" />
+    <ClInclude Include="src\Network\HTTPResponseStatusCode.h" />
     <ClInclude Include="src\Network\IncomingMessage.h" />
     <ClInclude Include="src\Network\Network.h" />
     <ClInclude Include="src\Network\NetworkData.h" />
@@ -249,6 +252,7 @@
     <ClInclude Include="src\Utility\ByteBuffer.h" />
     <ClInclude Include="src\Utility\Formatting.h" />
     <ClInclude Include="src\Utility\Json.h" />
+    <ClInclude Include="src\Utility\Random.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AssetManager\AssetManager.cpp" />
@@ -299,6 +303,7 @@
     <ClCompile Include="src\Gui\GuiElements\VectorElements\GuiVariableVec.cpp" />
     <ClCompile Include="src\Gui\GuiEventHandles\GuiEventHandle.cpp" />
     <ClCompile Include="src\Gui\GuiEventHandles\GuiHandle.cpp" />
+    <ClCompile Include="src\Gui\GuiEventHandles\GuiVectorEventHandle.cpp" />
     <ClCompile Include="src\Gui\GuiLayout.cpp" />
     <ClCompile Include="src\Gui\GuiManager.cpp" />
     <ClCompile Include="src\Gui\Layouts\GridLayout.cpp" />
@@ -318,6 +323,8 @@
     <ClCompile Include="src\Gui\Text\Unicode.cpp" />
     <ClCompile Include="src\Math\Vec.cpp" />
     <ClCompile Include="src\Math\VectorAlgorithms.cpp" />
+    <ClCompile Include="src\Network\HTTP.cpp" />
+    <ClCompile Include="src\Network\HTTPResponseStatusCode.cpp" />
     <ClCompile Include="src\Network\IncomingMessage.cpp" />
     <ClCompile Include="src\Network\Network.cpp" />
     <ClCompile Include="src\Network\NetworkData.cpp" />
@@ -328,6 +335,7 @@
     <ClCompile Include="src\Utility\ByteBuffer.cpp" />
     <ClCompile Include="src\Utility\Formatting.cpp" />
     <ClCompile Include="src\Utility\Json.cpp" />
+    <ClCompile Include="src\Utility\Random.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\basic.shader" />
@@ -346,6 +354,7 @@
     <None Include="resources\test\normalDebugWindow.json" />
     <None Include="resources\test\test.json" />
     <None Include="resources\test\testListLayouts.json" />
+    <None Include="resources\test\testMultipleWindows.json" />
     <None Include="resources\test\textBox.json" />
     <None Include="resources\test\VerticalList.json" />
     <None Include="resources\test\window.json" />

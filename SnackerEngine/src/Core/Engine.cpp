@@ -74,37 +74,42 @@ namespace SnackerEngine
 	{
 		if (resourceFolderPath != "" && std::filesystem::exists(resourceFolderPath)) 
 		{
-			resourcePath = resourceFolderPath;
+			resourcePaths = { resourceFolderPath };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"" << resourceFolderPath << "\"" << LOGGER::ENDL;
 		}
-		else if (std::filesystem::exists("resources/"))
+		else if (std::filesystem::exists("resources"))
 		{
-			resourcePath = "resources/";
+			resourcePaths = { "resources/" };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"./resources/\"" << LOGGER::ENDL;
 		}
 		else if (std::filesystem::exists("../resources"))
 		{
-			resourcePath = "../resources/";
+			resourcePaths = { "../resources/" };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"../resources/\"" << LOGGER::ENDL;
 		}
 		else if (std::filesystem::exists("../../resources"))
 		{
-			resourcePath = "../../resources/";
+			resourcePaths = { "../../resources/" };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"../../resources/\"" << LOGGER::ENDL;
 		}
 		else if (std::filesystem::exists("../SnackerEngine/resources"))
 		{
-			resourcePath = "../SnackerEngine/resources/";
+			resourcePaths = { "../SnackerEngine/resources/" };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"../SnackerEngine/resources/\"" << LOGGER::ENDL;
 		}
 		else if (std::filesystem::exists("../../SnackerEngine/resources"))
 		{
-			resourcePath = "../../SnackerEngine/resources/";
+			resourcePaths = { "../../SnackerEngine/resources/" };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"../../SnackerEngine/resources/\"" << LOGGER::ENDL;
 		}
 		else if (std::filesystem::exists("../../../SnackerEngine/resources"))
 		{
-			resourcePath = "../../../SnackerEngine/resources/";
+			resourcePaths = { "../../../SnackerEngine/resources/" };
+			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"../../../SnackerEngine/resources/\"" << LOGGER::ENDL;
+		}
+		else if (std::filesystem::exists("../../../SnackerEngine/SnackerEngine/resources"))
+		{
+			resourcePaths = { "../../../SnackerEngine/SnackerEngine/resources/" };
 			infoLogger << LOGGER::BEGIN << "Resource path relative to executable: \"../../../SnackerEngine/resources/\"" << LOGGER::ENDL;
 		}
 		else
@@ -149,16 +154,6 @@ namespace SnackerEngine
 		AssetManager::terminate();
 		NetworkManager::cleanup();
 		Renderer::terminate();
-	}
-	//------------------------------------------------------------------------------------------------------
-	const std::string& Engine::getResourcePath()
-	{
-		return resourcePath;
-	}
-	//------------------------------------------------------------------------------------------------------
-	void Engine::setResourcePath(const std::string& path)
-	{
-		resourcePath = path;
 	}
 	//------------------------------------------------------------------------------------------------------
 	void Engine::setActiveScene(Scene& scene)
@@ -210,7 +205,7 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	Vec2<unsigned int> Engine::getDPI()
 	{
-		Vec2<unsigned int> result;
+		Vec2<unsigned int> result{};
 		HRESULT temp = GetDpiForMonitor(
 			MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY),
 			MDT_EFFECTIVE_DPI,
@@ -227,6 +222,28 @@ namespace SnackerEngine
 	void Engine::stopEngine()
 	{
 		running = false;
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::addResourceFolderPath(const std::string& path)
+	{
+		resourcePaths.push_back(path);
+	}
+	//------------------------------------------------------------------------------------------------------
+	std::optional<std::string> Engine::getFullPath(const std::string& path)
+	{
+		for (const auto& resourcePath : resourcePaths) {
+			std::string fullPath = resourcePath + path;
+			if (std::filesystem::exists(fullPath))
+				return fullPath;
+		}
+		if (std::filesystem::exists(path))
+			return path;
+		return {};
+	}
+	//------------------------------------------------------------------------------------------------------
+	const std::string& Engine::getDefaultResourcePath()
+	{
+		return resourcePaths.empty() ? "" : resourcePaths[0];
 	}
 	//------------------------------------------------------------------------------------------------------
 }

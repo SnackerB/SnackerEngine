@@ -180,9 +180,10 @@ namespace SnackerEngine
 	// Returns an empty optional if something goes wrong
 	std::optional<unsigned int> loadAndCompileShader(const std::string& path)
 	{
-		std::string fullPath = Engine::getResourcePath();
-		fullPath.append(path);
-		auto source = parseShader(fullPath);
+		std::optional<std::string> fullPath = Engine::getFullPath(path);
+		if (!fullPath.has_value())
+			return {};
+		auto source = parseShader(fullPath.value());
 		if (!source)
 			return {};
 		return createShader(source.value().vertexSource, source.value().fragmentSource);

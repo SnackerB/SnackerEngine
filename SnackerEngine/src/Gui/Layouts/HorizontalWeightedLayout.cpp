@@ -5,9 +5,6 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	int GuiHorizontalWeightedLayout::defaultResizeAreaWidth = 5;
-	int GuiHorizontalWeightedLayout::defaultHorizontalBorder = 0;
-	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::stopResizing()
 	{
 		signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_MOTION);
@@ -45,6 +42,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::computeWidthHintsFromChildren()
 	{
+		if (getResizeMode() != ResizeMode::RESIZE_RANGE) return;
 		int totalMinWidth = 0;
 		int totalPreferredWidth = SIZE_HINT_ARBITRARY;
 		for (auto childID : getChildren()) {

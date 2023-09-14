@@ -2,6 +2,7 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Meshes/Square.h"
 #include "Graphics/Meshes/Triangle.h"
+#include "Core/Engine.h"
 
 #include "GuiElements/GuiPanel.h"
 #include "GuiElements/GuiTextBox.h"
@@ -82,6 +83,16 @@ namespace SnackerEngine
 	GuiElement::GuiID GuiManager::getCollidingElement()
 	{
 		return registeredGuiElements[parentElement]->getCollidingChild(currentMousePosition);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::bringToForeground(const GuiElement& guiElement)
+	{
+		if (guiElement.parentID < 0) return;
+		GuiElement* parent = getGuiElement(guiElement.parentID);
+		if (parent) {
+			parent->bringChildToForeground(guiElement.guiID);
+			bringToForeground(*parent);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::pushClippingBox(const Vec4i& clippingBox)
@@ -550,21 +561,21 @@ namespace SnackerEngine
 	{
 		auto parent = getGuiElement(parentID);
 		if (!parent) return {};
-		for (const auto& childID : parent->children) {
-			auto child = getGuiElement(childID);
+		for (auto it = parent->children.rbegin(); it != parent->children.rend(); ++it) {
+			auto child = getGuiElement(*it);
 			if (!child) continue;
-			switch (child->isColliding(offset - parent->getChildOffset(childID))) {
+			switch (child->isColliding(offset - parent->getChildOffset(*it))) {
 			case GuiElement::IsCollidingResult::COLLIDE_CHILD:
 			case GuiElement::IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT:
 			{
-				auto result = getLowestCollidingChildInEventSet(childID, offset - parent->getChildOffset(childID), eventSet);
+				auto result = getLowestCollidingChildInEventSet(*it, offset - parent->getChildOffset(*it), eventSet);
 				if (result.has_value()) return result;
-				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				if (eventSet.find(*it) != eventSet.end()) return { *it };
 				break;
 			}
 			case GuiElement::IsCollidingResult::COLLIDE_STRONG:
 			{
-				if (eventSet.find(childID) != eventSet.end()) return { childID };
+				if (eventSet.find(*it) != eventSet.end()) return { *it };
 				return {};
 			}
 			case GuiElement::IsCollidingResult::NOT_COLLIDING:
@@ -647,6 +658,9 @@ namespace SnackerEngine
 		if (result.second) GuiCheckBox::defaultCheckMarkTexture = result.first;
 		/// Initialize static default checkmark shader
 		GuiCheckBox::defaultCheckMarkShader = Shader("shaders/gui/msdfShader.shader");
+		/// Compute default parameters based on GuiScale
+		double guiScale = Engine::getDPI().y / 250.0;
+		recomputeDefaultGuiElementValues(guiScale);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::terminate()
@@ -719,6 +733,7 @@ namespace SnackerEngine
 		guiElement.parentID = 0;
 		guiElement.depth = 1;
 		registeredGuiElements[parentElement]->children.push_back(guiElement.guiID);
+		registeredGuiElements[parentElement]->sortedChildren.push_back(guiElement.guiID);
 		guiElement.onRegister();
 		registerForEnforcingLayoutsUpAndDown(guiElement.guiID);
 		// Callback mouseMotion, because we could collide with the new element!
@@ -737,6 +752,7 @@ namespace SnackerEngine
 				if (element.parentID < 0) {
 					element.parentID = 0;
 					registeredGuiElements[parentElement]->children.push_back(element.guiID);
+					registeredGuiElements[parentElement]->sortedChildren.push_back(element.guiID);
 					element.depth = 1;
 				}
 				element.onRegister();
@@ -761,6 +777,7 @@ namespace SnackerEngine
 		element.parentID = 0;
 		element.depth = 1;
 		registeredGuiElements[parentElement]->children.push_back(element.guiID);
+		registeredGuiElements[parentElement]->sortedChildren.push_back(element.guiID);
 		element.onRegister();
 		registerForEnforcingLayoutsUpAndDown(element.guiID);
 		// Callback mouseMotion, because we could collide with the new element!
@@ -1044,6 +1061,30 @@ namespace SnackerEngine
 			return false;
 		}
 		return loadGuiAndRegisterAsChildren(json, data, *parentElement);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::recomputeDefaultGuiElementValues(double scale)
+	{
+		GuiElement::defaultFontSizeSmall = scale * 15.0;
+		GuiElement::defaultFontSizeNormal = scale * 20.0;
+		GuiElement::defaultFontSizeBig = scale * 30.0;
+		GuiElement::defaultFontSizeHuge = scale * 50.0;
+		GuiElement::defaultBorderSmall = std::max(1, static_cast<int>(scale * 5));
+		GuiElement::defaultBorderNormal = std::max(1, static_cast<int>(scale * 10));
+		GuiElement::defaultBorderLarge = std::max(1, static_cast<int>(scale * 15));
+		GuiElement::defaultBorderHuge = std::max(1, static_cast<int>(scale * 20));
+		GuiCheckBox::defaultCheckBoxSize = std::max(1, static_cast<int>(scale * 50));
+		GuiEditBox::defaultCursorWidth = static_cast<float>(scale * 0.1f);
+		GuiVerticalScrollingListLayout::defaultScrollBarWidth = std::max(1, static_cast<int>(scale * 23));
+		GuiSliderFloat::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderDouble::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderUnsignedInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::removeElement(GuiID guiID)
+	{
+		signOff(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::callbackKeyboard(const int& key, const int& scancode, const int& action, const int& mods)

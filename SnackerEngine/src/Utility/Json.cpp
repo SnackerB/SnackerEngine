@@ -7,17 +7,17 @@ namespace SnackerEngine
 	std::optional<nlohmann::json> loadJSON(const std::string& path, bool relativeToResourceFolder)
 	{
 		if (relativeToResourceFolder) {
-			std::string fullPath = Engine::getResourcePath();
-			fullPath.append(path);
-			std::ifstream file(fullPath);
+			std::optional<std::string> fullPath = Engine::getFullPath(path);
+			if (!fullPath.has_value()) return {};
+			std::ifstream file(fullPath.value());
 			if (!file.is_open()) {
-				SnackerEngine::warningLogger << SnackerEngine::LOGGER::BEGIN << "Could not locate file at " << fullPath << SnackerEngine::LOGGER::ENDL;
+				SnackerEngine::warningLogger << SnackerEngine::LOGGER::BEGIN << "Could not locate file at " << fullPath.value() << SnackerEngine::LOGGER::ENDL;
 				return {};
 			}
 			nlohmann::json data = nlohmann::json::parse(file, nullptr, false);
 			if (data.is_discarded())
 			{
-				SnackerEngine::warningLogger << SnackerEngine::LOGGER::BEGIN << "Could not parse json file at " << fullPath << SnackerEngine::LOGGER::ENDL;
+				SnackerEngine::warningLogger << SnackerEngine::LOGGER::BEGIN << "Could not parse json file at " << fullPath.value() << SnackerEngine::LOGGER::ENDL;
 				return {};
 			}
 			return data;

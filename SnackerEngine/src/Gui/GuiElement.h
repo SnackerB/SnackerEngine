@@ -66,6 +66,8 @@ namespace SnackerEngine
 		void deleteChildren();
 		/// Returns true if this GuiElement object is managed by a guiManager
 		bool isValid();
+		/// Brings this element to the foreground
+		void bringToForeground();
 		/// Sets the position of this element. May register children and/or parent for
 		/// enforcing layouts.
 		void setPosition(const Vec2i& position);
@@ -149,9 +151,12 @@ namespace SnackerEngine
 		ResizeMode resizeMode = ResizeMode::RESIZE_RANGE;
 		/// The resizeHints of this element. See definition of GuiSizeHints struct.
 		GuiSizeHints sizeHints;
-		/// Vector of child elements. Sorted in the order they will be drawn (but this can be
-		/// changed in derived elements by overwriting draw())
+		/// Vector of child elements. Sorted in the order they were added
 		std::vector<GuiID> children{};
+		/// Vector of child elements, sorted by importance. The last element is the most important
+		/// one and is drawn first. If bringToForeground() is called on a GuiElement, it and all of 
+		/// its parent elements are brought to the back of the importance vector.
+		std::vector<GuiID> sortedChildren{};
 		/// Tells this GuiElement object that the guiManager was deleted.
 		virtual void signOff();
 		/// Friend classes
@@ -204,6 +209,9 @@ namespace SnackerEngine
 		/// Sets size directly without calling OnPositionChange()
 		/// Use only if you know what you're doing!
 		void setSizeInternal(const Vec2i& size);
+		/// Brings the given child to the foreground. Layouts that have only non-overlapping
+		/// children may overwrite this function to save performance
+		virtual void bringChildToForeground(GuiID childID);
 	public:
 		/// This function can be used to tell the GuiManager that this element wants to enforce its layout
 		/// and the layouts of its child elements if necessary
@@ -257,7 +265,7 @@ namespace SnackerEngine
 		{
 			NOT_COLLIDING,				/// No collision detected
 			COLLIDE_IF_CHILD_DOES_NOT,	/// Collision detected, but if a childElement is also colliding, 
-			/// choose it instead
+										/// choose it instead
 			COLLIDE_CHILD,				/// Check for collisions only on child elements
 			COLLIDE_STRONG,				/// Collision detected, no child elements should be checked!
 		};

@@ -231,9 +231,9 @@ namespace SnackerEngine
     bool FontManager::loadFontDataFromFile(const std::string& path, const FontID& fontID)
     {
         auto& fontData = fontDataArray[fontID];
-        std::string fullpath = Engine::getResourcePath();
-        fullpath.append(path);
-        std::ifstream f(fullpath);
+        std::optional<std::string> fullPath = Engine::getFullPath(path);
+        if (!fullPath.has_value()) return false;
+        std::ifstream f(fullPath.value());
         if (!f) {
             return false;
         }
@@ -283,9 +283,9 @@ namespace SnackerEngine
     bool FontManager::saveFontDataInFile(const FontID& fontID, const std::string& path)
     {
         auto& fontData = fontDataArray[fontID];
-        std::string filepath = Engine::getResourcePath();
-        filepath = filepath.append(path);
-        bool success = msdf_atlas::exportJSON(&fontData.fontGeometry, 1, 1, fontData.pixelRange, fontData.msdfTexture.getSize().x, fontData.msdfTexture.getSize().y, msdf_atlas::ImageType::MSDF, msdf_atlas::YDirection::TOP_DOWN, filepath.c_str(), true);
+        std::optional<std::string> fullPath = Engine::getFullPath(path);
+        if (!fullPath.has_value()) return false;
+        bool success = msdf_atlas::exportJSON(&fontData.fontGeometry, 1, 1, fontData.pixelRange, fontData.msdfTexture.getSize().x, fontData.msdfTexture.getSize().y, msdf_atlas::ImageType::MSDF, msdf_atlas::YDirection::TOP_DOWN, fullPath.value().c_str(), true);
         if (!success) return false;
         success = fontData.msdfTexture.saveInFile(path+".png", true);
         return success;
@@ -300,7 +300,7 @@ namespace SnackerEngine
         }
         // FontDataArray[0] stores the default Font, which is just a invalid font
         fontDataArray.resize(static_cast<std::size_t>(startingSize) + 1);
-        fontHandles.resize(startingSize + 1, nullptr);
+        fontHandles.resize(static_cast<std::size_t>(startingSize) + 1, nullptr);
         maxFonts = startingSize;
         // Initialize freetype
         freetypeHandle = msdfgen::initializeFreetype();
@@ -375,9 +375,9 @@ namespace SnackerEngine
         }
         // Load new font!
         FontID fontID = getNewFontID();
-        std::string fullPath = Engine::getResourcePath();
-        fullPath.append(path);
-        if (!loadNewFont(fullPath, fontID)) {
+        std::optional fullPath = Engine::getFullPath(path);
+        if (!fullPath.has_value()) return false;
+        if (!loadNewFont(fullPath.value(), fontID)) {
             deleteFont(fontID);
             return 0;
         }

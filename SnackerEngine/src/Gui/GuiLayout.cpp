@@ -44,4 +44,9 @@ namespace SnackerEngine
 		return sizes;
 	}
 	//--------------------------------------------------------------------------------------------------
+	GuiElement::IsCollidingResult GuiLayout::isColliding(const Vec2i& offset) const
+	{
+		return IsCollidingResult::COLLIDE_CHILD;
+	}
+	//--------------------------------------------------------------------------------------------------
 }

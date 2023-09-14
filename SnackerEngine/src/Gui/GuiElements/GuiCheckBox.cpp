@@ -5,7 +5,7 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	int GuiCheckBox::defaultCheckBoxSize = 50;
+	int GuiCheckBox::defaultCheckBoxSize{};
 	Color4f GuiCheckBox::defaultColorDefaultTrue = Color4f(0.4f, 0.4f, 1.0f, 1.0f);
 	Color4f GuiCheckBox::defaultColorHoverTrue = Color4f(0.35f, 0.35f, 1.0f, 1.0f);
 	Color4f GuiCheckBox::defaultColorPressedTrue = Color4f(0.3f, 0.3f, 1.0f, 1.0f);
@@ -47,6 +47,11 @@ namespace SnackerEngine
 		: GuiButton(Vec2i(), Vec2i(size, size), "")
 	{
 		updateButtonColor();
+		setSize(Vec2i{ size, size });
+		setMinSize(Vec2i{ size, size });
+		setPreferredSize(Vec2i{ size, size });
+		setMaxSize(Vec2i{ size, size });
+		setSizeHintModes({ SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY , SizeHintMode::ARBITRARY });
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
@@ -77,6 +82,14 @@ namespace SnackerEngine
 		auto maxSize = parseJsonOrReadFromData<int>("maxSize", json, data, parameterNames);
 		if (maxSize.has_value()) setMaxSize(Vec2i(maxSize.value()));
 		updateButtonColor();
+		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::ARBITRARY);
+		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::ARBITRARY);
+		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(SizeHintMode::ARBITRARY);
+	}
+	//--------------------------------------------------------------------------------------------------
+	GuiCheckBox::~GuiCheckBox()
+	{
+		if (boolHandle) signOffHandle(*boolHandle);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(const GuiCheckBox& other) noexcept
@@ -159,6 +172,7 @@ namespace SnackerEngine
 		if (this->boolHandle) return false;
 		this->boolHandle = &boolHandle;
 		signUpHandle(boolHandle, 1);
+		onHandleUpdate(boolHandle);
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -185,7 +199,7 @@ namespace SnackerEngine
 	void GuiCheckBox::onHandleMove(GuiHandle& guiHandle)
 	{
 		auto result = guiHandle.getHandleID(*this);
-		if (result.has_value() && result.value() == boolHandle->getHandleID(*this)) boolHandle = static_cast<GuiVariableHandle<bool>*>(&guiHandle);
+		if (result.has_value() && result.value() == 1) boolHandle = static_cast<GuiVariableHandle<bool>*>(&guiHandle);
 		else GuiButton::onHandleMove(guiHandle);
 	}
 	//--------------------------------------------------------------------------------------------------

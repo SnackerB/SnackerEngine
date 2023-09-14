@@ -170,6 +170,7 @@ namespace SnackerEngine
 	void GuiWindow::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)
 	{
 		if (button == MOUSE_BUTTON_LEFT && action == ACTION_PRESS) {
+			bringToForeground();
 			// Figure out if the user clicked on the resize button or on the window
 			mouseOffset = getMouseOffset();
 			if (isCollidingWithResizeButton(mouseOffset)) {

@@ -259,7 +259,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, unsigned N>
-	inline GuiVariableVec<T, VecT, N>::GuiVariableVec<T, VecT, N>(GuiVariableVec&& other) noexcept
+	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(GuiVariableVec&& other) noexcept
 		: GuiHorizontalWeightedLayout(std::move(other)), components(std::move(other.components)),
 		value(std::move(other.value)), formatter(std::move(other.formatter)),
 		variableHandles(std::move(other.variableHandles)), variableHandle(std::move(other.variableHandle))

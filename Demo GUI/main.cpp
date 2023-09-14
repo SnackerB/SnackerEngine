@@ -35,8 +35,9 @@ public:
 			guiManager.clear();
 			//auto json = SnackerEngine::loadJSON("test/gridLayoutTest.json");
 			auto json = SnackerEngine::loadJSON("test/normalDebugWindow.json");
-			//auto json = SnackerEngine::loadJSON("test/window.json");
+			//auto json = SnackerEngine::loadJSON("test/WeightedHorizontalLayout.json");
 			//auto json = SnackerEngine::loadJSON("test/testListLayouts.json");
+			//auto json = SnackerEngine::loadJSON("test/testMultipleWindows.json");
 			//auto json = SnackerEngine::loadJSON("test/test.json");
 			if (json.has_value()) {
 				guiManager.loadAndRegisterJSON(json.value(), nullptr);
@@ -95,10 +96,6 @@ int main()
 		SnackerEngine::errorLogger << SnackerEngine::LOGGER::BEGIN << "startup failed!" << SnackerEngine::LOGGER::ENDL;
 		return 0;
 	}
-
-	SnackerEngine::DoubleFormatter formatter(10, 20);
-	double x = 12445.123871;
-	SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << formatter.to_string(x) << SnackerEngine::LOGGER::ENDL;
 
 	{
 		//auto dataJSON = SnackerEngine::loadJSON("test/data.json");

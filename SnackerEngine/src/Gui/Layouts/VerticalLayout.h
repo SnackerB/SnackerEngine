@@ -12,33 +12,34 @@ namespace SnackerEngine
 		/// Enum that controls the mode of this layout
 		enum class VerticalLayoutMode
 		{
-			VARIABLE_WIDTH = 0,		/// This layout will set its preferred, min and max width according to child elements
-			FORCED_WIDTH = 1,		/// This layout will not change its width, the width of child elements is set according
-									/// to their min, max and preferred width
-			FORCE_CHILD_WIDTH = 2,	/// This layout will not change its width, the width of child elements will be set to the layouts
-									/// width if possible
+			CHILD_WIDTH_RANGE,				/// The width of child elements is set according to their min, max and preferred width
+			CHILD_WIDTH_TO_LAYOUT_WIDTH,	/// The width of child elements will be set to the layouts width if possible
+			LARGEST_PREFERRED_WIDTH,		/// The width of child elements will be set to the largest child preferredWidth, if possible
 		};
-	public:
-		/// Static default Attributes
-		static unsigned defaultHorizontalBorder;
 	private:
 		/// The mode of this layout
-		VerticalLayoutMode verticalLayoutMode = VerticalLayoutMode::VARIABLE_WIDTH;
+		VerticalLayoutMode verticalLayoutMode = VerticalLayoutMode::CHILD_WIDTH_RANGE;
 		/// The default alignment
 		AlignmentHorizontal defaultAlignmentHorizontal = AlignmentHorizontal::LEFT;
 		/// Vector storing the alignments of all children
 		std::vector<AlignmentHorizontal> alignmentsHorizontal{};
-		/// border between the left/right and the children
-		unsigned horizontalBorder = defaultHorizontalBorder;
+		/// border between the left/bottom and the children
+		unsigned horizontalBorder = 0;
+		/// If this is set to true, the layouts minWidth and preferredWidth are set according
+		/// to child elements
+		bool shrinkWidthToChildren = false;
 		/// Helper function that computes the position of a child
 		int computeChildPositionX(int childWidth, AlignmentHorizontal alignmentHorizontal) const;
 		/// Helper function that gets called when a child is registered
-		void onRegisterChild(AlignmentHorizontal alignment);
+		void onRegisterChild(AlignmentHorizontal alignmentHorizontal);
+		/// Computes the minWidth, preferredWidth and maxWidth of this layout from the size hints of its children
+		void computeWidthHintsFromChildren();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_LAYOUT";
 		/// Constructor
-		GuiVerticalLayout() {};
+		GuiVerticalLayout(VerticalLayoutMode verticalLayoutMode = VerticalLayoutMode::CHILD_WIDTH_RANGE)
+			: verticalLayoutMode(verticalLayoutMode) {}
 		/// Constructor from JSON
 		GuiVerticalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
@@ -55,14 +56,18 @@ namespace SnackerEngine
 		virtual bool registerChild(GuiElement& guiElement) override;
 		/// Adds a child to this guiElement, with options given in JSON
 		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
-		/// Sets the mode of this layout
+		/// Setters
 		void setVerticalLayoutMode(VerticalLayoutMode verticalLayoutMode) { if (this->verticalLayoutMode != verticalLayoutMode) { this->verticalLayoutMode = verticalLayoutMode; registerEnforceLayoutDown(); } }
+		void setHorizontalBorder(unsigned horizontalBorder) { if (this->horizontalBorder != horizontalBorder) { this->horizontalBorder = horizontalBorder; registerEnforceLayoutDown(); } }
+		void setShrinkWidthToChildren(bool shrinkWidthToChildren);
 		/// Sets the default alignment
 		void setDefaultAlignmentHorizontal(AlignmentHorizontal defaultAlignmentHorizontal) { this->defaultAlignmentHorizontal = defaultAlignmentHorizontal; }
 		/// Sets the alignment of the given element, if it is a child of this layout
-		void setAlignmentHorizontal(GuiID childID, AlignmentHorizontal alignment);
+		void setAlignmentHorizontal(GuiID childID, AlignmentHorizontal alignmentHorizontal);
 		/// Getters
 		VerticalLayoutMode getMode() const { return verticalLayoutMode; }
+		unsigned getHorizontal() const { return horizontalBorder; }
+		bool isShrinkWidthToChildren() const { return shrinkWidthToChildren; }
 		AlignmentHorizontal getDefaultAlignmentHorizontal() const { return defaultAlignmentHorizontal; }
 		std::optional<AlignmentHorizontal> getAlignmentHorizontal(GuiID childID);
 	protected:
