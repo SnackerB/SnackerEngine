@@ -74,10 +74,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);;WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;$(SolutionDir)..\SnackerNet\SnackerNet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -85,8 +85,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;SnackerNet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;$(SolutionDir)..\SnackerNet\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -95,10 +95,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);;WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;$(SolutionDir)..\SnackerNet\SnackerNet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -108,18 +108,18 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;SnackerNet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;$(SolutionDir)\..\SnackerNet\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);;WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;$(SolutionDir)..\SnackerNet\SnackerNet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -127,8 +127,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;SnackerNet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Debug Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Debug Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Debug\;$(SolutionDir)..\SnackerNet\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,10 +137,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);;WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdf-atlas-gen;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen;$(SolutionDir)\Dependencies\freetype-2.12.1\include;$(SolutionDir)\SnackerEngine\src;$(SolutionDir)\Dependencies\glew\include;$(SolutionDir)\Dependencies\GLFW\include;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\include;$(SolutionDir)..\SnackerNet\SnackerNet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -150,8 +150,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32s.lib;opengl32.lib;msdfgen.lib;freetype.lib;msdf-atlas-gen.lib;Shcore.lib;Ws2_32.lib;SnackerNet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Dependencies\msdf-atlas-gen-master\x64\Release Library;$(SolutionDir)\Dependencies\freetype-2.12.1\objs\x64\Release Static;$(SolutionDir)\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Release Library;$(SolutionDir)\Dependencies\glew\lib\;$(SolutionDir)\Dependencies\GLFW\lib\Release\;$(SolutionDir)\..\SnackerNet\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -240,17 +240,11 @@
     <ClInclude Include="src\Math\Vec.h" />
     <ClInclude Include="src\Graphics\Renderer.h" />
     <ClInclude Include="src\Math\VectorAlgorithms.h" />
-    <ClInclude Include="src\Network\HTTP.h" />
-    <ClInclude Include="src\Network\HTTPResponseStatusCode.h" />
-    <ClInclude Include="src\Network\IncomingMessage.h" />
-    <ClInclude Include="src\Network\Network.h" />
-    <ClInclude Include="src\Network\NetworkData.h" />
-    <ClInclude Include="src\Network\OutgoingMessage.h" />
-    <ClInclude Include="src\Network\SERP.h" />
-    <ClInclude Include="src\Network\SMP.h" />
+    <ClInclude Include="src\Network\SerpManager.h" />
     <ClInclude Include="src\Utility\Alignment.h" />
     <ClInclude Include="src\Utility\ByteBuffer.h" />
     <ClInclude Include="src\Utility\Formatting.h" />
+    <ClInclude Include="src\Utility\Handles\EventHandle.h" />
     <ClInclude Include="src\Utility\Json.h" />
     <ClInclude Include="src\Utility\Random.h" />
   </ItemGroup>
@@ -323,17 +317,10 @@
     <ClCompile Include="src\Gui\Text\Unicode.cpp" />
     <ClCompile Include="src\Math\Vec.cpp" />
     <ClCompile Include="src\Math\VectorAlgorithms.cpp" />
-    <ClCompile Include="src\Network\HTTP.cpp" />
-    <ClCompile Include="src\Network\HTTPResponseStatusCode.cpp" />
-    <ClCompile Include="src\Network\IncomingMessage.cpp" />
-    <ClCompile Include="src\Network\Network.cpp" />
-    <ClCompile Include="src\Network\NetworkData.cpp" />
-    <ClCompile Include="src\Network\OutgoingMessage.cpp" />
-    <ClCompile Include="src\Network\SERP.cpp" />
-    <ClCompile Include="src\Network\SMP.cpp" />
     <ClCompile Include="src\Utility\Alignment.cpp" />
     <ClCompile Include="src\Utility\ByteBuffer.cpp" />
     <ClCompile Include="src\Utility\Formatting.cpp" />
+    <ClCompile Include="src\Utility\Handles\EventHandle.cpp" />
     <ClCompile Include="src\Utility\Json.cpp" />
     <ClCompile Include="src\Utility\Random.cpp" />
   </ItemGroup>
