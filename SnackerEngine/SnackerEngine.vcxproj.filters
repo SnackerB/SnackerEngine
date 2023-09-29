@@ -515,6 +515,9 @@
     <ClCompile Include="src\Utility\Handles\EventHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Network\SERPManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\gui\simpleColor.shader" />

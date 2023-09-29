@@ -317,6 +317,7 @@
     <ClCompile Include="src\Gui\Text\Unicode.cpp" />
     <ClCompile Include="src\Math\Vec.cpp" />
     <ClCompile Include="src\Math\VectorAlgorithms.cpp" />
+    <ClCompile Include="src\Network\SERPManager.cpp" />
     <ClCompile Include="src\Utility\Alignment.cpp" />
     <ClCompile Include="src\Utility\ByteBuffer.cpp" />
     <ClCompile Include="src\Utility\Formatting.cpp" />
