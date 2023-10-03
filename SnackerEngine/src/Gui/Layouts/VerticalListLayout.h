@@ -83,6 +83,7 @@ namespace SnackerEngine
 		GuiVerticalListLayout(GuiVerticalListLayout&& other) noexcept;
 		GuiVerticalListLayout& operator=(GuiVerticalListLayout&& other) noexcept;
 		/// Getters
+		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		unsigned getVerticalBorder() const { return verticalBorder; }
 		unsigned getOuterVerticalBorder() const { return outerVerticalBorder; }
 		Color4f getBackgroundColor() const { return backgroundColor; }
@@ -91,6 +92,7 @@ namespace SnackerEngine
 		const std::string* getVerticalLayoutGroupName() const { return groupID == -1 ? nullptr : &groupName; }
 		bool isShrinkHeightToChildren() const { return this->shrinkHeightToChildren; }
 		/// Setters
+		void setAlignmentVertical(AlignmentVertical alignmentVertical);
 		void setVerticalBorder(unsigned verticalBorder);
 		void setOuterVerticalBorder(unsigned outerVerticalBorder);
 		void setBackgroundColor(Color4f backgroundColor) { this->backgroundColor = backgroundColor; };

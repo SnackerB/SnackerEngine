@@ -84,6 +84,7 @@ namespace SnackerEngine
 		GuiHorizontalListLayout(GuiHorizontalListLayout&& other) noexcept;
 		GuiHorizontalListLayout& operator=(GuiHorizontalListLayout&& other) noexcept;
 		/// Getters
+		AlignmentHorizontal getAlignmentHorizontal() const { return alignmentHorizontal; }
 		unsigned getHorizontalBorder() const { return horizontalBorder; }
 		unsigned getOuterHorizontalBorder() const { return outerHorizontalBorder; }
 		Color4f getBackgroundColor() const { return backgroundColor; }
@@ -92,6 +93,7 @@ namespace SnackerEngine
 		const std::string* getHorizontalLayoutGroupName() const { return groupID == -1 ? nullptr : &groupName; }
 		bool isShrinkWidthToChildren() const { return this->shrinkWidthToChildren; }
 		/// Setters
+		void setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal);
 		void setHorizontalBorder(unsigned horizontalBorder);
 		void setOuterHorizontalBorder(unsigned outerHorizontalBorder);
 		void setBackgroundColor(Color4f backgroundColor) { this->backgroundColor = backgroundColor; };

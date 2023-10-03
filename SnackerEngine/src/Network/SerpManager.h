@@ -2,6 +2,7 @@
 
 #include "SERP\SERP.h"
 #include "TCP/TCP.h"
+#include "HTTP/HTTP.h"
 
 #include <unordered_map>
 #include <string>
@@ -43,7 +44,7 @@ namespace SnackerEngine
 			PendingResponse(SERPManager* serpManager, double timeLeft, SnackerNet::SERPID sourceID)
 				: serpManager{ serpManager }, status{ Status::PENDING }, timeLeft{ timeLeft }, response{} 
 			{
-				response.source = sourceID;
+				response.setSource(sourceID);
 			}
 			/// Helper function that should be called on move
 			void onMove(PendingResponse* other);
@@ -68,8 +69,8 @@ namespace SnackerEngine
 		bool connected = false;
 		/// The serpID of this SERPManager. If this is set to zero, no serpID has been broadcasted yet.
 		SnackerNet::SERPID serpID = 0;
-		/// The socket that is used to communicate with the server
-		SnackerNet::SocketTCP socket{};
+		///  The HTTPEndpoint which is used to communicate with the SERP server
+		SnackerNet::HTTPEndpoint httpEndpoint;
 		/// Queues of incoming requests. User can register different paths that are listened to. An incoming request is
 		/// pushed into the queue with the most specialized path matching the request path. If there is no matching path,
 		/// the request is answered with an error message
@@ -84,13 +85,13 @@ namespace SnackerEngine
 		/// Buffer for incoming messages
 		SnackerNet::Buffer incomingMessageBuffer{ 0 };
 		/// Helper function handling a received message
-		void handleReceivedMessage(SnackerNet::Buffer& buffer);
+		void handleReceivedMessage(SnackerNet::HTTPMessage& message);
 		/// Helper function handling incoming serpRequest
-		void handleIncomingRequest(SnackerNet::SERPRequest request);
+		void handleIncomingRequest(SnackerNet::SERPRequest& request);
 		/// Helper function handling incoming serpRequest addressed to the manager (eg. ping request)
-		void handleIncomingManagerRequest(SnackerNet::SERPRequest request);
+		void handleIncomingManagerRequest(SnackerNet::SERPRequest& request);
 		/// Helper function handling incoming serpResponse
-		void handleIncomingResponse(SnackerNet::SERPResponse response);
+		void handleIncomingResponse(SnackerNet::SERPResponse& response);
 	public:
 		/// Constructor
 		SERPManager();
@@ -121,6 +122,9 @@ namespace SnackerEngine
 		/// updates the SERPManager and checks for incoming messages. This should be called frequently during runtime
 		/// to ensure a stable connection. Consider running this on a specialized thread.
 		void update(double dt);
+		/// Getters
+		bool isConnectedToSERPServer() const { return serpID > 0; }
+		SnackerNet::SERPID getSerpID() const { return serpID; }
 	};
 
 }

@@ -111,9 +111,14 @@ namespace SnackerEngine
 		/// Helper function that should be called on size change. Only recomputes the text
 		/// if it is absolutely necessary, saving computation time!
 		void recomputeTextOnSizeChange();
-		/// Helper function that computes the correct values for the size hint variables, ie.
-		/// minSize, maxSize and preferredSize
-		void computeSizeHints();
+		/// Helper functions computing the correct values for the size hint height variables, ie.
+		/// minheight, maxheight and preferredHeight.
+		void comouteWidthHints();
+		/// Helper function computing the correct values for the size hint width variables, ie.
+		/// minWidth, maxWidth and preferredWidth. This function should only be called if the text,
+		/// font, fontsize, ord border changes. The width hint is computed as if the parse mode was set
+		/// to single_line.
+		void computeHeightHints();
 		/// Helper function that constructs the text material
 		static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor);
 	protected:

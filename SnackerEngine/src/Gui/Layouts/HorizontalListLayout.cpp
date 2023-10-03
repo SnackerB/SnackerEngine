@@ -213,6 +213,14 @@ namespace SnackerEngine
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal)
+	{
+		if (alignmentHorizontal != this->alignmentHorizontal) {
+			this->alignmentHorizontal = alignmentHorizontal;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::setHorizontalBorder(unsigned horizontalBorder)
 	{
 		if (horizontalBorder != this->horizontalBorder) {

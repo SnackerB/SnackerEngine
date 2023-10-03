@@ -213,6 +213,14 @@ namespace SnackerEngine
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalListLayout::setAlignmentVertical(AlignmentVertical alignmentVertical)
+	{
+		if (alignmentVertical != this->alignmentVertical) {
+			this->alignmentVertical = alignmentVertical;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalListLayout::setVerticalBorder(unsigned verticalBorder)
 	{
 		if (verticalBorder != this->verticalBorder) {

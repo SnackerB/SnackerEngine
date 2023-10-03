@@ -220,8 +220,7 @@ namespace SnackerEngine
 			dynamicText->recompute();
 			computeModelMatrices();
 		}
-		// Compute size hints
-		computeSizeHints();
+		computeHeightHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::onRegister(std::unique_ptr<DynamicText>&& dynamicText)
@@ -230,7 +229,8 @@ namespace SnackerEngine
 		this->dynamicText = std::move(dynamicText);
 		material = constructTextMaterial(font, textColor, getBackgroundColor());
 		computeModelMatrices();
-		computeSizeHints();
+		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::recomputeTextOnSizeChange()
@@ -238,6 +238,7 @@ namespace SnackerEngine
 		if (doRecomputeOnSizeChange && getParseMode() != StaticText::ParseMode::SINGLE_LINE && lastSizeOnRecomputeText != getSize())
 		{
 			recomputeText();
+			comouteWidthHints();
 			lastSizeOnRecomputeText = getSize();
 		}
 		else
@@ -297,36 +298,76 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::computeSizeHints()
+	void GuiTextBox::computeHeightHints()
 	{
 		if (!dynamicText) return;
-		Vec2i textSize(static_cast<int>(std::ceil((dynamicText->getRight() - dynamicText->getLeft()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().x))),
-			static_cast<int>(std::ceil((dynamicText->getTop() - dynamicText->getBottom()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().y))));
-		textSize += 2 * border;
+		int textHeight = static_cast<int>(std::ceil((dynamicText->getTop() - dynamicText->getBottom()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().y)));
+		textHeight += 2 * border;
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: setMinSize(textSize); break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: setMinWidth(textSize.x); break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: setMinHeight(textSize.y); break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setMinHeight(textHeight); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: setMinHeight(textHeight); break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModeMaxSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: setMaxSize(textSize); break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: setMaxWidth(textSize.x); break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: setMaxHeight(textSize.y); break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setMaxHeight(textHeight); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: setMaxHeight(textHeight); break;
 		default:
 			break;
 		}
 		switch (sizeHintModes.sizeHintModePreferredSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
-		case SizeHintMode::SET_TO_TEXT_SIZE: setPreferredSize(textSize); break;
-		case SizeHintMode::SET_TO_TEXT_WIDTH: setPreferredWidth(textSize.x); break;
-		case SizeHintMode::SET_TO_TEXT_HEIGHT: setPreferredHeight(textSize.y); break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setPreferredHeight(textHeight); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: setPreferredHeight(textHeight); break;
+		default:
+			break;
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::comouteWidthHints()
+	{
+		if (!dynamicText) return;
+		int textWidth{};
+		if (parseMode == StaticText::ParseMode::SINGLE_LINE) {
+			textWidth = static_cast<int>(std::ceil((dynamicText->getRight() - dynamicText->getLeft()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().x)));
+		}
+		else {
+			DynamicText tempText(this->text, this->font, this->fontSize, 0.0f, StaticText::ParseMode::SINGLE_LINE, this->alignment);
+			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().x)));
+		}
+		textWidth += 2 * border;
+		switch (sizeHintModes.sizeHintModeMinSize)
+		{
+		case SizeHintMode::ARBITRARY: break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setMinWidth(textWidth); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: setMinWidth(textWidth); break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: break;
+		default:
+			break;
+		}
+		switch (sizeHintModes.sizeHintModeMaxSize)
+		{
+		case SizeHintMode::ARBITRARY: break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setMaxWidth(textWidth); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: setMaxWidth(textWidth); break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: break;
+		default:
+			break;
+		}
+		switch (sizeHintModes.sizeHintModePreferredSize)
+		{
+		case SizeHintMode::ARBITRARY: break;
+		case SizeHintMode::SET_TO_TEXT_SIZE: setPreferredWidth(textWidth); break;
+		case SizeHintMode::SET_TO_TEXT_WIDTH: setPreferredWidth(textWidth); break;
+		case SizeHintMode::SET_TO_TEXT_HEIGHT: break;
 		default:
 			break;
 		}
@@ -424,25 +465,29 @@ namespace SnackerEngine
 	void GuiTextBox::setSizeHintModeMinSize(const SizeHintMode& sizeHintModeMinSize)
 	{
 		sizeHintModes.sizeHintModeMinSize = sizeHintModeMinSize;
-		computeSizeHints();
+		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::setSizeHintModeMaxSize(const SizeHintMode& sizeHintModeMaxSize)
 	{
 		sizeHintModes.sizeHintModeMaxSize = sizeHintModeMaxSize;
-		computeSizeHints();
+		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::setSizeHintModePreferredSize(const SizeHintMode& sizeHintModePreferredSize)
 	{
 		sizeHintModes.sizeHintModePreferredSize = sizeHintModePreferredSize;
-		computeSizeHints();
+		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::setSizeHintModes(const SizeHintModes& sizeHintModes)
 	{
 		this->sizeHintModes = sizeHintModes;
-		computeSizeHints();
+		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::setBorder(const int& border)
@@ -450,6 +495,7 @@ namespace SnackerEngine
 		if (this->border != border) {
 			this->border = border;
 			recomputeText();
+			comouteWidthHints();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -460,6 +506,7 @@ namespace SnackerEngine
 			if (this->dynamicText) {
 				this->dynamicText->setFontSize(fontSize, false);
 				recomputeText();
+				comouteWidthHints();
 				computeModelMatrices();
 			}
 		}
@@ -489,6 +536,7 @@ namespace SnackerEngine
 		if (this->dynamicText) {
 			this->dynamicText->setText(text, false);
 			recomputeText();
+			comouteWidthHints();
 			computeModelMatrices();
 		}
 	}
@@ -525,6 +573,7 @@ namespace SnackerEngine
 				this->dynamicText->setFont(font, false);
 				material = constructTextMaterial(font, textColor, getBackgroundColor());
 				recomputeText();
+				comouteWidthHints();
 				computeModelMatrices();
 			}
 		}
@@ -551,6 +600,8 @@ namespace SnackerEngine
 	void GuiTextBox::onRegister()
 	{
 		onRegister(std::move(std::make_unique<DynamicText>(text, font, fontSize, inchesToPoints(static_cast<double>(getWidth() - 2 * border) / Engine::getDPI().y), parseMode, alignment)));
+		comouteWidthHints();
+		computeHeightHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::onSizeChange()

@@ -21,7 +21,7 @@ namespace SnackerEngine
 		void computeModelMatrix();
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& offset) const override { return IsCollidingResult::COLLIDE_CHILD; }
+		virtual IsCollidingResult isColliding(const Vec2i& offset) const override { return IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT; }
 	protected:
 		/// Returns a const reference to the model matrix
 		const Mat4f& getModelMatrix() { return modelMatrix; };
