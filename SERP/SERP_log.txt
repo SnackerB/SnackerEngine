@@ -1,6 +1,0 @@
-starting SERP daemon. Current time:
-09-03-2023 16-51-28
-Going to sleep ...
-[ERROR]: an error occurred while receiving message.
-shutting down SERP daemon. Current time:
-09-03-2023 16-54-28

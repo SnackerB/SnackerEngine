@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/SERP.dir/main.cpp.o CMakeFiles/SERP.dir/server.cpp.o CMakeFiles/SERP.dir/network.cpp.o CMakeFiles/SERP.dir/SERP.cpp.o CMakeFiles/SERP.dir/SMP.cpp.o -o SERP 

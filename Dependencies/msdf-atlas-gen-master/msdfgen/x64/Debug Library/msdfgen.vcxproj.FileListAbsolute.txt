@@ -1,2 +1,0 @@
-C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library\msdfgen.lib
-D:\dev\SnackerEngine 2.0\SnackerEngine\Dependencies\msdf-atlas-gen-master\msdfgen\x64\Debug Library\msdfgen.lib
