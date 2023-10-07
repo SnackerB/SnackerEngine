@@ -207,6 +207,7 @@ namespace SnackerEngine
 			// We are not currently waiting for a response from destination
 			// We can therefore send the message directly!
 			pendingResponses.insert(std::make_pair<>(request.getDestination(), &pendingResponse));
+			request.request.addContentLengthHeader();
 			SnackerNet::sendRequest(httpEndpoint.getSocket(), request.request);
 		}
 		else {
@@ -226,6 +227,7 @@ namespace SnackerEngine
 
 	void SERPManager::sendResponse(SnackerNet::SERPResponse response)
 	{
+		response.response.addContentLengthHeader();
 		SnackerNet::sendResponse(httpEndpoint.getSocket(), response.response);
 	}
 
@@ -257,7 +259,7 @@ namespace SnackerEngine
 			}
 		}
 		// Check if any new incoming messages are here
-		auto receivedMessages = httpEndpoint.receiveMessages(0.1);
+		auto receivedMessages = httpEndpoint.receiveMessages(0.01);
 		for (auto& receivedMessage : receivedMessages) {
 			handleReceivedMessage(*receivedMessage);
 		}
@@ -265,6 +267,7 @@ namespace SnackerEngine
 		for (auto it = outgoingRequests.begin(); it != outgoingRequests.end(); ) {
 			if (pendingResponses.find(it->first) == pendingResponses.end()) {
 				pendingResponses.insert(std::make_pair<>(it->first, it->second.front().second));
+				it->second.front().first.request.addContentLengthHeader();
 				SnackerNet::sendRequest(httpEndpoint.getSocket(), it->second.front().first.request);
 				it->second.erase(it->second.begin());
 				if (it->second.empty()) {
