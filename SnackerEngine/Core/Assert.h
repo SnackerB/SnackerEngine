@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utility\Debug\Assert.h"
+#include "Utility\Assert\Assert.h"
 
 namespace SnackerEngine
 {

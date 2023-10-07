@@ -149,7 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alignment.h" />
-    <ClInclude Include="Debug\Assert.h" />
+    <ClInclude Include="Assert\Assert.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="Formatting.h" />

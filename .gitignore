@@ -22,6 +22,7 @@ x64/Release/
 *.vbproj.user
 ipch
 *sdf
+*.exe
 
 # https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 ## Ignore Visual Studio temporary files, build results, and

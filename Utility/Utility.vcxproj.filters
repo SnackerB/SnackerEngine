@@ -62,7 +62,7 @@
     <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Debug\Assert.h">
+    <ClInclude Include="Assert\Assert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Keys.h">
