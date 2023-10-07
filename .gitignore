@@ -15,7 +15,7 @@
 *.a
 
 # Visual Studio Files
-/*x64/Debug/
+*/x64/Debug/
 */x64/Release/
 *.suo
 *.csproj.user
@@ -49,7 +49,9 @@ mono_crash.*
 #[Rr]elease/
 #[Rr]eleases/
 x64/
+!Dependencies/*/x64/
 x86/
+!Dependencies/*/x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
