@@ -89,7 +89,9 @@ namespace SnackerEngine
 		friend class AssetManager;
 		friend class FrameBuffer;
 		friend class FontManager;
+		friend static bool setUpTextureData(SnackerEngine::TextureManager::TextureData& textureData, int nrComponents, int width, int height, void* data, const std::string& fullPath);
 		friend static bool loadTexture2D(TextureManager::TextureData& textureData, const std::string& fullPath);
+		friend static bool loadTexture2DFromRawData(TextureManager::TextureData& textureData, const ConstantBufferView& buffer, const std::string& fullPath);
 		friend static void createTexture2D(TextureManager::TextureData& textureData, const bool& mip);
 		friend static void createTextureCubemap(TextureManager::TextureData& textureData, const bool& mip);
 		/// Initializes the textureManager
@@ -107,10 +109,15 @@ namespace SnackerEngine
 		/// Tries to load a texture from a given path. Looks relative to the resources directory
 		/// Returns the texture and true if successfull, and the missingTexture and false if not.
 		static std::pair<Texture, bool> loadTexture2D(const std::string& path, const bool& persistent = false);
+		/// Tries to load a texture from the buffer containing the raw data, as if this data was copied from file. 
+		/// Returns the texture and true if successfull, and the missingTexture and false if not.
+		static std::pair<Texture, bool> loadTexture2DFromRawData(const ConstantBufferView& buffer, const std::string& fileName, bool persistent = false);
 		/// Tries to load texture data from the GPU and store it in a TextureBufferObject
 		static TextureDataBuffer getTextureDataFromGPU(Texture& texture, const int& mipLevel = 0);
 		/// Tries to load texture data from the given path and store it in a TextureBufferObject
 		static std::optional<TextureDataBuffer> loadTextureDataBuffer2D(const std::string& path);
+		/// Tries to load texture data from the data in the given buffer and store it into a TextureBufferObject
+		static std::optional<TextureDataBuffer> loadTextureDataBufferFromRawData(const ConstantBufferView& buffer, const std::string& path);
 		/// Tries to save a texture at a given path. Returns true on success
 		static bool saveTexture2D(Texture& texture, const std::string& path, const bool& relativeToResourceDir = true);
 		/// Creates a new texture with the given parameters

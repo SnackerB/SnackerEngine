@@ -109,7 +109,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline void SnackerEngine::GuiVectorVariableHandle<T>::set(const std::vector<T>& values)
 	{
-		for (unsigned i = 0; i < std::min(values.size(), childHandles.size()); ++i) {
+		for (unsigned i = 0; i < min(values.size(), childHandles.size()); ++i) {
 			childHandles[i].set(values[i]);
 		}
 	}

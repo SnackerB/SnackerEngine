@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Core/Scene.h"
+#include "Utility\Buffer.h"
 
 #include <string>
 #include <chrono>
 #include <random>
 #include <vector>
+#include "External\nlohmann_json\json.hpp"
 
 //----------------------------------------------------------------------------------------------------------
 /// Forward declaration of GLFWindow class
@@ -66,6 +68,11 @@ namespace SnackerEngine
 		static std::optional<std::string> getFullPath(const std::string& path);
 		/// Returns the default resource path (the first of the known resource paths)
 		static const std::string& getDefaultResourcePath();
+		/// Loads a file relative to the resource path. Returns an empty optional if anything fails
+		static std::optional<Buffer> loadFileRelativeToResourcePath(const std::string& path);
+		/// Loads and parses a JSON file relative to the resource path. Returns an
+		/// empty optional if anything fails
+		static std::optional<nlohmann::json> loadJSONRelativeToResourcePath(const std::string& path);
 		/// Deleted destructor: this is a static class!
 		Engine() = delete;
 	};

@@ -3,6 +3,7 @@
 #include <vector>
 #include <bit>
 #include <string>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -16,7 +17,7 @@ namespace SnackerEngine
 	/// buffer. While using a subBuffer one should not move or destroy the original buffer!
 	class ConstantBufferView
 	{
-	private:
+	protected:
 		friend class Buffer;
 		friend class BufferView;
 		std::vector<std::byte>::const_iterator _begin;
@@ -62,7 +63,7 @@ namespace SnackerEngine
 	/// buffer. While using a subBuffer one should not move or destroy the original buffer!
 	class BufferView
 	{
-	private:
+	protected:
 		friend class Buffer;
 		std::vector<std::byte>::iterator _begin;
 		std::vector<std::byte>::iterator _end;
@@ -109,7 +110,7 @@ namespace SnackerEngine
 	/// with subBuffer() and constSubBuffer() respectively.
 	class Buffer
 	{
-	private:
+	protected:
 		/// The actual data as a pointer to a byte array
 		std::vector<std::byte> data;
 	public:
@@ -118,7 +119,10 @@ namespace SnackerEngine
 		/// Construct buffer by copying data from string
 		Buffer(const std::string& data);
 		/// Construct buffer of given size with garbage data
-		Buffer(std::size_t size);
+		Buffer(std::size_t size = 0);
+		/// Tries to store the contents of a file in a buffer. If the file is not found or could not be opened
+		/// an empty optional is returned
+		static std::optional<Buffer> loadFromFile(const std::string filename);
 		/// Deleted Copy constructor and alignment operator
 		Buffer(const Buffer& other) = delete;
 		Buffer& operator=(const Buffer& other) = delete;

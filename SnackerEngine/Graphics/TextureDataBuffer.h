@@ -2,6 +2,7 @@
 
 #include "Graphics/Texture.h"
 #include "Math/Vec.h"
+#include "Utility\Buffer.h"
 
 #include <cstddef>
 #include <vector>
@@ -12,25 +13,22 @@ namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
 	/// Class that works as a buffer for textureData. Each single pixel can be modified seperately
-	class TextureDataBuffer {
+	class TextureDataBuffer : public Buffer
+	{
 		/// TextureManager needs friend access
 		friend class TextureManager;
 		Texture::TextureDataType textureDataType = Texture::TextureDataType::UNSIGNED_BYTE;
 		Texture::TextureDataPrecision textureDataPrecision = Texture::TextureDataPrecision::PRECISION_NOT_SPECIFIED;
 		Texture::TextureDataFormat textureDataFormat = Texture::TextureDataFormat::RGBA;
 		/// Size of the buffer in pixels
-		Vec2i size = Vec2i();
+		Vec2i size2D = Vec2i();
 		/// Stride between neighbouring elements, in bytes
 		unsigned int stride = 0;
-		// Total size of the data vector in bytes
-		unsigned int dataSize = 0;
 		// padding in bytes after each row necessary for OpenGL texture Storage
 		unsigned int padding = 0;
 		/// Number of bytes per element (PRECISION_32: bytesPerElement = 4, PRECISION_16: bytesPerElement = 2,
 		/// else: bytesPerElement = 1)
 		unsigned int bytesPerElement = 1;
-		/// Vector holding the actual data
-		std::vector<std::byte> dataStorage{};
 		/// Helper function that computes the index into the storageArray of a 2D position
 		unsigned int computeIndex(const Vec2i& position) const;
 		/// Helper function that sets a value starting at the given index. Automatically uses the correct precision
@@ -53,14 +51,10 @@ namespace SnackerEngine
 		void setPixel(const Vec2i& position, const T& value);
 		/// Tries to load texture data from the given path and store it in a TextureBufferObject
 		static std::optional<TextureDataBuffer> loadTextureDataBuffer2D(const std::string& path);
-		/// Returns the size of the data buffer in bytes
-		unsigned int getBufferSize() { return dataSize; }
-		/// Returns raw data pointer. Should only be used if you know what you're doing
-		void* getDataPointer();
-		/// Serializes this TextureDataBuffer into the given buffer. This will resize the buffer accordingly
-		void serialize(std::vector<std::byte>& buffer) const;
-		/// Loads a TextureDataBuffer from serialized data
-		static std::optional<TextureDataBuffer> Deserialize(const std::vector<std::byte>& buffer);
+		/// Tries to load texture data from the raw data stored in the buffer, as if it was directly copied from a file.
+		/// The filename has to be given, because the loading can switch between different compression techniques based
+		/// on the file type.
+		static std::optional<TextureDataBuffer> loadTextureDataBuffer2DFromRawData(const SnackerEngine::ConstantBufferView& bufferView, const std::string filename);
 	};
 	//------------------------------------------------------------------------------------------------------
 }

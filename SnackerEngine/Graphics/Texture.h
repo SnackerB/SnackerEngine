@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math/Vec.h"
+#include "Utility\Buffer.h"
 
 namespace SnackerEngine
 {
@@ -67,6 +68,10 @@ namespace SnackerEngine
 		/// Tries to load a texture from a given path. Looks relative to the resources directory
 		/// Returns the texture and true if successfull, and the missingTexture and false if not.
 		static std::pair<Texture, bool> Load2D(const std::string& path, const bool& persistent = false);
+		/// Tries to load a texture from a given buffer holding the raw data, as if the raw data was
+		/// read from a file. The filename is necessary because of the ending of the image file. Returns
+		/// the texture and true if successfull, and the missingTexture and false if not
+		static std::pair<Texture, bool> Load2DFromRawData(const ConstantBufferView& buffer, const std::string& fileName);
 		/// Creates a new 2D texture with the given dimensions and dataFormat. 
 		static Texture Create2D(const Vec2i& dimensions,
 			const TextureDataFormat& dataFormat = TextureDataFormat::RGB, const bool& mip = true);

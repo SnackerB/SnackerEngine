@@ -19,6 +19,9 @@ namespace SnackerEngine
 			/// Notifies the observable that the given eventHandle has moved
 			void notifyHandleMove(EventHandle* old, EventHandle& eventHandle);
 		public:
+			/// Constructor
+			Observable()
+				: eventHandles{} {}
 			/// subscribes the given eventHandle to this observable
 			void subscribe(EventHandle& eventHandle);
 			/// unsubscribes the given eventHandle from this observable
@@ -46,6 +49,9 @@ namespace SnackerEngine
 		/// Function that gets called when an event happens.
 		virtual void onEvent() {}
 	public:
+		/// Constructor
+		EventHandle()
+			: observables{}, active{ false } {}
 		/// Unsubscribes from all observables
 		void unsubscribeFromAll();
 		/// Copy constructor and assignment operator

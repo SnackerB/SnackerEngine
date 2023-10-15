@@ -70,6 +70,11 @@ namespace SnackerEngine
 		return TextureManager::loadTexture2D(path, persistent);
 	}
 	//--------------------------------------------------------------------------------------------------
+	std::pair<Texture, bool> Texture::Load2DFromRawData(const ConstantBufferView& buffer, const std::string& fileName)
+	{
+		return TextureManager::loadTexture2DFromRawData(buffer, fileName);
+	}
+	//--------------------------------------------------------------------------------------------------
 	Texture Texture::Create2D(const Vec2i& dimensions, const TextureDataFormat& dataFormat, const bool& mip)
 	{
 		return TextureManager::createTexture(dimensions, TextureType::TEXTURE2D,

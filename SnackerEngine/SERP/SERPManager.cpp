@@ -214,7 +214,7 @@ namespace SnackerEngine
 			// We are currently waiting for a response from destination
 			// We must push the request in the correct outgoing requests queue
 			auto it2 = outgoingRequests.find(request.getDestination());
-			if (it2 == outgoingRequests.end()) {
+			if (it2 != outgoingRequests.end()) {
 				it2->second.push_back(std::make_pair<>(request, &pendingResponse));
 			}
 			else {
@@ -249,8 +249,8 @@ namespace SnackerEngine
 						serpID = result.value();
 					}
 				}
+				serpIDResponse = nullptr;
 				if (serpID == 0) {
-					serpIDResponse = nullptr;
 					serpIDResponse = std::make_unique<PendingResponse>(sendRequest(SERPRequest(0, 0, { HTTPRequest::RequestMethod::HTTP_GET, "/serpID" })));
 				}
 				else {

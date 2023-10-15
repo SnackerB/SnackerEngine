@@ -245,5 +245,37 @@ namespace SnackerEngine
 		return Engine::resourcePaths.empty() ? "" : Engine::resourcePaths[0];
 	}
 	//------------------------------------------------------------------------------------------------------
+	std::optional<Buffer> Engine::loadFileRelativeToResourcePath(const std::string& path)
+	{
+		for (const std::string& resourcePath : resourcePaths) {
+			std::string fullPath = resourcePath + path;
+			if (std::filesystem::exists(fullPath)) {
+				return Buffer::loadFromFile(fullPath);
+			}
+		}
+		warningLogger << LOGGER::BEGIN << "Could not find file \"" << path << "\" relative to resource folders." << LOGGER::ENDL;
+		return std::nullopt;
+	}
+	//------------------------------------------------------------------------------------------------------
+	std::optional<nlohmann::json> Engine::loadJSONRelativeToResourcePath(const std::string& path)
+	{
+		for (const std::string& resourcePath : resourcePaths) {
+			std::string fullPath = resourcePath + path;
+			if (std::filesystem::exists(fullPath)) {
+				try
+				{
+					return loadJSON(fullPath);
+				}
+				catch (const std::exception& e)
+				{
+					warningLogger << LOGGER::BEGIN << e.what() << LOGGER::ENDL;
+					return std::nullopt;
+				}
+			}
+		}
+		warningLogger << LOGGER::BEGIN << "Could not find file \"" << path << "\" relative to resource folders." << LOGGER::ENDL;
+		return std::nullopt;
+	}
+	//------------------------------------------------------------------------------------------------------
 }
 

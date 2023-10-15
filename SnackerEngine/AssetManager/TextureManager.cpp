@@ -269,23 +269,9 @@ namespace SnackerEngine
 		return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
 	}
 	//------------------------------------------------------------------------------------------------------
-	static bool loadTexture2D(TextureManager::TextureData& textureData, const std::string& fullPath)
+	// Helper function that sets up important flags for a loaded textureDataObject
+	bool setUpTextureData(SnackerEngine::TextureManager::TextureData& textureData, int nrComponents, int width, int height, void* data, const std::string& fullPath)
 	{
-		// Determine data type (either float (hdr) or unsigned byte (non hdr))
-		textureData.textureDataType = endsWith(fullPath, ".hdr") ? Texture::TextureDataType::FLOAT : Texture::TextureDataType::UNSIGNED_BYTE;
-		// Try to load the texture
-		int width, height, nrComponents;
-		void* data = nullptr;
-		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
-			data = stbi_loadf(fullPath.c_str(), &width, &height, &nrComponents, 0);
-		}
-		else {
-			data = stbi_load(fullPath.c_str(), &width, &height, &nrComponents, 0);
-		}
-		if (!data) {
-			warningLogger << LOGGER::BEGIN << "Texture failed to load at " << fullPath << LOGGER::ENDL;
-			return false; // Texture failed to load
-		}
 		textureData.determineTextureDataFormat(nrComponents);
 		GLCall(glGenTextures(1, &textureData.GPU_ID));
 		GLCall(glBindTexture(GL_TEXTURE_2D, textureData.GPU_ID));
@@ -315,6 +301,46 @@ namespace SnackerEngine
 		stbi_image_free(data);
 		// Loaded texture successfully!
 		return true;
+	}
+	//------------------------------------------------------------------------------------------------------
+	static bool loadTexture2D(TextureManager::TextureData& textureData, const std::string& fullPath)
+	{
+		// Determine data type (either float (hdr) or unsigned byte (non hdr))
+		textureData.textureDataType = endsWith(fullPath, ".hdr") ? Texture::TextureDataType::FLOAT : Texture::TextureDataType::UNSIGNED_BYTE;
+		// Try to load the texture
+		int width, height, nrComponents;
+		void* data = nullptr;
+		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
+			data = stbi_loadf(fullPath.c_str(), &width, &height, &nrComponents, 0);
+		}
+		else {
+			data = stbi_load(fullPath.c_str(), &width, &height, &nrComponents, 0);
+		}
+		if (!data) {
+			warningLogger << LOGGER::BEGIN << "Texture failed to load at " << fullPath << LOGGER::ENDL;
+			return false; // Texture failed to load
+		}
+		return setUpTextureData(textureData, nrComponents, width, height, data, fullPath);
+	}
+	//------------------------------------------------------------------------------------------------------
+	bool loadTexture2DFromRawData(TextureManager::TextureData& textureData, const ConstantBufferView& buffer, const std::string& fullPath)
+	{
+		// Determine data type (either float (hdr) or unsigned byte (non hdr))
+		textureData.textureDataType = endsWith(fullPath, ".hdr") ? Texture::TextureDataType::FLOAT : Texture::TextureDataType::UNSIGNED_BYTE;
+		// Try to load the texture
+		int width, height, nrComponents;
+		void* data = nullptr;
+		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
+			data = stbi_loadf_from_memory((stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+		}
+		else {
+			data = stbi_load_from_memory((stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+		}
+		if (!data) {
+			warningLogger << LOGGER::BEGIN << "Texture " << fullPath << " failed to load from memory. " << stbi_failure_reason() << LOGGER::ENDL;
+			return false; // Texture failed to load
+		}
+		return setUpTextureData(textureData, nrComponents, width, height, data, fullPath);
 	}
 	//------------------------------------------------------------------------------------------------------
 	static void createTexture2D(TextureManager::TextureData& textureData, const bool& mip)
@@ -457,9 +483,8 @@ namespace SnackerEngine
 		std::optional<std::string> fullPath = Engine::getFullPath(std::string(defaultTexturePath));
 		if (!fullPath.has_value()) {
 			errorLogger << LOGGER::BEGIN << "Could not find default texture at location " << defaultTexturePath << LOGGER::ENDL;
-			
 		}
-		if (!SnackerEngine::loadTexture2D(textureDataArray[0], fullPath.value())) {
+		else if (!SnackerEngine::loadTexture2D(textureDataArray[0], fullPath.value())) {
 			errorLogger << LOGGER::BEGIN << "Could not load default texture" << LOGGER::ENDL;
 		}
 	}
@@ -555,11 +580,27 @@ namespace SnackerEngine
 		return std::make_pair(Texture(textureID), true);
 	}
 	//------------------------------------------------------------------------------------------------------
+	std::pair<Texture, bool> TextureManager::loadTexture2DFromRawData(const ConstantBufferView& buffer, const std::string& fileName, bool persistent)
+	{
+		// Important so the image gets loaded the way OpenGL expects.
+		stbi_set_flip_vertically_on_load(true);
+		// Get new textureData object
+		TextureID textureID = getNewTextureID();
+		TextureData& textureData = textureDataArray[textureID];
+		textureData.textureType = Texture::TextureType::TEXTURE2D;
+		if (!SnackerEngine::loadTexture2DFromRawData(textureData, buffer, fileName)) {
+			return std::make_pair(Texture(defaultTexture), false);
+		}
+		// Texture was successfully loaded!
+		stringToTextureID[fileName] = textureID;
+		return std::make_pair(Texture(textureID), true);
+	}
+	//------------------------------------------------------------------------------------------------------
 	TextureDataBuffer TextureManager::getTextureDataFromGPU(Texture& texture, const int& mipLevel)
 	{
 		TextureDataBuffer buffer(texture);
 		texture.bind();
-		GLCall(glGetTexImage(GL_TEXTURE_2D, mipLevel, getFormatGL(buffer.textureDataFormat), getTypeGL(buffer.textureDataType), buffer.getDataPointer()));
+		GLCall(glGetTexImage(GL_TEXTURE_2D, mipLevel, getFormatGL(buffer.textureDataFormat), getTypeGL(buffer.textureDataType), (void*)buffer.getDataPtr()));
 		return buffer;
 	}
 	//------------------------------------------------------------------------------------------------------
@@ -594,11 +635,44 @@ namespace SnackerEngine
 		textureData.determineTextureDataFormat(nrComponents);
 		textureData.size = Vec2i(width, height);
 		TextureDataBuffer buffer(textureData.textureDataType, textureData.textureDataPrecision, textureData.textureDataFormat, textureData.size);
-		std::memcpy(buffer.getDataPointer(), data, std::min(buffer.dataSize, static_cast<unsigned int>(width * height * nrComponents * bytesPerPixel)));
+		std::memcpy((void*)buffer.getDataPtr(), data, std::min(buffer.size(), static_cast<std::size_t>(width * height * nrComponents * bytesPerPixel)));
 		// Free data
 		stbi_image_free(data);
 		// Loaded texture successfully!
 		return std::move(buffer);
+	}
+	//------------------------------------------------------------------------------------------------------
+	std::optional<TextureDataBuffer> TextureManager::loadTextureDataBufferFromRawData(const ConstantBufferView& buffer, const std::string& path)
+	{
+		// Important so the image gets loaded the way OpenGL expects.
+		stbi_set_flip_vertically_on_load(true);
+
+		// Determine data type (either float (hdr) or unsigned byte (non hdr))
+		TextureManager::TextureData textureData{};
+		textureData.textureDataType = endsWith(path, ".hdr") ? Texture::TextureDataType::FLOAT : Texture::TextureDataType::UNSIGNED_BYTE;
+		// Try to load the texture
+		int width, height, nrComponents, bytesPerPixel;
+		void* data = nullptr;
+		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
+			data = stbi_loadf_from_memory((const stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+			bytesPerPixel = sizeof(float);
+		}
+		else {
+			data = stbi_loadf_from_memory((const stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+			bytesPerPixel = sizeof(stbi_uc);
+		}
+		if (!data) {
+			warningLogger << LOGGER::BEGIN << "Texture " << path << "failed to load from memory." << LOGGER::ENDL;
+			return {}; // Texture failed to load
+		}
+		textureData.determineTextureDataFormat(nrComponents);
+		textureData.size = Vec2i(width, height);
+		TextureDataBuffer result(textureData.textureDataType, textureData.textureDataPrecision, textureData.textureDataFormat, textureData.size);
+		std::memcpy((void*)result.getDataPtr(), data, std::min(result.size(), static_cast<std::size_t>(width * height * nrComponents * bytesPerPixel)));
+		// Free data
+		stbi_image_free(data);
+		// Loaded texture successfully!
+		return std::move(result);
 	}
 	//------------------------------------------------------------------------------------------------------
 	bool TextureManager::saveTexture2D(Texture& texture, const std::string& path, const bool& relativeToResourceDir)
@@ -612,7 +686,7 @@ namespace SnackerEngine
 		// Important so the image gets saved correctly (OpenGL detail)
 		stbi_flip_vertically_on_write(true);
 		const Vec2i& size = texture.getSize();
-		return stbi_write_png(fullPath.c_str(), size.x, size.y, textureDataArray[texture.textureID].determineNumberComponents(), buffer.getDataPointer(), buffer.stride * size.x) == 1;
+		return stbi_write_png(fullPath.c_str(), size.x, size.y, textureDataArray[texture.textureID].determineNumberComponents(), (void*)buffer.getDataPtr(), buffer.stride * size.x) == 1;
 	}
 	//------------------------------------------------------------------------------------------------------
 	Texture TextureManager::createTexture(const Vec2i& dimensions, const Texture::TextureType& type, const Texture::TextureDataType& dataType, const Texture::TextureDataFormat& dataFormat, const Texture::TextureDataPrecision& dataPrecision, const bool& mip)
@@ -636,7 +710,7 @@ namespace SnackerEngine
 	Texture TextureManager::createTextureFromBuffer(TextureDataBuffer& buffer, const bool& mip)
 	{
 		// TODO: Make this work with cubemaps as well
-		Texture texture = createTexture(buffer.size, Texture::TextureType::TEXTURE2D, buffer.textureDataType, buffer.textureDataFormat, buffer.textureDataPrecision);
+		Texture texture = createTexture(buffer.size(), Texture::TextureType::TEXTURE2D, buffer.textureDataType, buffer.textureDataFormat, buffer.textureDataPrecision);
 		texture.fill2D(buffer, mip);
 		return texture;
 	}
@@ -652,11 +726,11 @@ namespace SnackerEngine
 		if (textureData.textureDataType != textureDataBuffer.textureDataType ||
 			textureData.textureDataPrecision != textureDataBuffer.textureDataPrecision ||
 			textureData.textureDataFormat != textureDataBuffer.textureDataFormat ||
-			textureData.size != textureDataBuffer.size) {
+			textureData.size != textureDataBuffer.size()) {
 			warningLogger << LOGGER::BEGIN << "Could not fill texture: Buffer and textureData do not match" << LOGGER::ENDL;
 			return;
 		}
-		fillTexture2D(texture, textureDataBuffer.getDataPointer(), offset, textureDataBuffer.size, mip);
+		fillTexture2D(texture, (void*)textureDataBuffer.getDataPtr(), offset, textureDataBuffer.size(), mip);
 	}
 	//------------------------------------------------------------------------------------------------------
 	void TextureManager::copyTexture2D(const Texture& source, Texture& target, const Vec2i& offset)

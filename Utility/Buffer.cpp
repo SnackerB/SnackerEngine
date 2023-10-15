@@ -1,6 +1,8 @@
 #include "Buffer.h"
+#include "Exception.h"
 
 #include <sstream>
+#include <fstream>
 
 namespace SnackerEngine
 {
@@ -173,6 +175,23 @@ namespace SnackerEngine
 
 	Buffer::Buffer(std::size_t size)
 		: data(size) {}
+
+	// Uses code from https://stackoverflow.com/questions/5778155/how-do-i-copy-the-contents-of-a-file-into-virtual-memory
+	std::optional<Buffer> Buffer::loadFromFile(const std::string filename)
+	{
+		std::ifstream file(filename, std::ios::binary);
+		if (file) {
+			// Get file size
+			file.seekg(0, std::ios::end);
+			std::streampos length = file.tellg();
+			file.seekg(0, std::ios::beg);
+			// Copy data
+			Buffer buffer(length);
+			file.read((char*)(buffer.getDataPtr()), length);
+			return buffer;
+		}
+		return std::nullopt;
+	}
 
 	BufferView Buffer::getBufferView(std::size_t offset, std::size_t size)
 	{
