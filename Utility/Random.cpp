@@ -4,7 +4,13 @@
 namespace SnackerEngine
 {
 
-	static std::mt19937 randomEngine(std::rand());
+	static std::mt19937 randomEngine;
+
+	void initializeRNG()
+	{
+		srand(time(NULL));
+		randomEngine = std::mt19937(std::rand());
+	}
 
 	float randomFloat(float min, float max)
 	{
@@ -16,6 +22,17 @@ namespace SnackerEngine
 	{
 		static std::uniform_real_distribution<double> dist(min, max);
 		return dist(randomEngine);
+	}
+
+	int randomInteger(int min, int max)
+	{
+		static std::uniform_int_distribution<> dist(min, max);
+		return dist(randomEngine);
+	}
+
+	int randomInteger(int max)
+	{
+		return randomInteger(0, max);
 	}
 
 }

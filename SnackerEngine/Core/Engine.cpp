@@ -5,6 +5,7 @@
 #include "Utility\Timer.h"
 #include "Core/Assert.h"
 #include "Gui/GuiManager.h"
+#include "Utility\Random.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -121,6 +122,8 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	bool Engine::initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName, const std::string& resourceFolderPath)
 	{
+		// Seed RNG
+		initializeRNG();
 		// Initialize Renderer class and create window
 		if (!Renderer::initialize(windowWidth, windowHeight, windowName))
 			return false;

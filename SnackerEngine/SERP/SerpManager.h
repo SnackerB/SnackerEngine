@@ -97,16 +97,22 @@ namespace SnackerEngine
 	public:
 		/// Constructor
 		SERPManager();
+		/// Destructor
+		~SERPManager();
 		/// Deleted copy constructor and assignment operator
 		SERPManager(const SERPManager& other) = delete;
 		SERPManager& operator=(const SERPManager& other) = delete;
 		/// Move constructor and assignment operator
 		SERPManager(SERPManager&& other) noexcept;
-		SERPManager& operator=(SERPManager&& other) = delete;
+		SERPManager& operator=(SERPManager&& other) noexcept;
 		/// Tries to connect to the SERP server
 		bool connectToSERPServer();
 		/// Registers a path to listen to for incoming requests
 		void registerPathForIncomingRequests(const std::string& path);
+		/// Removes the given path from the incoming request paths
+		void removePathForIncomingRequests(const std::string& path);
+		/// Clears all paths for incoming requests
+		void clearIncomingRequestPaths();
 		/// Returns true if the given path was registered and there are requests in the corresponding queue
 		bool areIncomingRequests(const std::string& path);
 		/// Returns reference to the incoming requests queue for the given path. This requires the given path

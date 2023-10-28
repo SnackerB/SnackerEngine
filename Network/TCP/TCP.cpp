@@ -102,7 +102,7 @@ namespace SnackerEngine
 		std::vector<std::byte> data{};
 		while (true) {
 			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), storageBuffer.size(), NULL);
-			if (result >= 0) {
+			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
 				return std::move(Buffer(std::move(data)));

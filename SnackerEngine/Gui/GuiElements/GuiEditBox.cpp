@@ -280,35 +280,35 @@ namespace SnackerEngine
 		if (active && (action == ACTION_PRESS || action == ACTION_REPEAT))
 		{
 			if (key == KEY_LEFT) {
-				if (mods & MOD_CONTROL) {
-					static_cast<EditableText&>(*dynamicText).moveCursorToLeftWordBeginning(!(mods & MOD_SHIFT));
+				if (mods & KEY_MOD_CONTROL) {
+					static_cast<EditableText&>(*dynamicText).moveCursorToLeftWordBeginning(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
 				else {
-					static_cast<EditableText&>(*dynamicText).moveCursorToLeft(!(mods & MOD_SHIFT));
+					static_cast<EditableText&>(*dynamicText).moveCursorToLeft(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
 			}
 			else if (key == KEY_RIGHT) {
-				if (mods & MOD_CONTROL) {
-					static_cast<EditableText&>(*dynamicText).moveCursorToRightWordEnd(!(mods & MOD_SHIFT));
+				if (mods & KEY_MOD_CONTROL) {
+					static_cast<EditableText&>(*dynamicText).moveCursorToRightWordEnd(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
 				else {
-					static_cast<EditableText&>(*dynamicText).moveCursorToRight(!(mods & MOD_SHIFT));
+					static_cast<EditableText&>(*dynamicText).moveCursorToRight(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
 					computeModelMatrixCursor();
 				}
 			}
 			else if (key == KEY_BACKSPACE) {
-				if (mods & MOD_CONTROL) {
+				if (mods & KEY_MOD_CONTROL) {
 					static_cast<EditableText&>(*dynamicText).deleteWordBeforeCursor();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
@@ -322,7 +322,7 @@ namespace SnackerEngine
 				computeModelMatrixCursor();
 			}
 			else if (key == KEY_DELETE) {
-				if (mods & MOD_CONTROL) {
+				if (mods & KEY_MOD_CONTROL) {
 					static_cast<EditableText&>(*dynamicText).deleteWordAfterCursor();
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;

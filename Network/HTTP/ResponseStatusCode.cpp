@@ -42,7 +42,7 @@ namespace SnackerEngine
 			case 400: return BAD_REQUEST;
 			case 401: return UNAUTHORIZED;
 			case 403: return FORBIDDEN;
-			case 404: return BAD_REQUEST;
+			case 404: return NOT_FOUND;
 			case 408: return REQUEST_TIMEOUT;
 			case 418: return IM_A_TEAPOT;
 			case 500: return INTERNAL_SERVER_ERROR;
@@ -61,7 +61,25 @@ namespace SnackerEngine
 
 	std::string to_string(ResponseStatusCode responseStatusCode)
 	{
-		return std::to_string(static_cast<unsigned>(responseStatusCode));
+		switch (responseStatusCode)
+		{
+		case 100: return "CONTINUE";
+		case 102: return "PROCESSING";
+		case 200: return "OK";
+		case 201: return "CREATED";
+		case 400: return "BAD_REQUEST";
+		case 401: return "UNAUTHORIZED";
+		case 403: return "FORBIDDEN";
+		case 404: return "NOT_FOUND";
+		case 408: return "REQUEST_TIMEOUT";
+		case 418: return "IM_A_TEAPOT";
+		case 500: return "INTERNAL_SERVER_ERROR";
+		case 501: return "NOT_IMPLEMENTED";
+		case 502: return "BAD_GATEWAY";
+		case 503: return "SERVICE_UNAVAILABLE";
+		case 505: return "HTTP_VERSION_NOT_SUPPORTED";
+		default: return std::to_string(static_cast<unsigned>(responseStatusCode));
+		}
 	}
 
 }

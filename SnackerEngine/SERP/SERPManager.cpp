@@ -10,24 +10,28 @@ namespace SnackerEngine
 	{
 		if (serpManager) {
 			auto it = serpManager->pendingResponses.find(response.getSource());
-			if (it != serpManager->pendingResponses.end()) it->second = this;
+			if (it != serpManager->pendingResponses.end() && it->second == other) it->second = this;
 			else {
 				auto it2 = serpManager->outgoingRequests.find(response.getSource());
 				if (it2 != serpManager->outgoingRequests.end()) {
-					for (unsigned int i = 0; i < it2->second.size(); ++i) {
-						if (it2->second[i].second == other) {
-							it2->second[i].second = this;
+					for (auto& it3 : it2->second) {
+						if (it3.second == other) {
+							it3.second = this;
 							return;
 						}
+						warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in outgoing requests ..." << LOGGER::ENDL;
 					}
+				}
+				else {
+					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in pendingResponses or outgoing requests ..." << LOGGER::ENDL;
 				}
 			}
 		}
 	}
 	
 	SERPManager::PendingResponse::PendingResponse(PendingResponse&& other) noexcept
-		: serpManager{ std::move(other.serpManager) }, status{ std::move(other.status) }, 
-		timeLeft{ std::move(other.timeLeft) }, response{ std::move(other.response) }
+		: serpManager{ other.serpManager }, status{ other.status }, 
+		timeLeft{ other.timeLeft }, response{ std::move(other.response) }
 	{
 		onMove(&other);
 		other.serpManager = nullptr;
@@ -35,6 +39,10 @@ namespace SnackerEngine
 
 	SERPManager::PendingResponse& SERPManager::PendingResponse::operator=(PendingResponse&& other) noexcept
 	{
+		serpManager = other.serpManager;
+		status = other.status;
+		timeLeft = other.timeLeft;
+		response = std::move(other.response);
 		onMove(&other);
 		other.serpManager = nullptr;
 		return *this;
@@ -42,7 +50,25 @@ namespace SnackerEngine
 
 	SERPManager::PendingResponse::~PendingResponse()
 	{
-		if (serpManager) serpManager->pendingResponses.erase(response.getSource());
+		if (serpManager) {
+			auto it = serpManager->pendingResponses.find(response.getSource());
+			if (it != serpManager->pendingResponses.end() && it->second == this) serpManager->pendingResponses.erase(it);
+			else {
+				auto it2 = serpManager->outgoingRequests.find(response.getSource());
+				if (it2 != serpManager->outgoingRequests.end()) {
+					for (unsigned int i = 0; i < it2->second.size(); ++i) {
+						if (it2->second[i].second == this) {
+							it2->second[i].second = nullptr;
+							return;
+						}
+						warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in outgoing requests while erasing ..." << LOGGER::ENDL;
+					}
+				}
+				else {
+					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in pendingResponses or outgoing requests while erasing ..." << LOGGER::ENDL;
+				}
+			}
+		}
 	}
 
 	void SERPManager::handleReceivedMessage(HTTPMessage& message)
@@ -94,6 +120,7 @@ namespace SnackerEngine
 			std::queue<SERPRequest>* bestResult = nullptr;
 			std::string currentPath = "";
 			for (unsigned i = 0; i < path.size(); ++i) {
+				currentPath.append("/");
 				currentPath.append(path[i]);
 				auto it = incomingRequests.find(currentPath);
 				if (it != incomingRequests.end()) {
@@ -119,7 +146,7 @@ namespace SnackerEngine
 		else {
 			warningLogger << "received request with unknown path \"" << request.request.path << "\"" << LOGGER::ENDL;
 			sendResponse(SERPResponse(serpID, request.getSource(),
-				HTTPResponse{ ResponseStatusCode::NOT_FOUND, {}, "path" + request.request.path + "was not found!" }));
+				HTTPResponse{ ResponseStatusCode::NOT_FOUND, {}, "path" + request.request.path + " was not found!" }));
 		}
 	}
 
@@ -147,15 +174,68 @@ namespace SnackerEngine
 		httpEndpoint = HTTPEndpoint(std::move(result.value()), false);
 	}
 
+	SERPManager::~SERPManager()
+	{
+		for (auto& pendingResponse : pendingResponses) {
+			pendingResponse.second->serpManager = nullptr;
+		}
+		for (auto& outgoingRequest : outgoingRequests) {
+			for (auto& pendingResponse : outgoingRequest.second) {
+				pendingResponse.second->serpManager = nullptr;
+			}
+		}
+		clearIncomingRequestPaths();
+	}
+
 	SERPManager::SERPManager(SERPManager&& other) noexcept
 		: connected{ std::move(other.connected) }, serpID{ std::move(other.serpID) }, httpEndpoint{ std::move(other.httpEndpoint) }, 
 		incomingRequests{ std::move(other.incomingRequests) }, pendingResponses{ std::move(other.pendingResponses) }, 
 		outgoingRequests{ std::move(other.outgoingRequests) }, serpIDResponse{ std::move(other.serpIDResponse) },
 		incomingMessageBuffer{ std::move(other.incomingMessageBuffer) }
 	{
-		for (const auto& pendingResponse : pendingResponses) {
+		for (auto& pendingResponse : pendingResponses) {
 			pendingResponse.second->serpManager = this;
 		}
+		for (auto& outgoingRequest : outgoingRequests) {
+			for (auto& pendingResponse : outgoingRequest.second) {
+				pendingResponse.second->serpManager = this;
+			}
+		}
+		other.pendingResponses.clear();
+		other.outgoingRequests.clear();
+	}
+
+	SERPManager& SERPManager::operator=(SERPManager&& other) noexcept
+	{
+		for (auto& pendingResponse : pendingResponses) {
+			pendingResponse.second->serpManager = nullptr;
+		}
+		for (auto& outgoingRequest : outgoingRequests) {
+			for (auto& pendingResponse : outgoingRequest.second) {
+				pendingResponse.second->serpManager = nullptr;
+			}
+		}
+		other.pendingResponses.clear();
+		other.outgoingRequests.clear();
+		connected = other.connected;
+		serpID = other.serpID;
+		httpEndpoint = std::move(other.httpEndpoint);
+		incomingRequests = std::move(other.incomingRequests);
+		pendingResponses = std::move(other.pendingResponses);
+		outgoingRequests = std::move(other.outgoingRequests);
+		serpIDResponse = std::move(other.serpIDResponse);
+		incomingMessageBuffer = std::move(other.incomingMessageBuffer);
+		for (auto& pendingResponse : pendingResponses) {
+			pendingResponse.second->serpManager = this;
+		}
+		for (auto& outgoingRequest : outgoingRequests) {
+			for (auto& pendingResponse : outgoingRequest.second) {
+				pendingResponse.second->serpManager = this;
+			}
+		}
+		other.pendingResponses.clear();
+		other.outgoingRequests.clear();
+		return *this;
 	}
 
 	bool SERPManager::connectToSERPServer()
@@ -181,6 +261,19 @@ namespace SnackerEngine
 			incomingRequests.insert(std::make_pair<>(path, std::queue<SERPRequest>()));
 	}
 
+	void SERPManager::removePathForIncomingRequests(const std::string& path)
+	{
+		auto it = incomingRequests.find(path);
+		if (it != incomingRequests.end()) {
+			incomingRequests.erase(it);
+		}
+	}
+
+	void SERPManager::clearIncomingRequestPaths()
+	{
+		incomingRequests.clear();
+	}
+
 	bool SERPManager::areIncomingRequests(const std::string& path)
 	{
 		auto it = incomingRequests.find(path);
@@ -199,6 +292,7 @@ namespace SnackerEngine
 
 	SERPManager::PendingResponse SERPManager::sendRequest(SERPRequest request, double timeout)
 	{
+		infoLogger << LOGGER::BEGIN << "Sent Request!" << LOGGER::ENDL;
 		// Construct pendingResponse object
 		PendingResponse pendingResponse(this, timeout, request.getDestination());
 		// Check if we are already wating for a response from the destination
@@ -227,6 +321,7 @@ namespace SnackerEngine
 
 	void SERPManager::sendResponse(SERPResponse response)
 	{
+		infoLogger << LOGGER::BEGIN << "Sent Response!" << LOGGER::ENDL;
 		response.response.addContentLengthHeader();
 		SnackerEngine::sendResponse(httpEndpoint.getSocket(), response.response);
 	}
@@ -266,7 +361,7 @@ namespace SnackerEngine
 		// Check if we are able to send anything from the outgoingRequest queues
 		for (auto it = outgoingRequests.begin(); it != outgoingRequests.end(); ) {
 			if (pendingResponses.find(it->first) == pendingResponses.end()) {
-				pendingResponses.insert(std::make_pair<>(it->first, it->second.front().second));
+				if (it->second.front().second) pendingResponses.insert(std::make_pair<>(it->first, it->second.front().second));
 				it->second.front().first.request.addContentLengthHeader();
 				SnackerEngine::sendRequest(httpEndpoint.getSocket(), it->second.front().first.request);
 				it->second.erase(it->second.begin());
@@ -276,6 +371,9 @@ namespace SnackerEngine
 				else {
 					it++;
 				}
+			}
+			else {
+				it++;
 			}
 		}
 		// Update the time of all pending responses
@@ -290,11 +388,13 @@ namespace SnackerEngine
 		for (auto& outgoingRequest : outgoingRequests) {
 			for (auto& request : outgoingRequest.second) {
 				auto& pendingResponse = request.second;
-				pendingResponse->timeLeft -= dt;
-				if (pendingResponse->timeLeft <= 0) {
-					pendingResponse->timeLeft = 0;
-					if (pendingResponse->status == PendingResponse::Status::PENDING)
-						pendingResponse->status = PendingResponse::Status::TIMEOUT;
+				if (pendingResponse) {
+					pendingResponse->timeLeft -= dt;
+					if (pendingResponse->timeLeft <= 0) {
+						pendingResponse->timeLeft = 0;
+						if (pendingResponse->status == PendingResponse::Status::PENDING)
+							pendingResponse->status = PendingResponse::Status::TIMEOUT;
+					}
 				}
 			}
 		}

@@ -66,20 +66,22 @@ namespace SnackerEngine
     GuiHandle::GuiHandle(GuiHandle&& other) noexcept
         : guiHandleIDs(other.guiHandleIDs), guiElements(other.guiElements)
     {
-        other.signOff();
         for (auto& element : guiElements) {
             element->onHandleMove(*this);
         }
+        other.guiHandleIDs.clear();
+        other.guiElements.clear();
     }
     //--------------------------------------------------------------------------------------------------
     GuiHandle& GuiHandle::operator=(GuiHandle&& other) noexcept
     {
         guiHandleIDs = other.guiHandleIDs;
         guiElements = other.guiElements;
-        other.signOff();
         for (auto& element : guiElements) {
             element->onHandleMove(*this);
         }
+        other.guiHandleIDs.clear();
+        other.guiElements.clear();
         return *this;
     }
     //--------------------------------------------------------------------------------------------------
