@@ -73,6 +73,8 @@ namespace SnackerEngine
 		/// Loads and parses a JSON file relative to the resource path. Returns an
 		/// empty optional if anything fails
 		static std::optional<nlohmann::json> loadJSONRelativeToResourcePath(const std::string& path);
+		/// Saves JSON into a file relative to the resource path. Returns true on success
+		static bool saveJSONRelativeToResourcePath(const nlohmann::json& json, const std::string& path);
 		/// Deleted destructor: this is a static class!
 		Engine() = delete;
 	};

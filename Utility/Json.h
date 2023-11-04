@@ -14,6 +14,10 @@ namespace SnackerEngine
 	/// be parsed, a runtime exception is thrown and needs to be catched
 	nlohmann::json loadJSON(const std::string& filePath);
 	//--------------------------------------------------------------------------------------------------
+	/// Tries to save a JSON file from the given filepath. If an error occurs, a runtime exception is thrown
+	/// and needs to be catched
+	void saveJSON(const nlohmann::json& json, const std::string& filePath);
+	//--------------------------------------------------------------------------------------------------
 	/// Returns true if the given JSON is of the template type
 	template<typename T> bool isOfType(const nlohmann::json& json);
 	//--------------------------------------------------------------------------------------------------

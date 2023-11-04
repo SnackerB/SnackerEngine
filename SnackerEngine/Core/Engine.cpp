@@ -280,5 +280,21 @@ namespace SnackerEngine
 		return std::nullopt;
 	}
 	//------------------------------------------------------------------------------------------------------
+	bool Engine::saveJSONRelativeToResourcePath(const nlohmann::json& json, const std::string& path)
+	{
+		for (const std::string& resourcePath : resourcePaths) {
+			std::string fullPath = resourcePath + path;
+			if (std::filesystem::exists(fullPath)) {
+				try
+				{
+					saveJSON(json, fullPath);
+					return true;
+				}
+				catch (const std::exception&) {}
+			}
+		}
+		return false;
+	}
+	//------------------------------------------------------------------------------------------------------
 }
 

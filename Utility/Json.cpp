@@ -19,6 +19,15 @@ namespace SnackerEngine
 		return data;
 	}
 
+	void saveJSON(const nlohmann::json& json, const std::string& filePath)
+	{
+		std::ofstream file(filePath);
+		if (!file.is_open()) {
+			throw std::runtime_error(std::string("Could not open file for writing at ") + filePath);
+		}
+		file << json.dump();
+	}
+
 	template<> bool isOfType<std::string>(const nlohmann::json& json)
 	{
 		return json.is_string();
