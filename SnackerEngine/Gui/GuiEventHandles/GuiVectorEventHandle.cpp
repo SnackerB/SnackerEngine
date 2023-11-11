@@ -3,10 +3,10 @@
 namespace SnackerEngine
 {
 
-	GuiVectorEventHandle::GuiVectorEventHandle(unsigned count)
+	GuiVectorEventHandle::GuiVectorEventHandle(std::size_t count)
 		: active(false), childHandles{}
 	{
-		for (unsigned i = 0; i < count; ++i) childHandles.push_back(ChildEventHandle(this));
+		for (std::size_t i = 0; i < count; ++i) childHandles.push_back(ChildEventHandle(this));
 	}
 
 	void GuiVectorEventHandle::reset()
@@ -15,11 +15,11 @@ namespace SnackerEngine
 		for (auto& childHandle : childHandles) childHandle.reset();
 	}
 
-	void GuiVectorEventHandle::resize(unsigned size)
+	void GuiVectorEventHandle::resize(std::size_t size)
 	{
 		std::size_t oldSize = childHandles.size();
 		childHandles.resize(size);
-		for (unsigned i = oldSize; i < size; ++i) {
+		for (std::size_t i = oldSize; i < size; ++i) {
 			childHandles[i].parentHandle = this;
 		}
 	}

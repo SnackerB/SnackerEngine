@@ -19,8 +19,8 @@ namespace SnackerEngine
 							it3.second = this;
 							return;
 						}
-						warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in outgoing requests ..." << LOGGER::ENDL;
 					}
+					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in outgoing requests ..." << LOGGER::ENDL;
 				}
 				else {
 					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in pendingResponses or outgoing requests ..." << LOGGER::ENDL;

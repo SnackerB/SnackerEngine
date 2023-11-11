@@ -37,38 +37,38 @@ namespace SnackerEngine
 		virtual void onEvent() {}
 	public:
 		/// Constructor
-		GuiVectorVariableHandle(unsigned count = 0);
+		GuiVectorVariableHandle(std::size_t count = 0);
 		GuiVectorVariableHandle(const std::vector<T>& value);
 		/// Returns the boolean active
 		bool isActive() const { return active; };
 		/// Sets the active boolean back to false and calls reset() on all child event handles
 		void reset();
 		/// Returns a reference to the GuiVariableHandle at the given index
-		GuiVariableHandle<T>& get(unsigned index) { return childHandles[index]; }
-		GuiVariableHandle<T>& operator[](unsigned index) { return get(index); }
+		GuiVariableHandle<T>& get(std::size_t index) { return childHandles[index]; }
+		GuiVariableHandle<T>& operator[](std::size_t index) { return get(index); }
 		/// Returns the current number of child handles
-		unsigned size() const { return childHandles.size(); }
+		std::size_t size() const { return childHandles.size(); }
 		/// Creates a new event handle and pushes it into the child handles vector
 		GuiVariableHandle<T>& createNewVariableHandle() { childHandles.push_back(ChildVariableHandle(this)); return childHandles.back(); }
 		/// Clears childHandles
 		void clear() { childHandles.clear(); }
 		/// Resizes the childHandle vector to the given size
-		void resize(unsigned size);
+		void resize(std::size_t size);
 		/// Returns the value of the variableHandle at the given index
-		const T& get(unsigned index) const { return childHandles[index].get(); }
+		const T& get(std::size_t index) const { return childHandles[index].get(); }
 		/// Returns a vector of values of all childHandles
 		std::vector<T> get();
 		/// Sets the value of the variableHandle at the given index
-		void set(const T& value, unsigned index) { childHandles[index].set(value); }
+		void set(const T& value, std::size_t index) { childHandles[index].set(value); }
 		/// Sets the values of all childHandles
 		void set(const std::vector<T>& values);
 	};
 
 	template<typename T>
-	inline GuiVectorVariableHandle<T>::GuiVectorVariableHandle(unsigned count)
+	inline GuiVectorVariableHandle<T>::GuiVectorVariableHandle(std::size_t count)
 		: active{ false }, childHandles{}
 	{
-		for (unsigned i = 0; i < count; ++i) childHandles.push_back(ChildVariableHandle(this));
+		for (std::size_t i = 0; i < count; ++i) childHandles.push_back(ChildVariableHandle(this));
 	}
 
 	template<typename T>
@@ -89,11 +89,11 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline void GuiVectorVariableHandle<T>::resize(unsigned size)
+	inline void GuiVectorVariableHandle<T>::resize(std::size_t size)
 	{
-		unsigned oldSize = childHandles.size();
+		std::size_t oldSize = childHandles.size();
 		childHandles.resize(size);
-		for (unsigned i = oldSize; i < size; ++i) {
+		for (std::size_t i = oldSize; i < size; ++i) {
 			childHandles[i].parentHandle = this;
 		}
 	}
@@ -109,7 +109,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline void SnackerEngine::GuiVectorVariableHandle<T>::set(const std::vector<T>& values)
 	{
-		for (unsigned i = 0; i < min(values.size(), childHandles.size()); ++i) {
+		for (std::size_t i = 0; i < min(values.size(), childHandles.size()); ++i) {
 			childHandles[i].set(values[i]);
 		}
 	}

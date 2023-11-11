@@ -36,14 +36,14 @@ namespace SnackerEngine
 		virtual void onEvent() {}
 	public:
 		/// Constructor
-		GuiVectorEventHandle(unsigned count = 0);
+		GuiVectorEventHandle(std::size_t count = 0);
 		/// Returns the boolean active
 		bool isActive() const { return active; };
 		/// Sets the active boolean back to false and calls reset() on all child event handles
 		void reset();
 		/// Returns a reference to the GuiEventHandle at the given index
-		GuiEventHandle& get(unsigned index) { return childHandles[index]; }
-		GuiEventHandle& operator[](unsigned index) { return get(index); }
+		GuiEventHandle& get(std::size_t index) { return childHandles[index]; }
+		GuiEventHandle& operator[](std::size_t index) { return get(index); }
 		/// Returns the current number of child handles
 		std::size_t size() const { return childHandles.size(); }
 		/// Creates a new event handle and pushes it into the child handles vector
@@ -51,7 +51,7 @@ namespace SnackerEngine
 		/// Clears childHandles
 		void clear() { childHandles.clear(); }
 		/// Resizes the childHandle vector to the given size
-		void resize(unsigned size);
+		void resize(std::size_t size);
 	};
 
 }

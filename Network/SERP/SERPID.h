@@ -17,10 +17,6 @@ namespace SnackerEngine
 	/// Creates a random SERPID in the range [1, 9999]
 	SERPID getRandomSerpID();
 
-	/// Creates a string representation from the given SERPID.
-	/// Assumes the SERPID is valid.
-	std::string to_string(SERPID serpID);
-
 	/// Parses the given string and returns the parsed SERPID.
 	/// If the string does not represent a SERPID, an empty optional
 	/// is returned instead.

@@ -81,10 +81,10 @@ namespace SnackerEngine
 			}
 		}
 		setMinWidth(minWidth);
-		if ((getResizeMode() == ResizeMode::RESIZE_RANGE || shrinkWidthToChildren) && preferredWidth.has_value()) {
+		if ((getResizeMode() == ResizeMode::RESIZE_RANGE || shrinkWidthToChildren) && preferredWidth.has_value() && preferredWidth.value() != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
 			setPreferredWidth(preferredWidth.value() + 2 * horizontalBorder);
 		}
-		else setPreferredWidth(SIZE_HINT_ARBITRARY);
+		else setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout::GuiVerticalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)

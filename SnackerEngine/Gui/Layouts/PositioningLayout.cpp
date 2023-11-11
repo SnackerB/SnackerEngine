@@ -179,6 +179,7 @@ namespace SnackerEngine
 			// Enforce Layout
 			setPositionAndSizeOfChild(childID, childPosition, childSize);
 		}
+		computeSizeHintsFromChildren();
 	}
 	//--------------------------------------------------------------------------------------------------
 }

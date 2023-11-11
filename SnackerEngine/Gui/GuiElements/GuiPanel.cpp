@@ -53,16 +53,6 @@ namespace SnackerEngine
 		this->backgroundColor = backgroundColor;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Color4f GuiPanel::getBackgroundColor() const
-	{
-		return backgroundColor;
-	}
-	//--------------------------------------------------------------------------------------------------
-	const Shader& GuiPanel::getPanelShader() const
-	{
-		return shader;
-	}
-	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();

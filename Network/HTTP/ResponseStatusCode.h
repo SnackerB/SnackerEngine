@@ -44,6 +44,4 @@ namespace SnackerEngine
 
 	std::optional<ResponseStatusCode> parseResponseStatusCode(const std::string& string);
 
-	std::string to_string(ResponseStatusCode responseStatusCode);
-
 }

@@ -9,6 +9,8 @@ namespace SnackerEngine
 		return (std::rand() % 9999) + 1;
 	}
 	
+	// TODO: Find solution that doesn't conflict with formatting unsigned ints ...
+	/*
 	std::string to_string(SERPID serpID)
 	{
 		std::string result = std::to_string(serpID);
@@ -17,6 +19,7 @@ namespace SnackerEngine
 		}
 		return result;
 	}
+	*/
 	
 	std::optional<SERPID> parseSERPID(const std::string& string)
 	{

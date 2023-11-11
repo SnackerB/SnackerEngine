@@ -1,4 +1,5 @@
 #include "HTTP/ResponseStatusCode.h"
+#include "Utility\Formatting.h"
 
 namespace SnackerEngine
 {
@@ -59,7 +60,8 @@ namespace SnackerEngine
 		}
 	}
 
-	std::string to_string(ResponseStatusCode responseStatusCode)
+	template<>
+	std::string to_string(const ResponseStatusCode& responseStatusCode)
 	{
 		switch (responseStatusCode)
 		{

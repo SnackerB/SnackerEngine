@@ -40,8 +40,8 @@ namespace SnackerEngine
 		GuiPanel& operator=(GuiPanel&& other) noexcept;
 		/// Setters and Getters
 		virtual void setBackgroundColor(const Color4f& backgroundColor);
-		Color4f getBackgroundColor() const;
-		const Shader& getPanelShader() const;
+		const Color4f& getBackgroundColor() const { return backgroundColor; }
+		const Shader& getPanelShader() const { return shader; }
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
