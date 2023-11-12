@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Alignment.cpp" />
+    <ClCompile Include="AnimationFunctions.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Formatting.cpp" />
     <ClCompile Include="Handles\EventHandle.cpp" />
@@ -149,11 +150,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alignment.h" />
+    <ClInclude Include="Animatable.h" />
     <ClInclude Include="Assert\Assert.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="Formatting.h" />
     <ClInclude Include="Handles\EventHandle.h" />
+    <ClInclude Include="AnimationFunctions.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="Keys.h" />
     <ClInclude Include="Random.h" />

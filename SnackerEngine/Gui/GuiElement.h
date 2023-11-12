@@ -17,6 +17,7 @@ namespace SnackerEngine
 	class GuiManager;
 	class GuiGroup;
 	using GuiGroupID = int;
+	class GuiElementAnimatable;
 	//--------------------------------------------------------------------------------------------------
 	/// Base class for all GuiElements, including Layouts!
 	class GuiElement
@@ -353,7 +354,21 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 
-		// TODO
+	private:
+		/// Vector holding pointers to all currently active GuiElementAnimatables
+		/// which are animating properties of this element
+		std::vector<GuiElementAnimatable*> guiElementAnimatables;
+	protected:
+		friend class GuiElementAnimatable;
+		/// Signs up a guiElementAnimatable. This function should only be called by the 
+		/// constructor of the GuiElementAnimatable class.
+		void signUpAnimatable(GuiElementAnimatable& animatable);
+		/// updates the pointers to this GuiElementAnimatable. Should only be called by the
+		/// move constructor/assignment operator of the GuiElementAnimatable class
+		void onGuiAnimatableMove(GuiElementAnimatable* previous, GuiElementAnimatable& animatable);
+		/// signs off a guiElementAnimatable. This function should only be called by the
+		/// destructor of the GuiElementAnimatable class.
+		void signOffAnimatable(GuiElementAnimatable& animatable);
 
 		//==============================================================================================
 		// Groups

@@ -440,5 +440,8 @@
     <ClInclude Include="SERP\SerpManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Gui\GuiAnimatable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

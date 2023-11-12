@@ -656,6 +656,26 @@ namespace SnackerEngine
 		if (guiManager) guiManager->popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signUpAnimatable(GuiElementAnimatable& animatable)
+	{
+		guiElementAnimatables.push_back(&animatable);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::onGuiAnimatableMove(GuiElementAnimatable* previous, GuiElementAnimatable& animatable)
+	{
+		for (std::size_t i = 0; i < guiElementAnimatables.size(); ++i) {
+			if (guiElementAnimatables[i] == previous) {
+				guiElementAnimatables[i] = &animatable;
+				return;
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signOffAnimatable(GuiElementAnimatable& animatable)
+	{
+		// TODO!
+	}
+	//--------------------------------------------------------------------------------------------------
 	bool GuiElement::joinGroup(GuiGroupID groupID)
 	{
 		if (guiManager) return guiManager->joinGroup(guiID, groupID);
