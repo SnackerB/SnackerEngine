@@ -70,7 +70,7 @@ namespace SnackerEngine
 		/// Setters
 		void setSelectionBoxColor(const Color4f& selectionBoxColor) { this->selectionBoxColor = selectionBoxColor; }
 		void setCursorWidth(float cursorWidth);
-		double setCursorBlinkTime(double cursorBlinkTime) { cursorBlinkingTimer.setTimeStep(cursorBlinkTime); }
+		void setCursorBlinkTime(double cursorBlinkTime) { cursorBlinkingTimer.setTimeStep(cursorBlinkTime); }
 		/// Sets the event handle for the event that happens when the text was edited 
 		/// (isActive is set to true and enter or escape is pressed or the user clicks 
 		/// outside the textBox). Cannot be done if an event handle is already set, 
@@ -110,6 +110,14 @@ namespace SnackerEngine
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
+
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+
+		void animateSelectionBoxColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateCursorWidth(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateCursorBlinkTime(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	
 	protected:
 

@@ -38,13 +38,6 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(pressedHoverColor, "pressedHoverColor", json, data, parameterNames);
 		parseJsonOrReadFromData(lockedColor, "lockedColor", json, data, parameterNames);
 		parseJsonOrReadFromData(locked, "locked", json, data, parameterNames);
-		if (!json.contains("size")) {
-			if (!getText().empty()) {
-				if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-				if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-			}
-			if (!json.contains("resizeMode")) setResizeMode(ResizeMode::RESIZE_RANGE);
-		}
 		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::CENTER);
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -168,6 +161,66 @@ namespace SnackerEngine
 		if (locked) {
 			setBackgroundColor(this->lockedColor);
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::animateDefaultColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonDefaultColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setDefaultColor(currentVal); }
+		public:
+			GuiButtonDefaultColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiButtonDefaultColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::animateHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonHoverColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setHoverColor(currentVal); }
+		public:
+			GuiButtonHoverColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiButtonHoverColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonPressedColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setPressedColor(currentVal); }
+		public:
+			GuiButtonPressedColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiButtonPressedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonPressedHoverColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setPressedHoverColor(currentVal); }
+		public:
+			GuiButtonPressedHoverColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiButtonPressedHoverColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonLockedColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setLockedColor(currentVal); }
+		public:
+			GuiButtonLockedColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiButtonLockedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::onRegister()

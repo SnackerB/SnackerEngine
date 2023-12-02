@@ -67,5 +67,12 @@ namespace SnackerEngine
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
+
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+
+		virtual void animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+
 	};
 }

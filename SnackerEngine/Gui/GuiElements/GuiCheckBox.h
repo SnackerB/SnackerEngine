@@ -95,6 +95,17 @@ namespace SnackerEngine
 		void setCheckMarkTexture(const Texture& checkMarkTexture) { this->checkMarkTexture = checkMarkTexture; }
 		void setCheckMarkShader(const Shader& checkMarkShader) { this->checkMarkShader = checkMarkShader; }
 		void setDrawCheckMark(bool drawCheckMark) { this->drawCheckMark = drawCheckMark; }
+
+		void animateColorDefaultTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorHoverTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorHoverPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorDefaultFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorHoverFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateColorHoverPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateCheckMarkColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.

@@ -12,7 +12,7 @@ namespace SnackerEngine
 	Color4f GuiTextBox::defaultTextColor = Color4f(1.0f, 1.0f);
 	Color4f GuiTextBox::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	unsigned GuiTextBox::defaultRecomputeTries = 10;
-	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT };
+	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE };
 	//--------------------------------------------------------------------------------------------------
 	/// Helper functions for parsing JSON
 	template<> bool isOfType<GuiTextBox::TextScaleMode>(const nlohmann::json& json)
@@ -393,6 +393,19 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(sizeHintModes.sizeHintModeMinSize, "sizeHintModeMinSize", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHintModes.sizeHintModeMaxSize, "sizeHintModeMaxSize", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHintModes.sizeHintModePreferredSize, "sizeHintModePreferredSize", json, data, parameterNames);
+		if (textScaleMode == TextScaleMode::SCALE_DOWN || textScaleMode == TextScaleMode::RECOMPUTE_DOWN) {
+			if (!json.contains("sizeHintModeMinSize")) sizeHintModes.sizeHintModeMinSize = SizeHintMode::ARBITRARY;
+			if (!json.contains("sizeHintModePreferredSize")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::ARBITRARY;
+		}
+		else if (textScaleMode == TextScaleMode::SCALE_UP) {
+			if (!json.contains("sizeHintModePreferredSize")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::ARBITRARY;
+			if (!json.contains("sizeHintModeMaxSize")) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::ARBITRARY;
+		}
+		else if (textScaleMode == TextScaleMode::SCALE_UP_DOWN || textScaleMode == TextScaleMode::RECOMPUTE_UP_DOWN) {
+			if (!json.contains("sizeHintModeMinSize")) sizeHintModes.sizeHintModeMinSize = SizeHintMode::ARBITRARY;
+			if (!json.contains("sizeHintModePreferredSize")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::ARBITRARY;
+			if (!json.contains("sizeHintModeMaxSize")) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::ARBITRARY;
+		}
 		parseJsonOrReadFromData(border, "border", json, data, parameterNames);
 		parseJsonOrReadFromData(fontSize, "fontSize", json, data, parameterNames);
 		parseJsonOrReadFromData(recomputeTries, "recomputeTries", json, data, parameterNames);
@@ -402,12 +415,23 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(alignment, "alignment", json, data, parameterNames);
 		parseJsonOrReadFromData(font, "font", json, data, parameterNames);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
-		if (!json.contains("sizeHintModeMinSize")) {
-			if (json.contains("minSize") || (json.contains("minWdith") && json.contains("minHeight"))) setSizeHintModeMinSize(SizeHintMode::ARBITRARY);
-			else if (json.contains("minWidth")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-			else if (json.contains("minHeight")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_WIDTH);
+		if (!json.contains("sizeHintModePreferredSize")) {
+			if (json.contains("preferredWidth")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::SET_TO_TEXT_HEIGHT;
+			if (json.contains("preferredHeight")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::SET_TO_TEXT_WIDTH;
+			if (json.contains("preferredSize") || (json.contains("preferredWidth") && json.contains("preferredHeight"))) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::ARBITRARY;
 		}
-		if (!json.contains("sizeHintModePreferredSize") && (json.contains("preferredSize") || json.contains("preferredHeight"))) setSizeHintModePreferredSize(SizeHintMode::ARBITRARY);
+		if (!json.contains("sizeHintModeMinSize")) {
+			if (json.contains("minWidth")) sizeHintModes.sizeHintModeMinSize = SizeHintMode::SET_TO_TEXT_HEIGHT;
+			if (json.contains("minHeight")) sizeHintModes.sizeHintModeMinSize = SizeHintMode::SET_TO_TEXT_WIDTH;
+			if (json.contains("minSize") || (json.contains("minWidth") && json.contains("minHeight"))) sizeHintModes.sizeHintModeMinSize = SizeHintMode::ARBITRARY;
+		}
+		if (!json.contains("sizeHintModeMaxSize")) {
+			if (json.contains("maxWidth")) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::SET_TO_TEXT_HEIGHT;
+			if (json.contains("maxHeight")) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::SET_TO_TEXT_WIDTH;
+			if (json.contains("maxSize") || (json.contains("maxWidth") && json.contains("maxHeight"))) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::ARBITRARY;
+		}
+		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiTextBox::GuiTextBox(const GuiTextBox& other) noexcept
@@ -583,6 +607,54 @@ namespace SnackerEngine
 	{
 		GuiPanel::setBackgroundColor(backgroundColor);
 		material = constructTextMaterial(font, textColor, backgroundColor);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiTextBoxTextColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiTextBox*>(element)->setTextColor(currentVal); };
+		public:
+			GuiTextBoxTextColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiTextBoxTextColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiTextBoxBorderAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) static_cast<GuiTextBox*>(element)->setBorder(currentVal); };
+		public:
+			GuiTextBoxBorderAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiTextBoxBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiTextBoxFontSizeAnimatable : public GuiElementValueAnimatable<double>
+		{
+			virtual void onAnimate(const double& currentVal) override { if (element) static_cast<GuiTextBox*>(element)->setFontSize(currentVal); };
+		public:
+			GuiTextBoxFontSizeAnimatable(GuiElement& element, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiTextBoxFontSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiTextBoxBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiTextBox*>(element)->setBackgroundColor(currentVal); };
+		public:
+			GuiTextBoxBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiTextBoxBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::draw(const Vec2i& worldPosition)

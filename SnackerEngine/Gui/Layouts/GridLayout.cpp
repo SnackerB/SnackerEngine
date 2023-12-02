@@ -405,6 +405,86 @@ namespace SnackerEngine
 		return registerChild(guiElement, row, column);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::setTotalColumns(unsigned totalColumns)
+	{
+		if (this->totalColumns != totalColumns) {
+			this->totalColumns = totalColumns;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::setTotalRows(unsigned totalRows)
+	{
+		if (this->totalRows != totalRows) {
+			this->totalRows = totalRows;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::setBorder(unsigned border)
+	{
+		if (this->border != border) {
+			this->border = border;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::setOuterBorder(unsigned outerBorder)
+	{
+		if (this->outerBorder != outerBorder) {
+			this->outerBorder = outerBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::animateTotalColumns(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiGridLayoutTotalColumnsAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiGridLayout*>(element)->setTotalColumns(currentVal); };
+		public:
+			GuiGridLayoutTotalColumnsAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiGridLayoutTotalColumnsAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::animateTotalRows(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiGridLayoutTotalRowsAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiGridLayout*>(element)->setTotalRows(currentVal); };
+		public:
+			GuiGridLayoutTotalRowsAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiGridLayoutTotalRowsAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::animateBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiGridLayoutBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiGridLayout*>(element)->setBorder(currentVal); };
+		public:
+			GuiGridLayoutBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiGridLayoutBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiGridLayout::animateOuterBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiGridLayoutOuterBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiGridLayout*>(element)->setOuterBorder(currentVal); };
+		public:
+			GuiGridLayoutOuterBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiGridLayoutOuterBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiGridLayout::removeChild(GuiID guiElement)
 	{
 		std::optional<unsigned> index = GuiLayout::removeChild(guiElement);

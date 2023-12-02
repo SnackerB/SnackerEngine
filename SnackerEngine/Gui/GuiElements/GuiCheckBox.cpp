@@ -218,4 +218,112 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorDefaultTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorDefaultTrueAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorDefaultTrue(currentVal); }
+		public:
+			GuiCheckBoxColorDefaultTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorDefaultTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorHoverTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorHoverTrueAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorHoverTrue(currentVal); }
+		public:
+			GuiCheckBoxColorHoverTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorHoverTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorPressedTrueAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorPressedTrue(currentVal); }
+		public:
+			GuiCheckBoxColorPressedTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorPressedTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorHoverPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorHoverPressedTrueAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorHoverPressedTrue(currentVal); }
+		public:
+			GuiCheckBoxColorHoverPressedTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorHoverPressedTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorDefaultFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorDefaultFalseAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorDefaultFalse(currentVal); }
+		public:
+			GuiCheckBoxColorDefaultFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorDefaultFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorHoverFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorHoverFalseAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorHoverFalse(currentVal); }
+		public:
+			GuiCheckBoxColorHoverFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorHoverFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorPressedFalseAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorPressedFalse(currentVal); }
+		public:
+			GuiCheckBoxColorPressedFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorPressedFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateColorHoverPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxColorHoverPressedFalseAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setColorHoverPressedFalse(currentVal); }
+		public:
+			GuiCheckBoxColorHoverPressedFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxColorHoverPressedFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiCheckBox::animateCheckMarkColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiCheckBoxCheckMarkColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiCheckBox*>(element)->setCheckMarkColor(currentVal); }
+		public:
+			GuiCheckBoxCheckMarkColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiCheckBoxCheckMarkColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 }

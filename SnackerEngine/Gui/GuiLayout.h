@@ -15,7 +15,10 @@ namespace SnackerEngine
 		GuiLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 			: GuiElement(json, data, parameterNames) 
 		{
-			if (!json.contains("resizeMode")) setResizeMode(ResizeMode::SAME_AS_PARENT);
+			if (!json.contains("resizeMode") && !json.contains("position")
+				&& !json.contains("positionX") && !json.contains("positionY")
+				&& !json.contains("size") && !json.contains("width")
+				&& !json.contains("height")) setResizeMode(ResizeMode::SAME_AS_PARENT);
 		}
 		/// Removes the given child from this GuiElement object
 		std::optional<unsigned> removeChild(GuiID guiElement)

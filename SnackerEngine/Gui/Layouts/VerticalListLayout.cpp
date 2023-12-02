@@ -113,7 +113,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalListLayout::computeHeightHintsFromChildren()
 	{
-		if (getResizeMode() != ResizeMode::RESIZE_RANGE) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
 		int totalMinHeight = 0;
 		int totalPreferredHeight = SIZE_HINT_ARBITRARY;
 		for (auto childID : getChildren()) {
@@ -134,7 +134,7 @@ namespace SnackerEngine
 		totalMinHeight += totalBorders;
 		if (totalPreferredHeight >= 0) totalPreferredHeight += totalBorders;
 		setMinHeight(totalMinHeight);
-		setPreferredHeight(totalPreferredHeight);
+		if (shrinkHeightToChildren) setPreferredHeight(totalPreferredHeight);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalListLayout::GuiVerticalListLayout(Color4f backgroundColor)
@@ -279,6 +279,42 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalListLayout::animateVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalListLayoutVerticalBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiVerticalListLayout*>(element)->setVerticalBorder(currentVal); }
+		public:
+			GuiVerticalListLayoutVerticalBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalListLayoutVerticalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalListLayout::animateOuterVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalListLayoutOuterVerticalBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiVerticalListLayout*>(element)->setOuterVerticalBorder(currentVal); }
+		public:
+			GuiVerticalListLayoutOuterVerticalBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalListLayoutOuterVerticalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalListLayout::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalListLayoutBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiVerticalListLayout*>(element)->setBackgroundColor(currentVal); }
+		public:
+			GuiVerticalListLayoutBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalListLayoutBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalListLayout::computeModelMatrix()
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(
@@ -348,7 +384,8 @@ namespace SnackerEngine
 				GuiElement* child = getElement(childId);
 				if (child) {
 					minHeights.push_back(child->getMinHeight());
-					preferredHeights.push_back(child->getPreferredHeight());
+					if (child->getPreferredHeight() < 0) preferredHeights.push_back(child->getPreferredHeight());
+					else preferredHeights.push_back(child->clampToMinMaxHeight(child->getPreferredHeight()));
 					maxHeights.push_back(child->getMaxHeight());
 				}
 				else {

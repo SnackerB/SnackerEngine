@@ -170,6 +170,15 @@ namespace SnackerEngine
 		void setFont(const Font& font);
 		void setBackgroundColor(const Color4f& backgroundColor) override;
 
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+
+		void animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear) override;
+
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.

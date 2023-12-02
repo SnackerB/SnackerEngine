@@ -58,6 +58,78 @@ namespace SnackerEngine
 		computeResizeButtonModelMatrix();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiWindow::animateResizeButtonSize(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiWindowResizeButtonSizeAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) static_cast<GuiWindow*>(element)->setResizeButtonSize(currentVal); }
+		public:
+			GuiWindowResizeButtonSizeAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiWindowResizeButtonSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiWindow::animateTopBarHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiWindowTopBarHeightAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) static_cast<GuiWindow*>(element)->setTopBarHeight(currentVal); }
+		public:
+			GuiWindowTopBarHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiWindowTopBarHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiWindow::animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiWindowFontSizeAnimatable : public GuiElementValueAnimatable<double>
+		{
+			virtual void onAnimate(const double& currentVal) override { if (element) static_cast<GuiWindow*>(element)->setFontSize(currentVal); }
+		public:
+			GuiWindowFontSizeAnimatable(GuiElement& element, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiWindowFontSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiWindow::animateTopBarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiWindowTopBarColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiWindow*>(element)->setTopBarColor(currentVal); }
+		public:
+			GuiWindowTopBarColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiWindowTopBarColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiWindow::animateTopBarTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiWindowTopBarTextColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiWindow*>(element)->setTopBarTextColor(currentVal); }
+		public:
+			GuiWindowTopBarTextColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiWindowTopBarTextColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiWindow::animateResizeButtonColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiWindowResizeButtonColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiWindow*>(element)->setResizeButtonColor(currentVal); }
+		public:
+			GuiWindowResizeButtonColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiWindowResizeButtonColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();

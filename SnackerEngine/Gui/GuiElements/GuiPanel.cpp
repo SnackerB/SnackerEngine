@@ -95,6 +95,18 @@ namespace SnackerEngine
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setBackgroundColor(currentVal); };
+		public:
+			GuiPanelBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiPanelBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::computeModelMatrix()
 	{
 		const Vec2i& position = getPosition();

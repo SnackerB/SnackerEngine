@@ -100,6 +100,12 @@ namespace SnackerEngine
 		bool setVerticalLayoutGroupID(GuiGroupID groupID);
 		bool setVerticalLayoutGroupName(const std::string& groupName);
 		void setShrinkHeightToChildren(bool shrinkHeightToChildren);
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateOuterVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Computes the background model matrix
 		void computeModelMatrix();

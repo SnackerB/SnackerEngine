@@ -48,6 +48,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalLayout::computeHeightHintsFromChildren()
 	{
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
 		int minHeight = 0;
 		std::optional<int> preferredHeight = std::nullopt;
 		for (auto childID : getChildren()) {
@@ -72,10 +73,14 @@ namespace SnackerEngine
 			}
 		}
 		setMinHeight(minHeight);
-		if ((getResizeMode() == ResizeMode::RESIZE_RANGE || shrinkHeightToChildren) && preferredHeight.has_value() && preferredHeight.value() != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
-			setPreferredHeight(preferredHeight.value() + 2 * verticalBorder);
+		if (shrinkHeightToChildren) {
+			if (preferredHeight.has_value()) {
+				setPreferredHeight(preferredHeight.value() + 2 * verticalBorder);
+			}
+			else {
+				setPreferredHeight(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+			}
 		}
-		else setPreferredHeight(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 	}	
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalLayout::GuiHorizontalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
@@ -159,6 +164,18 @@ namespace SnackerEngine
 	{
 		std::optional<unsigned> index = getIndexIntoChildrenVector(childID); 
 		return index.has_value() ? alignmentsVertical[index.value()] : std::optional<AlignmentVertical>();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalLayout::animateVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiGuiHorizontalLayoutVerticalBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiHorizontalLayout*>(element)->setVerticalBorder(currentVal); }
+		public:
+			GuiGuiHorizontalLayoutVerticalBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiGuiHorizontalLayoutVerticalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiHorizontalLayout::removeChild(GuiID guiElement)

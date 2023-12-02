@@ -219,6 +219,25 @@ namespace SnackerEngine
 		callbackMouseMotion(currentMousePosition);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiManager::signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable)
+	{
+		guiElementAnimatables.emplace_back(std::move(animatable));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::updateAnimatables(double dt)
+	{
+		auto it = guiElementAnimatables.begin();
+		while (it != guiElementAnimatables.end()) {
+			(*it)->update(dt);
+			if ((*it)->isFinished() || (*it)->isNull()) {
+				it = guiElementAnimatables.erase(it);
+			}
+			else {
+				it++;
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	std::optional<GuiElement::GuiID> GuiManager::getGuiElement(const std::string& name)
 	{
 		auto it = namedElements.find(name);
@@ -1169,7 +1188,7 @@ namespace SnackerEngine
 			auto element = getGuiElement(guiID);
 			if (element) element->update(dt);
 		}
-		// animate(dt); TODO: Uncomment
+		updateAnimatables(dt);
 		enforceLayouts();
 	}
 	//--------------------------------------------------------------------------------------------------

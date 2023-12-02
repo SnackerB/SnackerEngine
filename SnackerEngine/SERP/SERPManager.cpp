@@ -1,5 +1,6 @@
 #include "SERP\SerpManager.h"
 #include "Core\Log.h"
+#include "Utility\Formatting.h"
 
 #include <stdexcept>
 
@@ -181,7 +182,7 @@ namespace SnackerEngine
 		}
 		for (auto& outgoingRequest : outgoingRequests) {
 			for (auto& pendingResponse : outgoingRequest.second) {
-				pendingResponse.second->serpManager = nullptr;
+				if (pendingResponse.second) pendingResponse.second->serpManager = nullptr;
 			}
 		}
 		clearIncomingRequestPaths();
@@ -339,7 +340,7 @@ namespace SnackerEngine
 			else if (serpIDResponse->getStatus() == PendingResponse::Status::OBTAINED) {
 				const SERPResponse& response = serpIDResponse->getResponse();
 				if (response.response.responseStatusCode == ResponseStatusCode::OK) {
-					auto result = parseSERPID(response.response.body);
+					auto result = from_string<SERPID>(response.response.body);
 					if (result.has_value()) {
 						serpID = result.value();
 					}

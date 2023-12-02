@@ -82,6 +82,14 @@ namespace SnackerEngine
 		void setValue(const T& value);
 		void setMinValue(const T& minValue);
 		void setMaxValue(const T& maxValue);
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateSliderButtonWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateSliderButtonColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMinValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMaxValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
@@ -324,6 +332,71 @@ namespace SnackerEngine
 	{
 		this->maxValue = maxValue;
 		setValue(this->value);
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::animateSliderButtonWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiSliderSliderButtonWidthAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (GuiElementValueAnimatable<int>::element) static_cast<GuiSlider<T>*>(GuiElementValueAnimatable<int>::element)->setSliderButtonWidth(currentVal); };
+		public:
+			GuiSliderSliderButtonWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiSliderSliderButtonWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::animateSliderButtonColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiSliderSliderButtonColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (GuiElementValueAnimatable<Color4f>::element) static_cast<GuiSlider<T>*>(GuiElementValueAnimatable<Color4f>::element)->setSliderButtonColor(currentVal); };
+		public:
+			GuiSliderSliderButtonColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiSliderSliderButtonColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiSliderValueAnimatable : public GuiElementValueAnimatable<T>
+		{
+			virtual void onAnimate(const T& currentVal) override { if (GuiElementValueAnimatable<T>::element) static_cast<GuiSlider<T>*>(GuiElementValueAnimatable<T>::element)->setValue(currentVal); };
+		public:
+			GuiSliderValueAnimatable(GuiElement& element, const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<T>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiSliderValueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::animateMinValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiSliderMinValueAnimatable : public GuiElementValueAnimatable<T>
+		{
+			virtual void onAnimate(const T& currentVal) override { if (GuiElementValueAnimatable<T>::element) static_cast<GuiSlider<T>*>(GuiElementValueAnimatable<T>::element)->setMinValue(currentVal); };
+		public:
+			GuiSliderMinValueAnimatable(GuiElement& element, const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<T>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiSliderMinValueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::animateMaxValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiSliderMaxValueAnimatable : public GuiElementValueAnimatable<T>
+		{
+			virtual void onAnimate(const T& currentVal) override { if (GuiElementValueAnimatable<T>::element) static_cast<GuiSlider<T>*>(GuiElementValueAnimatable<T>::element)->setMaxValue(currentVal); };
+		public:
+			GuiSliderMaxValueAnimatable(GuiElement& element, const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<T>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiSliderMaxValueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>

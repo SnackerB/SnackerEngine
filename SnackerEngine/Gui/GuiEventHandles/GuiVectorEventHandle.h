@@ -46,6 +46,9 @@ namespace SnackerEngine
 		GuiEventHandle& operator[](std::size_t index) { return get(index); }
 		/// Returns the current number of child handles
 		std::size_t size() const { return childHandles.size(); }
+		/// Returns a reference to the last GuiEventHandle
+		GuiEventHandle& back() { return childHandles.back(); }
+		const GuiEventHandle& back() const { return childHandles.back(); }
 		/// Creates a new event handle and pushes it into the child handles vector
 		GuiEventHandle& createNewEventHandle() { childHandles.push_back(ChildEventHandle(this)); return childHandles.back(); }
 		/// Clears childHandles

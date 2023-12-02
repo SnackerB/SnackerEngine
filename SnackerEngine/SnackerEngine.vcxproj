@@ -190,6 +190,7 @@
     <ClCompile Include="Graphics\VertexBuffer.cpp" />
     <ClCompile Include="Graphics\VertexBufferLayout.cpp" />
     <ClCompile Include="Gui\Group.cpp" />
+    <ClCompile Include="Gui\GuiAnimatable.cpp" />
     <ClCompile Include="Gui\GuiElement.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiButton.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiCheckBox.cpp" />

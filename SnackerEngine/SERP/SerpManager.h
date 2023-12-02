@@ -78,10 +78,10 @@ namespace SnackerEngine
 		/// the request is answered with an error message
 		std::unordered_map<std::string, std::queue<SERPRequest>> incomingRequests{};
 		/// Map of all requests that were sent and have not yet received an answer. This map is used to map incoming responses to these requests
-		std::unordered_map<SERPID, PendingResponse*> pendingResponses{};
+		std::unordered_map<unsigned int, PendingResponse*> pendingResponses{};
 		/// Queues of outgoing requests. Is used as a backup if multiple requests are sent to the same client without waiting for an answer or
 		/// timeout first.
-		std::unordered_map<SERPID, std::vector<std::pair<SERPRequest, PendingResponse*>>> outgoingRequests{};
+		std::unordered_map<unsigned int, std::vector<std::pair<SERPRequest, PendingResponse*>>> outgoingRequests{};
 		/// Request for serpID, which is sent after connecting to the SERPServer
 		std::unique_ptr<PendingResponse> serpIDResponse = nullptr;
 		/// Buffer for incoming messages

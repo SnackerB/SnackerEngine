@@ -5,6 +5,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/Shader.h"
 #include "Gui\Group.h"
+#include "Gui\GuiAnimatable.h"
 
 #include <queue>
 #include <unordered_set>
@@ -138,7 +139,13 @@ namespace SnackerEngine
 		// Animations
 		//==============================================================================================
 	
-		// TODO
+	private:
+		/// Vector of unique pointers to GuiElementAnimatables
+		std::vector<std::unique_ptr<GuiElementAnimatable>> guiElementAnimatables;
+		/// This function can be called by a GuiElement to signup an animation
+		void signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable);
+		/// Updates all Animatables and clears unused/finished animations
+		void updateAnimatables(double dt);
 
 		//==============================================================================================
 		// JSON parsing

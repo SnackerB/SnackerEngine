@@ -290,7 +290,22 @@ namespace SnackerEngine
 					saveJSON(json, fullPath);
 					return true;
 				}
-				catch (const std::exception&) {}
+				catch (const std::exception&) 
+				{
+					return false;
+				}
+			}
+		}
+		if (!resourcePaths.empty()) {
+			std::string fullPath = resourcePaths.front() + path;
+			try
+			{
+				saveJSON(json, fullPath);
+				return true;
+			}
+			catch (const std::exception&) 
+			{
+				return false;
 			}
 		}
 		return false;

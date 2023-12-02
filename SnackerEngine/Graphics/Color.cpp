@@ -35,7 +35,7 @@ namespace SnackerEngine
 		else result.g = json[1];
 		if (json[2].is_number_integer()) result.b = static_cast<float>(int(json[2])) / 255.0f;
 		else result.b = json[2];
-		if (json[3].is_number_integer()) result.alpha = static_cast<float>(int(json[2])) / 255.0f;
+		if (json[3].is_number_integer()) result.alpha = static_cast<float>(int(json[3])) / 255.0f;
 		else result.alpha = json[3];
 		return result;
 	}

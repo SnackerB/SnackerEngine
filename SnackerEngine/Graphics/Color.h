@@ -41,6 +41,9 @@ namespace SnackerEngine
 		Color4(const Color3<T>& color, const T& alpha)
 			: r(color.r), g(color.g), b(color.b), alpha(alpha) {}
 		Color4() = default;
+		Color4<T> operator+(const Color4<T>& other) { return Color4<T>{ r + other.r, g + other.g, b + other.b, alpha + other.alpha }; }
+		Color4<T> operator-(const Color4<T>& other) { return Color4<T>{ r - other.r, g - other.g, b - other.b, alpha - other.alpha }; }
+		Color4<T> operator*(const T& scalar) const { return Color4<T>(r * scalar, g * scalar, b * scalar, alpha * scalar); }
 		/// Converts from a color vector where each color is in [0, 255]
 		template<typename T2>
 		static Color4<T> fromColor256(const Color4<T2>& color256);

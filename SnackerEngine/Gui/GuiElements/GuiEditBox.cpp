@@ -74,9 +74,11 @@ namespace SnackerEngine
 		std::optional<double> cursorBlinkTime = parseJsonOrReadFromData<double>("cursorBlinkTime", json, data, parameterNames);
 		if (cursorBlinkTime.has_value()) cursorBlinkingTimer.setTimeStep(cursorBlinkTime.value());
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
-		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
-		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);
-		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
+		if (!json.contains("sizeHintModeMinSize") && getTextScaleMode() != TextScaleMode::SCALE_DOWN && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN &&
+			getTextScaleMode() != TextScaleMode::RECOMPUTE_DOWN && getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
+		if (!json.contains("sizeHintModePreferredSize") && getTextScaleMode() == TextScaleMode::DONT_SCALE) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);
+		if (!json.contains("sizeHintModeMaxSize") && getTextScaleMode() != TextScaleMode::SCALE_UP && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN
+			&& getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::~GuiEditBox()
@@ -240,6 +242,42 @@ namespace SnackerEngine
 	GuiElement::IsCollidingResult GuiEditBox::isColliding(const Vec2i& offset) const
 	{
 		return isCollidingBoundingBox(offset) ? IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::animateSelectionBoxColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiEditBoxSelectionBoxColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiEditBox*>(element)->setSelectionBoxColor(currentVal); }
+		public:
+			GuiEditBoxSelectionBoxColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiEditBoxSelectionBoxColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::animateCursorWidth(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiEditBoxCursorWidthAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiEditBox*>(element)->setCursorWidth(currentVal); }
+		public:
+			GuiEditBoxCursorWidthAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiEditBoxCursorWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::animateCursorBlinkTime(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiEditBoxCursorBlinkTimeAnimatable : public GuiElementValueAnimatable<double>
+		{
+			virtual void onAnimate(const double& currentVal) override { if (element) static_cast<GuiEditBox*>(element)->setCursorBlinkTime(currentVal); }
+		public:
+			GuiEditBoxCursorBlinkTimeAnimatable(GuiElement& element, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiEditBoxCursorBlinkTimeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::callbackMouseButton(const int& button, const int& action, const int& mods)

@@ -165,6 +165,68 @@ namespace SnackerEngine
 		this->allowMoveBorders = allowMoveBorders;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::animateWeight(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalWeightedLayoutWeightAnimatable : public GuiElementValueAnimatable<double>
+		{
+			GuiID childID;
+			virtual void onAnimate(const double& currentVal) override { if (element) static_cast<GuiHorizontalWeightedLayout*>(element)->setWeight(childID, currentVal); }
+		public:
+			GuiHorizontalWeightedLayoutWeightAnimatable(GuiElement& element, GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction), childID{ childID } {}
+		};
+		animate(std::make_unique<GuiHorizontalWeightedLayoutWeightAnimatable>(*this, childID, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::animatePercentage(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalWeightedLayoutPercentageAnimatable : public GuiElementValueAnimatable<double>
+		{
+			GuiID childID;
+			virtual void onAnimate(const double& currentVal) override { if (element) static_cast<GuiHorizontalWeightedLayout*>(element)->setPercentage(childID, currentVal); }
+		public:
+			GuiHorizontalWeightedLayoutPercentageAnimatable(GuiElement& element, GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction), childID{ childID } {}
+		};
+		animate(std::make_unique<GuiHorizontalWeightedLayoutPercentageAnimatable>(*this, childID, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::animateHorizontalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalWeightedLayoutHorizontalBorderAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) static_cast<GuiHorizontalWeightedLayout*>(element)->setHorizontalBorder(currentVal); }
+		public:
+			GuiHorizontalWeightedLayoutHorizontalBorderAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiHorizontalWeightedLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::animateOuterHorizontalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) static_cast<GuiHorizontalWeightedLayout*>(element)->setOuterHorizontalBorder(currentVal); }
+		public:
+			GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable >(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalWeightedLayout::animateResizeAreaWidth(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiHorizontalWeightedLayout*>(element)->setResizeAreaWidth(currentVal); }
+		public:
+			GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::onRegister()
 	{
 		GuiLayout::onRegister();

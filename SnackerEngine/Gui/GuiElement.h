@@ -5,6 +5,7 @@
 #include "Gui/GuiEventHandles/GuiVariableHandle.h"
 #include "Gui/SizeHints.h"
 #include "Gui\Text\Font.h"
+#include "Gui\GuiAnimatable.h"
 
 #include <vector>
 #include <optional>
@@ -355,11 +356,12 @@ namespace SnackerEngine
 		//==============================================================================================
 
 	private:
+		friend class GuiElementAnimatable;
 		/// Vector holding pointers to all currently active GuiElementAnimatables
 		/// which are animating properties of this element
 		std::vector<GuiElementAnimatable*> guiElementAnimatables;
-	protected:
-		friend class GuiElementAnimatable;
+		/// Helper function that signs off all animatables
+		void signOffAllAnimatables();
 		/// Signs up a guiElementAnimatable. This function should only be called by the 
 		/// constructor of the GuiElementAnimatable class.
 		void signUpAnimatable(GuiElementAnimatable& animatable);
@@ -369,6 +371,25 @@ namespace SnackerEngine
 		/// signs off a guiElementAnimatable. This function should only be called by the
 		/// destructor of the GuiElementAnimatable class.
 		void signOffAnimatable(GuiElementAnimatable& animatable);
+	protected:
+		/// This function can be called by child classes to register a new animation
+		void animate(std::unique_ptr<GuiElementAnimatable> animatable);
+	public:
+		void animatePosition(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePositionX(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePositionY(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMinSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMinWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMinHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMaxSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMaxWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateMaxHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 		//==============================================================================================
 		// Groups

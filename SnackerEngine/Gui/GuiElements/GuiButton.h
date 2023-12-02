@@ -66,6 +66,16 @@ namespace SnackerEngine
 		const Color4f& getLockedColor() const { return lockedColor; }
 		bool isLocked() const { return locked; }
 
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+
+		void animateDefaultColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+
 	protected:
 
 		/// This function is called by the guiManager after registering this GuiElement object.

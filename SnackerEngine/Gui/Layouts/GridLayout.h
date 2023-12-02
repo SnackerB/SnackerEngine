@@ -80,13 +80,29 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		GuiGridLayout(GuiGridLayout&& other) noexcept;
 		GuiGridLayout& operator=(GuiGridLayout&& other) noexcept;
-
 		/// Adds a child to this guiElement. Returns true on success
 		virtual bool registerChild(GuiElement& guiElement) override;
 		/// Adds a child to this guiElement. Returns true on success
 		bool registerChild(GuiElement& guiElement, unsigned row, unsigned column);
 		/// Adds a child to this guiElement, with options given in JSON
 		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
+		/// Getters
+		unsigned getTotalColumns() const { return totalColumns; }
+		unsigned getTotalRows() const { return totalRows; }
+		unsigned getBorder() const { return border; }
+		unsigned getOuterBorder() const { return outerBorder; }
+		/// Setters
+		void setTotalColumns(unsigned totalColumns);
+		void setTotalRows(unsigned totalRows);
+		void setBorder(unsigned border);
+		void setOuterBorder(unsigned outerBorder);
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateTotalColumns(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateTotalRows(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateOuterBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Removes the given child from this GuiElement object
 		virtual std::optional<unsigned> removeChild(GuiID guiElement) override;

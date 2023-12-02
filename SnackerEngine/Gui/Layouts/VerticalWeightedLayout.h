@@ -78,6 +78,14 @@ namespace SnackerEngine
 		void setAlignmentVertical(AlignmentVertical alignmentVertical);
 		void setResizeAreaHeight(unsigned resizeAreaHeight) { this->resizeAreaHeight = resizeAreaHeight; }
 		void setAllowMoveBorders(bool allowMoveBorders);
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateWeight(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animatePercentage(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateVerticalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateOuterVerticalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateResizeAreaHeight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.

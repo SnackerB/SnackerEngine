@@ -42,6 +42,7 @@ namespace SnackerEngine
 		GuiPositioningLayout& operator=(GuiPositioningLayout&& other) noexcept;
 		/// Getters
 		Mode getMode() const { return mode; }
+		/// Setters
 		void setMode(Mode mode);
 	protected:
 		/// Sets the position and size of the children of this element according to

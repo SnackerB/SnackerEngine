@@ -30,8 +30,6 @@ namespace SnackerEngine
 		float scrollSpeed = defaultScrollSpeed;
 		/// Boolean that controls wether the scrollbar is drawn
 		bool drawScrollBar = false;
-		/// Boolean that controls wether the scrollbar is currently pressed down or not
-		bool scrollbarPressed = false; // TODO: Add to constructors!!!
 		/// Percentage the visible scection holds of the total list
 		float visiblePercentage = 1.0f;
 		/// Percentage the offset holds of the total list
@@ -42,8 +40,6 @@ namespace SnackerEngine
 		/// model matrix for the scrollbar and its background
 		Mat4f modelMatrixScrollbar{};
 		Mat4f modelMatrixScrollbarBackground{};
-		/// The current scrollbar color
-		Color4f currentScrollbarColor = defaultScrollbarColor;
 		/// The width of the scrollbar
 		unsigned scrollbarWidth = defaultScrollBarWidth;
 		/// Offset from the top, bottom and right border to the scroll bar
@@ -71,6 +67,32 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		GuiVerticalScrollingListLayout(GuiVerticalScrollingListLayout&& other) noexcept;
 		GuiVerticalScrollingListLayout& operator=(GuiVerticalScrollingListLayout&& other) noexcept;
+		/// Getters
+		float getScrollSpeed() const { return scrollSpeed; }
+		float getTotalOffsetPercentage() const { return offsetPercentage / (1.0f - visiblePercentage); }
+		const Color4f& getScrollbarBackgroundColor() const { return scrollbarBackgroundColor; }
+		const Color4f& getScrollbarColor() const { return scrollbarColor; }
+		unsigned getScrollbarBorderRight() const { return scrollbarBorderRight; }
+		unsigned getScrollbarBorderTop() const { return scrollbarBorderTop; }
+		unsigned getScrollbarBorderBottom() const { return scrollbarBorderBottom; }
+		/// Setters
+		void setScrollSpeed(float scrollSpeed) { this->scrollSpeed = scrollSpeed; };
+		void setTotalOffsetPercentage(float totalOffsetPercentage);
+		void setScrollbarBackgroundColor(const Color4f& scrollbarBackgroundColor) { this->scrollbarBackgroundColor = scrollbarBackgroundColor; }
+		void setScrollbarColor(const Color4f& scrollbarColor) { this->scrollbarColor = scrollbarColor; }
+		void setScrollbarBorderRight(unsigned scrollbarBorderRight);
+		void setScrollbarBorderTop(unsigned scrollbarBorderTop);
+		void setScrollbarBorderBottom(unsigned scrollbarBorderBottom);
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateScrollSpeed(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateTotalOffsetPercentage(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateScrollbarBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateScrollbarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateScrollbarBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateScrollbarBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		void animateScrollbarBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Computes the percentages and wether the scrollbar should be visible
 		void computeScrollBar();

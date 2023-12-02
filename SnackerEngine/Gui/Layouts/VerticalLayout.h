@@ -66,10 +66,14 @@ namespace SnackerEngine
 		void setAlignmentHorizontal(GuiID childID, AlignmentHorizontal alignmentHorizontal);
 		/// Getters
 		VerticalLayoutMode getMode() const { return verticalLayoutMode; }
-		unsigned getHorizontal() const { return horizontalBorder; }
+		unsigned getHorizontalBorder() const { return horizontalBorder; }
 		bool isShrinkWidthToChildren() const { return shrinkWidthToChildren; }
 		AlignmentHorizontal getDefaultAlignmentHorizontal() const { return defaultAlignmentHorizontal; }
 		std::optional<AlignmentHorizontal> getAlignmentHorizontal(GuiID childID);
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Removes the given child from this GuiElement object
 		virtual std::optional<unsigned> removeChild(GuiID guiElement) override;

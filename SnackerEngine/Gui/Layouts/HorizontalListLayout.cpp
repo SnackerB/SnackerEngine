@@ -113,7 +113,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::computeWidthHintsFromChildren()
 	{
-		if (getResizeMode() != ResizeMode::RESIZE_RANGE) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
 		int totalMinWidth = 0;
 		int totalPreferredWidth = SIZE_HINT_ARBITRARY;
 		for (auto childID : getChildren()) {
@@ -134,7 +134,7 @@ namespace SnackerEngine
 		totalMinWidth += totalBorders;
 		if (totalPreferredWidth >= 0) totalPreferredWidth += totalBorders;
 		setMinWidth(totalMinWidth);
-		setPreferredWidth(totalPreferredWidth);
+		if (shrinkWidthToChildren) setPreferredWidth(totalPreferredWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout(Color4f backgroundColor)
@@ -279,6 +279,42 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalListLayoutHorizontalBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiHorizontalListLayout*>(element)->setHorizontalBorder(currentVal); }
+		public:
+			GuiHorizontalListLayoutHorizontalBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiHorizontalListLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::animateOuterHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalListLayoutOuterHorizontalBorderAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiHorizontalListLayout*>(element)->setOuterHorizontalBorder(currentVal); }
+		public:
+			GuiHorizontalListLayoutOuterHorizontalBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiHorizontalListLayoutOuterHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiHorizontalListLayout::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiHorizontalListLayoutBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiHorizontalListLayout*>(element)->setBackgroundColor(currentVal); }
+		public:
+			GuiHorizontalListLayoutBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiHorizontalListLayoutBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::computeModelMatrix()
 	{
 		modelMatrixBackground = Mat4f::TranslateAndScale(
@@ -348,7 +384,8 @@ namespace SnackerEngine
 				GuiElement* child = getElement(childId);
 				if (child) {
 					minWidths.push_back(child->getMinWidth());
-					preferredWidths.push_back(child->getPreferredWidth());
+					if (child->getPreferredWidth() < 0) preferredWidths.push_back(child->getPreferredWidth());
+					else preferredWidths.push_back(child->clampToMinMaxWidth(child->getPreferredWidth()));
 					maxWidths.push_back(child->getMaxWidth());
 				}
 				else {

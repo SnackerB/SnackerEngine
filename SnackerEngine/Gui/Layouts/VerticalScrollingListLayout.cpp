@@ -35,7 +35,7 @@ namespace SnackerEngine
 		scrollSpeed(other.scrollSpeed), drawScrollBar(other.drawScrollBar), visiblePercentage(other.visiblePercentage), 
 		offsetPercentage(other.offsetPercentage), scrollbarBackgroundColor(other.scrollbarBackgroundColor), 
 		scrollbarColor(other.scrollbarColor), modelMatrixScrollbar{}, modelMatrixScrollbarBackground{},
-		currentScrollbarColor(other.currentScrollbarColor), scrollbarWidth(other.scrollbarWidth), 
+		scrollbarWidth(other.scrollbarWidth), 
 		scrollbarBorderRight(other.scrollbarBorderRight), scrollbarBorderTop(other.scrollbarBorderTop),
 		scrollbarBorderBottom(other.scrollbarBorderBottom), mouseOffsetFromScrollBar(0.0f),
 		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement) {}
@@ -53,7 +53,6 @@ namespace SnackerEngine
 		scrollbarColor = other.scrollbarColor;
 		modelMatrixScrollbar = Mat4f();
 		modelMatrixScrollbarBackground = Mat4f();
-		currentScrollbarColor = other.currentScrollbarColor;
 		scrollbarWidth = other.scrollbarWidth;
 		scrollbarBorderRight = other.scrollbarBorderRight;
 		scrollbarBorderTop = other.scrollbarBorderTop;
@@ -70,7 +69,7 @@ namespace SnackerEngine
 		offsetPercentage(other.offsetPercentage), scrollbarBackgroundColor(other.scrollbarBackgroundColor),
 		scrollbarColor(other.scrollbarColor), modelMatrixScrollbar(other.modelMatrixScrollbar), 
 		modelMatrixScrollbarBackground(other.modelMatrixScrollbarBackground),
-		currentScrollbarColor(other.currentScrollbarColor),scrollbarWidth(other.scrollbarWidth), 
+		scrollbarWidth(other.scrollbarWidth), 
 		scrollbarBorderRight(other.scrollbarBorderRight), scrollbarBorderTop(other.scrollbarBorderTop),
 		scrollbarBorderBottom(other.scrollbarBorderBottom), mouseOffsetFromScrollBar(0.0f),
 		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement) {}
@@ -88,7 +87,6 @@ namespace SnackerEngine
 		scrollbarColor = other.scrollbarColor;
 		modelMatrixScrollbar = other.modelMatrixScrollbar;
 		modelMatrixScrollbarBackground = other.modelMatrixScrollbarBackground;
-		currentScrollbarColor = other.currentScrollbarColor;
 		scrollbarWidth = other.scrollbarWidth;
 		scrollbarBorderRight = other.scrollbarBorderRight;
 		scrollbarBorderTop = other.scrollbarBorderTop;
@@ -97,6 +95,123 @@ namespace SnackerEngine
 		firstVisibleElement = other.firstVisibleElement;
 		lastVisibleElement = other.lastVisibleElement;
 		return *this;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::setTotalOffsetPercentage(float totalOffsetPercentage)
+	{
+		float newOffsetPercentage = totalOffsetPercentage * (1.0f - visiblePercentage);
+		if (offsetPercentage != newOffsetPercentage) {
+			offsetPercentage = newOffsetPercentage;
+			computeScrollBar();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::setScrollbarBorderRight(unsigned scrollbarBorderRight)
+	{
+		if (this->scrollbarBorderRight != scrollbarBorderRight) {
+			this->scrollbarBorderRight = scrollbarBorderRight;
+			computeScrollbarModelMatrices();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::setScrollbarBorderTop(unsigned scrollbarBorderTop)
+	{
+		if (this->scrollbarBorderTop != scrollbarBorderTop) {
+			this->scrollbarBorderTop = scrollbarBorderTop;
+			computeScrollbarModelMatrices();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::setScrollbarBorderBottom(unsigned scrollbarBorderBottom)
+	{
+		if (this->scrollbarBorderBottom != scrollbarBorderBottom) {
+			this->scrollbarBorderBottom = scrollbarBorderBottom;
+			computeScrollbarModelMatrices();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateScrollSpeed(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutScrollSpeedAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setScrollSpeed(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutScrollSpeedAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollSpeedAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateTotalOffsetPercentage(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setTotalOffsetPercentage(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateScrollbarBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setScrollbarBackgroundColor(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateScrollbarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutScrollbarColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setScrollbarColor(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutScrollbarColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollbarColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateScrollbarBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setScrollbarBorderRight(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateScrollbarBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setScrollbarBorderTop(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::animateScrollbarBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable : public GuiElementValueAnimatable<unsigned>
+		{
+			virtual void onAnimate(const unsigned& currentVal) override { if (element) static_cast<GuiVerticalScrollingListLayout*>(element)->setScrollbarBorderBottom(currentVal); }
+		public:
+			GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalScrollingListLayout::computeScrollBar()

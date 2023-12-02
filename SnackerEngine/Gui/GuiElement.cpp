@@ -57,18 +57,20 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::~GuiElement()
 	{
+		signOffAllAnimatables();
 		if (guiManager) guiManager->signOff(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(const GuiElement& other) noexcept
 		: guiManager(nullptr), name(""), guiID(-1), parentID(-1), depth(0), position(other.position), size(other.size),
 		resizeMode(other.resizeMode), sizeHints{ other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize },
-		children{}, sortedChildren{}
+		children{}, sortedChildren{}, guiElementAnimatables{}
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(const GuiElement& other) noexcept
 	{
+		signOffAllAnimatables();
 		if (guiManager) guiManager->signOff(guiID);
 		guiManager = nullptr;
 		name = "";
@@ -81,22 +83,28 @@ namespace SnackerEngine
 		sizeHints = { other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize };
 		children.clear();
 		sortedChildren.clear();
+		guiElementAnimatables.clear();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::GuiElement(GuiElement&& other) noexcept
 		: guiManager(other.guiManager), name(other.name), guiID(other.guiID), parentID(other.parentID), depth(other.depth), position(other.position), size(other.size),
 		resizeMode(other.resizeMode), sizeHints{ other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize }, 
-		children(std::move(other.children)), sortedChildren(std::move(other.sortedChildren))
+		children(std::move(other.children)), sortedChildren(std::move(other.sortedChildren)), guiElementAnimatables{ std::move(other.guiElementAnimatables) }
 	{
 		if (guiManager) guiManager->updateMoved(*this);
+		for (const auto& animatable : guiElementAnimatables) {
+			animatable->element = this;
+		}
 		other.children.clear();
 		other.sortedChildren.clear();
+		other.guiElementAnimatables.clear();
 		other.signOff();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement& GuiElement::operator=(GuiElement&& other) noexcept
 	{
+		signOffAllAnimatables();
 		if (guiManager) guiManager->signOff(guiID);
 		name = other.name;
 		guiManager = other.guiManager;
@@ -109,9 +117,14 @@ namespace SnackerEngine
 		sizeHints = { other.sizeHints.minSize, other.sizeHints.maxSize, other.sizeHints.preferredSize };
 		children = std::move(other.children);
 		sortedChildren = std::move(other.sortedChildren);
+		guiElementAnimatables = std::move(other.guiElementAnimatables);
+		for (const auto& animatable : guiElementAnimatables) {
+			animatable->element = this;
+		}
 		if (guiManager) guiManager->updateMoved(*this);
 		other.children.clear();
 		other.sortedChildren.clear();
+		other.guiElementAnimatables.clear();
 		other.signOff();
 		return *this;
 	}
@@ -656,6 +669,13 @@ namespace SnackerEngine
 		if (guiManager) guiManager->popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signOffAllAnimatables()
+	{
+		for (const auto& animatable : guiElementAnimatables) {
+			animatable->element = nullptr;
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signUpAnimatable(GuiElementAnimatable& animatable)
 	{
 		guiElementAnimatables.push_back(&animatable);
@@ -673,7 +693,17 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::signOffAnimatable(GuiElementAnimatable& animatable)
 	{
-		// TODO!
+		for (std::size_t i = 0; i < guiElementAnimatables.size(); ++i) {
+			if (guiElementAnimatables[i] == &animatable) {
+				guiElementAnimatables.erase(guiElementAnimatables.begin() + i);
+				return;
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animate(std::unique_ptr<GuiElementAnimatable> animatable)
+	{
+		if (guiManager) guiManager->signUpAnimatable(std::move(animatable));
 	}
 	//--------------------------------------------------------------------------------------------------
 	bool GuiElement::joinGroup(GuiGroupID groupID)
@@ -715,6 +745,150 @@ namespace SnackerEngine
 	void GuiElement::leaveGroup(GuiGroupID groupID)
 	{
 		if (guiManager) guiManager->leaveGroup(guiID, groupID);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePosition(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementPositionAnimatable : public GuiElementValueAnimatable<Vec2i>
+		{
+			virtual void onAnimate(const Vec2i& currentVal) override { if (element) element->setPosition(currentVal); };
+		public:
+			GuiElementPositionAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementPositionAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePositionX(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementPositionXAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setPositionX(currentVal); };
+		public:
+			GuiElementPositionXAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementPositionXAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePositionY(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementPositionYAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setPositionY(currentVal); };
+		public:
+			GuiElementPositionYAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementPositionYAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateMinSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementMinSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
+		{
+			virtual void onAnimate(const Vec2i& currentVal) override { if (element) element->setMinSize(currentVal); };
+		public:
+			GuiElementMinSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementMinSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateMinWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementMinWidthAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setMinWidth(currentVal); };
+		public:
+			GuiElementMinWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementMinWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateMinHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementMinHeightAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setMinHeight(currentVal); };
+		public:
+			GuiElementMinHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementMinHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateMaxSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementMaxSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
+		{
+			virtual void onAnimate(const Vec2i& currentVal) override { if (element) element->setMaxSize(currentVal); };
+		public:
+			GuiElementMaxSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementMaxSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateMaxWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementMaxWidthAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setMaxWidth(currentVal); };
+		public:
+			GuiElementMaxWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementMaxWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animateMaxHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementMaxHeightAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setMaxHeight(currentVal); };
+		public:
+			GuiElementMaxHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementMaxHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementPreferredSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
+		{
+			virtual void onAnimate(const Vec2i& currentVal) override { if (element) element->setPreferredSize(currentVal); };
+		public:
+			GuiElementPreferredSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementPreferredSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementPreferredWidthAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setPreferredWidth(currentVal); };
+		public:
+			GuiElementPreferredWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementPreferredWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementPreferredHeightAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setPreferredHeight(currentVal); };
+		public:
+			GuiElementPreferredHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiElementPreferredHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 }

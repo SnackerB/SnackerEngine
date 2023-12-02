@@ -45,6 +45,10 @@ namespace SnackerEngine
 		/// Setters
 		void setValue(const T& value);
 		void setFormatter(std::unique_ptr<Formatter<T>>&& formatter) { this->formatter = std::move(formatter); }
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+		void animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		//==============================================================================================
 		// GuiHandles
@@ -167,6 +171,19 @@ namespace SnackerEngine
 			if (variableHandle) setVariableHandleValue(*variableHandle, value);
 			updateText();
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiEditVariable<T>::animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiEditVariableValueAnimatable : public GuiElementValueAnimatable<T>
+		{
+			virtual void onAnimate(const T& currentVal) override { if (GuiElementValueAnimatable<T>::element) static_cast<GuiEditVariable<T>*>(GuiElementValueAnimatable<T>::element)->setValue(currentVal); };
+		public:
+			GuiEditVariableValueAnimatable(GuiElement& element, const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<T>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		animate(std::make_unique<GuiEditVariableValueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
