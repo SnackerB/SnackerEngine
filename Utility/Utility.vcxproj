@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Alignment.cpp" />
+    <ClCompile Include="Animatable.cpp" />
     <ClCompile Include="AnimationFunctions.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Formatting.cpp" />

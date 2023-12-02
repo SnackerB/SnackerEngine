@@ -17,12 +17,12 @@ namespace SnackerEngine
 		// Parse destinationID
 		auto destinationIDString = httpRequest.getHeaderValue("destinationID");
 		if (!destinationIDString.has_value()) return {};
-		auto destinationID = parseSERPID(std::string(destinationIDString.value()));
+		auto destinationID = from_string<SERPID>(std::string(destinationIDString.value()));
 		if (!destinationID.has_value()) return {};
 		// Parse sourceID
 		auto sourceIDString = httpRequest.getHeaderValue("sourceID");
 		if (!sourceIDString.has_value()) return {};
-		auto sourceID = parseSERPID(std::string(sourceIDString.value()));
+		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
 		if (!sourceID.has_value()) return {};
 		// Finalize message
 		return SERPRequest(sourceID.value(), destinationID.value(), httpRequest);
@@ -40,12 +40,12 @@ namespace SnackerEngine
 		// Parse destinationID
 		auto destinationIDString = httpResponse.getHeaderValue("destinationID");
 		if (!destinationIDString.has_value()) return {};
-		auto destinationID = parseSERPID(std::string(destinationIDString.value()));
+		auto destinationID = from_string<SERPID>(std::string(destinationIDString.value()));
 		if (!destinationID.has_value()) return {};
 		// Parse sourceID
 		auto sourceIDString = httpResponse.getHeaderValue("sourceID");
 		if (!sourceIDString.has_value()) return {};
-		auto sourceID = parseSERPID(std::string(sourceIDString.value()));
+		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
 		if (!sourceID.has_value()) return {};
 		// Finalize message
 		return SERPResponse(sourceID.value(), destinationID.value(), httpResponse);

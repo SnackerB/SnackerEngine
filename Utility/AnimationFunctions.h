@@ -5,11 +5,17 @@
 namespace SnackerEngine
 {
 
-	class AnimationFunction
+	namespace AnimationFunction
 	{
-		static double linear(double x);
 
-		AnimationFunction() = delete;
-	};
+		double linear(double x);
+		double easeInOutSine(double x);
+		double easeInOutQuad(double x);
+		double easeInOutCubic(double x);
+		double easeInOutExponential(double x);
+		double easeOutElastic(double x);
+		double easeOutBounce(double x);
+
+	}
 
 }

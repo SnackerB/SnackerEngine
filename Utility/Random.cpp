@@ -4,12 +4,12 @@
 namespace SnackerEngine
 {
 
-	static std::mt19937 randomEngine;
+	static std::default_random_engine randomEngine;
 
 	void initializeRNG()
 	{
-		srand(time(NULL));
-		randomEngine = std::mt19937(std::rand());
+		std::srand(std::time(NULL));
+		randomEngine.seed(std::rand());
 	}
 
 	float randomFloat(float min, float max)
