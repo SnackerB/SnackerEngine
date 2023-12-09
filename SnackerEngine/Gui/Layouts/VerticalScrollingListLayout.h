@@ -86,13 +86,13 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Animatables
 		//==============================================================================================
-		void animateScrollSpeed(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateTotalOffsetPercentage(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateScrollbarBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateScrollbarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateScrollbarBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateScrollbarBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateScrollbarBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateScrollSpeed(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateTotalOffsetPercentage(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateScrollbarBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateScrollbarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateScrollbarBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateScrollbarBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateScrollbarBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Computes the percentages and wether the scrollbar should be visible
 		void computeScrollBar();

@@ -142,10 +142,13 @@ namespace SnackerEngine
 	private:
 		/// Vector of unique pointers to GuiElementAnimatables
 		std::vector<std::unique_ptr<GuiElementAnimatable>> guiElementAnimatables;
-		/// This function can be called by a GuiElement to signup an animation
-		void signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable);
-		/// Updates all Animatables and clears unused/finished animations
+		/// Vector of unique pointers to new GuiElementAnimatables that will get added in the next update
+		std::vector<std::unique_ptr<GuiElementAnimatable>> newGuiElementAnimatables;
+		/// Adds new animatables, updates all Animatables and clears unused/finished animations
 		void updateAnimatables(double dt);
+	public:
+		/// This function can be called to signup an animation
+		void signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable);
 
 		//==============================================================================================
 		// JSON parsing

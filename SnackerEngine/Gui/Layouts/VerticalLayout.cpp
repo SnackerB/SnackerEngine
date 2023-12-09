@@ -167,7 +167,7 @@ namespace SnackerEngine
 		return index.has_value() ? alignmentsHorizontal[index.value()] : std::optional<AlignmentHorizontal>();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalLayout::animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalLayout::animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalLayoutHorizontalBorderAnimatable: public GuiElementValueAnimatable<unsigned>
 		{
@@ -176,7 +176,7 @@ namespace SnackerEngine
 			GuiVerticalLayoutHorizontalBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiVerticalLayout::removeChild(GuiID guiElement)

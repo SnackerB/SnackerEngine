@@ -371,25 +371,24 @@ namespace SnackerEngine
 		/// signs off a guiElementAnimatable. This function should only be called by the
 		/// destructor of the GuiElementAnimatable class.
 		void signOffAnimatable(GuiElementAnimatable& animatable);
-	protected:
-		/// This function can be called by child classes to register a new animation
-		void animate(std::unique_ptr<GuiElementAnimatable> animatable);
 	public:
-		void animatePosition(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePositionX(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePositionY(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateMinSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateMinWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateMinHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateMaxSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateMaxWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateMaxHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		/// This function can be called to signup an animation of this element
+		void signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable);
+		std::unique_ptr<GuiElementAnimatable> animatePosition(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePositionX(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePositionY(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateMinSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateMinWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateMinHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateMaxSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateMaxWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateMaxHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 		//==============================================================================================
 		// Groups

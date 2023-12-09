@@ -65,6 +65,8 @@ namespace SnackerEngine
 		Vec2f computeTextPosition();
 		/// Helper function that draws the text
 		void drawText(const Vec2i& worldPosition);
+		/// Helper function that draws the text, scaling it by the given scale matrix
+		void drawText(const Vec2i& worldPosition, const Mat4f& scale);
 		/// Helper function that recomputes the text and corresponding model matrices.
 		/// This function should be called when the text needs to be recomputed, eg.
 		/// when the font or fontSize changes.
@@ -174,10 +176,10 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 
-		void animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear) override;
+		std::unique_ptr<GuiElementAnimatable> animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear) override;
 
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively

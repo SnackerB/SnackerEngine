@@ -8,6 +8,8 @@ namespace SnackerEngine
 	namespace AnimationFunction
 	{
 
+		using AnimationFunction = std::function<double(double)>;
+
 		double linear(double x);
 		double easeInOutSine(double x);
 		double easeInOutQuad(double x);

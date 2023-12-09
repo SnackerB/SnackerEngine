@@ -43,6 +43,10 @@ namespace SnackerEngine
 		const Color4f& getBackgroundColor() const { return backgroundColor; }
 		const Shader& getPanelShader() const { return shader; }
 	protected:
+		/// Function that draws the panel relative to its parent element, but also rescales according
+		/// to the given scaling matrix. This function can be called by child elements.
+		/// Does not draw children.
+		void draw(const Vec2i& worldPosition, const Mat4f& scale);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space
@@ -72,7 +76,7 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 
-		virtual void animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 	};
 }

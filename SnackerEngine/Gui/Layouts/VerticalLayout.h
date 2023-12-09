@@ -73,7 +73,7 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Animatables
 		//==============================================================================================
-		void animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Removes the given child from this GuiElement object
 		virtual std::optional<unsigned> removeChild(GuiID guiElement) override;

@@ -298,6 +298,20 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::drawText(const Vec2i& worldPosition, const Mat4f& scale)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		if (dynamicText) {
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+			material.bind();
+			guiManager->setUniformViewAndProjectionMatrices(material.getShader());
+			material.getShader().setUniform<Mat4f>("u_model", translationMatrix * scale * modelMatrixText);
+			material.getShader().setUniform<float>("u_pxRange", static_cast<float>(dynamicText->getFont().getPixelRange()));
+			SnackerEngine::Renderer::draw(dynamicText->getModel(), material);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::computeHeightHints()
 	{
 		if (!dynamicText) return;
@@ -609,7 +623,7 @@ namespace SnackerEngine
 		material = constructTextMaterial(font, textColor, backgroundColor);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiTextBox::animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiTextBoxTextColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -618,10 +632,10 @@ namespace SnackerEngine
 			GuiTextBoxTextColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiTextBoxTextColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiTextBoxTextColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiTextBox::animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiTextBoxBorderAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -630,10 +644,10 @@ namespace SnackerEngine
 			GuiTextBoxBorderAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiTextBoxBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiTextBoxBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiTextBox::animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiTextBoxFontSizeAnimatable : public GuiElementValueAnimatable<double>
 		{
@@ -642,10 +656,10 @@ namespace SnackerEngine
 			GuiTextBoxFontSizeAnimatable(GuiElement& element, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiTextBoxFontSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiTextBoxFontSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiTextBox::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiTextBoxBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -654,7 +668,7 @@ namespace SnackerEngine
 			GuiTextBoxBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiTextBoxBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiTextBoxBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::draw(const Vec2i& worldPosition)

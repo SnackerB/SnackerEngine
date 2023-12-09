@@ -130,7 +130,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateScrollSpeed(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateScrollSpeed(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutScrollSpeedAnimatable : public GuiElementValueAnimatable<float>
 		{
@@ -139,10 +139,10 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutScrollSpeedAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollSpeedAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutScrollSpeedAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateTotalOffsetPercentage(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateTotalOffsetPercentage(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable : public GuiElementValueAnimatable<float>
 		{
@@ -151,10 +151,10 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutTotalOffsetPercentageAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateScrollbarBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateScrollbarBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -163,10 +163,10 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutScrollbarBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateScrollbarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateScrollbarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutScrollbarColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -175,10 +175,10 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutScrollbarColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollbarColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutScrollbarColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateScrollbarBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateScrollbarBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -187,10 +187,10 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderRightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateScrollbarBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateScrollbarBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -199,10 +199,10 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderTopAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::animateScrollbarBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalScrollingListLayout::animateScrollbarBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -211,7 +211,7 @@ namespace SnackerEngine
 			GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiVerticalScrollingListLayoutScrollBarBorderBottomAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalScrollingListLayout::computeScrollBar()

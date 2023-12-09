@@ -392,12 +392,18 @@ namespace SnackerEngine
 				if (child->getPreferredWidth() >= 0) childSize.x = child->getPreferredWidth();
 				else {
 					if (child->getPreferredWidth() == SIZE_HINT_ARBITRARY) childSize.x = child->clampToMinMaxWidth(child->getWidth());
-					else if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) childSize.x = child->getMaxWidth();
+					else if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+						if (child->getMaxWidth() >= 0) childSize.x = child->getMaxWidth();
+						else childSize.x = std::max(child->getMinWidth(), getWidth());
+					}
 				}
 				if (child->getPreferredHeight() >= 0) childSize.y = child->getPreferredHeight();
 				else {
 					if (child->getPreferredHeight() == SIZE_HINT_ARBITRARY) childSize.y = child->clampToMinMaxHeight(child->getHeight());
-					else if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) childSize.y = child->getMaxHeight();
+					else if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+						if (child->getMaxHeight() >= 0) childSize.y = child->getMaxHeight();
+						else childSize.y = std::max(child->getMinHeight(), getHeight());
+					}
 				}
 				setSizeOfChild(childID, childSize);
 				break;
@@ -701,11 +707,6 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animate(std::unique_ptr<GuiElementAnimatable> animatable)
-	{
-		if (guiManager) guiManager->signUpAnimatable(std::move(animatable));
-	}
-	//--------------------------------------------------------------------------------------------------
 	bool GuiElement::joinGroup(GuiGroupID groupID)
 	{
 		if (guiManager) return guiManager->joinGroup(guiID, groupID);
@@ -747,7 +748,12 @@ namespace SnackerEngine
 		if (guiManager) guiManager->leaveGroup(guiID, groupID);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animatePosition(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	void GuiElement::signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable)
+	{
+		if (animatable->element == this && guiManager) guiManager->signUpAnimatable(std::move(animatable));
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animatePosition(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementPositionAnimatable : public GuiElementValueAnimatable<Vec2i>
 		{
@@ -756,10 +762,10 @@ namespace SnackerEngine
 			GuiElementPositionAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementPositionAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementPositionAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animatePositionX(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animatePositionX(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementPositionXAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -768,10 +774,10 @@ namespace SnackerEngine
 			GuiElementPositionXAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementPositionXAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementPositionXAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animatePositionY(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animatePositionY(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementPositionYAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -780,10 +786,46 @@ namespace SnackerEngine
 			GuiElementPositionYAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementPositionYAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementPositionYAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animateMinSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
+		{
+			virtual void onAnimate(const Vec2i& currentVal) override { if (element) element->setSize(currentVal); };
+		public:
+			GuiElementSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiElementSizeAnimatable >(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementWidthAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setWidth(currentVal); };
+		public:
+			GuiElementWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiElementWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiElementHeightAnimatable : public GuiElementValueAnimatable<int>
+		{
+			virtual void onAnimate(const int& currentVal) override { if (element) element->setHeight(currentVal); };
+		public:
+			GuiElementHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiElementHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateMinSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementMinSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
 		{
@@ -792,10 +834,10 @@ namespace SnackerEngine
 			GuiElementMinSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementMinSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementMinSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animateMinWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateMinWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementMinWidthAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -804,10 +846,10 @@ namespace SnackerEngine
 			GuiElementMinWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementMinWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementMinWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animateMinHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateMinHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementMinHeightAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -816,10 +858,10 @@ namespace SnackerEngine
 			GuiElementMinHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementMinHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementMinHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animateMaxSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateMaxSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementMaxSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
 		{
@@ -828,10 +870,10 @@ namespace SnackerEngine
 			GuiElementMaxSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementMaxSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementMaxSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animateMaxWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable>  GuiElement::animateMaxWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementMaxWidthAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -840,10 +882,10 @@ namespace SnackerEngine
 			GuiElementMaxWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementMaxWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementMaxWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animateMaxHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animateMaxHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementMaxHeightAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -852,10 +894,10 @@ namespace SnackerEngine
 			GuiElementMaxHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementMaxHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementMaxHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementPreferredSizeAnimatable : public GuiElementValueAnimatable<Vec2i>
 		{
@@ -864,10 +906,10 @@ namespace SnackerEngine
 			GuiElementPreferredSizeAnimatable(GuiElement& element, const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Vec2i>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementPreferredSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementPreferredSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementPreferredWidthAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -876,10 +918,10 @@ namespace SnackerEngine
 			GuiElementPreferredWidthAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementPreferredWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementPreferredWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiElement::animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiElement::animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiElementPreferredHeightAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -888,7 +930,7 @@ namespace SnackerEngine
 			GuiElementPreferredHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiElementPreferredHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiElementPreferredHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

@@ -165,7 +165,7 @@ namespace SnackerEngine
 		this->allowMoveBorders = allowMoveBorders;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalWeightedLayout::animateWeight(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalWeightedLayout::animateWeight(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiHorizontalWeightedLayoutWeightAnimatable : public GuiElementValueAnimatable<double>
 		{
@@ -175,10 +175,10 @@ namespace SnackerEngine
 			GuiHorizontalWeightedLayoutWeightAnimatable(GuiElement& element, GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction), childID{ childID } {}
 		};
-		animate(std::make_unique<GuiHorizontalWeightedLayoutWeightAnimatable>(*this, childID, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiHorizontalWeightedLayoutWeightAnimatable>(*this, childID, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalWeightedLayout::animatePercentage(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalWeightedLayout::animatePercentage(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiHorizontalWeightedLayoutPercentageAnimatable : public GuiElementValueAnimatable<double>
 		{
@@ -188,10 +188,10 @@ namespace SnackerEngine
 			GuiHorizontalWeightedLayoutPercentageAnimatable(GuiElement& element, GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction), childID{ childID } {}
 		};
-		animate(std::make_unique<GuiHorizontalWeightedLayoutPercentageAnimatable>(*this, childID, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiHorizontalWeightedLayoutPercentageAnimatable>(*this, childID, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalWeightedLayout::animateHorizontalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalWeightedLayout::animateHorizontalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiHorizontalWeightedLayoutHorizontalBorderAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -200,10 +200,10 @@ namespace SnackerEngine
 			GuiHorizontalWeightedLayoutHorizontalBorderAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiHorizontalWeightedLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiHorizontalWeightedLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalWeightedLayout::animateOuterHorizontalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalWeightedLayout::animateOuterHorizontalBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -212,10 +212,10 @@ namespace SnackerEngine
 			GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable >(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiHorizontalWeightedLayoutOuterHorizontalBorderAnimatable >(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalWeightedLayout::animateResizeAreaWidth(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalWeightedLayout::animateResizeAreaWidth(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -224,7 +224,7 @@ namespace SnackerEngine
 			GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiHorizontalWeightedLayoutResizeAreaWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::onRegister()

@@ -437,7 +437,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiGridLayout::animateTotalColumns(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiGridLayout::animateTotalColumns(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiGridLayoutTotalColumnsAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -446,10 +446,10 @@ namespace SnackerEngine
 			GuiGridLayoutTotalColumnsAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiGridLayoutTotalColumnsAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiGridLayoutTotalColumnsAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiGridLayout::animateTotalRows(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiGridLayout::animateTotalRows(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiGridLayoutTotalRowsAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -458,10 +458,10 @@ namespace SnackerEngine
 			GuiGridLayoutTotalRowsAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiGridLayoutTotalRowsAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiGridLayoutTotalRowsAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiGridLayout::animateBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiGridLayout::animateBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiGridLayoutBorderAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -470,10 +470,10 @@ namespace SnackerEngine
 			GuiGridLayoutBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiGridLayoutBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiGridLayoutBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiGridLayout::animateOuterBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiGridLayout::animateOuterBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiGridLayoutOuterBorderAnimatable : public GuiElementValueAnimatable<unsigned>
 		{
@@ -482,7 +482,7 @@ namespace SnackerEngine
 			GuiGridLayoutOuterBorderAnimatable(GuiElement& element, const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<unsigned>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiGridLayoutOuterBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiGridLayoutOuterBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiGridLayout::removeChild(GuiID guiElement)

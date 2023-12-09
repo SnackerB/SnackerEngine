@@ -218,7 +218,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorDefaultTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorDefaultTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorDefaultTrueAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -227,10 +227,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorDefaultTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorDefaultTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorDefaultTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorHoverTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorHoverTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorHoverTrueAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -239,10 +239,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorHoverTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorHoverTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorHoverTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorPressedTrueAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -251,10 +251,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorPressedTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorPressedTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorPressedTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorHoverPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorHoverPressedTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorHoverPressedTrueAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -263,10 +263,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorHoverPressedTrueAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorHoverPressedTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorHoverPressedTrueAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorDefaultFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorDefaultFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorDefaultFalseAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -275,10 +275,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorDefaultFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorDefaultFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorDefaultFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorHoverFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorHoverFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorHoverFalseAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -287,10 +287,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorHoverFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorHoverFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorHoverFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorPressedFalseAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -299,10 +299,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorPressedFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorPressedFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorPressedFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateColorHoverPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateColorHoverPressedFalse(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxColorHoverPressedFalseAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -311,10 +311,10 @@ namespace SnackerEngine
 			GuiCheckBoxColorHoverPressedFalseAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxColorHoverPressedFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxColorHoverPressedFalseAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::animateCheckMarkColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiCheckBox::animateCheckMarkColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiCheckBoxCheckMarkColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -323,7 +323,7 @@ namespace SnackerEngine
 			GuiCheckBoxCheckMarkColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiCheckBoxCheckMarkColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiCheckBoxCheckMarkColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 }

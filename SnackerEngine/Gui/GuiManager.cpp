@@ -221,11 +221,18 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable)
 	{
-		guiElementAnimatables.emplace_back(std::move(animatable));
+		newGuiElementAnimatables.emplace_back(std::move(animatable));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::updateAnimatables(double dt)
 	{
+		// add new animatables
+		for (std::size_t i = 0; i < newGuiElementAnimatables.size(); ++i) {
+			guiElementAnimatables.emplace_back(std::move(newGuiElementAnimatables[i]));
+			newGuiElementAnimatables[i] = nullptr;
+		}
+		newGuiElementAnimatables.clear();
+		// update animatables
 		auto it = guiElementAnimatables.begin();
 		while (it != guiElementAnimatables.end()) {
 			(*it)->update(dt);

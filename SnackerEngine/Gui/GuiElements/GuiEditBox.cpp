@@ -244,7 +244,7 @@ namespace SnackerEngine
 		return isCollidingBoundingBox(offset) ? IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::animateSelectionBoxColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiEditBox::animateSelectionBoxColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiEditBoxSelectionBoxColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -253,10 +253,10 @@ namespace SnackerEngine
 			GuiEditBoxSelectionBoxColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiEditBoxSelectionBoxColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiEditBoxSelectionBoxColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::animateCursorWidth(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiEditBox::animateCursorWidth(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiEditBoxCursorWidthAnimatable : public GuiElementValueAnimatable<float>
 		{
@@ -265,10 +265,10 @@ namespace SnackerEngine
 			GuiEditBoxCursorWidthAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiEditBoxCursorWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiEditBoxCursorWidthAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::animateCursorBlinkTime(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiEditBox::animateCursorBlinkTime(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiEditBoxCursorBlinkTimeAnimatable : public GuiElementValueAnimatable<double>
 		{
@@ -277,7 +277,7 @@ namespace SnackerEngine
 			GuiEditBoxCursorBlinkTimeAnimatable(GuiElement& element, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiEditBoxCursorBlinkTimeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiEditBoxCursorBlinkTimeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::callbackMouseButton(const int& button, const int& action, const int& mods)

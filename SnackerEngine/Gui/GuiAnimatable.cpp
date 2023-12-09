@@ -4,8 +4,8 @@
 namespace SnackerEngine
 {
 
-	GuiElementAnimatable::GuiElementAnimatable(GuiElement& element, double duration, std::function<double(double)> animationFunction)
-		: Animatable(duration, animationFunction), element{ &element } 
+	GuiElementAnimatable::GuiElementAnimatable(GuiElement* element, double duration, std::function<double(double)> animationFunction)
+		: Animatable(duration, animationFunction), element{ element } 
 	{
 		this->element->signUpAnimatable(*this);
 	}
@@ -45,6 +45,20 @@ namespace SnackerEngine
 	GuiElementAnimatable::~GuiElementAnimatable()
 	{
 		if (element) element->signOffAnimatable(*this);
+	}
+
+	GuiElementDelayAnimatable::GuiElementDelayAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable, double duration)
+		: GuiElementAnimatable(animatable->element, duration), animatable(std::move(animatable))
+	{
+	}
+
+	void GuiElementDelayAnimatable::update(double dt)
+	{
+		time = std::min(time + dt, duration);
+		if (time >= duration && element && animatable) {
+			element->signUpAnimatable(std::move(animatable));
+			animatable = nullptr;
+		}
 	}
 
 }

@@ -163,7 +163,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiButton::animateDefaultColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animateDefaultColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiButtonDefaultColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -172,10 +172,10 @@ namespace SnackerEngine
 			GuiButtonDefaultColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiButtonDefaultColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiButtonDefaultColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiButton::animateHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animateHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiButtonHoverColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -184,10 +184,10 @@ namespace SnackerEngine
 			GuiButtonHoverColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiButtonHoverColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiButtonHoverColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiButton::animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiButtonPressedColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -196,10 +196,10 @@ namespace SnackerEngine
 			GuiButtonPressedColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiButtonPressedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiButtonPressedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiButton::animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiButtonPressedHoverColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -208,10 +208,10 @@ namespace SnackerEngine
 			GuiButtonPressedHoverColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiButtonPressedHoverColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiButtonPressedHoverColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiButton::animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiButtonLockedColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -220,7 +220,7 @@ namespace SnackerEngine
 			GuiButtonLockedColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiButtonLockedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiButtonLockedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::onRegister()

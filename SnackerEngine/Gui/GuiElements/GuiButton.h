@@ -53,11 +53,11 @@ namespace SnackerEngine
 		/// Unlocks this button
 		void unlock();
 		/// Setters
-		void setDefaultColor(const Color4f& defaultColor);
-		void setHoverColor(const Color4f& hoverColor);
-		void setPressedColor(const Color4f& pressedColor);
-		void setPressedHoverColor(const Color4f& pressedHoverColor);
-		void setLockedColor(const Color4f& lockedColor);
+		virtual void setDefaultColor(const Color4f& defaultColor);
+		virtual void setHoverColor(const Color4f& hoverColor);
+		virtual void setPressedColor(const Color4f& pressedColor);
+		virtual void setPressedHoverColor(const Color4f& pressedHoverColor);
+		virtual void setLockedColor(const Color4f& lockedColor);
 		/// Getters
 		const Color4f& getDefaultColorColor() const { return defaultColor; }
 		const Color4f& getHoverColor() const { return hoverColor; }
@@ -70,11 +70,11 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 
-		void animateDefaultColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		void animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateDefaultColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 	protected:
 

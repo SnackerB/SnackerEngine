@@ -53,6 +53,21 @@ namespace SnackerEngine
 		this->backgroundColor = backgroundColor;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::draw(const Vec2i& worldPosition, const Mat4f& scale)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f)
+		{
+			shader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(shader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+			shader.setUniform<Mat4f>("u_model", translationMatrix * scale * modelMatrix);
+			shader.setUniform<Color4f>("u_color", backgroundColor);
+			Renderer::draw(guiManager->getModelSquare());
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
@@ -95,7 +110,7 @@ namespace SnackerEngine
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiPanelBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -104,7 +119,7 @@ namespace SnackerEngine
 			GuiPanelBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiPanelBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiPanelBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::computeModelMatrix()

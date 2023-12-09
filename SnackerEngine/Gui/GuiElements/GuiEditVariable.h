@@ -48,7 +48,7 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Animatables
 		//==============================================================================================
-		void animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		//==============================================================================================
 		// GuiHandles
@@ -174,7 +174,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline void GuiEditVariable<T>::animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
+	inline std::unique_ptr<GuiElementAnimatable> GuiEditVariable<T>::animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiEditVariableValueAnimatable : public GuiElementValueAnimatable<T>
 		{
@@ -183,7 +183,7 @@ namespace SnackerEngine
 			GuiEditVariableValueAnimatable(GuiElement& element, const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<T>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiEditVariableValueAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiEditVariableValueAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>

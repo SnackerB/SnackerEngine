@@ -58,7 +58,7 @@ namespace SnackerEngine
 		computeResizeButtonModelMatrix();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::animateResizeButtonSize(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiWindow::animateResizeButtonSize(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiWindowResizeButtonSizeAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -67,10 +67,10 @@ namespace SnackerEngine
 			GuiWindowResizeButtonSizeAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiWindowResizeButtonSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiWindowResizeButtonSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::animateTopBarHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiWindow::animateTopBarHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiWindowTopBarHeightAnimatable : public GuiElementValueAnimatable<int>
 		{
@@ -79,10 +79,10 @@ namespace SnackerEngine
 			GuiWindowTopBarHeightAnimatable(GuiElement& element, const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiWindowTopBarHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiWindowTopBarHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiWindow::animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiWindowFontSizeAnimatable : public GuiElementValueAnimatable<double>
 		{
@@ -91,10 +91,10 @@ namespace SnackerEngine
 			GuiWindowFontSizeAnimatable(GuiElement& element, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<double>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiWindowFontSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiWindowFontSizeAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::animateTopBarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiWindow::animateTopBarColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiWindowTopBarColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -103,10 +103,10 @@ namespace SnackerEngine
 			GuiWindowTopBarColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiWindowTopBarColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiWindowTopBarColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::animateTopBarTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiWindow::animateTopBarTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiWindowTopBarTextColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -115,10 +115,10 @@ namespace SnackerEngine
 			GuiWindowTopBarTextColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiWindowTopBarTextColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiWindowTopBarTextColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiWindow::animateResizeButtonColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	std::unique_ptr<GuiElementAnimatable> GuiWindow::animateResizeButtonColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
 	{
 		class GuiWindowResizeButtonColorAnimatable : public GuiElementValueAnimatable<Color4f>
 		{
@@ -127,7 +127,7 @@ namespace SnackerEngine
 			GuiWindowResizeButtonColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
 				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
 		};
-		animate(std::make_unique<GuiWindowResizeButtonColorAnimatable>(*this, startVal, stopVal, duration, animationFunction));
+		return std::make_unique<GuiWindowResizeButtonColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiWindow::draw(const Vec2i& worldPosition)
