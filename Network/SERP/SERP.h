@@ -22,6 +22,7 @@ namespace SnackerEngine
 		void setSourceUpdateHeaders(SERPID source, std::vector<HTTPHeader>& headers);
 		void setDestinationUpdateHeaders(SERPID destination, std::vector<HTTPHeader>& headers);
 	public:
+		virtual std::string toString() const { return ""; };
 		/// Getters
 		SERPID getSource() const { return source; }
 		SERPID getDestination() const { return destination; }
@@ -39,6 +40,7 @@ namespace SnackerEngine
 		/// Parses a SERPRequest from the given (incoming) HTTPRequest,
 		/// extracting the source and destination SERPIDs from the headers
 		static std::optional<SERPRequest> parse(HTTPRequest httpRequest);
+		std::string toString() const override;
 		/// Setters
 		void setSource(SERPID source) { SERPHeader::setSourceUpdateHeaders(source, request.headers); }
 		void setDestination(SERPID destination) { SERPHeader::setDestinationUpdateHeaders(destination, request.headers); }
@@ -56,6 +58,7 @@ namespace SnackerEngine
 		/// Parses a SERPResponse from the given (incoming) HTTPResponse,
 		/// extracting the source and destination SERPIDs from the headers
 		static std::optional<SERPResponse> parse(HTTPResponse httpResponse);
+		std::string toString() const override;
 		/// Setters
 		void setSource(SERPID source) { SERPHeader::setSourceUpdateHeaders(source, response.headers); }
 		void setDestination(SERPID destination) { SERPHeader::setDestinationUpdateHeaders(destination, response.headers); }

@@ -1,6 +1,8 @@
 #include "Timer.h"
 
 #include <math.h>
+#include <chrono>
+#include <format>
 
 namespace SnackerEngine
 {
@@ -49,6 +51,11 @@ namespace SnackerEngine
 			return std::make_pair<>(true, timeStep);
 		}
 		return std::make_pair<>(false, 0.0);
+	}
+	//------------------------------------------------------------------------------------------------------
+	std::string getCurrentTimeAsString()
+	{
+		return std::format("{:%F %T}", std::chrono::system_clock::now());
 	}
 	//------------------------------------------------------------------------------------------------------
 }

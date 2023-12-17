@@ -1,6 +1,8 @@
 #include "SERP.h"
 #include "Utility\Formatting.h"
 
+#include <sstream>
+
 namespace SnackerEngine
 {
 
@@ -28,6 +30,13 @@ namespace SnackerEngine
 		return SERPRequest(sourceID.value(), destinationID.value(), httpRequest);
 	}
 
+	std::string SERPRequest::toString() const
+	{
+		std::stringstream ss;
+		ss << "{ source: " << getSource() << ", destination: " << getDestination() << ", message: { " << request.toString() << " }";
+		return ss.str();
+	}
+
 	SERPResponse::SERPResponse(SERPID source, SERPID destination, HTTPResponse httpResponse)
 		: SERPHeader(source, destination), response(httpResponse)
 	{
@@ -49,6 +58,13 @@ namespace SnackerEngine
 		if (!sourceID.has_value()) return {};
 		// Finalize message
 		return SERPResponse(sourceID.value(), destinationID.value(), httpResponse);
+	}
+
+	std::string SERPResponse::toString() const
+	{
+		std::stringstream ss;
+		ss << "{ source: " << getSource() << ", destination: " << getDestination() << ", message: { " << response.toString() << " }";
+		return ss.str();
 	}
 
 	void SERPHeader::setSourceUpdateHeaders(SERPID source, std::vector<HTTPHeader>& headers)

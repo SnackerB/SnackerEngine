@@ -44,7 +44,7 @@ namespace SnackerEngine
 			SERPResponse response;
 			/// private constructor, is only called by SERPManager!
 			PendingResponse(SERPManager* serpManager, double timeLeft, SERPID sourceID)
-				: serpManager{ serpManager }, status{ Status::PENDING }, timeLeft{ timeLeft }, response{} 
+				: serpManager{ serpManager }, status{ Status::PENDING }, timeLeft{ timeLeft }, response{}
 			{
 				response.setSource(sourceID);
 			}
@@ -86,6 +86,8 @@ namespace SnackerEngine
 		std::unique_ptr<PendingResponse> serpIDResponse = nullptr;
 		/// Buffer for incoming messages
 		Buffer incomingMessageBuffer{ 0 };
+		/// If this is set to true, every incoming and outgoing message is logged
+		bool logMessages = false;
 		/// Helper function handling a received message
 		void handleReceivedMessage(HTTPMessage& message);
 		/// Helper function handling incoming serpRequest
@@ -133,6 +135,9 @@ namespace SnackerEngine
 		/// Getters
 		bool isConnectedToSERPServer() const { return serpID > 0; }
 		SERPID getSerpID() const { return serpID; }
+		bool isLogMessages() const { return logMessages; }
+		/// Setters
+		void setLogMessages(bool logMessages) { this->logMessages = logMessages; }
 	};
 
 }

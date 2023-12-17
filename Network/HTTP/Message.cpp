@@ -99,4 +99,10 @@ namespace SnackerEngine
 		headers.push_back({ "content-length", std::to_string(body.length()) });
 	}
 
+	template<typename T>
+	std::ostream& operator<<(std::ostream& ostream, const HTTPMessage& message)
+	{
+		return ostream << message.toString();
+	}
+
 }

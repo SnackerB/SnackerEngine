@@ -5,79 +5,85 @@
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
-#define LOG_COLOR_ERROR 12
-#define LOG_COLOR_WARNING 14
-#define LOG_COLOR_INFO 15
+	constexpr auto LOG_COLOR_ERROR = 12;
+	constexpr auto LOG_COLOR_WARNING = 14;
+	constexpr auto LOG_COLOR_INFO = 15;
 	//------------------------------------------------------------------------------------------------------
-	const ErrorLogger errorLogger;
-	const WarningLogger warningLogger;
-	const InfoLogger infoLogger;
+	ErrorLogger errorLogger;
+	WarningLogger warningLogger;
+	InfoLogger infoLogger;
 	//------------------------------------------------------------------------------------------------------
-	void Logger::startLog(const PRINT_MODE& mode) const
+	void setConsoleColorInternal(WORD color)
 	{
 		HANDLE  hConsole;
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		FlushConsoleInputBuffer(hConsole);
-		switch (mode)
-		{
-		case PRINT_MODE::MODE_ERROR: 
-			SetConsoleTextAttribute(hConsole, LOG_COLOR_ERROR); break;
-		case PRINT_MODE::MODE_WARNING:
-			SetConsoleTextAttribute(hConsole, LOG_COLOR_WARNING); break;
-		case PRINT_MODE::MODE_INFORMATION:
-			SetConsoleTextAttribute(hConsole, LOG_COLOR_INFO); break;
-		default:
-			break;
-		}
+		SetConsoleTextAttribute(hConsole, color);
 	}
 	//------------------------------------------------------------------------------------------------------
-	void Logger::endLog() const
+	void Logger::resetConsoleColor()
 	{
 		HANDLE  hConsole;
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, 15);
 	}
 	//------------------------------------------------------------------------------------------------------
-	const ErrorLogger& ErrorLogger::operator<<(const LOGGER& token) const
+	Logger& Logger::operator<<(const LOGGER& token)
 	{
 		switch (token)
 		{
-		case SnackerEngine::LOGGER::BEGIN:
-			return *this << "[ERROR]: ";
-		case SnackerEngine::LOGGER::ENDL:
-			std::cout << std::endl; return *this;
-		default:
-			break;
+		case LOGGER::BEGIN:
+		{
+			startLog();
+			return *this;
 		}
-		return *this;
+		case LOGGER::ENDL:
+		{
+			return *(static_cast<Logger*>(this)) << '\n';
+		}
+		}
 	}
 	//------------------------------------------------------------------------------------------------------
-	const WarningLogger& WarningLogger::operator<<(const LOGGER& token) const
+	void Logger::logToConsole()
 	{
-		switch (token)
-		{
-		case SnackerEngine::LOGGER::BEGIN:
-			return *this << "[WARNING]: ";
-		case SnackerEngine::LOGGER::ENDL:
-			std::cout << std::endl; return *this;
-		default:
-			break;
-		}
-		return *this;
+		mode = LOG_MODE::CONSOLE;
+		filename = "";
 	}
 	//------------------------------------------------------------------------------------------------------
-	const InfoLogger& InfoLogger::operator<<(const LOGGER& token) const
+	void Logger::logToFile(const std::string& filename)
 	{
-		switch (token)
-		{
-		case SnackerEngine::LOGGER::BEGIN:
-			return *this << "[INFO]: ";
-		case SnackerEngine::LOGGER::ENDL:
-			std::cout << std::endl; return *this;
-		default:
-			break;
-		}
-		return *this;
+		mode = LOG_MODE::FILE;
+		this->filename = filename;
+	}
+	//------------------------------------------------------------------------------------------------------
+	void ErrorLogger::startLog()
+	{
+		*(static_cast<Logger*>(this)) << "[ERROR]: ";
+	}
+	//------------------------------------------------------------------------------------------------------
+	void ErrorLogger::setConsoleColor()
+	{
+		setConsoleColorInternal(LOG_COLOR_ERROR);
+	}
+	//------------------------------------------------------------------------------------------------------
+	void WarningLogger::startLog()
+	{
+		*(static_cast<Logger*>(this)) << "[WARNING]: ";
+	}
+	//------------------------------------------------------------------------------------------------------
+	void WarningLogger::setConsoleColor()
+	{
+		setConsoleColorInternal(LOG_COLOR_WARNING);
+	}
+	//------------------------------------------------------------------------------------------------------
+	void InfoLogger::startLog()
+	{
+		*(static_cast<Logger*>(this)) << "[INFO]: ";
+	}
+	//------------------------------------------------------------------------------------------------------
+	void InfoLogger::setConsoleColor()
+	{
+		setConsoleColorInternal(LOG_COLOR_INFO);
 	}
 	//------------------------------------------------------------------------------------------------------
 }

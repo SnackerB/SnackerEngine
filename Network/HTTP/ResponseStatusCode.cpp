@@ -84,4 +84,10 @@ namespace SnackerEngine
 		}
 	}
 
+	template<typename T>
+	std::ostream& operator<<(std::ostream& ostream, const ResponseStatusCode& responseStatusCode)
+	{
+		ostream << to_string(responseStatusCode);
+	}
+
 }

@@ -1,6 +1,7 @@
 #include "SERP\SerpManager.h"
 #include "Core\Log.h"
 #include "Utility\Formatting.h"
+#include "Utility\Timer.h"
 
 #include <stdexcept>
 
@@ -107,6 +108,7 @@ namespace SnackerEngine
 
 	void SERPManager::handleIncomingRequest(SERPRequest& request)
 	{
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << request.toString() << LOGGER::ENDL;
 		if (request.getDestination() != serpID) {
 			warningLogger << LOGGER::BEGIN << "received incoming request with wrong destinationID!" << LOGGER::ENDL;
 			sendResponse(SERPResponse(serpID, request.getSource(),
@@ -153,6 +155,7 @@ namespace SnackerEngine
 
 	void SERPManager::handleIncomingResponse(SERPResponse& response)
 	{
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << response.toString() << LOGGER::ENDL;
 		auto it = pendingResponses.find(response.getSource());
 		if (it != pendingResponses.end()) {
 			it->second->status = PendingResponse::Status::OBTAINED;
@@ -293,7 +296,6 @@ namespace SnackerEngine
 
 	SERPManager::PendingResponse SERPManager::sendRequest(SERPRequest request, double timeout)
 	{
-		infoLogger << LOGGER::BEGIN << "Sent Request!" << LOGGER::ENDL;
 		// Construct pendingResponse object
 		PendingResponse pendingResponse(this, timeout, request.getDestination());
 		// Check if we are already wating for a response from the destination
@@ -304,6 +306,7 @@ namespace SnackerEngine
 			pendingResponses.insert(std::make_pair<>(request.getDestination(), &pendingResponse));
 			request.request.addContentLengthHeader();
 			SnackerEngine::sendRequest(httpEndpoint.getSocket(), request.request);
+			if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << request.toString() << LOGGER::ENDL;
 		}
 		else {
 			// We are currently waiting for a response from destination
@@ -322,9 +325,9 @@ namespace SnackerEngine
 
 	void SERPManager::sendResponse(SERPResponse response)
 	{
-		infoLogger << LOGGER::BEGIN << "Sent Response!" << LOGGER::ENDL;
 		response.response.addContentLengthHeader();
 		SnackerEngine::sendResponse(httpEndpoint.getSocket(), response.response);
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << response.toString() << LOGGER::ENDL;
 	}
 
 	void SERPManager::update(double dt)
@@ -365,6 +368,7 @@ namespace SnackerEngine
 				if (it->second.front().second) pendingResponses.insert(std::make_pair<>(it->first, it->second.front().second));
 				it->second.front().first.request.addContentLengthHeader();
 				SnackerEngine::sendRequest(httpEndpoint.getSocket(), it->second.front().first.request);
+				if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << it->second.front().first.request.toString() << LOGGER::ENDL;
 				it->second.erase(it->second.begin());
 				if (it->second.empty()) {
 					outgoingRequests.erase(it++);

@@ -1,16 +1,16 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
-	/// Print mode of the Logger. Only used internally
-	enum class PRINT_MODE
+	/// The mode of the logger. Can be set to log to the console or a file respectively
+	enum class LOG_MODE
 	{
-		MODE_ERROR,
-		MODE_WARNING,
-		MODE_INFORMATION,
+		CONSOLE,
+		FILE,
 	};
 	//------------------------------------------------------------------------------------------------------
 	/// Special logger tokens: Do something special when streamed into a logger!
@@ -22,70 +22,81 @@ namespace SnackerEngine
 	/// Base Logger class. Only used internally
 	class Logger
 	{
+	private:
+		LOG_MODE mode = LOG_MODE::CONSOLE;
+		std::string filename = "";
 	protected:
-		void startLog(const PRINT_MODE& mode) const;
-		void endLog() const;
+		virtual void startLog() {};
+		virtual void setConsoleColor() {};
+		void resetConsoleColor();
+	public:
+		template<typename T>
+		Logger& operator<<(const T& val);
+		virtual Logger& operator<<(const LOGGER& token);
+		void logToConsole();
+		void logToFile(const std::string& filename);
 	};
 	//------------------------------------------------------------------------------------------------------
 	/// Logger for printing errors
 	class ErrorLogger : public Logger
 	{
-	public:
-		template<typename T>
-		const ErrorLogger& operator<<(const T& val) const;
-		const ErrorLogger& operator<<(const LOGGER&token) const;
+	protected:
+		void startLog() override;
+		void setConsoleColor() override;
 	};
 	//------------------------------------------------------------------------------------------------------
 	/// Logger for printing warnings
 	class WarningLogger : public Logger
 	{
-	public:
-		template<typename T>
-		const WarningLogger& operator<<(const T& val) const;
-		const WarningLogger& operator<<(const LOGGER& token) const;
+	protected:
+		void startLog() override;
+		void setConsoleColor() override;
 	};
 	//------------------------------------------------------------------------------------------------------
 	/// Logger for printing information
 	class InfoLogger : public Logger
 	{
-	public:
-		template<typename T>
-		const InfoLogger& operator<<(const T& val) const;
-		const InfoLogger& operator<<(const LOGGER& token) const;
+	protected:
+		void startLog() override;
+		void setConsoleColor() override;
 	};
 	//------------------------------------------------------------------------------------------------------
 	/// These are the three loggers with which the user can interact.
 	/// Example: 
 	///		errorLogger << LOGGER::BEGIN << "an error occured :(" << LOGGER::ENDL;
-	const extern ErrorLogger errorLogger;
-	const extern WarningLogger warningLogger;
-	const extern InfoLogger infoLogger;
+	extern ErrorLogger errorLogger;
+	extern WarningLogger warningLogger;
+	extern InfoLogger infoLogger;
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline const ErrorLogger& ErrorLogger::operator<<(const T& val) const
+	inline Logger& Logger::operator<<(const T& val)
 	{
-		startLog(PRINT_MODE::MODE_ERROR);
-		std::cout << val;
-		endLog();
-		return *this;
-	}
-	//------------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline const WarningLogger& WarningLogger::operator<<(const T& val) const
-	{
-		startLog(PRINT_MODE::MODE_WARNING);
-		std::cout << val;
-		endLog();
-		return *this;
-	}
-	//------------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline const InfoLogger& InfoLogger::operator<<(const T& val) const
-	{
-		startLog(PRINT_MODE::MODE_INFORMATION);
-		std::cout << val;
-		endLog();
-		return *this;
+		switch (mode)
+		{
+		case SnackerEngine::LOG_MODE::CONSOLE:
+		{
+			setConsoleColor();
+			std::cout << val;
+			resetConsoleColor();
+			std::cout.flush();
+			return *this;
+		}
+		case SnackerEngine::LOG_MODE::FILE:
+		{
+			try
+			{
+				std::ofstream out(filename, std::ios::app);
+				out << val;
+			}
+			catch (const std::exception&)
+			{
+				std::cout << "Error while trying to write to log file ..." << std::endl;
+			}
+			return *this;
+		}
+		default:
+			break;
+		}
 	}
 	//------------------------------------------------------------------------------------------------------
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <string>
 
 namespace SnackerEngine
 {
@@ -28,5 +29,7 @@ namespace SnackerEngine
 		/// The second return value is the time with which the update method should be callled
 		std::pair<bool, double> tick(const double& dt);
 	};
+	//------------------------------------------------------------------------------------------------------
+	std::string getCurrentTimeAsString();
 	//------------------------------------------------------------------------------------------------------
 }
