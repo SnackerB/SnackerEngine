@@ -86,6 +86,7 @@ namespace SnackerEngine
 	EventHandle& EventHandle::operator=(const EventHandle& other) noexcept
 	{
 		unsubscribeFromAll();
+		active = false;
 		for (auto& observable : other.observables) {
 			observable->subscribe(*this);
 		}

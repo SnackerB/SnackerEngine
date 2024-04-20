@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Gui\GuiElements\GuiButton.h"
+#include "Utility\Handles\VariableHandle.h"
 
 namespace SnackerEngine
 {
@@ -23,10 +24,23 @@ namespace SnackerEngine
 		static Shader defaultCheckMarkShader;
 		static bool defaultDrawCheckMark;
 	private:
-		/// Wether the GuiCheckBox is currently checked or not
-		bool checked = false;
-		/// Variable Handle for bool
-		GuiVariableHandle<bool>* boolHandle = nullptr;
+		class GuiCheckBoxVariableHandle : public VariableHandle<bool>
+		{
+		private:
+			friend class GuiCheckBox;
+			GuiCheckBox* parentElement;
+		protected:
+			void onEvent() override
+			{
+				parentElement->updateButtonColor();
+			}
+		public:
+			GuiCheckBoxVariableHandle(GuiCheckBox* parentElement)
+				: VariableHandle<bool>(), parentElement(parentElement) {}
+		};
+		/// VariableHandle to the boolean that decides wether the GuiCheckBox 
+		// is currently checked or not
+		GuiCheckBoxVariableHandle checked{ this };
 		/// Button colors for when the bool is set to true
 		Color4f colorDefaultTrue = defaultColorDefaultTrue;
 		Color4f colorHoverTrue = defaultColorHoverTrue;
@@ -55,12 +69,13 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_CHECK_BOX";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiCheckBox(int size = defaultCheckBoxSize);
 		/// Constructor from JSON
 		GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
-		virtual ~GuiCheckBox();
+		virtual ~GuiCheckBox() {};
 		/// Copy constructor and assignment operator
 		GuiCheckBox(const GuiCheckBox& other) noexcept;
 		GuiCheckBox& operator=(const GuiCheckBox& other) noexcept;
@@ -116,18 +131,9 @@ namespace SnackerEngine
 		// GuiHandles
 		//==============================================================================================
 
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle);
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle);
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle& guiHandle);
 	public:
-		/// Sets the event handle. Cannot be done if an event handle is already set, 
-		/// delete the previous event handle first! Returns true on success
-		bool setBoolHandle(GuiVariableHandle<bool>& boolHandle);
+		/// Returns a reference to the variable handle
+		VariableHandle<bool>& getVariableHandle() { return checked; }
 	};
 	//--------------------------------------------------------------------------------------------------
 }

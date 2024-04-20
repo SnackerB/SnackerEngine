@@ -12,12 +12,13 @@ namespace SnackerEngine
 	{
 	private:
 		/// Helper function that creates a vector of GuiEditVariables from the given value
-		static std::vector<std::unique_ptr<GuiEditVariable<T>>> createComponents(const VecT& value);
+		void setupComponents();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "ERROR";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiEditVariableVec(const VecT& value = defaultValue);
+		GuiEditVariableVec(const VecT& value = VecT{});
 		/// Constructor from JSON
 		GuiEditVariableVec(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 	public:
@@ -39,25 +40,31 @@ namespace SnackerEngine
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, unsigned N>
-	inline std::vector<std::unique_ptr<GuiEditVariable<T>>> GuiEditVariableVec<T, VecT, N>::createComponents(const VecT& value)
+	inline void GuiEditVariableVec<T, VecT, N>::setupComponents()
 	{
-		std::vector<std::unique_ptr<GuiEditVariable<T>>> result;
-		result.reserve(N);
-		for (unsigned i = 0; i < N; ++i) result.push_back(std::make_unique<GuiEditVariable<T>>(value.get(i)));
-		result;
+		this->components.clear();
+		this->components.reserve(N);
+		for (unsigned i = 0; i < N; ++i) this->components.push_back(std::make_unique<GuiEditVariable<T>>(this->getValue()[i]));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, unsigned N>
 	inline GuiEditVariableVec<T, VecT, N>::GuiEditVariableVec(const VecT& value)
-		: GuiVariableVec(std::move(createComponents(value)), value) {}
+		: GuiVariableVec(value)
+	{
+		setupComponents();
+		setValue(value);
+		this->setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
+		this->setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, unsigned N>
 	inline GuiEditVariableVec<T, VecT, N>::GuiEditVariableVec(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiVariableVec<T, VecT, N>(json, data, parameterNames)
 	{
-		this->components.reserve(N);
-		for (unsigned i = 0; i < N; ++i) this->components.push_back(std::make_unique<GuiEditVariable<T>>(this->getValue().values[i]));
+		setupComponents();
 		GuiEditVariableVec<T, VecT, N>::parseJSON(json, data, parameterNames);
+		if (!json.contains("SizeHintModePreferredSize")) this->setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
+		if (!json.contains("preferredSize") && !json.contains("preferredWidth")) this->setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -66,6 +73,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_EDIT_VARIABLE_VEC2";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiEditVariableVec2(const Vec2<T>& value = Vec2<T>{})
 			: GuiEditVariableVec<T, Vec2<T>, 2>(value) {}
@@ -80,6 +88,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_EDIT_VARIABLE_VEC3";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiEditVariableVec3(const Vec3<T>& value = Vec3<T>{})
 			: GuiEditVariableVec<T, Vec3<T>, 3>(value) {}
@@ -94,6 +103,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_EDIT_VARIABLE_VEC4";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiEditVariableVec4(const Vec4<T>& value = Vec4<T>{})
 			: GuiEditVariableVec<T, Vec4<T>, 4>(value) {}

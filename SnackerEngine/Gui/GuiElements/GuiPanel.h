@@ -25,6 +25,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_PANEL";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiPanel(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(),
 			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, const Color4f& backgroundColor = defaultBackgroundColor);

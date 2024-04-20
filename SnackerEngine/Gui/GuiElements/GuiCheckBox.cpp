@@ -21,8 +21,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiCheckBox::onButtonPress()
 	{
-		checked = !checked;
-		if (boolHandle) boolHandle->set(checked);
+		checked.set(!checked);
 		updateButtonColor();
 		GuiButton::onButtonPress();
 	}
@@ -56,7 +55,9 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 	{
-		parseJsonOrReadFromData(checked, "checked", json, data, parameterNames);
+		bool temp = false;
+		parseJsonOrReadFromData(temp, "checked", json, data, parameterNames);
+		checked.set(temp);
 		parseJsonOrReadFromData(colorDefaultTrue, "colorDefaultTrue", json, data, parameterNames);
 		parseJsonOrReadFromData(colorHoverTrue, "colorHoverTrue", json, data, parameterNames);
 		parseJsonOrReadFromData(colorPressedTrue, "colorPressedTrue", json, data, parameterNames);
@@ -87,13 +88,8 @@ namespace SnackerEngine
 		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(SizeHintMode::ARBITRARY);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiCheckBox::~GuiCheckBox()
-	{
-		if (boolHandle) signOffHandle(*boolHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(const GuiCheckBox& other) noexcept
-		: GuiButton(other), checked(other.checked), boolHandle(nullptr), colorDefaultTrue(other.colorDefaultTrue),
+		: GuiButton(other), checked(other.checked), colorDefaultTrue(other.colorDefaultTrue),
 		colorHoverTrue(other.colorHoverTrue), colorPressedTrue(other.colorPressedTrue),
 		colorHoverPressedTrue(other.colorHoverPressedTrue), colorDefaultFalse(other.colorDefaultFalse),
 		colorHoverFalse(other.colorHoverFalse), colorPressedFalse(other.colorPressedFalse),
@@ -104,9 +100,7 @@ namespace SnackerEngine
 	GuiCheckBox& GuiCheckBox::operator=(const GuiCheckBox& other) noexcept
 	{
 		GuiButton::operator=(other);
-		checked = other.checked; 
-		if (boolHandle) signOffHandle(*boolHandle);
-		boolHandle = nullptr;
+		checked = other.checked;
 		colorDefaultTrue = other.colorDefaultTrue;
 		colorHoverTrue = other.colorHoverTrue; 
 		colorPressedTrue = other.colorPressedTrue;
@@ -123,7 +117,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(GuiCheckBox&& other) noexcept
-		: GuiButton(std::move(other)), checked(std::move(other.checked)), boolHandle(std::move(other.boolHandle)), 
+		: GuiButton(std::move(other)), checked(std::move(other.checked)), 
 		colorDefaultTrue(std::move(other.colorDefaultTrue)), colorHoverTrue(std::move(other.colorHoverTrue)), 
 		colorPressedTrue(std::move(other.colorPressedTrue)), colorHoverPressedTrue(std::move(other.colorHoverPressedTrue)), 
 		colorDefaultFalse(std::move(other.colorDefaultFalse)), colorHoverFalse(std::move(other.colorHoverFalse)), 
@@ -131,16 +125,14 @@ namespace SnackerEngine
 		checkMarkColor(std::move(other.checkMarkColor)), checkMarkTexture(std::move(other.checkMarkTexture)),
 		checkMarkShader(std::move(other.checkMarkShader)), drawCheckMark(std::move(other.drawCheckMark))
 	{
-		other.boolHandle = nullptr;
-		if (boolHandle) notifyHandleOnGuiElementMove(&other, *boolHandle);
+		checked.parentElement = this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox& GuiCheckBox::operator=(GuiCheckBox&& other) noexcept
 	{
 		GuiButton::operator=(std::move(other));
 		checked = std::move(other.checked);
-		if (boolHandle) signOffHandle(*boolHandle);
-		boolHandle = std::move(other.boolHandle);
+		checked.parentElement = this;
 		colorDefaultTrue = std::move(other.colorDefaultTrue);
 		colorHoverTrue = std::move(other.colorHoverTrue);
 		colorPressedTrue = std::move(other.colorPressedTrue);
@@ -153,27 +145,15 @@ namespace SnackerEngine
 		checkMarkTexture = std::move(other.checkMarkTexture);
 		checkMarkShader = std::move(other.checkMarkShader);
 		drawCheckMark = std::move(other.drawCheckMark);
-		other.boolHandle = nullptr;
-		if (boolHandle) notifyHandleOnGuiElementMove(&other, *boolHandle);
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiCheckBox::setChecked(bool checked)
 	{
 		if (this->checked != checked) {
-			this->checked = checked;
+			this->checked.set(checked);
 			updateButtonColor();
-			if (boolHandle) boolHandle->set(checked);
 		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	bool GuiCheckBox::setBoolHandle(GuiVariableHandle<bool>& boolHandle)
-	{
-		if (this->boolHandle) return false;
-		this->boolHandle = &boolHandle;
-		signUpHandle(boolHandle, 1);
-		onHandleUpdate(boolHandle);
-		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiCheckBox::draw(const Vec2i& worldPosition)
@@ -193,28 +173,6 @@ namespace SnackerEngine
 			checkMarkShader.setUniform<int>("u_msdf", 0);
 			checkMarkTexture.bind();
 			Renderer::draw(guiManager->getModelSquare());
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::onHandleMove(GuiHandle& guiHandle)
-	{
-		auto result = guiHandle.getHandleID(*this);
-		if (result.has_value() && result.value() == 1) boolHandle = static_cast<GuiVariableHandle<bool>*>(&guiHandle);
-		else GuiButton::onHandleMove(guiHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::onHandleDestruction(GuiHandle& guiHandle)
-	{
-		auto result = guiHandle.getHandleID(*this);
-		if (result.has_value() && result.value() == boolHandle->getHandleID(*this)) boolHandle = nullptr;
-		else GuiButton::onHandleDestruction(guiHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiCheckBox::onHandleUpdate(GuiHandle& guiHandle)
-	{
-		if (boolHandle) {
-			checked = boolHandle->get();
-			updateButtonColor();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

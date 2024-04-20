@@ -52,9 +52,13 @@ namespace SnackerEngine
 		/// The first and last visible element in the children vector
 		unsigned firstVisibleElement = 0;
 		unsigned lastVisibleElement = 0;
+		/// If this is set to true, the layouts minHeight and preferredHeight are set according
+		/// to child elements
+		bool shrinkHeightToChildren = false;
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_SCROLLING_LIST_LAYOUT";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiVerticalScrollingListLayout(Color4f backgroundColor = defaultBackgroundColor, Color4f scrollbarColor = defaultScrollbarColor, Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor);
 		/// Constructor from JSON.
@@ -75,6 +79,7 @@ namespace SnackerEngine
 		unsigned getScrollbarBorderRight() const { return scrollbarBorderRight; }
 		unsigned getScrollbarBorderTop() const { return scrollbarBorderTop; }
 		unsigned getScrollbarBorderBottom() const { return scrollbarBorderBottom; }
+		bool isShrinkHeightToChildren() const { return shrinkHeightToChildren; }
 		/// Setters
 		void setScrollSpeed(float scrollSpeed) { this->scrollSpeed = scrollSpeed; };
 		void setTotalOffsetPercentage(float totalOffsetPercentage);
@@ -83,6 +88,7 @@ namespace SnackerEngine
 		void setScrollbarBorderRight(unsigned scrollbarBorderRight);
 		void setScrollbarBorderTop(unsigned scrollbarBorderTop);
 		void setScrollbarBorderBottom(unsigned scrollbarBorderBottom);
+		void setShrinkHeightToChildren(bool shrinkHeightToChildren);
 		//==============================================================================================
 		// Animatables
 		//==============================================================================================

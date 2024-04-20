@@ -38,6 +38,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_WINDOW";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiWindow(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& name = "");
 		/// Constructor from JSON

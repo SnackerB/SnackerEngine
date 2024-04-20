@@ -4,7 +4,7 @@
 
 namespace SnackerEngine
 {
-
+	/*
 	template<typename T>
 	class GuiVectorVariableHandle
 	{
@@ -116,5 +116,5 @@ namespace SnackerEngine
 			childHandles[i].set(values[i]);
 		}
 	}
-
+	*/
 }

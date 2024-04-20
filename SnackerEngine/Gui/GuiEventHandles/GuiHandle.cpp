@@ -3,6 +3,7 @@
 
 namespace SnackerEngine
 {
+    /*
     //--------------------------------------------------------------------------------------------------
     void GuiHandle::registerHandle(const GuiHandleID& guiHandleID, GuiElement& guiElement)
     {
@@ -92,4 +93,5 @@ namespace SnackerEngine
         }
     }
     //--------------------------------------------------------------------------------------------------
+    */
 }

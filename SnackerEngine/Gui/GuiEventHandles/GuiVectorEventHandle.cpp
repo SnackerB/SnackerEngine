@@ -2,7 +2,7 @@
 
 namespace SnackerEngine
 {
-
+	/*
 	GuiVectorEventHandle::GuiVectorEventHandle(std::size_t count)
 		: active(false), childHandles{}
 	{
@@ -23,5 +23,5 @@ namespace SnackerEngine
 			childHandles[i].parentHandle = this;
 		}
 	}
-
+	*/
 }

@@ -28,6 +28,7 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(scrollbarBorderRight, "scrollbarBorderRight", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarBorderTop, "scrollbarBorderTop", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarBorderBottom, "scrollbarBorderBottom", json, data, parameterNames);
+		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(const GuiVerticalScrollingListLayout& other) noexcept
@@ -127,6 +128,14 @@ namespace SnackerEngine
 		if (this->scrollbarBorderBottom != scrollbarBorderBottom) {
 			this->scrollbarBorderBottom = scrollbarBorderBottom;
 			computeScrollbarModelMatrices();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiVerticalScrollingListLayout::setShrinkHeightToChildren(bool shrinkHeightToChildren)
+	{
+		if (this->shrinkHeightToChildren != shrinkHeightToChildren) {
+			this->shrinkHeightToChildren = shrinkHeightToChildren;
+			registerEnforceLayoutDown();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -322,8 +331,10 @@ namespace SnackerEngine
 			// Advance to next element
 			currentYOffset += childHeight + getVerticalBorder();
 		}
-		currentVerticalHeight = currentYOffset;
+		currentVerticalHeight = currentYOffset - getVerticalBorder() + getOuterVerticalBorder();
 		computeScrollBar();
+		if (shrinkHeightToChildren) setPreferredHeight(currentVerticalHeight);
+		if (!isShrinkWidthToChildren()) setMinWidth(scrollbarWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiVerticalScrollingListLayout::getChildOffset(const GuiID& childID) const

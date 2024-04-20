@@ -157,26 +157,20 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HTTP\Header.cpp" />
-    <ClCompile Include="HTTP\HTTP.cpp" />
-    <ClCompile Include="HTTP\Message.cpp" />
-    <ClCompile Include="HTTP\Request.cpp" />
-    <ClCompile Include="HTTP\Response.cpp" />
-    <ClCompile Include="HTTP\ResponseStatusCode.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="SERP\SERP.cpp" />
+    <ClCompile Include="SERP\SERPEndpoint.cpp" />
+    <ClCompile Include="SERP\StatusCodes.cpp" />
+    <ClCompile Include="TCP\TCPEndpoint.cpp" />
     <ClCompile Include="SERP\SERPID.cpp" />
     <ClCompile Include="TCP\TCP.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HTTP\Header.h" />
-    <ClInclude Include="HTTP\HTTP.h" />
-    <ClInclude Include="HTTP\Message.h" />
-    <ClInclude Include="HTTP\Request.h" />
-    <ClInclude Include="HTTP\Response.h" />
-    <ClInclude Include="HTTP\ResponseStatusCode.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="SERP\SERP.h" />
+    <ClInclude Include="SERP\SERPEndpoint.h" />
+    <ClInclude Include="SERP\StatusCodes.h" />
+    <ClInclude Include="TCP\TCPEndpoint.h" />
     <ClInclude Include="SERP\SERPID.h" />
     <ClInclude Include="TCP\TCP.h" />
   </ItemGroup>

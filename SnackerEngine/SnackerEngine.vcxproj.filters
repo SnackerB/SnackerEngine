@@ -213,6 +213,9 @@
     <ClCompile Include="Gui\GuiAnimatable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Gui\GuiElements\GuiSelectionBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Engine.h">
@@ -444,6 +447,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gui\GuiAnimatable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiElements\GuiSelectionBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

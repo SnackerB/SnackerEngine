@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Gui/GuiElements/GuiTextBox.h"
-#include "Gui/GuiEventHandles/GuiVariableHandle.h"
+#include "Utility\Handles\VariableHandle.h"
 #include "Utility\Formatting.h"
 
 namespace SnackerEngine
@@ -11,10 +11,22 @@ namespace SnackerEngine
 	class GuiTextVariable : public GuiTextBox
 	{
 	private:
-		/// The handle to the variable that is shown in this textBox
-		GuiVariableHandle<T>* variableHandle = nullptr;
-		/// The current value
-		T value{};
+		class GuiTextVariableVariableHandle : public VariableHandle<T>
+		{
+		private:
+			friend class GuiTextVariable;
+			GuiTextVariable* parentElement;
+		protected:
+			void onEvent() override
+			{
+				parentElement->updateText();
+			}
+		public:
+			GuiTextVariableVariableHandle(GuiTextVariable* parentElement)
+				: VariableHandle<T>(), parentElement(parentElement) {}
+		};
+		/// The handle to the value that is shown in this textBox
+		GuiTextVariableVariableHandle value{ this };
 		/// The formatter used to format the text
 		std::unique_ptr<Formatter<T>> formatter = nullptr;
 		/// Helper function that updates the text
@@ -22,12 +34,13 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_TEXT_VARIABLE";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiTextVariable(const T& value, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal);
 		/// Constructor from JSON
 		GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
-		virtual ~GuiTextVariable();
+		virtual ~GuiTextVariable() {};
 		/// Copy constructor and assignment operator
 		GuiTextVariable(const GuiTextVariable& other) noexcept;
 		GuiTextVariable& operator=(const GuiTextVariable& other) noexcept;
@@ -37,6 +50,7 @@ namespace SnackerEngine
 		/// Getters
 		const T& getValue() const { return value; }
 		const std::unique_ptr<Formatter<T>>& getFormatter() const { return formatter; }
+		VariableHandle<T>& getVariableHandle() { return value; }
 		/// Setters
 		void setValue(const T& value);
 		void setFormatter(std::unique_ptr<Formatter<T>>&& formatter) { this->formatter = std::move(formatter); }
@@ -44,89 +58,65 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 		std::unique_ptr<GuiElementAnimatable> animateValue(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-	protected:
-		//==============================================================================================
-		// GuiHandles
-		//==============================================================================================
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle) override;
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle) override;
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle& guiHandle) override;
-	public:
-		/// Sets the event handle. Cannot be done if an event handle is already set, 
-		/// delete the previous event handle first!^Returns true on success
-		bool setVariableHandle(GuiVariableHandle<T>& variableHandle);
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiTextVariable<T>::updateText()
 	{
-		if (!formatter) setText(to_string(value));
-		else setText(formatter->to_string(value));
+		if (!formatter) setText(to_string(value.get()));
+		else setText(formatter->to_string(value.get()));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const T& value, const Vec2i& position, const Vec2i& size, const Font& font, const double& fontSize)
-		: GuiTextBox(position, size, to_string(value), font, fontSize), variableHandle(nullptr), value(value)
+		: GuiTextBox(position, size, "", font, fontSize), value(value)
 	{
 		setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_SIZE);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiTextBox(json, data, parameterNames)
 	{
-		parseJsonOrReadFromData(value, "value", json, data, parameterNames);
+		T temp{};
+		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
+		value.set(temp);
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
+		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_SIZE);
+		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_SIZE);
 		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::LEFT);
 		updateText();
 
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiTextVariable<T>::~GuiTextVariable()
-	{
-		if (variableHandle) signOffHandle(*variableHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const GuiTextVariable& other) noexcept
-		: GuiTextBox(other), variableHandle(nullptr), value(other.value),
+		: GuiTextBox(other), value(other.value),
 		formatter(other.formatter ? std::make_unique(*other.formatter) : nullptr) {}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>& GuiTextVariable<T>::operator=(const GuiTextVariable& other) noexcept
 	{
 		GuiTextBox::operator=(other);
-		if (variableHandle) signOffHandle(variableHandle);
-		variableHandle = nullptr;
-		this->value = other.value;
+		value = other.value;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiTextVariable<T>::GuiTextVariable(GuiTextVariable&& other) noexcept
-		: GuiTextBox(std::move(other)), variableHandle(std::move(other.variableHandle)), value(std::move(other.value)),
-		formatter(std::move(other.formatter))
+	inline GuiTextVariable<T>::GuiTextVariable(GuiTextVariable&& other) noexcept 
+		: GuiTextBox(std::move(other)), value(std::move(other.value)),
+		formatter(std::move(other.formatter)) 
 	{
-		if (variableHandle) onHandleMove(*variableHandle);
+		value.parentElement = this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>& GuiTextVariable<T>::operator=(GuiTextVariable&& other) noexcept
 	{
 		GuiTextBox::operator=(std::move(other));
-		if (variableHandle) signOffHandle(variableHandle);
-		variableHandle = std::move(other.variableHandle);
-		this->value = std::move(other.value);
-		if (variableHandle) onHandleMove(*variableHandle);
+		value = std::move(other.value);
+		value.parentElement = this;
 		formatter = std::move(other.formatter);
 		return *this;
 	}
@@ -135,8 +125,7 @@ namespace SnackerEngine
 	inline void GuiTextVariable<T>::setValue(const T& value)
 	{
 		if (this->value != value) {
-			this->value = value;
-			if (variableHandle) setVariableHandleValue(*variableHandle, value);
+			this->value.set(value);
 			updateText();
 		}
 	}
@@ -152,37 +141,6 @@ namespace SnackerEngine
 				: GuiElementValueAnimatable<T>(element, startVal, stopVal, duration, animationFunction) {}
 		};
 		return std::make_unique<GuiTextVariableValueAnimatable>(*this, startVal, stopVal, duration, animationFunction);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiTextVariable<T>::onHandleMove(GuiHandle& guiHandle)
-	{
-		variableHandle = &static_cast<GuiVariableHandle<T>&>(guiHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiTextVariable<T>::onHandleDestruction(GuiHandle& guiHandle)
-	{
-		variableHandle = nullptr;
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiTextVariable<T>::onHandleUpdate(GuiHandle& guiHandle)
-	{
-		if (value != variableHandle->get()) {
-			value = variableHandle->get();
-			updateText();
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline bool GuiTextVariable<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)
-	{
-		if (this->variableHandle) return false;
-		this->variableHandle = &variableHandle;
-		signUpHandle(variableHandle, 1);
-		onHandleUpdate(variableHandle);
-		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
 	using GuiTextVariableFloat = GuiTextVariable<float>;

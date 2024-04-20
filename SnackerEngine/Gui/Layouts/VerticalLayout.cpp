@@ -65,20 +65,23 @@ namespace SnackerEngine
 			if (child) {
 				// Set minWidth to largest minWidth (+ vertical borders)
 				minWidth = std::max(minWidth, child->getMinWidth() + 2 * static_cast<int>(horizontalBorder));
-				// If all children have the same preferred width, this will be the layouts preferred width. Otherwise, set
-				// preferredWidth to SIZE_HINT_ARBITRARY. If any child has preferredWidth of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
+				// The layouts preferred width is equal to the largest preferredWidth of its children. 
+				// If any child has preferredWidth of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
 				// set the layouts preferredWidth to SIZE_HINT_AS_LARGE_AS_POSSIBLE
-				if (preferredWidth.has_value()) {
-					if (preferredWidth.value() >= 0) {
-						int tempPreferredWidth = child->getPreferredWidth();
-						if (tempPreferredWidth != preferredWidth.value()) preferredWidth = SIZE_HINT_ARBITRARY;
+				if (!(preferredWidth.has_value() && preferredWidth.value() == SIZE_HINT_AS_LARGE_AS_POSSIBLE)) {
+					int tempPreferredWidth = child->getPreferredWidth();
+					if (tempPreferredWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+						preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					}
+					else {
+						if (preferredWidth.has_value()) {
+							if (tempPreferredWidth > preferredWidth.value()) preferredWidth = tempPreferredWidth;
+						}
+						else {
+							if (tempPreferredWidth != SIZE_HINT_ARBITRARY) preferredWidth = tempPreferredWidth;
+						}
 					}
 				}
-				else {
-					int tempPreferredWidth = child->getPreferredWidth();
-					if (tempPreferredWidth >= 0) preferredWidth = tempPreferredWidth;
-				}
-				if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
 			}
 		}
 		setMinWidth(minWidth);
@@ -87,7 +90,7 @@ namespace SnackerEngine
 				setPreferredWidth(preferredWidth.value() + 2 * horizontalBorder);
 			}
 			else {
-				setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+				setPreferredWidth(SIZE_HINT_ARBITRARY);
 			}
 		}
 	}

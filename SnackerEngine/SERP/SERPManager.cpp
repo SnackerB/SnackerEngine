@@ -11,29 +11,19 @@ namespace SnackerEngine
 	void SERPManager::PendingResponse::onMove(PendingResponse* other)
 	{
 		if (serpManager) {
-			auto it = serpManager->pendingResponses.find(response.getSource());
-			if (it != serpManager->pendingResponses.end() && it->second == other) it->second = this;
+			auto it = serpManager->sentRequests.find(response.getHeader().messageID);
+			if (it != serpManager->sentRequests.end()) {
+				if (it->second.pendingResponse != other)  errorLogger << LOGGER::BEGIN << "sent request with messageID " << response.getHeader().messageID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+				it->second.pendingResponse = this;
+			}
 			else {
-				auto it2 = serpManager->outgoingRequests.find(response.getSource());
-				if (it2 != serpManager->outgoingRequests.end()) {
-					for (auto& it3 : it2->second) {
-						if (it3.second == other) {
-							it3.second = this;
-							return;
-						}
-					}
-					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in outgoing requests ..." << LOGGER::ENDL;
-				}
-				else {
-					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in pendingResponses or outgoing requests ..." << LOGGER::ENDL;
-				}
+				errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << response.getHeader().messageID << LOGGER::ENDL;
 			}
 		}
 	}
 	
 	SERPManager::PendingResponse::PendingResponse(PendingResponse&& other) noexcept
-		: serpManager{ other.serpManager }, status{ other.status }, 
-		timeLeft{ other.timeLeft }, response{ std::move(other.response) }
+		: serpManager{ other.serpManager }, status{ other.status }, response{ std::move(other.response) }
 	{
 		onMove(&other);
 		other.serpManager = nullptr;
@@ -43,7 +33,6 @@ namespace SnackerEngine
 	{
 		serpManager = other.serpManager;
 		status = other.status;
-		timeLeft = other.timeLeft;
 		response = std::move(other.response);
 		onMove(&other);
 		other.serpManager = nullptr;
@@ -53,74 +42,101 @@ namespace SnackerEngine
 	SERPManager::PendingResponse::~PendingResponse()
 	{
 		if (serpManager) {
-			auto it = serpManager->pendingResponses.find(response.getSource());
-			if (it != serpManager->pendingResponses.end() && it->second == this) serpManager->pendingResponses.erase(it);
+			auto it = serpManager->sentRequests.find(response.getHeader().messageID);
+			if (it != serpManager->sentRequests.end()) {
+				if (it->second.pendingResponse == this) it->second.pendingResponse = nullptr;
+				else errorLogger << LOGGER::BEGIN << "sent request with messageID " << response.getHeader().messageID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+			}
 			else {
-				auto it2 = serpManager->outgoingRequests.find(response.getSource());
-				if (it2 != serpManager->outgoingRequests.end()) {
-					for (unsigned int i = 0; i < it2->second.size(); ++i) {
-						if (it2->second[i].second == this) {
-							it2->second[i].second = nullptr;
-							return;
-						}
-						warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in outgoing requests while erasing ..." << LOGGER::ENDL;
-					}
-				}
-				else {
-					warningLogger << LOGGER::BEGIN << "Could not find pendingResponse in pendingResponses or outgoing requests while erasing ..." << LOGGER::ENDL;
-				}
+				errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << response.getHeader().messageID << LOGGER::ENDL;
 			}
 		}
 	}
 
-	void SERPManager::handleReceivedMessage(HTTPMessage& message)
+	double SERPManager::PendingResponse::getTimeLeftUntilTimeout() const
 	{
-		switch (message.getMessageType())
-		{
-		case HTTPMessage::MessageType::REQUEST:
-		{
-			auto serpRequest = SERPRequest::parse(static_cast<HTTPRequest&>(message));
-			if (serpRequest.has_value()) {
-				handleIncomingRequest(serpRequest.value());
-			}
-			else {
-				errorLogger << LOGGER::BEGIN << "obtained HTTP request does not follow SERP format:\"\n" << 
-					static_cast<HTTPRequest&>(message).toString() << "\n\"" << LOGGER::ENDL;
-			}
-			break;
+		if (!serpManager) return 0.0;
+		auto it = serpManager->sentRequests.find(response.getHeader().messageID);
+		if (it != serpManager->sentRequests.end()) {
+			return it->second.repetitions * it->second.timeBetweenResend + it->second.timeSinceLastSend;
 		}
-		case HTTPMessage::MessageType::RESPONSE:
-		{
-			auto serpResponse = SERPResponse::parse(static_cast<HTTPResponse&>(message));
-			if (serpResponse.has_value()) {
-				handleIncomingResponse(serpResponse.value());
-			}
-			else {
-				errorLogger << LOGGER::BEGIN << "obtained HTTP response does not follow SERP format:\"\n" <<
-					static_cast<HTTPResponse&>(message).toString() << "\n\"" << LOGGER::ENDL;
-			}
-			break;
+		else {
+			errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << response.getHeader().messageID << LOGGER::ENDL;
+			return 0.0;
 		}
-		default:
-			break;
+	}
+
+	bool SERPManager::checkIfAlreadyRespondedAndResend(const SERPRequest& request)
+	{
+		auto it = sentResponses.find(request.getHeader().messageID);
+		if (it != sentResponses.end()) {
+			for (auto& response : it->second) {
+				if (response.response.getHeader().destination == request.getHeader().source) {
+					// Resend the response!
+					endpointSERP.sendMessage(response.response);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	void SERPManager::insertIntoSentResponsesMap(SERPResponse response)
+	{
+		auto it = sentResponses.find(response.getHeader().messageID);
+		if (it == sentResponses.end()) {
+			auto result = sentResponses.insert(std::make_pair<>(response.getHeader().messageID, std::vector<SentResponse>()));
+			if (result.second) it = result.first;
+			else return;
+		}
+		for (const auto& tempResponse : it->second) {
+			if (tempResponse.response.getHeader().destination == response.getHeader().destination) return;
+		}
+		it->second.push_back(SentResponse{ sentResponsesTimeout, response });
+	}
+
+	void SERPManager::updateSentResponses(double dt)
+	{
+		auto it = sentResponses.begin();
+		while (it != sentResponses.end()) {
+			auto it2 = it->second.begin();
+			while (it2 != it->second.end()) {
+				it2->timeout -= dt;
+				if (it2->timeout <= 0.0) {
+					it2 = it->second.erase(it2);
+				}
+			}
+			if (it->second.empty()) {
+				it = sentResponses.erase(it);
+			}
+			else it++;
+		}
+	}
+
+	void SERPManager::handleReceivedMessage(SERPMessage& message)
+	{
+		if (message.isRequest()) {
+			handleIncomingRequest(static_cast<SERPRequest&>(message));
+		}
+		else {
+			handleIncomingResponse(static_cast<SERPResponse&>(message));
 		}
 	}
 
 	void SERPManager::handleIncomingRequest(SERPRequest& request)
 	{
-		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << request.toString() << LOGGER::ENDL;
-		if (request.getDestination() != serpID) {
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << to_string(request) << LOGGER::ENDL;
+		if (request.getHeader().destination != serpID) {
 			warningLogger << LOGGER::BEGIN << "received incoming request with wrong destinationID!" << LOGGER::ENDL;
-			sendResponse(SERPResponse(serpID, request.getSource(),
-				HTTPResponse{ ResponseStatusCode::BAD_REQUEST, {}, "destinationID did not match serpID!" }));
+			sendResponse(SERPResponse(request, ResponseStatusCode::BAD_REQUEST, Buffer("destinationID did not match serpID!")));
 		}
 		else {
 			// Sort message in the correct buffer, based on the path
-			std::vector<std::string> path = request.request.splitPath();
+			std::vector<std::string> path = SERPRequest::splitTargetPath(request.target);
 			if (path.empty()) {
 				handleIncomingManagerRequest(request);
 			}
-			std::queue<SERPRequest>* bestResult = nullptr;
+			std::deque<SERPRequest>* bestResult = nullptr;
 			std::string currentPath = "";
 			for (unsigned i = 0; i < path.size(); ++i) {
 				currentPath.append("/");
@@ -131,7 +147,15 @@ namespace SnackerEngine
 				}
 			}
 			if (bestResult) {
-				bestResult->push(request);
+				// Check if this request is already in the queue, in which case this is a resend and we dont need to push it to the queue again
+				bool requestAlreadyInQueue = false;
+				for (const auto& requestInQueue : *bestResult) {
+					if (requestInQueue.getHeader().source == request.getHeader().source && requestInQueue.getHeader().messageID == request.getHeader().messageID) {
+						requestAlreadyInQueue = true;
+						break;
+					}
+				}
+				if (!requestAlreadyInQueue) bestResult->push_back(request);
 			}
 			else {
 				handleIncomingManagerRequest(request);
@@ -142,127 +166,131 @@ namespace SnackerEngine
 
 	void SERPManager::handleIncomingManagerRequest(SERPRequest& request)
 	{
-		if (request.request.requestMethod == request.request.HTTP_GET && request.request.path == "/ping") {
-			sendResponse(SERPResponse(serpID, request.getSource(),
-				HTTPResponse{ ResponseStatusCode::OK, {}, "" }));
+		if (request.getRequestStatusCode() == RequestStatusCode::GET && request.target == "/ping") {
+			sendResponse(SERPResponse(request, ResponseStatusCode::OK));
 		}
 		else {
-			warningLogger << "received request with unknown path \"" << request.request.path << "\"" << LOGGER::ENDL;
-			sendResponse(SERPResponse(serpID, request.getSource(),
-				HTTPResponse{ ResponseStatusCode::NOT_FOUND, {}, "path" + request.request.path + " was not found!" }));
+			warningLogger << "received request with unknown path \"" << request.target << "\"" << LOGGER::ENDL;
+			sendResponse(SERPResponse(request, ResponseStatusCode::NOT_FOUND, Buffer("path" + request.target + " was not found!")));
 		}
 	}
 
 	void SERPManager::handleIncomingResponse(SERPResponse& response)
 	{
-		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << response.toString() << LOGGER::ENDL;
-		auto it = pendingResponses.find(response.getSource());
-		if (it != pendingResponses.end()) {
-			it->second->status = PendingResponse::Status::OBTAINED;
-			it->second->response = response;
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << to_string(response) << LOGGER::ENDL;
+		auto it = sentRequests.find(response.header.messageID);
+		if (it != sentRequests.end()) {
+			if (it->second.pendingResponse) {
+				it->second.pendingResponse->status = PendingResponse::Status::OBTAINED;
+				it->second.pendingResponse->response = response;
+				it->second.pendingResponse->serpManager = nullptr;
+			}
+			sentRequests.erase(it);
 		}
 		else {
-			warningLogger << "Received response without request or after timeout!" << LOGGER::ENDL;
+			warningLogger << "Received response with messageID " << response.header.messageID << " without request or after timeout!" << LOGGER::ENDL;
 		}
 	}
 
 	SERPManager::SERPManager()
-		: connected{ false }, serpID{ 0 }, httpEndpoint(SocketTCP{}, false), incomingRequests{}, pendingResponses{}, outgoingRequests{},
-		serpIDResponse{ nullptr }, incomingMessageBuffer{ 4000 }
+		: endpointSERP{}, connected{ false }, serpID{ 0 }, incomingRequests{}, sentRequests{}, sentResponses{}, sentResponsesTimeout{ 10.0 }, serpIDResponse { nullptr }, logMessages{ false }
 	{
-		auto result = createSocketTCP();
-		if (!result.has_value()) {
-			errorLogger << "Was not able to create socket!" << LOGGER::ENDL;
-			return;
-		}
-		httpEndpoint = HTTPEndpoint(std::move(result.value()), false);
 	}
 
 	SERPManager::~SERPManager()
 	{
-		for (auto& pendingResponse : pendingResponses) {
-			pendingResponse.second->serpManager = nullptr;
-		}
-		for (auto& outgoingRequest : outgoingRequests) {
-			for (auto& pendingResponse : outgoingRequest.second) {
-				if (pendingResponse.second) pendingResponse.second->serpManager = nullptr;
-			}
+		for (const auto& it : sentRequests) {
+			if (it.second.pendingResponse) it.second.pendingResponse->serpManager = nullptr;
 		}
 		clearIncomingRequestPaths();
 	}
 
 	SERPManager::SERPManager(SERPManager&& other) noexcept
-		: connected{ std::move(other.connected) }, serpID{ std::move(other.serpID) }, httpEndpoint{ std::move(other.httpEndpoint) }, 
-		incomingRequests{ std::move(other.incomingRequests) }, pendingResponses{ std::move(other.pendingResponses) }, 
-		outgoingRequests{ std::move(other.outgoingRequests) }, serpIDResponse{ std::move(other.serpIDResponse) },
-		incomingMessageBuffer{ std::move(other.incomingMessageBuffer) }
+		: endpointSERP{ std::move(other.endpointSERP) }, connected{ std::move(other.connected) }, serpID{ std::move(other.serpID) },
+		incomingRequests{ std::move(other.incomingRequests) }, sentRequests{ std::move(other.sentRequests) }, sentResponses{ std::move(other.sentResponses) }, 
+		sentResponsesTimeout{ other.sentResponsesTimeout }, serpIDResponse { std::move(other.serpIDResponse) }, logMessages{ other.logMessages }
 	{
-		for (auto& pendingResponse : pendingResponses) {
-			pendingResponse.second->serpManager = this;
+		for (const auto& it : sentRequests) {
+			if (it.second.pendingResponse) it.second.pendingResponse->serpManager = this;
 		}
-		for (auto& outgoingRequest : outgoingRequests) {
-			for (auto& pendingResponse : outgoingRequest.second) {
-				pendingResponse.second->serpManager = this;
-			}
-		}
-		other.pendingResponses.clear();
-		other.outgoingRequests.clear();
+		other.sentRequests.clear();
 	}
 
 	SERPManager& SERPManager::operator=(SERPManager&& other) noexcept
 	{
-		for (auto& pendingResponse : pendingResponses) {
-			pendingResponse.second->serpManager = nullptr;
+		for (const auto& it : sentRequests) {
+			if (it.second.pendingResponse) it.second.pendingResponse->serpManager = nullptr;
 		}
-		for (auto& outgoingRequest : outgoingRequests) {
-			for (auto& pendingResponse : outgoingRequest.second) {
-				pendingResponse.second->serpManager = nullptr;
-			}
-		}
-		other.pendingResponses.clear();
-		other.outgoingRequests.clear();
+		endpointSERP = std::move(other.endpointSERP);
 		connected = other.connected;
 		serpID = other.serpID;
-		httpEndpoint = std::move(other.httpEndpoint);
 		incomingRequests = std::move(other.incomingRequests);
-		pendingResponses = std::move(other.pendingResponses);
-		outgoingRequests = std::move(other.outgoingRequests);
+		sentRequests = std::move(other.sentRequests);
 		serpIDResponse = std::move(other.serpIDResponse);
-		incomingMessageBuffer = std::move(other.incomingMessageBuffer);
-		for (auto& pendingResponse : pendingResponses) {
-			pendingResponse.second->serpManager = this;
+		logMessages = other.logMessages;
+		for (const auto& it : sentRequests) {
+			if (it.second.pendingResponse) it.second.pendingResponse->serpManager = this;
 		}
-		for (auto& outgoingRequest : outgoingRequests) {
-			for (auto& pendingResponse : outgoingRequest.second) {
-				pendingResponse.second->serpManager = this;
-			}
-		}
-		other.pendingResponses.clear();
-		other.outgoingRequests.clear();
+		other.sentRequests.clear();
 		return *this;
 	}
 
-	bool SERPManager::connectToSERPServer()
+	SERPManager::ConnectResult SERPManager::connectToSERPServer()
 	{
-		bool result = connectTo(httpEndpoint.getSocket(), getSERPServerAdressTCP());
-		if (result) {
-			connected = true;
-			serpIDResponse = std::make_unique<PendingResponse>(sendRequest(SERPRequest(0, 0, { HTTPRequest::RequestMethod::HTTP_GET, "/serpID" })));
-			if (!setToNonBlocking(httpEndpoint.getSocket())) {
-				errorLogger << "Was not able to set socket to non-blocking!" << LOGGER::ENDL;
-				httpEndpoint.setSocket(SocketTCP{});
-				return false;
+		if (!connected) {
+			auto result = endpointSERP.connectToSERPServer();
+			if (result.result == SnackerEngine::ConnectResult::Result::SUCCESS) {
+				connected = true;
+				serpIDResponse = std::make_unique<PendingResponse>(sendRequest(SERPRequest(0, RequestStatusCode::GET, "/serpID")));
+				return { ConnectResult::Result::PENDING, "" };
 			}
-			return true;
+			else if (result.result == SnackerEngine::ConnectResult::Result::ERROR) {
+				endpointSERP.resetSocket();
+				return { ConnectResult::Result::ERROR, "Connecting to SERP server failed with error code " + to_string(result.error) };
+			}
+			else return { ConnectResult::Result::PENDING, "" };
 		}
-		errorLogger << "Was not able to connect to SERP Server!" << LOGGER::ENDL;
-		return false;
+		else if (serpIDResponse) {
+			switch (serpIDResponse->getStatus())
+			{
+			case PendingResponse::Status::OBTAINED:
+			{
+				if (serpIDResponse->getResponse().getResponseStatusCode() == ResponseStatusCode::OK) {
+					auto result = from_string<SERPID>(serpIDResponse->getResponse().content.to_string());
+					if (result.has_value()) {
+						serpID = result.value();
+						return { ConnectResult::Result::PENDING, "" };
+					}
+					else {
+						endpointSERP.resetSocket();
+						return { ConnectResult::Result::ERROR, "Connecting to SERP server failed, Server sent invalid SERPID \"" + serpIDResponse->getResponse().content.to_string() + "\"" };
+					}
+				}
+				else {
+					endpointSERP.resetSocket();
+					return { ConnectResult::Result::ERROR, "Connecting to SERP server failed, Server sent invalid message." };
+				}
+				break;
+			}
+			case PendingResponse::Status::PENDING:
+			{
+				return { ConnectResult::Result::PENDING, "" };
+				break;
+			}
+			case PendingResponse::Status::TIMEOUT:
+			{
+				endpointSERP.resetSocket();
+				return { ConnectResult::Result::ERROR, "Connecting to SERP server failed, timeout while waiting for SERPID." };
+				break;
+			}
+			}
+		}
 	}
 
 	void SERPManager::registerPathForIncomingRequests(const std::string& path)
 	{
 		if (incomingRequests.find(path) == incomingRequests.end())
-			incomingRequests.insert(std::make_pair<>(path, std::queue<SERPRequest>()));
+			incomingRequests.insert(std::make_pair<>(path, std::deque<SERPRequest>()));
 	}
 
 	void SERPManager::removePathForIncomingRequests(const std::string& path)
@@ -285,7 +313,7 @@ namespace SnackerEngine
 		return !it->second.empty();
 	}
 
-	std::queue<SERPRequest>& SERPManager::getIncomingRequests(const std::string& path)
+	std::deque<SERPRequest>& SERPManager::getIncomingRequests(const std::string& path)
 	{
 		auto it = incomingRequests.find(path);
 		if (it == incomingRequests.end()) {
@@ -294,115 +322,60 @@ namespace SnackerEngine
 		return it->second;
 	}
 
-	SERPManager::PendingResponse SERPManager::sendRequest(SERPRequest request, double timeout)
+	SERPManager::PendingResponse SERPManager::sendRequest(SERPRequest request, double timeout, unsigned repetitions)
 	{
 		// Construct pendingResponse object
-		PendingResponse pendingResponse(this, timeout, request.getDestination());
-		// Check if we are already wating for a response from the destination
-		auto it = pendingResponses.find(request.getDestination());
-		if (it == pendingResponses.end()) {
-			// We are not currently waiting for a response from destination
-			// We can therefore send the message directly!
-			pendingResponses.insert(std::make_pair<>(request.getDestination(), &pendingResponse));
-			request.request.addContentLengthHeader();
-			SnackerEngine::sendRequest(httpEndpoint.getSocket(), request.request);
-			if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << request.toString() << LOGGER::ENDL;
-		}
-		else {
-			// We are currently waiting for a response from destination
-			// We must push the request in the correct outgoing requests queue
-			auto it2 = outgoingRequests.find(request.getDestination());
-			if (it2 != outgoingRequests.end()) {
-				it2->second.push_back(std::make_pair<>(request, &pendingResponse));
-			}
-			else {
-				auto result = outgoingRequests.insert(std::make_pair<>(request.getDestination(), std::vector<std::pair<SERPRequest, PendingResponse*>>()));
-				if (result.second) result.first->second.push_back(std::make_pair<>(request, &pendingResponse));
-			}
-		}
+		request.getHeader().source = serpID;
+		endpointSERP.sendMessage(request);
+		PendingResponse pendingResponse(this, request.getHeader().messageID);
+		auto it = sentRequests.insert(std::make_pair<>(request.getHeader().messageID, SentRequest{ repetitions, timeout, timeout, request, &pendingResponse }));
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << to_string(request) << LOGGER::ENDL;
 		return pendingResponse;
 	}
 
 	void SERPManager::sendResponse(SERPResponse response)
 	{
-		response.response.addContentLengthHeader();
-		SnackerEngine::sendResponse(httpEndpoint.getSocket(), response.response);
-		if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << response.toString() << LOGGER::ENDL;
+		response.getHeader().source = serpID;
+		endpointSERP.sendMessage(response);
+		if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << to_string(response) << LOGGER::ENDL;
+		insertIntoSentResponsesMap(response);
 	}
 
 	void SERPManager::update(double dt)
 	{
 		if (!connected) return;
-		// Check if we have not yet received our serpID from the server
-		if (serpID == 0) {
-			if (!serpIDResponse || serpIDResponse->getStatus() == PendingResponse::Status::TIMEOUT) {
-				// Send another serpID request
-				serpIDResponse = nullptr;
-				serpIDResponse = std::make_unique<PendingResponse>(sendRequest(SERPRequest(0, 0, { HTTPRequest::RequestMethod::HTTP_GET, "/serpID" })));
-			}
-			else if (serpIDResponse->getStatus() == PendingResponse::Status::OBTAINED) {
-				const SERPResponse& response = serpIDResponse->getResponse();
-				if (response.response.responseStatusCode == ResponseStatusCode::OK) {
-					auto result = from_string<SERPID>(response.response.body);
-					if (result.has_value()) {
-						serpID = result.value();
-					}
-				}
-				serpIDResponse = nullptr;
-				if (serpID == 0) {
-					serpIDResponse = std::make_unique<PendingResponse>(sendRequest(SERPRequest(0, 0, { HTTPRequest::RequestMethod::HTTP_GET, "/serpID" })));
-				}
-				else {
-					infoLogger << LOGGER::BEGIN << "Connected to SERP server with serpID " << serpID << "!" << LOGGER::ENDL;
-				}
-			}
-		}
 		// Check if any new incoming messages are here
-		auto receivedMessages = httpEndpoint.receiveMessages(0.01);
+		auto receivedMessages = endpointSERP.receiveMessages();
 		for (auto& receivedMessage : receivedMessages) {
 			handleReceivedMessage(*receivedMessage);
 		}
-		// Check if we are able to send anything from the outgoingRequest queues
-		for (auto it = outgoingRequests.begin(); it != outgoingRequests.end(); ) {
-			if (pendingResponses.find(it->first) == pendingResponses.end()) {
-				if (it->second.front().second) pendingResponses.insert(std::make_pair<>(it->first, it->second.front().second));
-				it->second.front().first.request.addContentLengthHeader();
-				SnackerEngine::sendRequest(httpEndpoint.getSocket(), it->second.front().first.request);
-				if (logMessages) infoLogger << LOGGER::BEGIN << "Sent the following message at time [" << getCurrentTimeAsString() << "]: " << it->second.front().first.request.toString() << LOGGER::ENDL;
-				it->second.erase(it->second.begin());
-				if (it->second.empty()) {
-					outgoingRequests.erase(it++);
+		// Update all sentRequest objects
+		auto it = sentRequests.begin();
+		while (it != sentRequests.end()) {
+			// Advance the time
+			it->second.timeSinceLastSend -= dt;
+			if (it->second.timeSinceLastSend <= 0.0) {
+				if (it->second.repetitions > 0) {
+					// Resend message
+					it->second.repetitions--;
+					it->second.timeSinceLastSend += it->second.timeBetweenResend;
+					endpointSERP.sendMessage(it->second.request, false);
+					if (logMessages) infoLogger << LOGGER::BEGIN << "Resent the following message at time [" << getCurrentTimeAsString() << "], " << it->second.repetitions << " repititions remaining: " << to_string(it->second.request) << LOGGER::ENDL;
 				}
 				else {
-					it++;
-				}
-			}
-			else {
-				it++;
-			}
-		}
-		// Update the time of all pending responses
-		for (auto& pendingResponse : pendingResponses) {
-			pendingResponse.second->timeLeft -= dt;
-			if (pendingResponse.second->timeLeft <= 0) {
-				pendingResponse.second->timeLeft = 0;
-				if (pendingResponse.second->status == PendingResponse::Status::PENDING)
-					pendingResponse.second->status = PendingResponse::Status::TIMEOUT;
-			}
-		}
-		for (auto& outgoingRequest : outgoingRequests) {
-			for (auto& request : outgoingRequest.second) {
-				auto& pendingResponse = request.second;
-				if (pendingResponse) {
-					pendingResponse->timeLeft -= dt;
-					if (pendingResponse->timeLeft <= 0) {
-						pendingResponse->timeLeft = 0;
-						if (pendingResponse->status == PendingResponse::Status::PENDING)
-							pendingResponse->status = PendingResponse::Status::TIMEOUT;
+					// Timeout
+					if (it->second.pendingResponse) {
+						it->second.pendingResponse->status = PendingResponse::Status::TIMEOUT;
+						it->second.pendingResponse->serpManager = nullptr;
+						it = sentRequests.erase(it);
+						continue;
 					}
 				}
 			}
+			it++;
 		}
+		// Update all sentResponse objects
+		updateSentResponses(dt);
 	}
 
 }

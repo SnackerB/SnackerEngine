@@ -129,6 +129,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_TEXT_BOX";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
 		GuiTextBox(const std::string& text);

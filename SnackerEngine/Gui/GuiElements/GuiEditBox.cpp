@@ -59,8 +59,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::OnTextEdit()
 	{
-		if (eventHandleTextWasEdited) activate(*eventHandleTextWasEdited);
-		if (dynamicText) setTextInternal(dynamicText->getText());
+		eventTextWasEdited.trigger();
+		if (dynamicText) setText(dynamicText->getText());
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, const Color4f& backgroundColor)
@@ -81,17 +81,11 @@ namespace SnackerEngine
 			&& getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::~GuiEditBox()
-	{
-		if (eventHandleTextWasEdited) signOffHandle(*eventHandleTextWasEdited);
-		if (eventHandleEnterWasPressed) signOffHandle(*eventHandleEnterWasPressed);
-	}
-	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const GuiEditBox& other) noexcept
 		: GuiTextBox(other), selectionBoxColor(other.selectionBoxColor), cursorWidth(other.cursorWidth), 
 		active(false), cursorIsVisible(false),
 		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor{}, modelMatricesSelectionBoxes{},
-		eventHandleTextWasEdited(nullptr), eventHandleEnterWasPressed(nullptr) {}
+		eventTextWasEdited{}, eventEnterWasPressed{} {}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox& GuiEditBox::operator=(const GuiEditBox& other) noexcept
 	{
@@ -103,10 +97,8 @@ namespace SnackerEngine
 		cursorBlinkingTimer = other.cursorBlinkingTimer;
 		modelMatrixCursor = Mat4f();
 		modelMatricesSelectionBoxes.clear();
-		if (eventHandleTextWasEdited) signOffHandle(*eventHandleTextWasEdited);
-		eventHandleTextWasEdited = nullptr;
-		if (eventHandleEnterWasPressed) signOffHandle(*eventHandleEnterWasPressed);
-		eventHandleEnterWasPressed = nullptr;
+		eventTextWasEdited = EventHandle::Observable();
+		eventEnterWasPressed = EventHandle::Observable();
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -116,13 +108,9 @@ namespace SnackerEngine
 		cursorIsVisible(std::move(other.cursorIsVisible)),
 		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), modelMatrixCursor(std::move(other.modelMatrixCursor)),
 		modelMatricesSelectionBoxes(std::move(other.modelMatricesSelectionBoxes)),
-		eventHandleTextWasEdited(std::move(other.eventHandleTextWasEdited)),
-		eventHandleEnterWasPressed(std::move(other.eventHandleEnterWasPressed))
+		eventTextWasEdited(std::move(other.eventTextWasEdited)),
+		eventEnterWasPressed(std::move(other.eventEnterWasPressed))
 	{
-		other.eventHandleTextWasEdited = nullptr;
-		other.eventHandleEnterWasPressed = nullptr;
-		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
-		if (eventHandleEnterWasPressed) notifyHandleOnGuiElementMove(&other, *eventHandleEnterWasPressed);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox& GuiEditBox::operator=(GuiEditBox&& other) noexcept
@@ -135,12 +123,8 @@ namespace SnackerEngine
 		cursorBlinkingTimer = std::move(other.cursorBlinkingTimer);
 		modelMatrixCursor = std::move(other.modelMatrixCursor);
 		modelMatricesSelectionBoxes = std::move(other.modelMatricesSelectionBoxes);
-		if (eventHandleTextWasEdited) signOffHandle(*eventHandleTextWasEdited);
-		eventHandleTextWasEdited = std::move(other.eventHandleTextWasEdited);
-		if (eventHandleTextWasEdited) notifyHandleOnGuiElementMove(&other, *eventHandleTextWasEdited);
-		if (eventHandleEnterWasPressed) signOffHandle(*eventHandleEnterWasPressed);
-		eventHandleEnterWasPressed = std::move(other.eventHandleEnterWasPressed);
-		if (eventHandleEnterWasPressed) notifyHandleOnGuiElementMove(&other, *eventHandleEnterWasPressed);
+		eventTextWasEdited = std::move(other.eventTextWasEdited);
+		eventEnterWasPressed = std::move(other.eventEnterWasPressed);
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -150,20 +134,14 @@ namespace SnackerEngine
 		if (dynamicText) static_cast<EditableText&>(*dynamicText).setCursorWidth(cursorWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::setEventHandleTextWasEdited(GuiEventHandle& eventHandle)
+	void GuiEditBox::subscribeEventTextWasEdited(EventHandle& eventHandle)
 	{
-		if (!eventHandleTextWasEdited) {
-			this->eventHandleTextWasEdited = &eventHandle;
-			signUpHandle(eventHandle, 0);
-		}
+		eventTextWasEdited.subscribe(eventHandle);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::setEventHandleEnterWasPressed(GuiEventHandle& eventHandle)
+	void GuiEditBox::setEventHandleEnterWasPressed(EventHandle& eventHandle)
 	{
-		if (!eventHandleEnterWasPressed) {
-			this->eventHandleEnterWasPressed = &eventHandle;
-			signUpHandle(eventHandle, 1);
-		}
+		eventEnterWasPressed.subscribe(eventHandle);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::draw(const Vec2i& worldPosition)
@@ -210,33 +188,6 @@ namespace SnackerEngine
 		GuiTextBox::onSizeChange();
 		computeModelMatrixCursor();
 		computeModelMatricesSelectionBoxes();
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::onHandleDestruction(GuiHandle& guiHandle)
-	{
-		std::optional<GuiHandle::GuiHandleID> handleID = guiHandle.getHandleID(*this);
-		if (!handleID) return;
-		switch (handleID.value())
-		{
-		case 0: eventHandleTextWasEdited = nullptr; break;
-		case 1: eventHandleEnterWasPressed = nullptr; break;
-		default:
-			break;
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiEditBox::onHandleMove(GuiHandle& guiHandle)
-	{
-		// Update pointer
-		std::optional<GuiHandle::GuiHandleID> handleID = guiHandle.getHandleID(*this);
-		if (!handleID) return;
-		switch (handleID.value())
-		{
-		case 0: eventHandleTextWasEdited = static_cast<GuiEventHandle*>(&guiHandle); break;
-		case 1: eventHandleEnterWasPressed = static_cast<GuiEventHandle*>(&guiHandle); break;
-		default:
-			break;
-		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiEditBox::isColliding(const Vec2i& offset) const
@@ -384,7 +335,7 @@ namespace SnackerEngine
 					signOffEvent(CallbackType::MOUSE_BUTTON);
 					signOffEvent(CallbackType::MOUSE_MOTION);
 					OnTextEdit();
-					if (eventHandleEnterWasPressed) activate(*eventHandleEnterWasPressed);
+					eventEnterWasPressed.trigger();
 					// Kill selection
 					static_cast<EditableText&>(*dynamicText).setSelectionIndexToCursor();
 				}
@@ -406,6 +357,20 @@ namespace SnackerEngine
 				signOffEvent(CallbackType::MOUSE_MOTION);
 				// Kill selection
 				static_cast<EditableText&>(*dynamicText).setSelectionIndexToCursor();
+			}
+			else if (key == KEY_C && mods & KEY_MOD_CONTROL) {
+				// Put selected text as UTF-8 encoded string into the clipboard
+				Engine::setClipboardString(static_cast<EditableText&>(*dynamicText).getSelectedText());
+			}
+			else if (key == KEY_V && mods & KEY_MOD_CONTROL) {
+				std::optional<std::string> clipboard = Engine::getClipboardString();
+				// Input (hopefully) UTF-8 encoded string into text object
+				if (clipboard.has_value()) static_cast<EditableText&>(*dynamicText).inputAtCursor(clipboard.value());
+				cursorBlinkingTimer.reset();
+				cursorIsVisible = true;
+				recomputeText();
+				computeModelMatrixCursor();
+				computeModelMatricesSelectionBoxes();
 			}
 			// Compute selection boxes
 			computeModelMatricesSelectionBoxes();

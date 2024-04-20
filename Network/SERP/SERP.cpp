@@ -1,95 +1,228 @@
-#include "SERP.h"
+#include "Network\SERP\SERP.h"
+#include <WinSock2.h>
 #include "Utility\Formatting.h"
-
-#include <sstream>
 
 namespace SnackerEngine
 {
 
-	SERPRequest::SERPRequest(SERPID source, SERPID destination, HTTPRequest httpRequest)
-		: SERPHeader(source, destination), request(httpRequest)
+	bool SERPHeader::getResponseFlag() const
 	{
-		request.headers.push_back(HTTPHeader("sourceID", to_string(source)));
-		request.headers.push_back(HTTPHeader("destinationID", to_string(destination)));
+		return flags & 0b1000000000000000;
+	}
+	
+	void SERPHeader::setResponseFlag(bool response)
+	{
+		if (response) {
+			flags |= 0b1000000000000000;
+		}
+		else {
+			flags &= 0b0111111111111111;
+		}
 	}
 
-	std::optional<SERPRequest> SERPRequest::parse(HTTPRequest httpRequest)
+	void SERPHeader::toNetworkByteOrder()
 	{
-		SERPRequest result{};
-		// Parse destinationID
-		auto destinationIDString = httpRequest.getHeaderValue("destinationID");
-		if (!destinationIDString.has_value()) return {};
-		auto destinationID = from_string<SERPID>(std::string(destinationIDString.value()));
-		if (!destinationID.has_value()) return {};
-		// Parse sourceID
-		auto sourceIDString = httpRequest.getHeaderValue("sourceID");
-		if (!sourceIDString.has_value()) return {};
-		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
-		if (!sourceID.has_value()) return {};
-		// Finalize message
-		return SERPRequest(sourceID.value(), destinationID.value(), httpRequest);
+		source = htons(source);
+		destination = htons(destination);
+		messageID = htonl(messageID);
+		contentLength = htonl(contentLength);
+		flags = htons(flags);
+		statusCode = htons(statusCode);
 	}
 
-	std::string SERPRequest::toString() const
+	void SERPHeader::toHostByteOrder()
 	{
-		std::stringstream ss;
-		ss << "{ source: " << getSource() << ", destination: " << getDestination() << ", message: { " << request.toString() << " }";
-		return ss.str();
+		source = ntohs(source);
+		destination = ntohs(destination);
+		messageID = ntohl(messageID);
+		contentLength = ntohl(contentLength);
+		flags = ntohs(flags);
+		statusCode = ntohs(statusCode);
 	}
 
-	SERPResponse::SERPResponse(SERPID source, SERPID destination, HTTPResponse httpResponse)
-		: SERPHeader(source, destination), response(httpResponse)
+	bool SERPHeader::serialize(BufferView buffer)
 	{
-		response.headers.push_back(HTTPHeader("sourceID", to_string(source)));
-		response.headers.push_back(HTTPHeader("destinationID", to_string(destination)));
+		if (buffer.size() != sizeof(SERPHeader)) return {};
+		toNetworkByteOrder();
+		memcpy(&buffer[0], this, sizeof(SERPHeader));
+		toHostByteOrder();
+		return true;
 	}
 
-	std::optional<SERPResponse> SERPResponse::parse(HTTPResponse httpResponse)
+	template<>
+	std::string to_string(const SERPHeader& header)
 	{
-		// Parse destinationID
-		auto destinationIDString = httpResponse.getHeaderValue("destinationID");
-		if (!destinationIDString.has_value()) return {};
-		auto destinationID = from_string<SERPID>(std::string(destinationIDString.value()));
-		if (!destinationID.has_value()) return {};
-		// Parse sourceID
-		auto sourceIDString = httpResponse.getHeaderValue("sourceID");
-		if (!sourceIDString.has_value()) return {};
-		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
-		if (!sourceID.has_value()) return {};
-		// Finalize message
-		return SERPResponse(sourceID.value(), destinationID.value(), httpResponse);
+		return "source: " + to_string(header.source) + "\n" +
+			"destination: " + to_string(header.destination) + "\n" +
+			"messageID: " + to_string(header.messageID) + "\n" +
+			"status code: " + to_string(header.statusCode);
 	}
 
-	std::string SERPResponse::toString() const
+	std::optional<SERPHeader> SERPHeader::parse(ConstantBufferView buffer)
 	{
-		std::stringstream ss;
-		ss << "{ source: " << getSource() << ", destination: " << getDestination() << ", message: { " << response.toString() << " }";
-		return ss.str();
+		if (buffer.size() != sizeof(SERPHeader)) return {};
+		SERPHeader result{};
+		memcpy(&result, &buffer[0], sizeof(SERPHeader));
+		result.toHostByteOrder();
+		return result;
 	}
 
-	void SERPHeader::setSourceUpdateHeaders(SERPID source, std::vector<HTTPHeader>& headers)
+	std::unique_ptr<SERPMessage> SERPMessage::parse(const SERPHeader& header, ConstantBufferView buffer)
 	{
-		this->source = source;
-		for (auto& header : headers) {
-			if (header.name == "sourceID") {
-				header.value = to_string(source);
-				return;
+		if (header.contentLength != buffer.size()) return nullptr;
+		if (header.getResponseFlag()) {
+			return SERPResponse::parse(header, buffer);
+		}
+		else {
+			return SERPRequest::parse(header, buffer);
+		}
+	}
+
+	SERPMessage::SERPMessage(const SERPMessage& other)
+		: header(other.header) {}
+
+	SERPMessage& SERPMessage::operator=(const SERPMessage& other)
+	{
+		this->header = other.header;
+		return *this;
+	}
+
+	bool SERPMessage::isResponse()
+	{
+		return header.getResponseFlag();
+	}
+
+	bool SERPMessage::isRequest()
+	{
+		return !header.getResponseFlag();
+	}
+
+	void SERPRequest::finalize()
+	{
+		header.contentLength = static_cast<uint32_t>(target.size() + 1 + content.size());
+	}
+
+	SERPRequest::SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content)
+		: SERPMessage(header), target(target), content(content.copyBytes()) {}
+
+	std::unique_ptr<SERPRequest> SERPRequest::parse(const SERPHeader& header, ConstantBufferView buffer)
+	{
+		// Find first newline to parse target string
+		std::size_t newLinePos = buffer.find_first_of(static_cast<std::byte>('\n'));
+		if (newLinePos == std::string::npos) return nullptr;
+		// Check if content has correct length
+		if (header.contentLength != buffer.size()) return nullptr;
+		// Return new message
+		return std::unique_ptr<SERPRequest>(new SERPRequest(header, buffer.getBufferView(0, newLinePos).to_string(), buffer.getBufferView(newLinePos + 1)));
+	}
+
+	Buffer SERPRequest::serialize()
+	{
+		Buffer result(sizeof(SERPHeader) + target.size() + 1 + content.size());
+		header.serialize(result.getBufferView(0, sizeof(SERPHeader)));
+		std::size_t offset = sizeof(SERPHeader);
+		if (!target.empty()) memcpy(&result[offset], &target[0], target.size());
+		result.set(offset + target.size(), static_cast<std::byte>('\n'));
+		offset += target.size() + 1;
+		if (!content.empty()) memcpy(&result[offset], &content[0], content.size());
+		return result;
+	}
+
+	std::vector<std::string> SERPRequest::splitTargetPath(const std::string& target)
+	{
+		if (target.empty()) return {};
+		std::vector<std::string> result;
+		std::size_t lastPos = target[0] == '/' ? 1 : 0;
+		for (std::size_t i = lastPos; i < target.length(); ++i) {
+			if (target[i] == '/') {
+				result.push_back(target.substr(lastPos, i - lastPos));
+				lastPos = i + 1;
 			}
 		}
-		headers.push_back({ "sourceID", to_string(source) });
+		if (!target.ends_with('/')) {
+			result.push_back(target.substr(lastPos));
+		}
+		return result;
 	}
 
-	void SERPHeader::setDestinationUpdateHeaders(SERPID destination, std::vector<HTTPHeader>& headers)
+	SERPRequest::SERPRequest(const SERPRequest& other)
+		: SERPMessage(other), target(other.target), content(other.content.copyBytes()) {}
+
+	SERPRequest& SERPRequest::operator=(const SERPRequest& other)
 	{
-		this->destination = destination;
-		for (auto& header : headers) {
-			if (header.name == "destinationID") {
-				header.value = to_string(destination);
-				return;
-			}
-		}
-		headers.push_back({ "destinationID", to_string(destination) });
+		SERPMessage::operator=(other);
+		target = other.target;
+		content = other.content.copyBytes();
+		return *this;
+	}
+
+	SERPRequest::SERPRequest(SERPID destination, RequestStatusCode requestStatusCode, const std::string& target, const Buffer& content)
+		: SERPMessage(SERPHeader{ 0, static_cast<uint16_t>(destination), 0, 0, 0b0000000000000000, static_cast<uint16_t>(requestStatusCode)}), target(target), content(content.copyBytes()) {}
+
+	RequestStatusCode SERPRequest::getRequestStatusCode() const
+	{
+		return static_cast<RequestStatusCode>(header.statusCode);
+	}
+
+	template<>
+	std::string to_string(const SERPRequest& request)
+	{
+		return to_string(request.getHeader()) + "\n" +
+			"target: " + request.target + "\n" +
+			"content: " + request.content.to_string();
+	}
+
+	void SERPResponse::finalize()
+	{
+		header.contentLength = static_cast<uint32_t>(content.size());
+	}
+
+	SERPResponse::SERPResponse(SERPHeader header, ConstantBufferView content)
+		: SERPMessage(header), content(content.copyBytes()) {}
+
+	SERPResponse::SERPResponse(uint32_t messageID)
+		: SERPMessage(SERPHeader{ 0, 0, messageID, 0, 0b1000000000000000, 0 }), content(content.copyBytes()) {}
+
+	std::unique_ptr<SERPResponse> SERPResponse::parse(const SERPHeader& header, ConstantBufferView buffer)
+	{
+		// Check if content has correct length
+		if (header.contentLength != buffer.size()) return nullptr;
+		// Return new message
+		return std::unique_ptr<SERPResponse>(new SERPResponse(header, buffer));
+	}
+
+	Buffer SERPResponse::serialize()
+	{
+		Buffer result(sizeof(SERPHeader) + content.size());
+		header.serialize(result.getBufferView(0, sizeof(SERPHeader)));
+		std::size_t offset = sizeof(SERPHeader);
+		if (!content.empty()) memcpy(&result[offset], &content[0], content.size());
+		return result;
+	}
+
+	SERPResponse::SERPResponse(const SERPResponse& other)
+		: SERPMessage(other), content(other.content.copyBytes()) {}
+
+	SERPResponse& SERPResponse::operator=(const SERPResponse& other)
+	{
+		SERPMessage::operator=(other);
+		content = other.content.copyBytes();
+		return *this;
+	}
+
+	SERPResponse::SERPResponse(const SERPRequest& request, ResponseStatusCode responseStatusCode, const Buffer& content)
+		: SERPMessage(SERPHeader{ 0, request.getHeader().source, request.getHeader().messageID, 0, 0b1000000000000000, static_cast<uint16_t>(responseStatusCode)}), content(content.copyBytes()) {}
+
+	ResponseStatusCode SERPResponse::getResponseStatusCode() const
+	{
+		return static_cast<ResponseStatusCode>(header.statusCode);
+	}
+
+	template<>
+	std::string to_string(const SERPResponse& response)
+	{
+		return to_string(response.getHeader()) + "\n" +
+			"content: " + response.content.to_string();
 	}
 
 }
-

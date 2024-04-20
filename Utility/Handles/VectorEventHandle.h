@@ -1,33 +1,34 @@
 #pragma once
 
-#include "Gui/GuiEventHandles/GuiEventHandle.h"
+#include "EventHandle.h"
+#include <vector>
 
 namespace SnackerEngine
 {
-	/*
-	class GuiVectorEventHandle
+
+	class VectorEventHandle
 	{
 	private:
 		/// This bool is set to true if any of the child event handles is activated
 		bool active;
 		/// Class for the child event handles
-		class ChildEventHandle : public GuiEventHandle
+		class ChildEventHandle : public EventHandle
 		{
 		private:
-			friend class GuiVectorEventHandle;
+			friend class VectorEventHandle;
 			/// The parent handle of this childHandle
-			GuiVectorEventHandle* parentHandle;
+			VectorEventHandle* parentHandle;
 		protected:
 			/// function that is called when the event handle is activated
 			void onEvent() override {
-				GuiEventHandle::onEvent();
+				EventHandle::onEvent();
 				parentHandle->active = true;
 				parentHandle->onEvent();
 			}
 		public:
-			/// Constructor 
-			ChildEventHandle(GuiVectorEventHandle* parentHandle = nullptr)
-				: GuiEventHandle(), parentHandle(parentHandle) {}
+			/// Constructor
+			ChildEventHandle(VectorEventHandle* parentHandle = nullptr)
+				: EventHandle(), parentHandle(parentHandle) {}
 		};
 		/// Vector of child handles
 		std::vector<ChildEventHandle> childHandles;
@@ -36,25 +37,31 @@ namespace SnackerEngine
 		virtual void onEvent() {}
 	public:
 		/// Constructor
-		GuiVectorEventHandle(std::size_t count = 0);
+		VectorEventHandle(std::size_t count = 0);
+		/// Copy constructor and assignment operator
+		VectorEventHandle(const VectorEventHandle& other) noexcept;
+		VectorEventHandle& operator=(const VectorEventHandle& other) noexcept;
+		/// Move constructor and assignment operator
+		VectorEventHandle(VectorEventHandle&& other) noexcept;
+		VectorEventHandle& operator=(VectorEventHandle&& other) noexcept;
 		/// Returns the boolean active
 		bool isActive() const { return active; };
 		/// Sets the active boolean back to false and calls reset() on all child event handles
 		void reset();
 		/// Returns a reference to the GuiEventHandle at the given index
-		GuiEventHandle& get(std::size_t index) { return childHandles[index]; }
-		GuiEventHandle& operator[](std::size_t index) { return get(index); }
+		EventHandle& get(std::size_t index) { return childHandles[index]; }
+		EventHandle& operator[](std::size_t index) { return get(index); }
 		/// Returns the current number of child handles
 		std::size_t size() const { return childHandles.size(); }
 		/// Returns a reference to the last GuiEventHandle
-		GuiEventHandle& back() { return childHandles.back(); }
-		const GuiEventHandle& back() const { return childHandles.back(); }
+		EventHandle& back() { return childHandles.back(); }
+		const EventHandle& back() const { return childHandles.back(); }
 		/// Creates a new event handle and pushes it into the child handles vector
-		GuiEventHandle& createNewEventHandle() { childHandles.push_back(ChildEventHandle(this)); return childHandles.back(); }
+		EventHandle& createNewEventHandle() { childHandles.push_back(ChildEventHandle(this)); return childHandles.back(); }
 		/// Clears childHandles
 		void clear() { childHandles.clear(); }
 		/// Resizes the childHandle vector to the given size
 		void resize(std::size_t size);
 	};
-	*/
+
 }

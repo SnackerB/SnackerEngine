@@ -4,6 +4,7 @@
 
 namespace SnackerEngine
 {
+	/*
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	class GuiVariableHandle : public GuiEventHandle
@@ -69,4 +70,5 @@ namespace SnackerEngine
 	using GuiVariableHandleFloat = GuiVariableHandle<float>;
 	using GuiVariableHandleDouble = GuiVariableHandle<double>;
 	//--------------------------------------------------------------------------------------------------
+	*/
 }

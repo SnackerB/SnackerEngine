@@ -2,11 +2,11 @@
 
 #include "Math/Vec.h"
 #include "Utility/Json.h"
-#include "Gui/GuiEventHandles/GuiVariableHandle.h"
 #include "Gui/SizeHints.h"
 #include "Gui\Text\Font.h"
 #include "Gui\GuiAnimatable.h"
 
+#include <string_view>
 #include <vector>
 #include <optional>
 #include <set>
@@ -48,6 +48,7 @@ namespace SnackerEngine
 		static int defaultBorderHuge;
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_ELEMENT";
+		virtual std::string_view getTypeName() const { return typeName; }
 		/// Default constructor
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE);
 		/// Constructor from JSON
@@ -70,6 +71,9 @@ namespace SnackerEngine
 		bool isValid();
 		/// Brings this element to the foreground
 		void bringToForeground();
+		/// Signs this element off from its guiManager the next time the guiManagers update()
+		/// function is called
+		void signOffAtNextUpdate();
 		/// Sets the position of this element. May register children and/or parent for
 		/// enforcing layouts.
 		void setPosition(const Vec2i& position);
@@ -109,6 +113,9 @@ namespace SnackerEngine
 		const Vec2i& getPosition() const { return position; }
 		int getPositionX() const { return position.x; }
 		int getPositionY() const { return position.y; }
+		const Vec2i getWorldPosition() const;
+		int getWorldPositionX() const;
+		int getWorldPositionY() const;
 		const Vec2i& getSize() const { return size; }
 		const int& getWidth() const { return size.x; }
 		const int& getHeight() const { return size.y; }
@@ -231,31 +238,6 @@ namespace SnackerEngine
 		void setSizeOfChild(const GuiID& guiID, const Vec2i& size);
 		void setWidthOfChild(const GuiID& guiID, const int& width);
 		void setHeightOfChild(const GuiID& guiID, const int& height);
-
-		//==============================================================================================
-		// GuiHandles
-		//==============================================================================================
-
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle) {};
-		/// This function should be called by the guiElement to sign up a new handle
-		void signUpHandle(GuiHandle& guiHandle, const GuiHandle::GuiHandleID& handleID);
-		/// This function should be called to sign off a given eventHandle if it is no longer needed
-		/// (e.g. destruction of a guiElement) 
-		void signOffHandle(GuiHandle& guiHandle);
-		/// This function should be called when moving a guiElement that owns a guiHandle
-		void notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle);
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle) {};
-		/// This function calls activate() on the given GuiEventHandle
-		void activate(GuiEventHandle& guiEventHandle);
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle& guiHandle) {};
-		/// template function used to change a value of a variable handle
-		template<typename T>
-		void setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value);
 
 		//==============================================================================================
 		// Collisions
@@ -419,14 +401,6 @@ namespace SnackerEngine
 
 	};
 
-	template<typename T>
-	inline void GuiElement::setVariableHandleValue(GuiVariableHandle<T>& variableHandle, const T& value)
-	{
-		variableHandle.val = value;
-		variableHandle.activate();
-		variableHandle.onHandleUpdateFromElement(*this);
-	}
-
 	/*
 	// =================================================================================================
 	// Class template for new GuiElements!
@@ -495,19 +469,6 @@ namespace SnackerEngine
 		/// overwritten if the children are displayed at a different place than they
 		/// are (eg. in a scrolling list etc)
 		virtual Vec2i getChildOffset(const GuiID& childID) const override;
-		
-		//==============================================================================================
-		// GuiHandles
-		//==============================================================================================
-
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle);
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle);
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle& guiHandle);
 
 		//==============================================================================================
 		// Collisions

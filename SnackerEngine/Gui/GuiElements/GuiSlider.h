@@ -6,6 +6,9 @@
 #include "Graphics/Renderer.h"
 #include "Utility\Formatting.h"
 #include "Gui\GuiManager.h"
+#include "Utility\Handles\VariableHandle.h"
+
+#include <algorithm>
 
 namespace SnackerEngine
 {
@@ -20,8 +23,20 @@ namespace SnackerEngine
 		static Color4f defaultBackgroundColor;
 		static SizeHintModes defaultSizeHintModes;
 	private:
-		/// The handle to the variable that is shown in this slider
-		GuiVariableHandle<T>* variableHandle = nullptr;
+		class GuiSliderVariableHandle : public VariableHandle<T>
+		{
+		private:
+			friend class GuiSlider;
+			GuiSlider* parentElement;
+		protected:
+			void onEvent() override
+			{
+				parentElement->computeSliderButtonPositionFromValue();
+			}
+		public:
+			GuiSliderVariableHandle(GuiSlider* parentElement)
+				: VariableHandle<T>(), parentElement(parentElement) {}
+		};
 		/// The formatter used to format the text
 		std::unique_ptr<Formatter<T>> formatter = nullptr;
 		/// X offset from the left of the variableBox to the left of the sliderButton
@@ -35,7 +50,7 @@ namespace SnackerEngine
 		/// Model matrix of the slider button
 		Mat4f sliderButtonModelMatrix{};
 		/// The current value of the variable
-		T value{};
+		GuiSliderVariableHandle value{ this };
 		/// min and max values the variable can take on
 		T minValue{};
 		T maxValue{};
@@ -43,29 +58,23 @@ namespace SnackerEngine
 		int mouseOffset{};
 		/// Transforms the value to a UTF8 encoded string. May apply additional rounding operation.
 		virtual std::string toText(const T& value) { return std::to_string(value); }
-		/// Sets the value in the variable handle to a given value and updates the text
-		void setVariable(const T& value);
-		/// Returns a const reference to the value of the variable handle
-		const T& getVariable() const { return value; }
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_SLIDER";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiSlider(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i());
 		GuiSlider(const T& minValue, const T& maxValue, const T& value);
 		/// Constructor from JSON.
 		GuiSlider(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
-		virtual ~GuiSlider();
+		virtual ~GuiSlider() {};
 		/// Copy constructor and assignment operator
 		GuiSlider(const GuiSlider& other) noexcept;
 		GuiSlider& operator=(const GuiSlider& other) noexcept;
 		/// Move constructor and assignment operator
 		GuiSlider(GuiSlider&& other) noexcept;
 		GuiSlider& operator=(GuiSlider&& other) noexcept;
-		/// Sets the event handle. Cannot be done if an event handle is already set, 
-		/// delete the previous event handle first!
-		void setVariableHandle(GuiVariableHandle<T>& variableHandle);
 		/// Helper function that updates the text
 		void updateText(const T& value);
 		/// Getters
@@ -75,6 +84,7 @@ namespace SnackerEngine
 		const T& getValue() const { return value; }
 		const T& getMinValue() const { return minValue; }
 		const T& getMaxValue() const { return maxValue; }
+		VariableHandle<T>& getVariableHandle() { return value; }
 		/// Setters
 		void setSliderButtonWidth(int sliderButtonWidth);
 		void setSliderButtonColor(const Color4f& sliderButtonColor) { this->sliderButtonColor = sliderButtonColor; }
@@ -110,23 +120,7 @@ namespace SnackerEngine
 		/// Computes the value according to the slider position and updates
 		/// the handle and the text in the variableBox
 		void computeValueFromSliderButtonPosition();
-		/// Computes the Slider button position from the current value of the variableHandle.
-		/// Also clips the variableHandle to the allowed range
-		void computeSliderButtonPositionFromVariableHandle(bool clipVariableHandle = false);
 		
-		//==============================================================================================
-		// GuiHandles
-		//==============================================================================================
-
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle);
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle);
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		virtual void onHandleUpdate(GuiHandle& guiHandle);
-
 		//==============================================================================================
 		// Collisions
 		//==============================================================================================
@@ -158,11 +152,12 @@ namespace SnackerEngine
 	inline GuiTextBox::SizeHintModes GuiSlider<T>::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT, GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT };
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline void GuiSlider<T>::setVariable(const T& value)
+	inline void GuiSlider<T>::setValue(const T& value)
 	{
-		if (variableHandle) variableHandle->set(value);
-		else {
-			this->value = value;
+		T temp = std::min(maxValue, std::max(minValue, value));
+		if (this->value != temp)
+		{
+			this->value.set(temp);
 			computeSliderButtonPositionFromValue();
 		}
 	}
@@ -186,8 +181,9 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const T& minValue, const T& maxValue, const T& value)
-		:GuiTextBox(Vec2i{}, Vec2i{}, ""), value(value), minValue(minValue), maxValue(maxValue)
+		:GuiTextBox(Vec2i{}, Vec2i{}, ""), value(this), minValue(minValue), maxValue(maxValue)
 	{
+		this->value.set(value);
 		setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_SIZE);
@@ -206,7 +202,9 @@ namespace SnackerEngine
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		parseJsonOrReadFromData(sliderButtonWidth, "sliderButtonWidth", json, data, parameterNames);
 		parseJsonOrReadFromData(sliderButtonColor, "sliderButtonColor", json, data, parameterNames);
-		parseJsonOrReadFromData(value, "value", json, data, parameterNames);
+		T temp{};
+		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
+		value.set(temp);
 		parseJsonOrReadFromData(minValue, "minValue", json, data, parameterNames);
 		parseJsonOrReadFromData(maxValue, "maxValue", json, data, parameterNames);
 		if (!json.contains("size")) {
@@ -225,14 +223,8 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiSlider<T>::~GuiSlider()
-	{
-		if (variableHandle) signOffHandle(*variableHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const GuiSlider& other) noexcept
-		: GuiTextBox(other), variableHandle(nullptr), 
+		: GuiTextBox(other),
 		formatter(other.formatter == nullptr ? nullptr : std::make_unique<Formatter<T>>(*other.formatter)), 
 		sliderButtonOffsetX(0), sliderButtonWidth(other.sliderButtonWidth), 
 		sliderButtonColor(other.sliderButtonColor), sliderButtonShader(other.sliderButtonShader), 
@@ -243,8 +235,6 @@ namespace SnackerEngine
 	inline GuiSlider<T>& GuiSlider<T>::operator=(const GuiSlider& other) noexcept
 	{
 		GuiTextBox::operator=(other);
-		if (variableHandle) signOffHandle(*variableHandle);
-		variableHandle = nullptr;
 		formatter = other.formatter == nullptr ? nullptr : std::make_unique<Formatter<T>>(*other.formatter);
 		sliderButtonOffsetX = 0;
 		sliderButtonWidth = other.sliderButtonWidth;
@@ -260,7 +250,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(GuiSlider&& other) noexcept
-		: GuiTextBox(std::move(other)), variableHandle(std::move(other.variableHandle)), 
+		: GuiTextBox(std::move(other)),
 		formatter(std::move(other.formatter)), sliderButtonOffsetX(other.sliderButtonOffsetX), 
 		sliderButtonWidth(other.sliderButtonWidth), sliderButtonColor(other.sliderButtonColor),
 		sliderButtonShader(std::move(other.sliderButtonShader)), 
@@ -268,15 +258,13 @@ namespace SnackerEngine
 		minValue(std::move(other.minValue)), maxValue(std::move(other.maxValue)), 
 		mouseOffset(other.mouseOffset)
 	{
-		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
+		value.parentElement = this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>& GuiSlider<T>::operator=(GuiSlider&& other) noexcept
 	{
 		GuiTextBox::operator=(std::move(other));
-		if (variableHandle) signOffHandle(*variableHandle);
-		variableHandle = std::move(other.variableHandle);
 		formatter = std::move(other.formatter);
 		sliderButtonOffsetX = other.sliderButtonOffsetX;
 		sliderButtonWidth = other.sliderButtonWidth;
@@ -284,21 +272,11 @@ namespace SnackerEngine
 		sliderButtonShader = std::move(other.sliderButtonShader);
 		sliderButtonModelMatrix = other.sliderButtonModelMatrix;
 		value = std::move(other.value);
+		value.parentElement = this;
 		minValue = std::move(other.minValue);
 		maxValue = std::move(other.maxValue);
 		mouseOffset = other.mouseOffset;
-		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
 		return *this;
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiSlider<T>::setVariableHandle(GuiVariableHandle<T>& variableHandle)
-	{
-		if (!this->variableHandle) {
-			this->variableHandle = &variableHandle;
-			signUpHandle(variableHandle, 0);
-			computeSliderButtonPositionFromVariableHandle(false);
-		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	template <typename T>
@@ -312,12 +290,6 @@ namespace SnackerEngine
 	inline void GuiSlider<T>::setSliderButtonWidth(int sliderButtonWidth)
 	{
 		computeSliderButtonPositionFromValue();
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiSlider<T>::setValue(const T& value)
-	{
-		setVariable(value);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -435,9 +407,9 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiSlider<T>::computeSliderButtonPositionFromValue()
 	{
-		value = std::max(minValue, std::min(maxValue, value));
 		updateText(value);
-		double percentage = static_cast<double>(value - minValue) / (static_cast<double>(maxValue - minValue));
+		T temp = std::max(minValue, std::min(maxValue, value.get()));
+		double percentage = static_cast<double>(temp - minValue) / (static_cast<double>(maxValue - minValue));
 		sliderButtonOffsetX = std::max(0, static_cast<int>(std::lround(static_cast<double>(getWidth() - sliderButtonWidth) * percentage)));
 		computeSliderButtonModelMatrix();
 	}
@@ -452,41 +424,12 @@ namespace SnackerEngine
 	inline void GuiSlider<T>::computeValueFromSliderButtonPosition()
 	{
 		double percentage = static_cast<double>(sliderButtonOffsetX) / (static_cast<double>(getWidth() - sliderButtonWidth));
-		value = interpolate(minValue, maxValue, percentage);
-		value = std::max(minValue, std::min(maxValue, value));
-		if (variableHandle) {
-			if (variableHandle->get() != value) {
-				setVariableHandleValue(*variableHandle, value);
-			}
+		T temp = interpolate(minValue, maxValue, percentage);
+		temp = std::max(minValue, std::min(maxValue, temp));
+		if (value != temp) {
+			value.set(temp);
+			updateText(value);
 		}
-		updateText(value);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiSlider<T>::computeSliderButtonPositionFromVariableHandle(bool clipVariableHandle)
-	{
-		if (!variableHandle) return;
-		this->value = variableHandle->get();
-		computeSliderButtonPositionFromValue();
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiSlider<T>::onHandleMove(GuiHandle& guiHandle)
-	{
-		// Update pointer
-		variableHandle = static_cast<GuiVariableHandle<T>*>(&guiHandle);
-	}
-	//--------------------------------------------------------------------------------------------------	
-	template<typename T>
-	inline void GuiSlider<T>::onHandleDestruction(GuiHandle& guiHandle)
-	{
-		variableHandle = nullptr;
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiSlider<T>::onHandleUpdate(GuiHandle& guiHandle)
-	{
-		computeSliderButtonPositionFromVariableHandle(false);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -500,6 +443,7 @@ namespace SnackerEngine
 	{
 		if (button == MOUSE_BUTTON_LEFT && action == ACTION_RELEASE) {
 			signOffEvent(CallbackType::MOUSE_MOTION);
+			signOffEvent(CallbackType::MOUSE_BUTTON);
 			computeValueFromSliderButtonPosition();
 			computeSliderButtonPositionFromValue();
 		}

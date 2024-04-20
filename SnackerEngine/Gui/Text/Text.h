@@ -280,6 +280,10 @@ namespace SnackerEngine
 		const Vec2f getCursorSize() const;
 		/// Returns the text
 		const std::string& getText() override;
+		/// Returns the text between the given two inclusive bounds
+		std::string getText(unsigned start, unsigned end);
+		/// Returns the currently selected
+		std::string getSelectedText();
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false

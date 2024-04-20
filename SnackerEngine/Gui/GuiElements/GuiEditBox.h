@@ -2,6 +2,7 @@
 
 #include "Gui\GuiElements\GuiTextBox.h"
 #include "Utility\Timer.h"
+#include "Utility\Handles\EventHandle.h"
 
 namespace SnackerEngine 
 {
@@ -34,9 +35,9 @@ namespace SnackerEngine
 		std::vector<Mat4f> modelMatricesSelectionBoxes{};
 		/// The event that happens when the text was edited (isActive is set to true and enter
 		/// or escape is pressed or the user clicks outside the textBox)
-		GuiEventHandle* eventHandleTextWasEdited = nullptr;
+		EventHandle::Observable eventTextWasEdited;
 		/// The event that happens when the isActive was set to true and enter is pressed
-		GuiEventHandle* eventHandleEnterWasPressed = nullptr;
+		EventHandle::Observable eventEnterWasPressed;
 		/// Helper function that computes the model matrix of the cursor
 		void computeModelMatrixCursor();
 		/// Helper function that Computes the model matrices of the selection boxes
@@ -50,12 +51,13 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_EDIT_BOX";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiEditBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
 		/// Constructor from JSON
 		GuiEditBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor
-		virtual ~GuiEditBox();
+		virtual ~GuiEditBox() {};
 		/// Copy constructor and assignment operator
 		GuiEditBox(const GuiEditBox& other) noexcept;
 		GuiEditBox& operator=(const GuiEditBox& other) noexcept;
@@ -71,15 +73,13 @@ namespace SnackerEngine
 		void setSelectionBoxColor(const Color4f& selectionBoxColor) { this->selectionBoxColor = selectionBoxColor; }
 		void setCursorWidth(float cursorWidth);
 		void setCursorBlinkTime(double cursorBlinkTime) { cursorBlinkingTimer.setTimeStep(cursorBlinkTime); }
-		/// Sets the event handle for the event that happens when the text was edited 
+		/// Subscribes to the event that happens when the text was edited 
 		/// (isActive is set to true and enter or escape is pressed or the user clicks 
-		/// outside the textBox). Cannot be done if an event handle is already set, 
-		/// delete the previous event handle first!
-		void setEventHandleTextWasEdited(GuiEventHandle& eventHandle);
-		/// Sets the event handle for the event that happens when isActive was set to true and 
-		/// enter is pressed. Cannot be done if an event handle is already set, 
-		/// delete the previous event handle first!
-		void setEventHandleEnterWasPressed(GuiEventHandle& eventHandle);
+		/// outside the textBox)
+		void subscribeEventTextWasEdited(EventHandle& eventHandle);
+		/// Subscribes to the event that happens when isActive was set to true and 
+		/// enter is pressed.
+		void setEventHandleEnterWasPressed(EventHandle& eventHandle);
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
@@ -91,16 +91,6 @@ namespace SnackerEngine
 		virtual void onRegister() override;
 		/// This function gets called when the size changes. Not called by the constructor!
 		virtual void onSizeChange() override;
-
-		//==============================================================================================
-		// GuiHandles
-		//==============================================================================================
-		
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle) override;
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle) override;
 		
 		//==============================================================================================
 		// Collisions

@@ -67,37 +67,67 @@ namespace SnackerEngine
 		return false;
 	}
 
-	bool sendTo(const SocketTCP& socket, const Buffer& buffer)
+	ConnectResult connectToNonBlocking(SocketTCP& socket, const sockaddr_in& addr)
 	{
-		return send(socket.sock, (const char*) buffer.getDataPtr(), buffer.size(), 0) == 0;
+		int result = connect(socket.sock, (const sockaddr*)&addr, sizeof(sockaddr_in));
+		if (result == 0) return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
+		else {
+			int error = WSAGetLastError();
+			if (error == WSAEINPROGRESS || error == WSAEWOULDBLOCK || error == WSAEALREADY) {
+				return ConnectResult{ ConnectResult::Result::PENDING, 0 };
+			}
+			else if (error == WSAEISCONN) {
+				return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
+			}
+			else {
+				return ConnectResult{ ConnectResult::Result::ERROR, error };
+			}
+		}
 	}
 
-	bool sendToNonBlocking(const SocketTCP& socket, const Buffer& buffer)
+	bool sendTo(const SocketTCP& socket, ConstantBufferView buffer)
+	{
+		return send(socket.sock, (const char*) buffer.getDataPtr(), buffer.size(), 0) >= 0;
+	}
+
+	bool sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer)
 	{
 		int result = send(socket.sock, (const char*)buffer.getDataPtr(), buffer.size(), 0);
-		if (result == 0) return true;
+		if (result >= 0) return true;
 		int error = WSAGetLastError();
 		if (error == WSAEWOULDBLOCK) return true;
-		return false;
+		else {
+			std::cout << "send() failed with error code " << error << std::endl;
+			return false;
+		}
 	}
 
-	std::optional<Buffer> receiveFrom(const SocketTCP& socket, Buffer& storageBuffer)
+	std::optional<Buffer> receiveFrom(const SocketTCP& socket, BufferView storageBuffer)
 	{
-		int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), storageBuffer.size(), NULL);
-		if (result > 0) {
-			std::vector<std::byte> resultBuffer(result);
-			memcpy(&(resultBuffer[0]), storageBuffer.getDataPtr(), result);
-			return std::move(resultBuffer);
-		}
-		else if (result == SOCKET_ERROR) {
-			int error = WSAGetLastError();
-			std::cout << "recv() failed with error code " << error << std::endl;
-			return std::nullopt;
+		std::vector<std::byte> data{};
+		while (true) {
+			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), storageBuffer.size(), NULL);
+			if (result > 0) {
+				data.resize(data.size() + result);
+				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
+				return std::move(Buffer(std::move(data)));
+			}
+			else {
+				int error = WSAGetLastError();
+				if (error == WSAEMSGSIZE) {
+					data.resize(data.size() + storageBuffer.size());
+					memcpy(&(data[0]), storageBuffer.getDataPtr(), storageBuffer.size());
+				}
+				else {
+					std::cout << "recv() failed with error code " << error << std::endl;
+					return std::nullopt;
+				}
+			}
 		}
 		return std::nullopt;
 	}
 
-	std::optional<Buffer> receiveFromNonBlocking(const SocketTCP& socket, Buffer& storageBuffer)
+	std::optional<Buffer> receiveFromNonBlocking(const SocketTCP& socket, BufferView storageBuffer)
 	{
 		std::vector<std::byte> data{};
 		while (true) {
