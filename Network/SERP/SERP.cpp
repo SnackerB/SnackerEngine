@@ -6,16 +6,18 @@
 namespace SnackerEngine
 {
 
+	static std::size_t nextMessageID = 0;
+
 	SERPRequest::SERPRequest(SERPID source, SERPID destination, HTTPRequest httpRequest)
-		: SERPHeader(source, destination), request(httpRequest)
+		: SERPHeader(source, destination, nextMessageID++), request(httpRequest)
 	{
 		request.headers.push_back(HTTPHeader("sourceID", to_string(source)));
 		request.headers.push_back(HTTPHeader("destinationID", to_string(destination)));
+		request.headers.push_back(HTTPHeader("messageID", to_string(getMessageID())));
 	}
 
 	std::optional<SERPRequest> SERPRequest::parse(HTTPRequest httpRequest)
 	{
-		SERPRequest result{};
 		// Parse destinationID
 		auto destinationIDString = httpRequest.getHeaderValue("destinationID");
 		if (!destinationIDString.has_value()) return {};
@@ -26,8 +28,13 @@ namespace SnackerEngine
 		if (!sourceIDString.has_value()) return {};
 		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
 		if (!sourceID.has_value()) return {};
+		// Parse messageID
+		auto messageIDString = httpRequest.getHeaderValue("messageID");
+		if (!messageIDString.has_value()) return {};
+		auto messageID = from_string<std::size_t>(std::string(messageIDString.value()));
+		if (!messageID.has_value()) return {};
 		// Finalize message
-		return SERPRequest(sourceID.value(), destinationID.value(), httpRequest);
+		return SERPRequest(sourceID.value(), destinationID.value(), messageID.value(), httpRequest);
 	}
 
 	std::string SERPRequest::toString() const
@@ -38,10 +45,11 @@ namespace SnackerEngine
 	}
 
 	SERPResponse::SERPResponse(SERPID source, SERPID destination, HTTPResponse httpResponse)
-		: SERPHeader(source, destination), response(httpResponse)
+		: SERPHeader(source, destination, nextMessageID++), response(httpResponse)
 	{
 		response.headers.push_back(HTTPHeader("sourceID", to_string(source)));
 		response.headers.push_back(HTTPHeader("destinationID", to_string(destination)));
+		response.headers.push_back(HTTPHeader("messageID", to_string(getMessageID())));
 	}
 
 	std::optional<SERPResponse> SERPResponse::parse(HTTPResponse httpResponse)
@@ -56,8 +64,13 @@ namespace SnackerEngine
 		if (!sourceIDString.has_value()) return {};
 		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
 		if (!sourceID.has_value()) return {};
+		// Parse messageID
+		auto messageIDString = httpResponse.getHeaderValue("messageID");
+		if (!messageIDString.has_value()) return {};
+		auto messageID = from_string<std::size_t>(std::string(messageIDString.value()));
+		if (!messageID.has_value()) return {};
 		// Finalize message
-		return SERPResponse(sourceID.value(), destinationID.value(), httpResponse);
+		return SERPResponse(sourceID.value(), destinationID.value(), messageID.value(), httpResponse);
 	}
 
 	std::string SERPResponse::toString() const
