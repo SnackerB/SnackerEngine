@@ -285,10 +285,23 @@ namespace SnackerEngine
 		void signOffWithoutNotifyingParent(const GuiID guiElement);
 		/// Called by GuiElement objects when they are moved, to update the pointer in the GuiManager
 		void updateMoved(GuiElement& guiElement);
+		/// Queue of elements that will get signed off in the next update
+		std::queue<GuiID> signOffAtNextUpdateQueue;
+		/// Called by GuiElements that want to get signed off at the next update
+		void signOffAtNextUpdate(const GuiID& guiElement);
+		/// Processes the signOffAtNextUpdateQueue, called in update()
+		void processSignOffAtNextUpdateQueue();
 	public:
 		/// Returns a pointer to the guiElement with a given guiID if it exists. Returns nullptr if it
 		/// does not exist.
 		GuiElement* getGuiElement(const GuiID& guiID);
+	private:
+		/// Helper function that checks if the mouse cursor is hovering over this element or any of its child
+		/// elements. Returns the offset vector of the mouse vector from this element if successfull.
+		std::optional<Vec2i> isMouseHoveringOverInternal(const GuiID& guiID);
+	public:
+		/// Returns true if the mouse cursor is hovering over this element or any of the child elements
+		bool isMouseHoveringOver(const GuiID& guiID);
 	private:
 		/// Registers the given element as a child of a different element
 		/// Returns true on success

@@ -23,6 +23,8 @@ namespace SnackerEngine
 			std::string getGroupType() const override { return "HORIZONTAL_LAYOUT_GROUP"; }
 		private:
 			std::vector<int> widths{};
+			int minWidth = 0;
+			int preferredWidth = 0;
 			bool upToDate = false;
 		protected:
 			/// This function gets called when a new element is added to the group
@@ -39,9 +41,10 @@ namespace SnackerEngine
 			/// Getters
 			bool isUpToDate() const { return upToDate; }
 			const std::vector<int>& getWidths() const { return widths; }
+			int getMinWidth() const { return minWidth; }
+			int getPreferredWidth() const { return preferredWidth; }
 			/// Setters
 			void markForRecompute() { if (upToDate) onElementJoin(-1, -1); };
-			void setShrinkWidthToChildren(bool shrinkWidthToChildren);
 		};
 		friend class HorizontalLayoutGroup;
 		/// Horizontal alignment of the layout
@@ -62,7 +65,7 @@ namespace SnackerEngine
 		std::string groupName = "";
 		/// If this is set to true, the layouts minWidth and preferredWidth are set according
 		/// to child elements
-		bool shrinkWidthToChildren = true;
+		bool shrinkWidthToChildren = false;
 		/// Helper function for enforcing the layout
 		static std::vector<int> computeChildWidths(const std::vector<int>& minWidths, const std::vector<int>& preferredWidths, const std::vector<int>& maxWidths, int width);
 	protected:
@@ -71,6 +74,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_HORIZONTAL_LIST_LAYOUT";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiHorizontalListLayout(Color4f backgroundColor = Color4f(1.0f, 0.0f));
 		/// Constructor from JSON.

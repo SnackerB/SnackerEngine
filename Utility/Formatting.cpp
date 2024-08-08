@@ -25,7 +25,31 @@ namespace SnackerEngine
 	}
 
 	template<>
+	std::string to_string(const long long int& val)
+	{
+		return std::to_string(val);
+	}
+
+	template<>
 	std::string to_string(const unsigned int& val)
+	{
+		return std::to_string(val);
+	}
+
+	template<>
+	std::string to_string(const uint8_t& val)
+	{
+		return std::to_string(val);
+	}
+
+	template<>
+	std::string to_string(const uint16_t& val)
+	{
+		return std::to_string(val);
+	}
+
+	template<>
+	std::string to_string(const std::size_t& val)
 	{
 		return std::to_string(val);
 	}
@@ -70,11 +94,37 @@ namespace SnackerEngine
 	}
 
 	template<>
+	std::optional<long long int> from_string(const std::string& string)
+	{
+		try
+		{
+			return std::stoll(string);
+		}
+		catch (const std::exception&)
+		{
+			return {};
+		}
+	}
+
+	template<>
 	std::optional<unsigned int> from_string(const std::string& string)
 	{
 		try
 		{
 			return static_cast<unsigned>(std::stoul(string));
+		}
+		catch (const std::exception&)
+		{
+			return {};
+		}
+	}
+
+	template <>
+	std::optional<std::size_t> from_string(const std::string& string)
+	{
+		try
+		{
+			return static_cast<std::size_t>(std::stoul(string));
 		}
 		catch (const std::exception&)
 		{

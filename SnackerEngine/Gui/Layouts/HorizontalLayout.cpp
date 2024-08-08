@@ -56,20 +56,23 @@ namespace SnackerEngine
 			if (child) {
 				// Set minHeight to largest minHeight (+ vertical borders)
 				minHeight = std::max(minHeight, child->getMinHeight() + 2 * static_cast<int>(verticalBorder));
-				// If all children have the same preferred height, this will be the layouts preferred height. Otherwise, set
-				// preferredHeight to SIZE_HINT_ARBITRARY. If any child has preferredHeight of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
+				// The layouts preferred height is equal to the largest preferredHeight of its children. 
+				// If any child has preferredHeight of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
 				// set the layouts preferredHeight to SIZE_HINT_AS_LARGE_AS_POSSIBLE
-				if (preferredHeight.has_value()) {
-					if (preferredHeight.value() >= 0) {
-						int tempPreferredHeight = child->getPreferredHeight();
-						if (tempPreferredHeight != preferredHeight.value()) preferredHeight = SIZE_HINT_ARBITRARY;
+				if (!(preferredHeight.has_value() && preferredHeight.value() == SIZE_HINT_AS_LARGE_AS_POSSIBLE)) {
+					int tempPreferredHeight = child->getPreferredHeight();
+					if (tempPreferredHeight == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+						preferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					}
+					else {
+						if (preferredHeight.has_value()) {
+							if (tempPreferredHeight > preferredHeight.value()) preferredHeight = tempPreferredHeight;
+						}
+						else {
+							if (tempPreferredHeight != SIZE_HINT_ARBITRARY) preferredHeight = tempPreferredHeight;
+						}
 					}
 				}
-				else {
-					int tempPreferredHeight = child->getPreferredHeight();
-					if (tempPreferredHeight >= 0) preferredHeight = tempPreferredHeight;
-				}
-				if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
 			}
 		}
 		setMinHeight(minHeight);
@@ -78,7 +81,7 @@ namespace SnackerEngine
 				setPreferredHeight(preferredHeight.value() + 2 * verticalBorder);
 			}
 			else {
-				setPreferredHeight(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+				setPreferredHeight(SIZE_HINT_ARBITRARY);
 			}
 		}
 	}	

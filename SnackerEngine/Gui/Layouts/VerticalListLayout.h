@@ -70,6 +70,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_LIST_LAYOUT";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiVerticalListLayout(Color4f backgroundColor = Color4f(1.0f, 0.0f));
 		/// Constructor from JSON.

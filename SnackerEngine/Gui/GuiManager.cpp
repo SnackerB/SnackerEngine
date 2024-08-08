@@ -25,6 +25,7 @@
 #include "Gui\GuiElements\GuiEditVariable.h"
 #include "Gui\GuiElements\VectorElements\GuiEditVariableVec.h"
 #include "Gui\GuiElements\VectorElements\GuiSliderVec.h"
+#include "Gui\GuiElements\GuiSelectionBox.h"
 
 namespace SnackerEngine
 {
@@ -484,6 +485,19 @@ namespace SnackerEngine
 		//}
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiManager::signOffAtNextUpdate(const GuiID& guiElement)
+	{
+		signOffAtNextUpdateQueue.push(guiElement);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiManager::processSignOffAtNextUpdateQueue()
+	{
+		while (!signOffAtNextUpdateQueue.empty()) {
+			signOff(signOffAtNextUpdateQueue.front());
+			signOffAtNextUpdateQueue.pop();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	GuiElement* GuiManager::getGuiElement(const GuiID& guiID)
 	{
 		if (guiID < 0 || guiID >= registeredGuiElements.size() || !registeredGuiElements[guiID]) {
@@ -491,6 +505,27 @@ namespace SnackerEngine
 			return nullptr;
 		}
 		return registeredGuiElements[guiID];
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::optional<Vec2i> GuiManager::isMouseHoveringOverInternal(const GuiID& guiID)
+	{
+		GuiElement* guiElement = getGuiElement(guiID);
+		if (!guiElement) return std::nullopt;
+		Vec2i offset{};
+		if (guiElement->parentID > 0) {
+			std::optional<Vec2i> parentResult = isMouseHoveringOverInternal(guiElement->parentID);
+			if (!parentResult.has_value()) return std::nullopt;
+			else offset = parentResult.value() - guiElement->getPosition();
+		}
+		else offset = currentMousePosition - guiElement->getPosition();
+		GuiElement::IsCollidingResult result = guiElement->isColliding(offset);
+		if (result != GuiElement::IsCollidingResult::NOT_COLLIDING) return offset;
+		else return std::nullopt;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::isMouseHoveringOver(const GuiID& guiID)
+	{
+		return isMouseHoveringOverInternal(guiID).has_value();
 	}
 	//--------------------------------------------------------------------------------------------------
 	bool GuiManager::registerElementAsChild(GuiElement& parent, GuiElement& child)
@@ -673,6 +708,7 @@ namespace SnackerEngine
 		registerGuiElementType<GuiSliderVec4f>("_FLOAT");
 		registerGuiElementType<GuiSliderVec4d>("_DOUBLE");
 		registerGuiElementType<GuiSliderVec4i>("_INT");
+		registerGuiElementType<GuiSelectionBox>();
 		// Initialize static default font
 		GuiElement::defaultFont = Font("fonts/Arial.ttf");
 		// Initialize static default background shader
@@ -1190,6 +1226,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::update(const double& dt)
 	{
+		processSignOffAtNextUpdateQueue();
 		processSignOffQueue();
 		for (auto& guiID : eventSetUpdate) {
 			auto element = getGuiElement(guiID);

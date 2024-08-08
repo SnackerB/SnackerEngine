@@ -165,6 +165,11 @@ namespace SnackerEngine
 		if (guiManager) guiManager->bringToForeground(*this);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::signOffAtNextUpdate()
+	{
+		if (guiManager) guiManager->signOffAtNextUpdate(guiID);
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPosition(const Vec2i& position)
 	{
 		if (this->position != position) {
@@ -314,6 +319,24 @@ namespace SnackerEngine
 			sizeHints.preferredSize.y = preferredHeight;
 			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	const Vec2i GuiElement::getWorldPosition() const
+	{
+		if (parentID > 0) return getElement(parentID)->getWorldPosition() + position;
+		else return position;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getWorldPositionX() const
+	{
+		if (parentID > 0) return getElement(parentID)->getWorldPositionX() + position.x;
+		else return position.x;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getWorldPositionY() const
+	{
+		if (parentID > 0) return getElement(parentID)->getWorldPositionY() + position.y;
+		else return position.y;
 	}
 	//--------------------------------------------------------------------------------------------------
 	const Vec2i GuiElement::getMouseOffset() const
@@ -561,26 +584,6 @@ namespace SnackerEngine
 			guiManager->registerForEnforcingLayoutsDown(guiID);
 			child->onSizeChange();
 		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::signUpHandle(GuiHandle& guiHandle, const GuiHandle::GuiHandleID& handleID)
-	{
-		guiHandle.registerHandle(handleID, *this);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::signOffHandle(GuiHandle& guiHandle)
-	{
-		guiHandle.signOff(*this);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::notifyHandleOnGuiElementMove(GuiElement* oldElement, GuiHandle& guiHandle)
-	{
-		guiHandle.onMove(oldElement, this);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiElement::activate(GuiEventHandle& guiEventHandle)
-	{
-		guiEventHandle.activate();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::IsCollidingResult GuiElement::isColliding(const Vec2i& offset) const

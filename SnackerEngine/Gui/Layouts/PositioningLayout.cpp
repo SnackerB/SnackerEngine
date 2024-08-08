@@ -132,6 +132,8 @@ namespace SnackerEngine
 				if (childSize.x < 0) childSize.x = getWidth();
 				if (childSize.y < 0) childSize.y = getHeight();
 			}
+			if (childSize.x > getWidth()) childSize.x = getWidth();
+			if (childSize.y > getHeight()) childSize.y = getHeight();
 			childSize = child->clampToMinMaxSize(childSize);
 			// Compute position
 			Vec2i childPosition;

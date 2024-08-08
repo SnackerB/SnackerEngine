@@ -1452,6 +1452,27 @@ namespace SnackerEngine
 		setSelectionIndexToCursor();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void EditableText::inputAtCursor(const std::string& text)
+	{
+		unsigned position = 0;
+		unsigned startingCursorPosIndex = cursorPosIndex;
+		if (isSelecting()) {
+			// If we have a selection, delete characters first
+			unsigned endIndex = std::max(cursorPosIndex, selectionIndex) - 1;
+			deleteCharacters(std::min(cursorPosIndex, selectionIndex), endIndex);
+		}
+		while (position < text.size()) {
+			std::optional<Unicode> codepoint = getNextCodepointUTF8(text, position);
+			if (!codepoint.has_value()) return;
+			characters.insert(characters.begin() + cursorPosIndex, { codepoint.value(), 0.0, 0.0});
+			cursorPosIndex++;
+		}
+		constructModelFrom(getLineNumber(startingCursorPosIndex));
+		textIsUpToDate = false;
+		setCursorPos(cursorPosIndex);
+		setSelectionIndexToCursor();
+	}
+	//--------------------------------------------------------------------------------------------------
 	void EditableText::inputNewlineAtCursor()
 	{
 		inputAtCursor(getNewlineCodepoint());
@@ -1559,6 +1580,23 @@ namespace SnackerEngine
 			constructTextFromCharacters();
 			return text;
 		}
+	}
+	std::string EditableText::getText(unsigned start, unsigned end)
+	{
+		std::vector<char> chars;
+		start = std::min(start, static_cast<unsigned>(characters.size() - 1));
+		end = std::min(end, static_cast<unsigned>(characters.size() - 1));
+		for (unsigned i = start; i <= end; i++) {
+			appendUnicodeCharacter(chars, characters[i].codepoint);
+		}
+		if (chars.empty()) return "";
+		else return std::string(chars.begin(), chars.end());
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::string EditableText::getSelectedText()
+	{
+		std::vector<char> chars;
+		return getText(std::min(cursorPosIndex, selectionIndex), std::max(cursorPosIndex, selectionIndex) - 1);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::setTextWidth(const double& textWidth, bool recompute)

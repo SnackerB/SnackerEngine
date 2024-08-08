@@ -7,17 +7,18 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	class GuiSliderVec : public GuiVariableVec<T, VecT, N>
 	{
 	private:
-		/// Helper function that creates a vector of GuiEditVariables from the given value
-		static std::vector<std::unique_ptr<GuiSlider<T>>> createComponents(const VecT& minValue, const VecT& maxValue, const VecT& value);
+		/// Helper function that creates a vector of GuiSliders from the given value
+		void setupComponents();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "ERROR";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiSliderVec(const VecT& minValue = defaultValue, const VecT& maxValue = defaultValue, const VecT& value = defaultValue);
+		GuiSliderVec(const VecT& minValue = VecT{}, const VecT& maxValue = VecT{}, const VecT& value = VecT{});
 		/// Constructor from JSON
 		GuiSliderVec(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 	public:
@@ -25,23 +26,19 @@ namespace SnackerEngine
 		int getSliderButtonWidth() const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[0])->getSliderButtonWidth(); }
 		const Color4f& getSliderButtonColor() const { static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[0])->getSliderButtonColor(); }
 		const Shader& getSliderButtonShader() const { static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[0])->getSliderButtonShader(); }
-		VecT getValue() const { 
-			VecT result{};
-			for (unsigned i = 0; i < N; ++i) result.values[i] = static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[i])->getValue();
-			return result; }
 		VecT getMinValue() const {
 			VecT result{};
-			for (unsigned i = 0; i < N; ++i) result.values[i] = static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[i])->getMinValue();
+			for (std::size_t i = 0; i < N; ++i) result.values[i] = static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[i])->getMinValue();
 			return result;
 		}
 		VecT getMaxValue() const {
 			VecT result{};
-			for (unsigned i = 0; i < N; ++i) result.values[i] = static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[i])->getMaxValue();
+			for (std::size_t i = 0; i < N; ++i) result.values[i] = static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[i])->getMaxValue();
 			return result;
 		}
-		const T& getValue(unsigned index) const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[index])->getValue(); }
-		const T& getMinValue(unsigned index) const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[index])->getMinValue(); }
-		const T& getMaxValue(unsigned index) const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[index])->getMaxValue(); }
+		const T& getValue(std::size_t index) const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[index])->getValue(); }
+		const T& getMinValue(std::size_t index) const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[index])->getMinValue(); }
+		const T& getMaxValue(std::size_t index) const { return static_cast<std::unique_ptr<GuiSlider<T>>>(this->components[index])->getMaxValue(); }
 		/// Setters
 		void setSliderButtonWidth(int sliderButtonWidth) {
 			for (const auto& component : this->components) static_cast<GuiSlider<T>*>(component.get())->setSliderButtonWidth(sliderButtonWidth);
@@ -53,17 +50,16 @@ namespace SnackerEngine
 			for (const auto& component : this->components) static_cast<GuiSlider<T>*>(component.get())->setSliderButtonShader(sliderButtonShader);
 		}
 		void setValue(const VecT& value) {
-			for (unsigned i = 0; i < N; ++i) static_cast<GuiSlider<T>*>(this->components[i].get())->setValue(value.values[i]);
+			for (std::size_t i = 0; i < N; ++i) static_cast<GuiSlider<T>*>(this->components[i].get())->setValue(value.values[i]);
 		}
 		void setMinValue(const VecT& minValue) {
-			for (unsigned i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMinValue(minValue.values[i]);
+			for (std::size_t i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMinValue(minValue.values[i]);
 		}
 		void setMaxValue(const VecT& maxValue) {
-			for (unsigned i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMaxValue(maxValue.values[i]);
+			for (std::size_t i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMaxValue(maxValue.values[i]);
 		}
-		void setValue(const T& value, unsigned index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setValue(value.values[index]); }
-		void setMinValue(const T& minValue, unsigned index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setMinValue(minValue.values[index]); }
-		void setMaxValue(const T& maxValue, unsigned index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setMaxValue(maxValue.values[index]); }
+		void setMinValue(const T& minValue, std::size_t index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setMinValue(minValue.values[index]); }
+		void setMaxValue(const T& maxValue, std::size_t index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setMaxValue(maxValue.values[index]); }
 		/// Getters
 		const Color4f& getSelectionBoxColor() const { return static_cast<GuiSlider<T>*>(this->components[0].get())->getSelectionBoxColor(); }
 		bool isActive() const { for (const auto& component : this->components) if (static_cast<GuiSlider<T>*>(component.get())->isActive()) return true; return false; }
@@ -71,25 +67,31 @@ namespace SnackerEngine
 		double getCursorBlinkTime() const { return static_cast<GuiSlider<T>*>(this->components[0].get())->getCursorBlinkTime(); }
 	};
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline std::vector<std::unique_ptr<GuiSlider<T>>> GuiSliderVec<T, VecT, N>::createComponents(const VecT& minValue, const VecT& maxValue, const VecT& value)
+	template<typename T, typename VecT, std::size_t N>
+	inline void GuiSliderVec<T, VecT, N>::setupComponents()
 	{
-		std::vector<std::unique_ptr<GuiSlider<T>>> result;
-		result.reserve(N);
-		for (unsigned i = 0; i < N; ++i) result.push_back(std::make_unique<GuiSlider<T>>(minValue.values[i], maxValue.values[i], value.values[i]));
-		result;
+		this->components.clear();
+		this->components.reserve(N);
+		for (std::size_t i = 0; i < N; ++i) this->components.push_back(std::make_unique<GuiSlider<T>>());
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiSliderVec<T, VecT, N>::GuiSliderVec(const VecT& minValue, const VecT& maxValue, const VecT& value)
-		: GuiVariableVec(std::move(createComponents(minValue, maxValue, value)), value) {}
+		: GuiVariableVec() 
+	{
+		setupComponents();
+		setValue(value);
+		setMinValue(minValue);
+		setMaxValue(maxValue);
+		this->setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
+		this->setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiSliderVec<T, VecT, N>::GuiSliderVec(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiVariableVec<T, VecT, N>(json, data, parameterNames)
 	{
-		this->components.reserve(N);
-		for (unsigned i = 0; i < N; ++i) this->components.push_back(std::make_unique<GuiSlider<T>>());
+		setupComponents();
 		this->parseJSON(json, data, parameterNames);
 		std::optional<int> sliderButtonWidth = parseJsonOrReadFromData<int>("sliderButtonWidth", json, data, parameterNames);
 		if (sliderButtonWidth.has_value()) setSliderButtonWidth(sliderButtonWidth.value());
@@ -99,7 +101,9 @@ namespace SnackerEngine
 		if (minValue.has_value()) setMinValue(minValue.value());
 		std::optional<VecT> maxValue = parseJsonOrReadFromData<VecT>("maxValue", json, data, parameterNames);
 		if (maxValue.has_value()) setMaxValue(maxValue.value());
-	}
+		if (!json.contains("SizeHintModePreferredSize")) this->setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
+		if (!json.contains("preferredSize") && !json.contains("preferredWidth")) this->setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
+	 }
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	class GuiSliderVec2 : public GuiSliderVec<T, Vec2<T>, 2>
@@ -107,6 +111,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_SLIDER_VEC2";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiSliderVec2(const Vec2<T>& minValue = Vec2<T>{}, const Vec2<T>& maxValue = Vec2<T>{}, const Vec2<T>& value = Vec2<T>{})
 			: GuiSliderVec<T, Vec2<T>, 2>(minValue, maxValue, value) {}
@@ -121,6 +126,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_SLIDER_VEC3";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiSliderVec3(const Vec3<T>& minValue = Vec3<T>{}, const Vec3<T>& maxValue = Vec3<T>{}, const Vec3<T>& value = Vec3<T>{})
 			: GuiSliderVec<T, Vec3<T>, 3>(minValue, maxValue, value) {}
@@ -135,6 +141,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_SLIDER_VEC4";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiSliderVec4(const Vec4<T>& minValue = Vec4<T>{}, const Vec4<T>& maxValue = Vec4<T>{}, const Vec4<T>& value = Vec4<T>{})
 			: GuiSliderVec<T, Vec4<T>, 4>(minValue, maxValue, value) {}

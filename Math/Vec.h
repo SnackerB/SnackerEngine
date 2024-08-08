@@ -41,6 +41,7 @@ namespace SnackerEngine
 		bool operator==(const Vec2<T>& other) const { return x == other.x && y == other.y; }
 		bool operator!=(const Vec2<T>& other) const { return x != other.x || y != other.y; }
 		/// Getter
+		const T& operator[](unsigned i) const { return values[i]; }
 		T& operator[](unsigned i) { return values[i]; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y; }
@@ -87,6 +88,7 @@ namespace SnackerEngine
 		bool operator==(const Vec3<T>& other) const { return x == other.x && y == other.y && z == other.z; }
 		bool operator!=(const Vec3<T>& other) const { return x != other.x || y != other.y || z != other.z; }
 		/// Getter
+		const T& operator[](unsigned i) const { return values[i]; }
 		T& operator[](unsigned i) { return values[i]; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z; }
@@ -132,6 +134,7 @@ namespace SnackerEngine
 		bool operator==(const Vec4<T>& other) const { return x == other.x && y == other.y && z == other.z && w == other.w; }
 		bool operator!=(const Vec4<T>& other) const { return x != other.x || y != other.y || z != other.z || w != other.w; }
 		/// Getter
+		const T& operator[](unsigned i) const { return values[i]; }
 		T& operator[](unsigned i) { return values[i]; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z + w * w; }

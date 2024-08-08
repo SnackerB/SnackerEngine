@@ -1,14 +1,11 @@
 #pragma once
 
-#include "Network\SERP\SERP.h"
-#include "Network\SERP\SERPID.h"
-#include "Network\TCP\TCP.h"
-#include "Network\HTTP\HTTP.h"
-#include "Network\HTTP\Message.h"
+#include "Network\SERP\SERPEndpoint.h"
 
 #include <unordered_map>
 #include <string>
 #include <queue>
+#include <optional>
 
 namespace SnackerEngine
 {
@@ -37,17 +34,11 @@ namespace SnackerEngine
 			SERPManager* serpManager;
 			/// Current status
 			Status status;
-			/// Time left until timeout
-			double timeLeft;
-			/// The actual response (if it is obtained).
-			/// This field holds the expected sourceID even before the message is obtained
+			/// The actual response (if it is obtained). This field already contains the expected messageID.
 			SERPResponse response;
 			/// private constructor, is only called by SERPManager!
-			PendingResponse(SERPManager* serpManager, double timeLeft, SERPID sourceID)
-				: serpManager{ serpManager }, status{ Status::PENDING }, timeLeft{ timeLeft }, response{}
-			{
-				response.setSource(sourceID);
-			}
+			PendingResponse(SERPManager* serpManager, std::size_t messageID)
+				: serpManager{ serpManager }, status{ Status::PENDING }, response(messageID) {}
 			/// Helper function that should be called on move
 			void onMove(PendingResponse* other);
 		public:
@@ -61,35 +52,63 @@ namespace SnackerEngine
 			~PendingResponse();
 			/// Getters
 			Status getStatus() const { return status; }
-			double getTimeLeft() const { return timeLeft; }
+			double getTimeLeftUntilTimeout() const;
 			const SERPResponse& getResponse() const { return response; }
-			/// Setters
-			void setTimeLeft(double timeLeft) { this->timeLeft = timeLeft; }
 		};
 	private:
+		/// Class that represents a sent request. Each request that is sent by this SERPManager produces a SentRequest entry in the
+		/// SentRequest map. If no response is obtained after a certain time, the request is sent again, up to a given number of 
+		/// repetitions. Per default, the request is sent only once, but an arbitrary amount of repetitions can be chosen as an implementation
+		/// of "safe search". If after all repetitions still no response was obtained, the message is considered as timeout.
+		/// After a response is obtained or a timeout occurs, the corresponding PendingResponse object is notified, if it exists.
+		struct SentRequest
+		{
+			unsigned repetitions;
+			double timeBetweenResend;
+			double timeSinceLastSend;
+			SERPRequest request;
+			PendingResponse* pendingResponse;
+		};
+		/// Class that represents a sent response. Each response that is sent by this SERPManager produces a SentResponse entry in the
+		/// SentResponses map. If the response does not arrive at the destination and the other client resends the same request again,
+		/// we first check the SentResponses map and just resend. After some time, responses are cleared again from the SentResponses map.
+		struct SentResponse
+		{
+			double timeout;
+			SERPResponse response;
+		};
+		/// The SERP endpoint
+		SERPEndpoint endpointSERP;
 		/// Wether the SERP manager is connected to the SERP server
-		bool connected = false;
+		bool connected;
 		/// The serpID of this SERPManager. If this is set to zero, no serpID has been broadcasted yet.
-		SERPID serpID = 0;
-		///  The HTTPEndpoint which is used to communicate with the SERP server
-		HTTPEndpoint httpEndpoint;
+		SERPID serpID;
 		/// Queues of incoming requests. User can register different paths that are listened to. An incoming request is
 		/// pushed into the queue with the most specialized path matching the request path. If there is no matching path,
 		/// the request is answered with an error message
-		std::unordered_map<std::string, std::queue<SERPRequest>> incomingRequests{};
-		/// Map of all requests that were sent and have not yet received an answer. This map is used to map incoming responses to these requests
-		std::unordered_map<unsigned int, PendingResponse*> pendingResponses{};
-		/// Queues of outgoing requests. Is used as a backup if multiple requests are sent to the same client without waiting for an answer or
-		/// timeout first.
-		std::unordered_map<unsigned int, std::vector<std::pair<SERPRequest, PendingResponse*>>> outgoingRequests{};
+		std::unordered_map<std::string, std::deque<SERPRequest>> incomingRequests;
+		/// Map of all requests that were sent and have not yet received an answer. This map is used to map incoming responses to these requests.
+		/// The key is the messageID of the requests.
+		std::unordered_map<std::size_t, SentRequest> sentRequests;
+		/// Map of all responses that were sent in recent past. This map is used to quickly resend responses if they got lost somewhere and the other
+		/// client is resending the request. The key to the map is the message id of the request, for each messageID we store a vector for responses
+		/// to different clients.
+		std::unordered_map<std::uint32_t, std::vector<SentResponse>> sentResponses;
+		/// Duration for how long sent responses are stored in the sentResponses map, in seconds.
+		double sentResponsesTimeout;
+		/// Helper function that checks if a response to the given request was already sent, and if so, resends the response and returns true.
+		/// Otherwise, false is returned
+		bool checkIfAlreadyRespondedAndResend(const SERPRequest& request);
+		/// Inserts the given response into the sentResponses map
+		void insertIntoSentResponsesMap(SERPResponse response);
+		/// Updates the timer of all responses in the sentResponses map and deletes them if necessary
+		void updateSentResponses(double dt);
 		/// Request for serpID, which is sent after connecting to the SERPServer
-		std::unique_ptr<PendingResponse> serpIDResponse = nullptr;
-		/// Buffer for incoming messages
-		Buffer incomingMessageBuffer{ 0 };
+		std::unique_ptr<PendingResponse> serpIDResponse;
 		/// If this is set to true, every incoming and outgoing message is logged
-		bool logMessages = false;
+		bool logMessages;
 		/// Helper function handling a received message
-		void handleReceivedMessage(HTTPMessage& message);
+		void handleReceivedMessage(SERPMessage& message);
 		/// Helper function handling incoming serpRequest
 		void handleIncomingRequest(SERPRequest& request);
 		/// Helper function handling incoming serpRequest addressed to the manager (eg. ping request)
@@ -107,8 +126,20 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		SERPManager(SERPManager&& other) noexcept;
 		SERPManager& operator=(SERPManager&& other) noexcept;
+		/// Struct that gets returned when calling connectToSERPServer()
+		struct ConnectResult
+		{
+			enum class Result
+			{
+				SUCCESS,
+				ERROR,
+				PENDING,
+			};
+			Result result;
+			std::string error;
+		};
 		/// Tries to connect to the SERP server
-		bool connectToSERPServer();
+		ConnectResult connectToSERPServer();
 		/// Registers a path to listen to for incoming requests
 		void registerPathForIncomingRequests(const std::string& path);
 		/// Removes the given path from the incoming request paths
@@ -121,12 +152,12 @@ namespace SnackerEngine
 		/// to be registered before. If the given path was not registered, this function will raise an exception.
 		/// To be prevent this, consider calling areIncomingRequests(path) before to check if any requests are present
 		/// under the given path. Good practice: After calling this function, answer all requests and clear the queue!
-		std::queue<SERPRequest>& getIncomingRequests(const std::string& path);
+		std::deque<SERPRequest>& getIncomingRequests(const std::string& path);
 		/// Sends a request to the client with the given serpID and returns a PendingResponse object that can be used to check
 		/// the response or detect a timeout. Note that no other request can be sent to the client with the given SERPID, until the
 		/// original request either times out or is answered. Further requests to the same clients are instead placed in a queue and 
 		/// sent out later.
-		PendingResponse sendRequest(SERPRequest request, double timeout = 0.5);
+		PendingResponse sendRequest(SERPRequest request, double timeout = 0.5, unsigned repetitions = 1);
 		/// Sends a SERPResponse
 		void sendResponse(SERPResponse response);
 		/// updates the SERPManager and checks for incoming messages. This should be called frequently during runtime

@@ -221,6 +221,18 @@ namespace SnackerEngine
 		return result;
 	}
 	//------------------------------------------------------------------------------------------------------
+	std::optional<std::string> Engine::getClipboardString()
+	{
+		const char* text = glfwGetClipboardString(Renderer::activeWindow);
+		if (text) return std::string(text);
+		return std::nullopt;
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::setClipboardString(const std::string& string)
+	{
+		glfwSetClipboardString(Renderer::activeWindow, string.c_str());
+	}
+	//------------------------------------------------------------------------------------------------------
 	void Engine::stopEngine()
 	{
 		running = false;

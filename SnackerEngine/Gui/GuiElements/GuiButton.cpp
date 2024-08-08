@@ -12,7 +12,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::onButtonPress()
 	{
-		if (eventHandle) activate(*eventHandle);
+		observableButtonPressed.trigger();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(const Vec2i& position, const Vec2i& size, const std::string& text)
@@ -41,22 +41,17 @@ namespace SnackerEngine
 		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::CENTER);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiButton::~GuiButton()
-	{
-		if (eventHandle)
-			signOffHandle(*eventHandle);
-	}
+	GuiButton::~GuiButton() {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(const GuiButton& other) noexcept
-		: GuiTextBox(other), eventHandle(nullptr), defaultColor(other.defaultColor),
+		: GuiTextBox(other), observableButtonPressed{}, defaultColor(other.defaultColor),
 		hoverColor(other.hoverColor), pressedColor(other.pressedColor), pressedHoverColor(other.pressedHoverColor), lockedColor(other.lockedColor),
 		isBeingPressed(false), isBeingHovered(false), locked(other.locked) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton& GuiButton::operator=(const GuiButton& other) noexcept
 	{
 		GuiTextBox::operator=(other);
-		if (eventHandle) signOffHandle(*eventHandle);
-		eventHandle = nullptr;
+		observableButtonPressed = EventHandle::Observable();
 		defaultColor = other.defaultColor;
 		hoverColor = other.hoverColor;
 		pressedColor = other.pressedColor;
@@ -69,19 +64,14 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(GuiButton&& other) noexcept
-		: GuiTextBox(std::move(other)), eventHandle(other.eventHandle), defaultColor(other.defaultColor),
+		: GuiTextBox(std::move(other)), observableButtonPressed(std::move(other.observableButtonPressed)), defaultColor(other.defaultColor),
 		hoverColor(other.hoverColor), pressedColor(other.pressedColor), pressedHoverColor(other.pressedHoverColor), lockedColor(other.lockedColor),
-		isBeingPressed(other.isBeingPressed), isBeingHovered(other.isBeingHovered), locked(other.locked)
-	{
-		other.eventHandle = nullptr;
-		if (eventHandle) notifyHandleOnGuiElementMove(&other, *eventHandle);
-	}
+		isBeingPressed(other.isBeingPressed), isBeingHovered(other.isBeingHovered), locked(other.locked) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton& GuiButton::operator=(GuiButton&& other) noexcept
 	{
 		GuiTextBox::operator=(std::move(other));
-		if (eventHandle) signOffHandle(*eventHandle);
-		eventHandle = other.eventHandle;
+		observableButtonPressed = std::move(other.observableButtonPressed);
 		defaultColor = other.defaultColor;
 		hoverColor = other.hoverColor;
 		pressedColor = other.pressedColor;
@@ -90,17 +80,12 @@ namespace SnackerEngine
 		isBeingPressed = other.isBeingPressed;
 		isBeingHovered = other.isBeingHovered;
 		locked = other.locked;
-		other.eventHandle = nullptr;
-		if (eventHandle) notifyHandleOnGuiElementMove(&other, *eventHandle);
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiButton::setEventHandle(GuiEventHandle& eventHandle)
+	void GuiButton::subscribeToEventButtonPress(EventHandle& eventHandle)
 	{
-		if (this->eventHandle) return false;
-		this->eventHandle = &eventHandle;
-		signUpHandle(eventHandle, 0);
-		return true;
+		observableButtonPressed.subscribe(eventHandle);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::lock()
@@ -232,17 +217,6 @@ namespace SnackerEngine
 		}
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiButton::onHandleMove(GuiHandle& guiHandle)
-	{
-		// Update pointer
-		eventHandle = static_cast<GuiEventHandle*>(&guiHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiButton::onHandleDestruction(GuiHandle& guiHandle)
-	{
-		eventHandle = nullptr;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::IsCollidingResult GuiButton::isColliding(const Vec2i& offset) const

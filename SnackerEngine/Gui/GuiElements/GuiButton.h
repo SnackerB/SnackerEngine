@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Gui/GuiElements/GuiTextBox.h"
+#include "Utility\Handles\EventHandle.h"
 
 namespace SnackerEngine
 {
@@ -15,7 +16,7 @@ namespace SnackerEngine
 		static Color4f defaultLockedColor;
 	private:
 		/// The event that happens when the button is pressed
-		GuiEventHandle* eventHandle = nullptr;
+		EventHandle::Observable observableButtonPressed;
 		/// Different colors of the button for the different stages
 		Color4f defaultColor = defaultDefaultColor;
 		Color4f hoverColor = defaultHoverColor;
@@ -35,6 +36,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_BUTTON";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiButton(const Vec2i& position = Vec2i{}, const Vec2i& size = Vec2i{}, const std::string& text = "");
 		GuiButton(const std::string& label);
@@ -84,24 +86,18 @@ namespace SnackerEngine
 		virtual void onRegister() override;
 
 		//==============================================================================================
-		// GuiHandles
+		// EventHandles
 		//==============================================================================================
 
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		virtual void onHandleMove(GuiHandle& guiHandle);
-		/// This function is called by a handle right before the handle is destroyed
-		virtual void onHandleDestruction(GuiHandle& guiHandle);
 	public:
-		/// Sets the event handle. Cannot be done if an event handle is already set, 
-		/// delete the previous event handle first! Returns true on success
-		bool setEventHandle(GuiEventHandle& eventHandle);
-	protected:
+		/// Subscribes an event handle
+		void subscribeToEventButtonPress(EventHandle& eventHandle);
 
 		//==============================================================================================
 		// Collisions
 		//==============================================================================================
 
+	public:
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
@@ -110,6 +106,7 @@ namespace SnackerEngine
 		// Events
 		//==============================================================================================
 
+	protected:
 		/// Callback function for mouse button input. Parameters the same as in Scene.h
 		virtual void callbackMouseButton(const int& button, const int& action, const int& mods) override;
 		/// Callback function for mouse button input on this GuiElement object. Parameters the same as in Scene.h

@@ -4,12 +4,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SnackerEngine", "SnackerEngine\SnackerEngine.vcxproj", "{CBF0269F-7152-463C-88D0-BE762035F937}"
+	ProjectSection(ProjectDependencies) = postProject
+		{86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7} = {86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7}
+		{A598F72C-F397-442D-B1EB-3CEA6AC4A44A} = {A598F72C-F397-442D-B1EB-3CEA6AC4A44A}
+		{AD0EAF18-C2BB-4092-959E-9B5679C3457E} = {AD0EAF18-C2BB-4092-959E-9B5679C3457E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utility", "Utility\Utility.vcxproj", "{86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Network", "Network\Network.vcxproj", "{AD0EAF18-C2BB-4092-959E-9B5679C3457E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7} = {86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Math", "Math\Math.vcxproj", "{A598F72C-F397-442D-B1EB-3CEA6AC4A44A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7} = {86E2B5FB-0EF6-4F89-B9A1-8B0F55D72EF7}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

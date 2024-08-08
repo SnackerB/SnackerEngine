@@ -4,6 +4,7 @@
 #include <bit>
 #include <string>
 #include <optional>
+#include "Json.h"
 
 namespace SnackerEngine
 {
@@ -40,6 +41,9 @@ namespace SnackerEngine
 		/// Returns the string that is created when interpreting each byte of the buffer
 		/// as a character. This copies the data.
 		std::string to_string() const;
+		std::string to_string_base64() const;
+		/// Returns the data of the buffer serialized to json binary data
+		nlohmann::json::binary_t to_json_binary() const;
 		/// Returns the position of the first byte that matches the given byte(s).
 		/// If no such position is found, std::string::npos is returned.
 		std::size_t find_first_of(std::byte byte, std::size_t offset = 0) const;
@@ -56,6 +60,8 @@ namespace SnackerEngine
 		const std::byte& operator[](std::size_t i) const { return *(_begin + i); }
 		/// Compares the buffer to a string and returns true on match
 		bool compare(const std::string& string) const;
+		/// Returns true if the buffer is empty
+		bool empty() const { return cbegin() >= cend(); }
 	};
 
 	/// A bufferView is a view into a (partial) buffer. With bufferView objects, efficient
@@ -86,6 +92,9 @@ namespace SnackerEngine
 		/// Returns the string that is created when interpreting each byte of the buffer
 		/// as a character. This copies the data.
 		std::string to_string() const;
+		std::string to_string_base64() const;
+		/// Returns the data of the buffer serialized to json binary data
+		nlohmann::json::binary_t to_json_binary() const;
 		/// Returns the position of the first byte that matches the given byte(s).
 		/// If no such position is found, std::string::npos is returned.
 		std::size_t find_first_of(std::byte byte, std::size_t offset = 0) const;
@@ -103,6 +112,8 @@ namespace SnackerEngine
 		const std::byte& operator[](std::size_t i) const { return *(_begin + i); }
 		/// Compares the buffer to a string and returns true on match
 		bool compare(const std::string& string) const;
+		/// Returns true if the buffer is empty
+		bool empty() const { return cbegin() >= cend(); }
 	};
 
 	/// A buffer object can contain any data of any size. Basic functionality for modifying
@@ -116,8 +127,11 @@ namespace SnackerEngine
 	public:
 		/// Construct buffer filled with given data
 		Buffer(std::vector<std::byte>&& data);
-		/// Construct buffer by copying data from string
-		Buffer(const std::string& data);
+		/// Construct buffer by copying data from string.
+		/// If base64 is set to true, base65 encoding is assumed
+		Buffer(const std::string& data, bool base64 = false);
+		/// Construct buffer by copying data from json binary
+		Buffer(const nlohmann::json::binary_t& data);
 		/// Construct buffer of given size with garbage data
 		Buffer(std::size_t size = 0);
 		/// Tries to store the contents of a file in a buffer. If the file is not found or could not be opened
@@ -146,6 +160,9 @@ namespace SnackerEngine
 		/// Returns the string that is created when interpreting each byte of the buffer
 		/// as a character. This copies the data.
 		std::string to_string() const;
+		std::string to_string_base_64() const;
+		/// Returns the data of the buffer serialized to json binary data
+		nlohmann::json::binary_t to_json_binary() const;
 		/// Returns the position of the first byte that matches the given byte(s).
 		/// If no such position is found, std::string::npos is returned.
 		std::size_t find_first_of(std::byte byte, std::size_t offset = 0) const;
@@ -165,6 +182,8 @@ namespace SnackerEngine
 		const std::byte& operator[](std::size_t i) const { return data[i]; }
 		/// Compares the buffer to a string and returns true on match
 		bool compare(const std::string& string) const;
+		/// Returns true if the buffer is empty
+		bool empty() const { return cbegin() >= cend(); }
 	};
 
 }

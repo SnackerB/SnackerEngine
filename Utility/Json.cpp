@@ -32,7 +32,15 @@ namespace SnackerEngine
 	{
 		return json.is_string();
 	}
+	template<> bool isOfType<std::size_t>(const nlohmann::json& json)
+	{
+		return json.is_number_integer();
+	}
 	template<> bool isOfType<int>(const nlohmann::json& json)
+	{
+		return json.is_number_integer();
+	}
+	template<> bool isOfType<long long int>(const nlohmann::json& json)
 	{
 		return json.is_number_integer();
 	}
@@ -57,9 +65,17 @@ namespace SnackerEngine
 	{
 		return std::string(json);
 	}
+	template<> std::size_t parseJSON(const nlohmann::json& json)
+	{
+		return std::size_t(json);
+	}
 	template<> int parseJSON(const nlohmann::json& json)
 	{
 		return int(json);
+	}
+	template<> long long int parseJSON(const nlohmann::json& json)
+	{
+		return long long int(json);
 	}
 	template<> unsigned parseJSON(const nlohmann::json& json)
 	{

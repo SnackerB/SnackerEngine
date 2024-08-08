@@ -68,6 +68,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_GRID_LAYOUT";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiGridLayout(unsigned totalColumns = 1, unsigned totalRows = 1, Mode mode = Mode::SPLIT_CELLS_EQUALLY, unsigned border = 0, unsigned outerBorder = 0); // NOTE: All parameters must have default values!
 		/// Constructor from JSON

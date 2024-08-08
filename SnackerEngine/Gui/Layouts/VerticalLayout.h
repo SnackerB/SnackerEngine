@@ -37,6 +37,7 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_LAYOUT";
+		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Constructor
 		GuiVerticalLayout(VerticalLayoutMode verticalLayoutMode = VerticalLayoutMode::CHILD_WIDTH_RANGE)
 			: verticalLayoutMode(verticalLayoutMode) {}

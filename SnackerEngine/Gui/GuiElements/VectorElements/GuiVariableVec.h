@@ -2,6 +2,7 @@
 
 #include "Gui\Layouts\HorizontalWeightedLayout.h"
 #include "Gui\GuiElements\GuiTextBox.h"
+#include "Utility\Handles\VariableHandle.h"
 #include "Utility\Formatting.h"
 
 namespace SnackerEngine
@@ -9,43 +10,61 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	/// Base class for all GuiElements that display or edit vectors of some kind. Base functionality included are basic setters/getters
 	/// for GuiTextBox elements, and the handling of variableHandles.
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	class GuiVariableVec : public GuiHorizontalWeightedLayout
 	{
 	public:
 		/// Static default Attributes
 		static unsigned defaultHorizontalBorder;
 	private:
-		/// variable Handle that updates the parent variableHandle
-		friend class HelperVariableHandle;
-		class HelperVariableHandle : public GuiVariableHandle<T>
+		/// Variable handle for the full vector
+		class GuiVariableVecVariableHandle : public VariableHandle<VecT>
 		{
-			friend class GuiVariableVec<T, VecT, N>;
 		private:
-			GuiVariableVec<T, VecT, N>* parentElement;
+			friend class GuiVariableVec;
+			GuiVariableVec* parentElement;
+		protected:
+			void onEvent() override
+			{
+				VariableHandle<VecT>::onEvent();
+				parentElement->updateChildElements();
+			}
+		public:
+			GuiVariableVecVariableHandle(GuiVariableVec* parentElement)
+				: VariableHandle<VecT>(), parentElement(parentElement) {}
+			void set(const T& value, std::size_t index) {
+				if (this->value[index] != value) {
+					this->value[index] = value;
+					this->notifyAllConnectedHandles();
+				}
+			}
+		};
+		/// Variable handle for individual components
+		class GuiVariableVecComponentVariableHandle : public VariableHandle<T>
+		{
+		private:
+			friend class GuiVariableVec;
+			GuiVariableVec* parentElement;
 		protected:
 			void onEvent() override
 			{
 				parentElement->updateValue();
 			}
 		public:
-			/// Constructor
-			HelperVariableHandle(GuiVariableVec<T, VecT, N>* parentElement, const T& value)
-				: GuiVariableHandle<T>(value), parentElement(parentElement) {}
+			GuiVariableVecComponentVariableHandle(GuiVariableVec* parentElement, const T& value)
+				: VariableHandle<T>(value), parentElement(parentElement) {}
 		};
 	protected:
+		/// Variable handle for the full vector
+		GuiVariableVecVariableHandle value{ this };
 		/// The GuiTextBox elements that make up the individual components of the vector
 		std::vector<std::unique_ptr<GuiTextBox>> components;
-		/// The vector value
-		VecT value{};
 		/// The formatter used to format the text
 		std::unique_ptr<Formatter<T>> formatter = nullptr;
 		/// Variable handles to the components
-		std::vector<HelperVariableHandle> variableHandles;
-		/// The handle to the variable that is referenced in this element
-		GuiVariableHandle<VecT>* variableHandle = nullptr;
-		/// Helper function that computes the text from the current value
-		void updateText();
+		std::vector<GuiVariableVecComponentVariableHandle> componentVariableHandles;
+		/// Helper function that updates all child elements when the value changes
+		void updateChildElements();
 		/// Helper function that updates the value
 		void updateValue();
 		/// Helper function that parses JSON after the components vector has been set by parent element
@@ -53,13 +72,12 @@ namespace SnackerEngine
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "ERROR";
+		virtual std::string_view getTypeName() const override { return typeName; }
 	protected:
 		/// Default constructor
-		GuiVariableVec(std::vector<std::unique_ptr<GuiTextBox>>&& components, const VecT& value = defaultValue);
+		GuiVariableVec(const VecT& value = VecT{});
 		/// Constructor from JSON
 		GuiVariableVec(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
-		/// Destructor
-		virtual ~GuiVariableVec();
 		/// Copy constructor and assignment operator
 		GuiVariableVec(const GuiVariableVec& other) noexcept;
 		GuiVariableVec& operator=(const GuiVariableVec& other) noexcept;
@@ -82,6 +100,7 @@ namespace SnackerEngine
 		StaticText::Alignment getAlignment() const { return components[0].getAlignment(); }
 		const Font& getFont() const { return components[0].getFont(); }
 		const VecT& getValue() const { return value; }
+		VariableHandle<VecT>& getVariableHandle() { return value; }
 		/// Setters
 		void setBackgroundColor(const Color4f& backgroundColor) {
 			for (const auto& component : components) component->setBackgroundColor(backgroundColor);
@@ -129,44 +148,31 @@ namespace SnackerEngine
 			for (const auto& component : components) component->setFont(font);
 		}
 		void setValue(const VecT& value) {
-			this->value = value;
-			updateText();
-			if (variableHandle) variableHandle->set(value);
+			if (this->value != value) {
+				static_cast<VariableHandle<VecT>&>(this->value).set(value);
+				updateChildElements();
+			}
 		}
 	protected:
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager
 		virtual void onRegister() override;
-
-		//==============================================================================================
-		// GuiHandles
-		//==============================================================================================
-
-		/// Overwrite this function if the guiElement owns handles. This function should update the
-		/// handle pointer when the handle is moved. Called by the handle after it is moved.
-		void onHandleMove(GuiHandle& guiHandle) override;
-		/// This function is called by a handle right before the handle is destroyed
-		void onHandleDestruction(GuiHandle& guiHandle) override;
-		/// This function can be called by a handle if something occurs/changes with the handle
-		/// example: value of a variable handle changes!
-		void onHandleUpdate(GuiHandle& guiHandle) override;
 	};
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline void GuiVariableVec<T, VecT, N>::updateText()
+	template<typename T, typename VecT, std::size_t N>
+	inline void GuiVariableVec<T, VecT, N>::updateChildElements()
 	{
-		for (unsigned i = 0; i < N; ++i) variableHandles[i].set(value.values[i]);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles[i].set(value.get()[i]);
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline void GuiVariableVec<T, VecT, N>::updateValue()
 	{
-		for (unsigned i = 0; i < N; ++i) value.values[i] = variableHandles[i].get();
-		if (variableHandle) variableHandle->set(value);
+		for (std::size_t i = 0; i < N; ++i) value.set(componentVariableHandles[i].get(), i);
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline void GuiVariableVec<T, VecT, N>::parseJSON(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 	{
 		// JSON parsing for GuiPanel
@@ -202,112 +208,86 @@ namespace SnackerEngine
 		// JSON parsing for the value
 		std::optional<VecT> value = parseJsonOrReadFromData<VecT>("value", json, data, parameterNames);
 		if (value.has_value()) setValue(value.value());
+		else setValue(this->value);
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(std::vector<std::unique_ptr<GuiTextBox>>&& components, const VecT& value)
-		: GuiHorizontalWeightedLayout(), components(std::move(components)), value(value) 
+	template<typename T, typename VecT, std::size_t N>
+	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(const VecT& value)
+		: GuiHorizontalWeightedLayout(), components(), value(value) 
 	{
+		setOuterHorizontalBorder(0);
+		setHorizontalBorder(defaultHorizontalBorder);
+		setResizeMode(ResizeMode::RESIZE_RANGE);
+		setShrinkHeightToChildren(true);
 		// Initialize variableHandles
-		variableHandles.reserve(N);
-		for (unsigned i = 0; i < N; ++i) variableHandles.push_back(HelperVariableHandle(this, value.get(i)));
+		componentVariableHandles.reserve(N);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, value.get(i)));
+		updateChildElements();
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiHorizontalWeightedLayout(json, data, parameterNames)
 	{
-		parseJsonOrReadFromData(value, "value", json, data, parameterNames);
+		std::optional<VecT> value = parseJsonOrReadFromData<VecT>("value", json, data, parameterNames);
+		if (value.has_value()) static_cast<VariableHandle<VecT>&>(this->value).set(value.value());
 		if (!json.contains("outerHorizontalBorder")) setOuterHorizontalBorder(0);
 		if (!json.contains("horizontalBorder")) setHorizontalBorder(defaultHorizontalBorder);
+		if (!json.contains("resizeMode")) setResizeMode(ResizeMode::RESIZE_RANGE);
+		if (!json.contains("shrinkHeightToChildren")) setShrinkHeightToChildren(true);
 		// Initialize variableHandles
-		variableHandles.reserve(N);
-		for (unsigned i = 0; i < N; ++i) variableHandles.push_back(HelperVariableHandle(this, value.values[i]));
+		componentVariableHandles.reserve(N);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, this->value.get()[i]));
+		updateChildElements();
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline GuiVariableVec<T, VecT, N>::~GuiVariableVec()
-	{
-		if (variableHandle) signOffHandle(*variableHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(const GuiVariableVec& other) noexcept
-		: GuiHorizontalWeightedLayout(other), components{}, value(other.value),
+		: GuiHorizontalWeightedLayout(other), value(other.value), components(other.components),
 		formatter(other.formatter == nullptr ? nullptr : std::make_unique<Formatter<T>>(*other.formatter)), 
-		variableHandles{}, variableHandle(nullptr)
+		componentVariableHandles{}
 	{
-		for (const auto& component : other.components) components.push_back(std::make_unique<GuiTextBox>(*component));
-		variableHandles.reserve(N);
-		for (unsigned i = 0; i < N; ++i) variableHandles.push_back(HelperVariableHandle(this, value.get(i)));
+		componentVariableHandles.reserve(N);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, value.get(i)));
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiVariableVec<T, VecT, N>& GuiVariableVec<T, VecT, N>::operator=(const GuiVariableVec& other) noexcept
 	{
 		GuiHorizontalWeightedLayout::operator=(other);
-		components.clear();
-		for (const auto& component : other.components) components.push_back(std::make_unique<GuiTextBox>(*component));
-		value = other.value;
+		value = other.value; 
+		components = other.components;
 		formatter = other.formatter == nullptr ? nullptr : std::make_unique<Formatter<T>>(*other.formatter);
-		variableHandles.clear();
-		variableHandles.reserve(N);
-		for (unsigned i = 0; i < N; ++i) variableHandles.push_back(HelperVariableHandle(this, value.get(i)));
-		if (variableHandle) signOffHandle(*variableHandle);
-		variableHandle = nullptr;
+		componentVariableHandles.reserve(N);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, value.get(i)));
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(GuiVariableVec&& other) noexcept
 		: GuiHorizontalWeightedLayout(std::move(other)), components(std::move(other.components)),
 		value(std::move(other.value)), formatter(std::move(other.formatter)),
-		variableHandles(std::move(other.variableHandles)), variableHandle(std::move(other.variableHandle))
+		componentVariableHandles(std::move(other.componentVariableHandles))
 	{
-		for (unsigned i = 0; i < N; ++i) variableHandles[i].parentElement = this;
-		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles[i].parentElement = this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline GuiVariableVec<T, VecT, N>& GuiVariableVec<T, VecT, N>::operator=(GuiVariableVec&& other) noexcept
 	{
 		GuiHorizontalWeightedLayout::operator=(std::move(other));
 		components = std::move(other.components);
 		value = std::move(other.value); 
 		formatter = std::move(other.formatter);
-		variableHandles.clear();
-		variableHandles = std::move(other.variableHandles);
-		for (unsigned i = 0; i < N; ++i) variableHandles[i].parentElement = this;
-		if (variableHandle) signOffHandle(*variableHandle);
-		variableHandle = std::move(other.variableHandle);
-		if (variableHandle) notifyHandleOnGuiElementMove(&other, *variableHandle);
+		componentVariableHandles = std::move(other.variableHandles);
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles[i].parentElement = this;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
+	template<typename T, typename VecT, std::size_t N>
 	inline void GuiVariableVec<T, VecT, N>::onRegister()
 	{
 		// Register all components with equal weight!
 		for (const auto& component : components) registerChild(*component, 1.0f);
 	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline void GuiVariableVec<T, VecT, N>::onHandleMove(GuiHandle& guiHandle)
-	{
-		// Update pointer
-		variableHandle = static_cast<GuiVariableHandle<VecT>*>(&guiHandle);
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline void GuiVariableVec<T, VecT, N>::onHandleDestruction(GuiHandle& guiHandle)
-	{
-		variableHandle = nullptr;
-	}
-	//--------------------------------------------------------------------------------------------------
-	template<typename T, typename VecT, unsigned N>
-	inline void GuiVariableVec<T, VecT, N>::onHandleUpdate(GuiHandle& guiHandle)
-	{
-		updateText();
-	}
-	//--------------------------------------------------------------------------------------------------
 }

@@ -56,6 +56,10 @@ namespace SnackerEngine
 		static Vec2i constrainMouseCenter(const bool& enable);
 		/// Returns the x and y dpi of the monitor the engine is run on
 		static Vec2<unsigned int> getDPI();
+		/// Returns the current string stored in the clipboard
+		static std::optional<std::string> getClipboardString();
+		/// Sets the given string to be stored in the clipboard
+		static void setClipboardString(const std::string& string);
 		/// Returns a random number generator that can be used for non-critical random numbers!
 		static std::default_random_engine& getRandomEngine() { return randomEngine; }
 		/// Stops the engine, can be called by scenes, eg. when a "Return to Desktop" button is clicked

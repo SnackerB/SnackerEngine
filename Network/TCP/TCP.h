@@ -12,6 +12,9 @@
 // TODO
 #endif
 
+#ifdef ERROR
+#undef ERROR
+#endif
 
 namespace SnackerEngine
 {
@@ -60,21 +63,37 @@ namespace SnackerEngine
 	/// Returns true on success. This is a blocking operation
 	bool connectTo(SocketTCP& socket, const sockaddr_in& addr);
 
+	/// Struct for the result of a non blocking connect
+	struct ConnectResult
+	{
+		enum class Result
+		{
+			SUCCESS,
+			ERROR,
+			PENDING,
+		};
+		Result result;
+		int error;
+	};
+
+	/// Tries to connect the given socket to the given address
+	ConnectResult connectToNonBlocking(SocketTCP& socket, const sockaddr_in& addr);
+
 	/// Tries to send data to through the given socket.
 	/// This is a blocking operation
-	bool sendTo(const SocketTCP& socket, const Buffer& buffer);
+	bool sendTo(const SocketTCP& socket, ConstantBufferView buffer);
 
 	/// Tries to send data through the given socket, without blocking.
-	bool sendToNonBlocking(const SocketTCP& socket, const Buffer& buffer);
+	bool sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer);
 
 	/// Tries to receive data from the given socket.
 	/// This is a blocking operation. Data will first be transferred
 	/// to the intermediate storageBuffer.
-	std::optional<Buffer> receiveFrom(const SocketTCP& socket, Buffer& storageBuffer);
+	std::optional<Buffer> receiveFrom(const SocketTCP& socket, BufferView storageBuffer);
 
 	/// Tries to receive data from the given socket, without blocking.
 	/// Data will first be transferred to the intermediate storageBuffer.
-	std::optional<Buffer> receiveFromNonBlocking(const SocketTCP& socket, Buffer& storageBuffer);
+	std::optional<Buffer> receiveFromNonBlocking(const SocketTCP& socket, BufferView storageBuffer);
 
 	/// Accepts a connection request on the given socket. The given socket should
 	/// be marked as listening. If currently no request is present, an empty optional

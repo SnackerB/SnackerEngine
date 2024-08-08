@@ -114,13 +114,22 @@ namespace SnackerEngine
 	void GuiHorizontalListLayout::computeWidthHintsFromChildren()
 	{
 		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
+		if (groupID != -1 && groupExists(groupID)) {
+			GuiGroup* groupPointer = getGroup(groupID);
+			if (groupPointer != nullptr) {
+				HorizontalLayoutGroup* horizontalLayoutGroupPointer = static_cast<HorizontalLayoutGroup*>(groupPointer);
+				horizontalLayoutGroupPointer->recomputeWidths();
+				setMinWidth(horizontalLayoutGroupPointer->getMinWidth());
+				if (shrinkWidthToChildren) setPreferredWidth(horizontalLayoutGroupPointer->getPreferredWidth());
+			}
+		}
 		int totalMinWidth = 0;
 		int totalPreferredWidth = SIZE_HINT_ARBITRARY;
 		for (auto childID : getChildren()) {
 			GuiElement* child = getElement(childID);
 			if (child) {
 				totalMinWidth += child->getMinWidth();
-				if (totalPreferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+				if (groupID == -1 && totalPreferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
 					int tempPreferredWidth = child->getPreferredWidth();
 					if (tempPreferredWidth >= 0) {
 						if (totalPreferredWidth == SIZE_HINT_ARBITRARY) totalPreferredWidth = tempPreferredWidth;
@@ -132,9 +141,9 @@ namespace SnackerEngine
 		}
 		int totalBorders = 2 * outerHorizontalBorder + static_cast<int>((getChildren().size() - 1)) * horizontalBorder;
 		totalMinWidth += totalBorders;
-		if (totalPreferredWidth >= 0) totalPreferredWidth += totalBorders;
+		if (groupID == -1 && totalPreferredWidth >= 0) totalPreferredWidth += totalBorders;
 		setMinWidth(totalMinWidth);
-		if (shrinkWidthToChildren) setPreferredWidth(totalPreferredWidth);
+		if (groupID == -1 && shrinkWidthToChildren) setPreferredWidth(totalPreferredWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout(Color4f backgroundColor)
@@ -503,6 +512,22 @@ namespace SnackerEngine
 					if (tempMaxWidth == SIZE_HINT_ARBITRARY || (maxWidths[i] != SIZE_HINT_ARBITRARY && tempMaxWidth > maxWidths[i])) maxWidths[i] = tempMaxWidth;
 				}
 			}
+		}
+		// The min width is the sum of all minWidths
+		this->minWidth = 0;
+		for (const auto& tempMinWidth : minWidths) {
+			if (tempMinWidth < 0) continue;
+			this->minWidth += tempMinWidth;
+		}
+		// The preferred width is the sum of all preferredWidth
+		this->preferredWidth = SIZE_HINT_ARBITRARY;
+		for (const auto& tempPreferedWidth : preferredWidths) {
+			if (tempPreferedWidth == SIZE_HINT_ARBITRARY) continue;
+			if (tempPreferedWidth == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+				this->preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+				break;
+			};
+			this->preferredWidth += tempPreferedWidth;
 		}
 		widths = GuiHorizontalListLayout::computeChildWidths(minWidths, preferredWidths, maxWidths, width - static_cast<int>(minWidths.size() - 1) * horizontalBorder - 2 * outerHorizontalBorder);
 	}
