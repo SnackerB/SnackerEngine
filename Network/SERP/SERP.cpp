@@ -5,16 +5,6 @@
 namespace SnackerEngine
 {
 
-<<<<<<< HEAD
-	static std::size_t nextMessageID = 0;
-
-	SERPRequest::SERPRequest(SERPID source, SERPID destination, HTTPRequest httpRequest)
-		: SERPHeader(source, destination, nextMessageID++), request(httpRequest)
-	{
-		request.headers.push_back(HTTPHeader("sourceID", to_string(source)));
-		request.headers.push_back(HTTPHeader("destinationID", to_string(destination)));
-		request.headers.push_back(HTTPHeader("messageID", to_string(getMessageID())));
-=======
 	bool SERPHeader::getResponseFlag() const
 	{
 		return flags & 0b1000000000000000;
@@ -28,37 +18,16 @@ namespace SnackerEngine
 		else {
 			flags &= 0b0111111111111111;
 		}
->>>>>>> 576a26d96dd4cc0b82853ed8750b6bc8b0d626d4
 	}
 
 	void SERPHeader::toNetworkByteOrder()
 	{
-<<<<<<< HEAD
-		// Parse destinationID
-		auto destinationIDString = httpRequest.getHeaderValue("destinationID");
-		if (!destinationIDString.has_value()) return {};
-		auto destinationID = from_string<SERPID>(std::string(destinationIDString.value()));
-		if (!destinationID.has_value()) return {};
-		// Parse sourceID
-		auto sourceIDString = httpRequest.getHeaderValue("sourceID");
-		if (!sourceIDString.has_value()) return {};
-		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
-		if (!sourceID.has_value()) return {};
-		// Parse messageID
-		auto messageIDString = httpRequest.getHeaderValue("messageID");
-		if (!messageIDString.has_value()) return {};
-		auto messageID = from_string<std::size_t>(std::string(messageIDString.value()));
-		if (!messageID.has_value()) return {};
-		// Finalize message
-		return SERPRequest(sourceID.value(), destinationID.value(), messageID.value(), httpRequest);
-=======
 		source = htons(source);
 		destination = htons(destination);
 		messageID = htonl(messageID);
 		contentLength = htonl(contentLength);
 		flags = htons(flags);
 		statusCode = htons(statusCode);
->>>>>>> 576a26d96dd4cc0b82853ed8750b6bc8b0d626d4
 	}
 
 	void SERPHeader::toHostByteOrder()
@@ -71,14 +40,6 @@ namespace SnackerEngine
 		statusCode = ntohs(statusCode);
 	}
 
-<<<<<<< HEAD
-	SERPResponse::SERPResponse(SERPID source, SERPID destination, HTTPResponse httpResponse)
-		: SERPHeader(source, destination, nextMessageID++), response(httpResponse)
-	{
-		response.headers.push_back(HTTPHeader("sourceID", to_string(source)));
-		response.headers.push_back(HTTPHeader("destinationID", to_string(destination)));
-		response.headers.push_back(HTTPHeader("messageID", to_string(getMessageID())));
-=======
 	bool SERPHeader::serialize(BufferView buffer)
 	{
 		if (buffer.size() != sizeof(SERPHeader)) return {};
@@ -86,36 +47,15 @@ namespace SnackerEngine
 		memcpy(&buffer[0], this, sizeof(SERPHeader));
 		toHostByteOrder();
 		return true;
->>>>>>> 576a26d96dd4cc0b82853ed8750b6bc8b0d626d4
 	}
 
 	template<>
 	std::string to_string(const SERPHeader& header)
 	{
-<<<<<<< HEAD
-		// Parse destinationID
-		auto destinationIDString = httpResponse.getHeaderValue("destinationID");
-		if (!destinationIDString.has_value()) return {};
-		auto destinationID = from_string<SERPID>(std::string(destinationIDString.value()));
-		if (!destinationID.has_value()) return {};
-		// Parse sourceID
-		auto sourceIDString = httpResponse.getHeaderValue("sourceID");
-		if (!sourceIDString.has_value()) return {};
-		auto sourceID = from_string<SERPID>(std::string(sourceIDString.value()));
-		if (!sourceID.has_value()) return {};
-		// Parse messageID
-		auto messageIDString = httpResponse.getHeaderValue("messageID");
-		if (!messageIDString.has_value()) return {};
-		auto messageID = from_string<std::size_t>(std::string(messageIDString.value()));
-		if (!messageID.has_value()) return {};
-		// Finalize message
-		return SERPResponse(sourceID.value(), destinationID.value(), messageID.value(), httpResponse);
-=======
 		return "source: " + to_string(header.source) + "\n" +
 			"destination: " + to_string(header.destination) + "\n" +
 			"messageID: " + to_string(header.messageID) + "\n" +
 			"status code: " + to_string(header.statusCode);
->>>>>>> 576a26d96dd4cc0b82853ed8750b6bc8b0d626d4
 	}
 
 	std::optional<SERPHeader> SERPHeader::parse(ConstantBufferView buffer)
