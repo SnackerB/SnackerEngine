@@ -6,7 +6,7 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	template<> bool isOfType<AlignmentHorizontal>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<AlignmentHorizontal> tag)
 	{
 		if (!json.is_string()) return false;
 		if (json == "LEFT" ||
@@ -15,7 +15,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> AlignmentHorizontal parseJSON(const nlohmann::json& json)
+	template<> AlignmentHorizontal parseJSON(const nlohmann::json& json, JsonTag<AlignmentHorizontal> tag)
 	{
 		if (json == "LEFT") return AlignmentHorizontal::LEFT;
 		if (json == "CENTER") return AlignmentHorizontal::CENTER;
@@ -23,7 +23,7 @@ namespace SnackerEngine
 		return AlignmentHorizontal::CENTER;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> bool isOfType<AlignmentVertical>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<AlignmentVertical> tag)
 	{
 		if (!json.is_string()) return false;
 		if (json == "TOP" ||
@@ -32,7 +32,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> AlignmentVertical parseJSON(const nlohmann::json& json)
+	template<> AlignmentVertical parseJSON(const nlohmann::json& json, JsonTag<AlignmentVertical> tag)
 	{
 		if (json == "TOP") return AlignmentVertical::TOP;
 		if (json == "CENTER") return AlignmentVertical::CENTER;

@@ -24,13 +24,13 @@ namespace SnackerEngine
 	}
 
 	template<>
-	bool isOfType<SERPID>(const nlohmann::json& json)
+	bool isOfType(const nlohmann::json& json, JsonTag<SERPID> tag)
 	{
 		return json.is_number_integer() && static_cast<int>(json) >= 0 && static_cast<int>(json) < 10000;
 	}
 
 	template<> 
-	SERPID parseJSON(const nlohmann::json& json)
+	SERPID parseJSON(const nlohmann::json& json, JsonTag<SERPID> tag)
 	{
 		return static_cast<unsigned int>(json);
 	}

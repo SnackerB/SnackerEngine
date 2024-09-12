@@ -4,18 +4,18 @@
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
-	template<> bool isOfType<Color3f>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<Color3f> tag)
 	{
 		return json.is_array() && json.size() == 3 &&
 			json[0].is_number() && json[1].is_number() && json[2].is_number();
 	}
-	template<> bool isOfType<Color4f>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<Color4f> tag)
 	{
 		return json.is_array() && json.size() == 4 &&
 			json[0].is_number() && json[1].is_number() && json[2].is_number() && json[3].is_number();
 	}
 	//------------------------------------------------------------------------------------------------------
-	template<> Color3f parseJSON(const nlohmann::json& json)
+	template<> Color3f parseJSON(const nlohmann::json& json, JsonTag<Color3f> tag)
 	{
 		Color3f result;
 		if (json[0].is_number_integer()) result.r = static_cast<float>(int(json[0])) / 255.0f;
@@ -26,7 +26,7 @@ namespace SnackerEngine
 		else result.b = json[2];
 		return result;
 	}
-	template<> Color4f parseJSON(const nlohmann::json& json)
+	template<> Color4f parseJSON(const nlohmann::json& json, JsonTag<Color4f> tag)
 	{
 		Color4f result;
 		if (json[0].is_number_integer()) result.r = static_cast<float>(int(json[0])) / 255.0f;

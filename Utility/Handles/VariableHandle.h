@@ -1,6 +1,7 @@
 #pragma once
 
 #include <set>
+#include "Utility/Json.h"
 
 namespace SnackerEngine
 {
@@ -172,6 +173,18 @@ namespace SnackerEngine
 			this->value = value;
 			notifyAllConnectedHandles();
 		}
+	}
+
+	template<typename U>
+	bool isOfType(const nlohmann::json& json, JsonTag<VariableHandle<U>> tag)
+	{
+		return isOfType(json, JsonTag<U>{});
+	}
+
+	template<typename U>
+	VariableHandle<U> parseJSON(const nlohmann::json& json, JsonTag<VariableHandle<U>> tag)
+	{
+		return VariableHandle<U>(parseJSON(json, JsonTag<U>{}));
 	}
 
 }

@@ -7,14 +7,14 @@
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
-	template<> bool isOfType<Texture>(const nlohmann::json& json)
+	template<> bool isOfType<Texture>(const nlohmann::json& json, JsonTag<Texture> tag)
 	{
 		return json.is_string();
 	}
 	//------------------------------------------------------------------------------------------------------
-	template<> Texture parseJSON(const nlohmann::json& json)
+	template<> Texture parseJSON(const nlohmann::json& json, JsonTag<Texture> tag)
 	{
-		return Texture::Load2D(parseJSON<std::string>(json)).first;
+		return Texture::Load2D(parseJSON(json, JsonTag<std::string>{})).first;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Texture::Texture(TextureID textureID)

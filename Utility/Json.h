@@ -18,20 +18,25 @@ namespace SnackerEngine
 	/// and needs to be catched
 	void saveJSON(const nlohmann::json& json, const std::string& filePath);
 	//--------------------------------------------------------------------------------------------------
+	// Struct used only for implementation, making the template specialization easier.
+	// With the tag one can simply use function overloading
+	template<class T>
+	struct JsonTag {};
+	//--------------------------------------------------------------------------------------------------
 	/// Returns true if the given JSON is of the template type
-	template<typename T> bool isOfType(const nlohmann::json& json);
+	template<typename T> bool isOfType(const nlohmann::json& json, JsonTag<T> tag);
 	//--------------------------------------------------------------------------------------------------
 	/// Returns an instance of the given type, parsed from the JSON. Is guaranteed to not throw
 	/// an exception if isOfType<T>(json) returned true.
-	template<typename T> T parseJSON(const nlohmann::json& json);
+	template<typename T> T parseJSON(const nlohmann::json& json, JsonTag<T> tag);
 	//--------------------------------------------------------------------------------------------------
 	/// Returns an instance of the given type, parsed from the JSON or read from the data (if json has
 	/// a string "name" as value, data["name"] is returned). If nothing could be parsed, an empty
 	/// optional will be returned.
 	template<typename T> std::optional<T> parseJsonOrReadFromData(const nlohmann::json& json, const nlohmann::json* data = nullptr)
 	{
-		if (isOfType<T>(json)) return parseJSON<T>(json);
-		if (json.is_string() && data && data->contains(json) && isOfType<T>((*data)[json])) return parseJSON<T>((*data)[json]);
+		if (isOfType(json, JsonTag<T>{})) return parseJSON(json, JsonTag<T>{});
+		if (json.is_string() && data && data->contains(json) && isOfType((*data)[json], JsonTag<T>{})) return parseJSON((*data)[json], JsonTag<T>{});
 		return {};
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -40,8 +45,8 @@ namespace SnackerEngine
 	/// If nothing could be parsed, the variable is not changed. Returns true on success.
 	template<typename T> bool parseJsonOrReadFromData(T& value, const nlohmann::json& json, const nlohmann::json* data = nullptr)
 	{
-		if (isOfType<T>(json)) value = parseJSON<T>(json);
-		else if (json.is_string() && data && data->contains(json) && isOfType<T>((*data)[json])) value = parseJSON<T>((*data)[json]);
+		if (isOfType(json, JsonTag<T>{})) value = parseJSON(json, JsonTag<T>{});
+		else if (json.is_string() && data && data->contains(json) && isOfType((*data)[json], JsonTag<T>{})) value = parseJSON((*data)[json], JsonTag<T>{});
 		else return false;
 		return true;
 	}
@@ -55,8 +60,8 @@ namespace SnackerEngine
 	{
 		if (json.contains(attributeName)) {
 			const nlohmann::json& attributeJson = json[attributeName];
-			if (isOfType<T>(attributeJson)) value = parseJSON<T>(attributeJson);
-			else if (attributeJson.is_string() && data && data->contains(attributeJson) && isOfType<T>((*data)[attributeJson])) value = parseJSON<T>((*data)[attributeJson]);
+			if (isOfType(attributeJson, JsonTag<T>{})) value = parseJSON(attributeJson, JsonTag<T>{});
+			else if (attributeJson.is_string() && data && data->contains(attributeJson) && isOfType((*data)[attributeJson], JsonTag<T>{})) value = parseJSON((*data)[attributeJson], JsonTag<T>{});
 			else return false;
 			if (parameterNames) parameterNames->erase(attributeName);
 		}
@@ -72,13 +77,13 @@ namespace SnackerEngine
 	{
 		if (json.contains(attributeName)) {
 			const nlohmann::json& attributeJson = json[attributeName];
-			if (isOfType<T>(attributeJson)) {
+			if (isOfType(attributeJson, JsonTag<T>{})) {
 				if (parameterNames) parameterNames->erase(attributeName);
-				return std::make_optional<T>(parseJSON<T>(attributeJson));
+				return std::make_optional<T>(parseJSON(attributeJson, JsonTag<T>{}));
 			}
-			else if (attributeJson.is_string() && data && data->contains(attributeJson) && isOfType<T>((*data)[attributeJson])) {
+			else if (attributeJson.is_string() && data && data->contains(attributeJson) && isOfType((*data)[attributeJson], JsonTag<T>{})) {
 				if (parameterNames) parameterNames->erase(attributeName);
-				return std::make_optional<T>(parseJSON<T>((*data)[attributeJson]));
+				return std::make_optional<T>(parseJSON((*data)[attributeJson], JsonTag<T>{}));
 			}
 			else return {};
 			if (parameterNames) parameterNames->erase(attributeName);

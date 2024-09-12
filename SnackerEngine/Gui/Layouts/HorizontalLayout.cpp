@@ -5,7 +5,7 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	template<> bool isOfType<GuiHorizontalLayout::HorizontalLayoutMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiHorizontalLayout::HorizontalLayoutMode> tag)
 	{
 		return json.is_string() && (
 			json == "CHILD_HEIGHT_RANGE" ||
@@ -13,7 +13,7 @@ namespace SnackerEngine
 			json == "LARGEST_PREFERRED_HEIGHT");
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> GuiHorizontalLayout::HorizontalLayoutMode parseJSON(const nlohmann::json& json)
+	template<> GuiHorizontalLayout::HorizontalLayoutMode parseJSON(const nlohmann::json& json, JsonTag<GuiHorizontalLayout::HorizontalLayoutMode> tag)
 	{
 		if (json == "CHILD_HEIGHT_RANGE") return GuiHorizontalLayout::HorizontalLayoutMode::CHILD_HEIGHT_RANGE;
 		else if (json == "CHILD_HEIGHT_TO_LAYOUT_HEIGHT") return GuiHorizontalLayout::HorizontalLayoutMode::CHILD_HEIGHT_TO_LAYOUT_HEIGHT;

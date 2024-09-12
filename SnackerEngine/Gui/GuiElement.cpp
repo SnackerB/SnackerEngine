@@ -14,14 +14,14 @@ namespace SnackerEngine
 	int GuiElement::defaultBorderLarge{};
 	int GuiElement::defaultBorderHuge{};
 	//--------------------------------------------------------------------------------------------------
-	template<> bool isOfType<GuiElement::ResizeMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiElement::ResizeMode> tag)
 	{
 		return (json.is_string() && (
 			json == "SAME_AS_PARENT" ||
 			json == "RESIZE_RANGE"));
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> GuiElement::ResizeMode parseJSON(const nlohmann::json& json)
+	template<> GuiElement::ResizeMode parseJSON(const nlohmann::json& json, JsonTag<GuiElement::ResizeMode> tag)
 	{
 		if (json == "SAME_AS_PARENT") return GuiElement::ResizeMode::SAME_AS_PARENT;
 		else if (json == "RESIZE_RANGE") return GuiElement::ResizeMode::RESIZE_RANGE;

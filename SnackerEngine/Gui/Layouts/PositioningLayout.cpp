@@ -50,7 +50,7 @@ namespace SnackerEngine
 		: GuiLayout(), mode(mode) {}
 	//--------------------------------------------------------------------------------------------------
 	/// Helper functions for parsing JSON
-	template<> bool isOfType<GuiPositioningLayout::Mode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiPositioningLayout::Mode> tag)
 	{
 		if (!json.is_string()) {
 			warningLogger << LOGGER::BEGIN << "GuiPositioningLayout::Mode has to be given as string." << LOGGER::ENDL;
@@ -69,7 +69,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> GuiPositioningLayout::Mode parseJSON(const nlohmann::json& json)
+	template<> GuiPositioningLayout::Mode parseJSON(const nlohmann::json& json, JsonTag<GuiPositioningLayout::Mode> tag)
 	{
 		if (json == "CENTER") return GuiPositioningLayout::Mode::CENTER;
 		if (json == "LEFT") return GuiPositioningLayout::Mode::LEFT;

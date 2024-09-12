@@ -300,7 +300,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> bool isOfType<GuiGridLayout::Mode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiGridLayout::Mode> tag)
 	{
 		if (!json.is_string()) {
 			warningLogger << LOGGER::BEGIN << "AlignmentHorizontal has to be given as string." << LOGGER::ENDL;
@@ -313,7 +313,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> GuiGridLayout::Mode parseJSON(const nlohmann::json& json)
+	template<> GuiGridLayout::Mode parseJSON(const nlohmann::json& json, JsonTag<GuiGridLayout::Mode> tag)
 	{
 		if (json == "SPLIT_CELLS_EQUALLY") return GuiGridLayout::Mode::SPLIT_CELLS_EQUALLY;
 		if (json == "SPLIT_CELLS_EQUALLY_SHRINK") return GuiGridLayout::Mode::SPLIT_CELLS_EQUALLY_SHRINK;

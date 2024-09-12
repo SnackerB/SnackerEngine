@@ -6,14 +6,14 @@
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
-	template<> bool isOfType<Shader>(const nlohmann::json& json)
+	template<> bool isOfType<Shader>(const nlohmann::json& json, JsonTag<Shader> tag)
 	{
 		return json.is_string();
 	}
 	//------------------------------------------------------------------------------------------------------
-	template<> Shader parseJSON(const nlohmann::json& json)
+	template<> Shader parseJSON(const nlohmann::json& json, JsonTag<Shader> tag)
 	{
-		return Shader(parseJSON<std::string>(json));
+		return Shader(parseJSON(json, JsonTag<std::string>{}));
 	}
 	//------------------------------------------------------------------------------------------------------
 	Shader::Shader(const ShaderID& shaderID)

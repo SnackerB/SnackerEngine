@@ -5,7 +5,7 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	template<> bool isOfType<GuiVerticalLayout::VerticalLayoutMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiVerticalLayout::VerticalLayoutMode> tag)
 	{
 		return json.is_string() && (
 			json == "CHILD_WIDTH_RANGE" ||
@@ -13,7 +13,7 @@ namespace SnackerEngine
 			json == "LARGEST_PREFERRED_WIDTH");
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<> GuiVerticalLayout::VerticalLayoutMode parseJSON(const nlohmann::json& json)
+	template<> GuiVerticalLayout::VerticalLayoutMode parseJSON(const nlohmann::json& json, JsonTag<GuiVerticalLayout::VerticalLayoutMode> tag)
 	{
 		if (json == "CHILD_WIDTH_RANGE") return GuiVerticalLayout::VerticalLayoutMode::CHILD_WIDTH_RANGE;
 		else if (json == "CHILD_WIDTH_TO_LAYOUT_WIDTH") return GuiVerticalLayout::VerticalLayoutMode::CHILD_WIDTH_TO_LAYOUT_WIDTH;

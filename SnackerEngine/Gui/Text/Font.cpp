@@ -14,14 +14,14 @@
 namespace SnackerEngine
 {
 	//------------------------------------------------------------------------------------------------------
-	template<> bool isOfType<Font>(const nlohmann::json& json)
+	template<> bool isOfType<Font>(const nlohmann::json& json, JsonTag<Font> tag)
 	{
 		return json.is_string() && std::string(json).ends_with(".ttf");
 	}
 	//------------------------------------------------------------------------------------------------------
-	template<> Font parseJSON(const nlohmann::json& json)
+	template<> Font parseJSON(const nlohmann::json& json, JsonTag<Font> tag)
 	{
-		return Font(parseJSON<std::string>(json));
+		return Font(parseJSON(json, JsonTag<std::string>{}));
 	}
 	//------------------------------------------------------------------------------------------------------
 	Font::Font(const FontID& fontID)

@@ -10,6 +10,14 @@
 
 #include <algorithm>
 
+#ifdef min
+#undef min
+#endif // min
+
+#ifdef max
+#undef max
+#endif // max
+
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------

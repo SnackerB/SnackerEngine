@@ -70,8 +70,8 @@ namespace SnackerEngine
 		: GuiVerticalLayout(json, data, parameterNames)
 	{
 		if (!json.contains("verticalLayoutMode")) setVerticalLayoutMode(VerticalLayoutMode::CHILD_WIDTH_TO_LAYOUT_WIDTH);
-		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data);
-		parseJsonOrReadFromData(outerVerticalBorder, "outerVerticalBorder", json, data);
+		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data, parameterNames);
+		parseJsonOrReadFromData(outerVerticalBorder, "outerVerticalBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
 		parseJsonOrReadFromData(resizeAreaHeight, "resizeAreaHeight", json, data, parameterNames);
 		parseJsonOrReadFromData(allowMoveBorders, "allowMoveBorders", json, data, parameterNames);

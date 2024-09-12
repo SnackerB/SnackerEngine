@@ -3,6 +3,14 @@
 #include <optional>
 #include <string>
 
+#ifdef min
+#undef min
+#endif // min
+
+#ifdef max
+#undef max
+#endif // max
+
 namespace SnackerEngine
 {
 	template<typename T>

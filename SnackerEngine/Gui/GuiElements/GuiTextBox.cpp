@@ -15,7 +15,7 @@ namespace SnackerEngine
 	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE };
 	//--------------------------------------------------------------------------------------------------
 	/// Helper functions for parsing JSON
-	template<> bool isOfType<GuiTextBox::TextScaleMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiTextBox::TextScaleMode> tag)
 	{
 		if (!json.is_string()) {
 			warningLogger << LOGGER::BEGIN << "GuiDynamicTextBox option \"textScaleMode\" has to be given as string." << LOGGER::ENDL;
@@ -30,7 +30,7 @@ namespace SnackerEngine
 		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid textScaleMode." << LOGGER::ENDL;
 		return false;
 	}
-	template<> GuiTextBox::TextScaleMode parseJSON(const nlohmann::json& json)
+	template<> GuiTextBox::TextScaleMode parseJSON(const nlohmann::json& json, JsonTag<GuiTextBox::TextScaleMode> tag)
 	{
 		if (json == "DONT_SCALE") return GuiTextBox::TextScaleMode::DONT_SCALE;
 		if (json == "SCALE_UP") return GuiTextBox::TextScaleMode::SCALE_UP;
@@ -40,7 +40,7 @@ namespace SnackerEngine
 		if (json == "RECOMPUTE_UP_DOWN") return GuiTextBox::TextScaleMode::RECOMPUTE_UP_DOWN;
 		return GuiTextBox::TextScaleMode::DONT_SCALE;
 	}
-	template<> bool isOfType<GuiTextBox::SizeHintMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiTextBox::SizeHintMode> tag)
 	{
 		if (!json.is_string()) {
 			warningLogger << LOGGER::BEGIN << "GuiDynamicTextBox option \"sizeHintMode\" has to be given as string." << LOGGER::ENDL;
@@ -53,7 +53,7 @@ namespace SnackerEngine
 		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid sizeHintMode." << LOGGER::ENDL;
 		return false;
 	}
-	template<> GuiTextBox::SizeHintMode parseJSON(const nlohmann::json& json)
+	template<> GuiTextBox::SizeHintMode parseJSON(const nlohmann::json& json, JsonTag<GuiTextBox::SizeHintMode> tag)
 	{
 		if (json == "ARBITRARY") return GuiTextBox::SizeHintMode::ARBITRARY;
 		if (json == "SET_TO_TEXT_SIZE") return GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE;
@@ -61,7 +61,7 @@ namespace SnackerEngine
 		if (json == "SET_TO_TEXT_HEIGHT") return GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT;
 		return GuiTextBox::SizeHintMode::ARBITRARY;
 	}
-	template<> bool isOfType<DynamicText::Alignment>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<DynamicText::Alignment> tag)
 	{
 		if (!json.is_string()) {
 			warningLogger << LOGGER::BEGIN << "GuiDynamicTextBox option \"alignment\" has to be given as string." << LOGGER::ENDL;
@@ -73,14 +73,14 @@ namespace SnackerEngine
 		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid alignment." << LOGGER::ENDL;
 		return false;
 	}
-	template<> DynamicText::Alignment parseJSON(const nlohmann::json& json)
+	template<> DynamicText::Alignment parseJSON(const nlohmann::json& json, JsonTag<DynamicText::Alignment> tag)
 	{
 		if (json == "LEFT") return DynamicText::Alignment::LEFT;
 		if (json == "CENTER") return DynamicText::Alignment::CENTER;
 		if (json == "RIGHT") return DynamicText::Alignment::RIGHT;
 		return DynamicText::Alignment::LEFT;
 	}
-	template<> bool isOfType<DynamicText::ParseMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<DynamicText::ParseMode> tag)
 	{
 		if (!json.is_string()) {
 			warningLogger << LOGGER::BEGIN << "GuiDynamicTextBox option \"parseMode\" has to be given as string." << LOGGER::ENDL;
@@ -92,7 +92,7 @@ namespace SnackerEngine
 		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid parseMode." << LOGGER::ENDL;
 		return false;
 	}
-	template<> DynamicText::ParseMode parseJSON(const nlohmann::json& json)
+	template<> DynamicText::ParseMode parseJSON(const nlohmann::json& json, JsonTag<DynamicText::ParseMode> tag)
 	{
 		if (json == "WORD_BY_WORD") return DynamicText::ParseMode::WORD_BY_WORD;
 		if (json == "CHARACTERS") return DynamicText::ParseMode::CHARACTERS;

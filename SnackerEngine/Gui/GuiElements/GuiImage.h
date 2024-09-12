@@ -51,7 +51,7 @@ namespace SnackerEngine
 		GuiImageMode getGuiImageMode() const { return guiImageMode; }
 		/// Setters
 		void setImageShader(const Shader& imageShader) { this->imageShader = imageShader; }
-		void setImageShader(const Texture& texture) { this->texture = texture; }
+		void setImageTexture(const Texture& texture) { this->texture = texture; onSizeChange(); }
 		void setGuiImageMode(GuiImageMode imageMode) { this->guiImageMode = guiImageMode;  }
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively

@@ -225,7 +225,7 @@ namespace SnackerEngine
 
 	void GuiSelectionBox::updateSelection()
 	{
-		selectedOption.setText(options[std::max(selectedOptionIndex.get(), options.size() - 1)]);
+		selectedOption.setText(options[std::min(selectedOptionIndex.get(), options.size() - 1)]);
 		closeSelectionBox();
 	}
 

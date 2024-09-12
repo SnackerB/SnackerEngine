@@ -9,7 +9,7 @@ namespace SnackerEngine
 	Shader GuiImage::defaultImageShader{};
 	Texture GuiImage::defaultTexture{};
 	//------------------------------------------------------------------------------------------------------
-	template<> bool isOfType<GuiImage::GuiImageMode>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiImage::GuiImageMode> tag)
 	{
 		if (!json.is_string()) return false;
 		std::string temp = static_cast<std::string>(json);
@@ -18,7 +18,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//------------------------------------------------------------------------------------------------------
-	template<> GuiImage::GuiImageMode parseJSON(const nlohmann::json& json)
+	template<> GuiImage::GuiImageMode parseJSON(const nlohmann::json& json, JsonTag<GuiImage::GuiImageMode> tag)
 	{
 		std::string temp = static_cast<std::string>(json);
 		if (temp == "RESIZE_TO_IMAGE_SIZE") return GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE;
@@ -84,7 +84,7 @@ namespace SnackerEngine
 			// Make texture fit in y direction
 			if (textureSize.y > size.y) {
 				factor = static_cast<float>(size.y) / static_cast<float>(textureSize.y);
-				textureSize.x *= static_cast<int>(textureSize.x * factor);
+				textureSize.x = static_cast<int>(textureSize.x * factor);
 				textureSize.y = size.y;
 			}
 			// Clip

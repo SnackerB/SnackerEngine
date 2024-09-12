@@ -41,6 +41,26 @@ namespace SnackerEngine
 	// type: can be either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
 	std::optional<unsigned int> compileShader(const unsigned int& type, const std::string& source)
 	{
+		// If the source is empty, don't bother compiling
+		if (source.empty()) {
+			// Print error message to console!
+			switch (type)
+			{
+			case GL_VERTEX_SHADER:
+				errorLogger << LOGGER::BEGIN << "Failed to compile vertex shader!" << LOGGER::ENDL;
+				break;
+			case GL_FRAGMENT_SHADER:
+				errorLogger << LOGGER::BEGIN << "Failed to compile fragment shader!" << LOGGER::ENDL;
+				break;
+			default:
+				errorLogger << LOGGER::BEGIN << "Failed to compile shader of unknown type!" << LOGGER::ENDL;
+				break;
+			}
+			errorLogger << LOGGER::BEGIN << "Shader source was empty." << LOGGER::ENDL;
+			// delete shader in case there is an error!
+			glDeleteShader(0);
+			return {};
+		}
 		// Creates a shader of the given type and saves the id in "id"
 		GLCall(unsigned int id = glCreateShader(type));
 		// Turns source into a const char* 

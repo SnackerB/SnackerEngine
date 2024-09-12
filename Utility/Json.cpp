@@ -28,68 +28,68 @@ namespace SnackerEngine
 		file << json.dump();
 	}
 
-	template<> bool isOfType<std::string>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<std::string> tag)
 	{
 		return json.is_string();
 	}
-	template<> bool isOfType<std::size_t>(const nlohmann::json& json)
+	template<> bool isOfType<std::size_t>(const nlohmann::json& json, JsonTag<std::size_t> tag)
 	{
 		return json.is_number_integer();
 	}
-	template<> bool isOfType<int>(const nlohmann::json& json)
+	template<> bool isOfType<int>(const nlohmann::json& json, JsonTag<int> tag)
 	{
 		return json.is_number_integer();
 	}
-	template<> bool isOfType<long long int>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<long long int> tag)
 	{
 		return json.is_number_integer();
 	}
-	template<> bool isOfType<unsigned>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<unsigned> tag)
 	{
 		return json.is_number_unsigned();
 	}
-	template<> bool isOfType<float>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<float> tag)
 	{
 		return json.is_number();
 	}
-	template<> bool isOfType<double>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<double> tag)
 	{
 		return json.is_number();
 	}
-	template<> bool isOfType<bool>(const nlohmann::json& json)
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<bool> tag)
 	{
 		return json.is_boolean();
 	}
 
-	template<> std::string parseJSON(const nlohmann::json& json)
+	template<> std::string parseJSON(const nlohmann::json& json, JsonTag<std::string> tag)
 	{
 		return std::string(json);
 	}
-	template<> std::size_t parseJSON(const nlohmann::json& json)
+	template<> std::size_t parseJSON(const nlohmann::json& json, JsonTag<std::size_t> tag)
 	{
 		return std::size_t(json);
 	}
-	template<> int parseJSON(const nlohmann::json& json)
+	template<> int parseJSON(const nlohmann::json& json, JsonTag<int> tag)
 	{
 		return int(json);
 	}
-	template<> long long int parseJSON(const nlohmann::json& json)
+	template<> long long int parseJSON(const nlohmann::json& json, JsonTag<long long int> tag)
 	{
 		return long long int(json);
 	}
-	template<> unsigned parseJSON(const nlohmann::json& json)
+	template<> unsigned parseJSON(const nlohmann::json& json, JsonTag<unsigned> tag)
 	{
 		return unsigned(json);
 	}
-	template<> float parseJSON(const nlohmann::json& json)
+	template<> float parseJSON(const nlohmann::json& json, JsonTag<float> tag)
 	{
 		return float(json);
 	}
-	template<> double parseJSON(const nlohmann::json& json)
+	template<> double parseJSON(const nlohmann::json& json, JsonTag<double> tag)
 	{
 		return double(json);
 	}
-	template<> bool parseJSON(const nlohmann::json& json)
+	template<> bool parseJSON(const nlohmann::json& json, JsonTag<bool> tag)
 	{
 		return bool(json);
 	}
