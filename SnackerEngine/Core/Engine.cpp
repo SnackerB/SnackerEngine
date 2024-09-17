@@ -257,7 +257,8 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	const std::string& Engine::getDefaultResourcePath()
 	{
-		return Engine::resourcePaths.empty() ? "" : Engine::resourcePaths[0];
+		static std::string emptyString = "";
+		return Engine::resourcePaths.empty() ? emptyString : Engine::resourcePaths[0];
 	}
 	//------------------------------------------------------------------------------------------------------
 	std::optional<Buffer> Engine::loadFileRelativeToResourcePath(const std::string& path)
