@@ -36,7 +36,7 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_TEXT_VARIABLE";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiTextVariable(const T& value, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal);
+		GuiTextVariable(const T& value = T{}, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal);
 		/// Constructor from JSON
 		GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor

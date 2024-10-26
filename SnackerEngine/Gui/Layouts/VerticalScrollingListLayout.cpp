@@ -366,7 +366,7 @@ namespace SnackerEngine
 		return IsCollidingResult::NOT_COLLIDING;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiVerticalScrollingListLayout::getCollidingChild(const Vec2i& offset) const
+	GuiID GuiVerticalScrollingListLayout::getCollidingChild(const Vec2i& offset) const
 	{
 		return GuiLayout::getCollidingChild(Vec2i(offset.x, offset.y + static_cast<int>(std::floor(currentVerticalOffset))));
 	}

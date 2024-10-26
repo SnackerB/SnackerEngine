@@ -5,6 +5,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/Shader.h"
 #include "Gui\Group.h"
+#include "Gui\GuiID.h"
 #include "Gui\GuiAnimatable.h"
 
 #include <queue>
@@ -23,7 +24,6 @@ namespace SnackerEngine
 	private:
 		friend class GuiElement;
 		friend class Engine;
-		using GuiID = int;
 		/// Vectors with pointers to all GuiElement objects. GuiIDs are indices into this vector. If no
 		/// element with a given GuiID is known, nullptr is stored instead
 		std::vector<GuiElement*> registeredGuiElements;
@@ -149,6 +149,10 @@ namespace SnackerEngine
 	public:
 		/// This function can be called to signup an animation
 		void signUpAnimatable(std::unique_ptr<GuiElementAnimatable>&& animatable);
+		/// Deletes all animations acting on a specific GuiElement. If finalizeAnimation is set to true,
+		/// The animations will be set to the final state and deleted when the update() function is called next.
+		/// If finalizeAnimation is set to false, the animations are deleted instantly.
+		void deleteAnimationsOnElement(GuiID guiID, bool finalizeAnimation = true);
 
 		//==============================================================================================
 		// JSON parsing

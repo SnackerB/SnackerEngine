@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility/Animatable.h"
+#include "Gui\GuiID.h"
 
 namespace SnackerEngine
 {
@@ -25,6 +26,8 @@ namespace SnackerEngine
 		GuiElementAnimatable& operator=(GuiElementAnimatable& other) noexcept;
 		/// Returns true if element is nullptr
 		bool isNull() { return element == nullptr; }
+		/// Returns the GuiID of the GuiElement. Only call if isNull() returns false.
+		GuiID getGuiID();
 		/// Destructor
 		~GuiElementAnimatable();
 	};

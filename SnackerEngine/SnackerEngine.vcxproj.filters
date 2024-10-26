@@ -452,5 +452,8 @@
     <ClInclude Include="Gui\GuiElements\GuiSelectionBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Gui\GuiID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

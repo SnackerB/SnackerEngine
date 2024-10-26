@@ -81,7 +81,7 @@ namespace SnackerEngine
 		signOffQueue.push_back(std::make_pair(guiElement.guiID, callbackType));
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiManager::getCollidingElement()
+	GuiID GuiManager::getCollidingElement()
 	{
 		return registeredGuiElements[parentElement]->getCollidingChild(currentMousePosition);
 	}
@@ -225,6 +225,34 @@ namespace SnackerEngine
 		newGuiElementAnimatables.emplace_back(std::move(animatable));
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiManager::deleteAnimationsOnElement(GuiID guiID, bool finalizeAnimation)
+	{
+		auto it = newGuiElementAnimatables.begin();
+		while (it != newGuiElementAnimatables.end()) {
+			if (!(*it)->isNull() && (*it)->getGuiID() == guiID) {
+				if (finalizeAnimation) {
+					(*it)->setDuration(0.0f);
+					it++;
+				}
+				else {
+					it = newGuiElementAnimatables.erase(it);
+				}
+			}
+		}
+		it = guiElementAnimatables.begin();
+		while (it != guiElementAnimatables.end()) {
+			if (!(*it)->isNull() && (*it)->getGuiID() == guiID) {
+				if (finalizeAnimation) {
+					(*it)->setDuration(0.0f);
+					it++;
+				}
+				else {
+					it = guiElementAnimatables.erase(it);
+				}
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiManager::updateAnimatables(double dt)
 	{
 		// add new animatables
@@ -246,7 +274,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::optional<GuiElement::GuiID> GuiManager::getGuiElement(const std::string& name)
+	std::optional<GuiID> GuiManager::getGuiElement(const std::string& name)
 	{
 		auto it = namedElements.find(name);
 		if (it == namedElements.end()) return {};
@@ -366,7 +394,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiManager::getNewGuiID()
+	GuiID GuiManager::getNewGuiID()
 	{
 		if (registeredGuiElementsCount >= maxGuiElements)
 		{
@@ -612,13 +640,13 @@ namespace SnackerEngine
 		return offset;
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::optional<GuiElement::GuiID> GuiManager::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
+	std::optional<GuiID> GuiManager::getLowestCollidingElementInEventSet(const std::unordered_set<GuiID>& eventSet)
 	{
 		if (eventSet.empty()) return {};
 		return getLowestCollidingChildInEventSet(parentElement, currentMousePosition, eventSet);
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::optional<GuiElement::GuiID> GuiManager::getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet)
+	std::optional<GuiID> GuiManager::getLowestCollidingChildInEventSet(const GuiID& parentID, const Vec2i& offset, const std::unordered_set<GuiID>& eventSet)
 	{
 		auto parent = getGuiElement(parentID);
 		if (!parent) return {};

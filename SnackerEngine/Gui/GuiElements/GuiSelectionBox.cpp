@@ -210,7 +210,7 @@ namespace SnackerEngine
 		selectedOption.setPositionAndSize(Vec2i(0, 0), Vec2i(getWidth() - arrowButton.getWidth(), getHeight()));
 	}
 
-	GuiElement::GuiID GuiSelectionBox::getCollidingChild(const Vec2i& offset) const
+	GuiID GuiSelectionBox::getCollidingChild(const Vec2i& offset) const
 	{
 		GuiID result = GuiElement::getCollidingChild(offset);
 		if (result > 0) return result;

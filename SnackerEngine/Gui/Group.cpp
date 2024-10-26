@@ -3,7 +3,7 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	bool GuiGroup::join(GuiElement::GuiID element)
+	bool GuiGroup::join(GuiID element)
 	{
 		for (auto e : elements) {
 			if (e == element) return false;
@@ -13,7 +13,7 @@ namespace SnackerEngine
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiGroup::leave(GuiElement::GuiID element)
+	void GuiGroup::leave(GuiID element)
 	{
 		for (auto it = elements.begin(); it != elements.end(); ++it) {
 			if (*it == element) {

@@ -28,9 +28,9 @@ namespace SnackerEngine
 			bool upToDate = false;
 		protected:
 			/// This function gets called when a new element is added to the group
-			void onElementJoin(GuiElement::GuiID element, std::size_t position) override;
+			void onElementJoin(GuiID element, std::size_t position) override;
 			/// This function gets called when a new element leaves the group
-			void onElementLeave(GuiElement::GuiID element, std::size_t position) override;
+			void onElementLeave(GuiID element, std::size_t position) override;
 		public:
 			/// Constructor
 			HorizontalLayoutGroup(const std::string& name = "")

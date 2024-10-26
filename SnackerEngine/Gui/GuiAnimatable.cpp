@@ -42,6 +42,11 @@ namespace SnackerEngine
 		return *this;
 	}
 
+	GuiID GuiElementAnimatable::getGuiID()
+	{
+		return element->getGuiID();
+	}
+
 	GuiElementAnimatable::~GuiElementAnimatable()
 	{
 		if (element) element->signOffAnimatable(*this);

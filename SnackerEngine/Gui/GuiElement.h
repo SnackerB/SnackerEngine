@@ -4,6 +4,7 @@
 #include "Utility/Json.h"
 #include "Gui/SizeHints.h"
 #include "Gui\Text\Font.h"
+#include "Gui\GuiID.h"
 #include "Gui\GuiAnimatable.h"
 
 #include <string_view>
@@ -34,8 +35,6 @@ namespace SnackerEngine
 			RESIZE_RANGE,		/// Size can be set to anything in between the member variables 
 								/// minSize and maxSize
 		};
-		/// Values >= 0 denote valid GuiIDs
-		using GuiID = int;
 		/// Static default Attributes
 		static double defaultFontSizeSmall;
 		static double defaultFontSizeNormal;
@@ -371,6 +370,10 @@ namespace SnackerEngine
 		std::unique_ptr<GuiElementAnimatable> animatePreferredSize(const Vec2i& startVal, const Vec2i& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animatePreferredWidth(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animatePreferredHeight(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		/// Deletes all animations acting on this GuiElement. If finalizeAnimation is set to true,
+		/// The animations will be set to the final state and deleted when the update() function is called next.
+		/// If finalizeAnimation is set to false, the animations are deleted instantly.
+		void deleteAnimationsOnElement(bool finalizeAnimation = true);
 
 		//==============================================================================================
 		// Groups

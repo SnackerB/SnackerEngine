@@ -436,7 +436,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalListLayout::VerticalLayoutGroup::onElementJoin(GuiElement::GuiID element, std::size_t position)
+	void GuiVerticalListLayout::VerticalLayoutGroup::onElementJoin(GuiID element, std::size_t position)
 	{
 		GuiManager* guiManager = getGuiManager();
 		if (guiManager) {
@@ -448,7 +448,7 @@ namespace SnackerEngine
 		upToDate = false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalListLayout::VerticalLayoutGroup::onElementLeave(GuiElement::GuiID element, std::size_t position)
+	void GuiVerticalListLayout::VerticalLayoutGroup::onElementLeave(GuiID element, std::size_t position)
 	{
 		onElementJoin(element, 0);
 	}

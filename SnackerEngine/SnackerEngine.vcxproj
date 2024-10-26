@@ -284,6 +284,7 @@
     <ClInclude Include="Gui\GuiEventHandles\GuiVariableHandle.h" />
     <ClInclude Include="Gui\GuiEventHandles\GuiVectorEventHandle.h" />
     <ClInclude Include="Gui\GuiEventHandles\GuiVectorVariableHandle.h" />
+    <ClInclude Include="Gui\GuiID.h" />
     <ClInclude Include="Gui\GuiLayout.h" />
     <ClInclude Include="Gui\GuiManager.h" />
     <ClInclude Include="Gui\Layouts\GridLayout.h" />

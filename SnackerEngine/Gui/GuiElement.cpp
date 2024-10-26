@@ -603,7 +603,7 @@ namespace SnackerEngine
 			&& offset.y > 0 && offset.y < mySize.y);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiElement::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset) const
+	GuiID GuiElement::getCollidingChild(const IsCollidingResult& collidingResult, const GuiID& childID, const Vec2i& offset) const
 	{
 		switch (collidingResult)
 		{
@@ -641,7 +641,7 @@ namespace SnackerEngine
 		return -1;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiID GuiElement::getCollidingChild(const Vec2i& offset) const
+	GuiID GuiElement::getCollidingChild(const Vec2i& offset) const
 	{
 		if (!guiManager) return 0;
 		for (auto it = sortedChildren.rbegin(); it != sortedChildren.rend(); ++it) {
@@ -934,6 +934,11 @@ namespace SnackerEngine
 				: GuiElementValueAnimatable<int>(element, startVal, stopVal, duration, animationFunction) {}
 		};
 		return std::make_unique<GuiElementPreferredHeightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::deleteAnimationsOnElement(bool finalizeAnimation)
+	{
+		if (guiManager) getGuiManager()->deleteAnimationsOnElement(getGuiID(), finalizeAnimation);
 	}
 	//--------------------------------------------------------------------------------------------------
 }
