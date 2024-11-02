@@ -1,6 +1,7 @@
 #include "AnimationFunctions.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "Utility\Json.h"
 
 namespace SnackerEngine
 {
@@ -69,6 +70,45 @@ namespace SnackerEngine
 			}
 		}
 
+	}
+
+	template<> bool isOfType<AnimationFunction::AnimationFunction>(const nlohmann::json& json, JsonTag<AnimationFunction::AnimationFunction> tag)
+	{
+		return json.is_string() && (
+			json == "ANIMATION_FUNCTION_LINEAR" ||
+			json == "ANIMATION_FUNCTION_EASE_IN_OUT_SINE" ||
+			json == "ANIMATION_FUNCTION_EASE_IN_OUT_QUAD" ||
+			json == "ANIMATION_FUNCTION_EASE_IN_OUT_CUBIC" ||
+			json == "ANIMATION_FUNCTION_EASE_IN_OUT_EXPONENTIAL" ||
+			json == "ANIMATION_FUNCTION_EASE_OUT_ELASTIC" ||
+			json == "ANIMATION_FUNCTION_EASE_OUT_BOUNCE"
+			);
+	}
+
+	template<> AnimationFunction::AnimationFunction parseJSON(const nlohmann::json& json, JsonTag<AnimationFunction::AnimationFunction> tag)
+	{
+		if (json == "ANIMATION_FUNCTION_LINEAR") {
+			return AnimationFunction::linear;
+		}
+		else if (json == "ANIMATION_FUNCTION_EASE_IN_OUT_SINE") {
+			return AnimationFunction::easeInOutSine;
+		}
+		else if (json == "ANIMATION_FUNCTION_EASE_IN_OUT_QUAD") {
+			return AnimationFunction::easeInOutQuad;
+		}
+		else if (json == "ANIMATION_FUNCTION_EASE_IN_OUT_CUBIC") {
+			return AnimationFunction::easeInOutCubic;
+		}
+		else if (json == "ANIMATION_FUNCTION_EASE_IN_OUT_EXPONENTIAL") {
+			return AnimationFunction::easeInOutExponential;
+		}
+		else if (json == "ANIMATION_FUNCTION_EASE_OUT_ELASTIC") {
+			return AnimationFunction::easeOutElastic;
+		}
+		else if (json == "ANIMATION_FUNCTION_EASE_OUT_BOUNCE") {
+			return AnimationFunction::easeOutBounce;
+		}
+		return AnimationFunction::linear;
 	}
 
 }

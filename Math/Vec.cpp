@@ -1,5 +1,6 @@
 #include "Vec.h"
 #include "Utility\Json.h"
+#include "Math\Conversions.h"
 
 namespace SnackerEngine
 {
@@ -89,6 +90,45 @@ namespace SnackerEngine
 	template<> Vec4d parseJSON(const nlohmann::json& json, JsonTag<Vec4d> tag)
 	{
 		return Vec4d(int(json[0]), int(json[1]), int(json[2]), int(json[3]));
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Vec2i interpolate(const Vec2i& a, const Vec2i& b, double percentage)
+	{
+		return Vec2i(a.x + static_cast<int>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<int>(static_cast<double>(b.y - a.y) * percentage));
+	}
+	template<> Vec3i interpolate(const Vec3i& a, const Vec3i& b, double percentage)
+	{
+		return Vec3i(a.x + static_cast<int>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<int>(static_cast<double>(b.y - a.y) * percentage), a.z + static_cast<int>(static_cast<double>(b.z - a.z) * percentage));
+	}
+	template<> Vec4i interpolate(const Vec4i& a, const Vec4i& b, double percentage)
+	{
+		return Vec4i(a.x + static_cast<int>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<int>(static_cast<double>(b.y - a.y) * percentage), a.z + static_cast<int>(static_cast<double>(b.z - a.z) * percentage), a.w + static_cast<int>(static_cast<double>(b.w - a.w) * percentage));
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Vec2f interpolate(const Vec2f& a, const Vec2f& b, double percentage)
+	{
+		return Vec2f(a.x + static_cast<float>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<float>(static_cast<double>(b.y - a.y) * percentage));
+	}
+	template<> Vec3f interpolate(const Vec3f& a, const Vec3f& b, double percentage)
+	{
+		return Vec3f(a.x + static_cast<float>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<float>(static_cast<double>(b.y - a.y) * percentage), a.z + static_cast<int>(static_cast<double>(b.z - a.z) * percentage));
+	}
+	template<> Vec4f interpolate(const Vec4f& a, const Vec4f& b, double percentage)
+	{
+		return Vec4f(a.x + static_cast<float>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<float>(static_cast<double>(b.y - a.y) * percentage), a.z + static_cast<int>(static_cast<double>(b.z - a.z) * percentage), a.w + static_cast<int>(static_cast<double>(b.w - a.w) * percentage));
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Vec2d interpolate(const Vec2d& a, const Vec2d& b, double percentage)
+	{
+		return a + (b - a) * percentage;
+	}
+	template<> Vec3d interpolate(const Vec3d& a, const Vec3d& b, double percentage)
+	{
+		return a + (b - a) * percentage;
+	}
+	template<> Vec4d interpolate(const Vec4d& a, const Vec4d& b, double percentage)
+	{
+		return a + (b - a) * percentage;
 	}
 	//------------------------------------------------------------------------------------------------------
 }

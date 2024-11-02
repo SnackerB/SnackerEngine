@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <cmath>
 
 #ifdef min
 #undef min
@@ -135,9 +136,6 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline T interpolate(const T& a, const T& b, const double& percentage)
-	{
-		return a + roundFromDouble<T>((static_cast<double>(b) - static_cast<double>(a)) * percentage);
-	}
+	T interpolate(const T& a, const T& b, double percentage);
 
 }

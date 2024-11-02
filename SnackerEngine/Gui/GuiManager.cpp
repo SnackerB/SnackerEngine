@@ -238,6 +238,9 @@ namespace SnackerEngine
 					it = newGuiElementAnimatables.erase(it);
 				}
 			}
+			else {
+				it++;
+			}
 		}
 		it = guiElementAnimatables.begin();
 		while (it != guiElementAnimatables.end()) {
@@ -249,6 +252,9 @@ namespace SnackerEngine
 				else {
 					it = guiElementAnimatables.erase(it);
 				}
+			}
+			else {
+				it++;
 			}
 		}
 	}

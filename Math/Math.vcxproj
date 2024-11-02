@@ -160,6 +160,7 @@
     <ClInclude Include="VectorAlgorithms.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Conversions.cpp" />
     <ClCompile Include="Vec.cpp" />
     <ClCompile Include="VectorAlgorithms.cpp" />
   </ItemGroup>

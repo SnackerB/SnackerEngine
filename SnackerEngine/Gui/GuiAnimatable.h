@@ -1,6 +1,7 @@
 #pragma once
 #include "Utility/Animatable.h"
 #include "Gui\GuiID.h"
+#include "Math\Conversions.h"
 
 namespace SnackerEngine
 {
@@ -62,7 +63,7 @@ namespace SnackerEngine
 	{
 		time = std::min(time + dt, duration);
 		double percentage = animationFunction(time / duration);
-		onAnimate(startVal + (stopVal - startVal) * percentage);
+		onAnimate(SnackerEngine::interpolate(startVal, stopVal, percentage));
 	}
 
 	template<typename T>

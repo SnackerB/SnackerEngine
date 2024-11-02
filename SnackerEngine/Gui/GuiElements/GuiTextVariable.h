@@ -69,10 +69,12 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiTextVariable<T>::GuiTextVariable(const T& value, const Vec2i& position, const Vec2i& size, const Font& font, const double& fontSize)
-		: GuiTextBox(position, size, "", font, fontSize), value(value)
+		: GuiTextBox(position, size, "", font, fontSize)
 	{
+		this->value.set(value);
 		setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_SIZE);
+		updateText();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>

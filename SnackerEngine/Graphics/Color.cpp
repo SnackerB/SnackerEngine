@@ -1,5 +1,6 @@
 #include "Graphics/Color.h"
 #include "Utility/Json.h"
+#include "Math\Conversions.h"
 
 namespace SnackerEngine
 {
@@ -38,6 +39,15 @@ namespace SnackerEngine
 		if (json[3].is_number_integer()) result.alpha = static_cast<float>(int(json[3])) / 255.0f;
 		else result.alpha = json[3];
 		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> Color3f interpolate(const Color3f& a, const Color3f& b, double percentage)
+	{
+		return Color3f(a.r + ((b.r - a.r) * percentage), a.g + ((b.g - a.g) * percentage), a.b + ((b.b - a.b) * percentage));
+	}
+	template<> Color4f interpolate(const Color4f& a, const Color4f& b, double percentage)
+	{
+		return Color4f(a.r + ((b.r - a.r) * percentage), a.g + ((b.g - a.g) * percentage), a.b + ((b.b - a.b) * percentage), a.alpha + ((b.alpha - a.alpha) * percentage));
 	}
 	//------------------------------------------------------------------------------------------------------
 }
