@@ -7,7 +7,7 @@ namespace SnackerEngine
 
 	class TCPEndpoint
 	{
-		/// The socket through which the messages are received.
+		/// A TCP Endpoint handles a single socket through which data can be received and sent.
 		/// Designed for non-blocking sockets, but may also work with blocking sockets.
 		SocketTCP socket;
 		/// Buffer for saving temporary data

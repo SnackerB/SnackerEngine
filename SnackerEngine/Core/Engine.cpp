@@ -273,6 +273,17 @@ namespace SnackerEngine
 		return std::nullopt;
 	}
 	//------------------------------------------------------------------------------------------------------
+	bool Engine::doesFileExistsRelativeToResourcePath(const std::string& path)
+	{
+		for (const std::string& resourcePath : resourcePaths) {
+			std::string fullPath = resourcePath + path;
+			if (std::filesystem::exists(fullPath)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	//------------------------------------------------------------------------------------------------------
 	std::optional<nlohmann::json> Engine::loadJSONRelativeToResourcePath(const std::string& path)
 	{
 		for (const std::string& resourcePath : resourcePaths) {

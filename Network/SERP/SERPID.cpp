@@ -6,11 +6,11 @@
 namespace SnackerEngine
 {
 
-	const SERPID SERPID::SERVER_ID = 0;
+	const SERPID SERPID::SERVER_ID = unsigned int(0);
 
 	SERPID getRandomSerpID()
 	{
-		return (std::rand() % 9999) + 1;
+		return SERPID(unsigned int ((std::rand() % 9999) + 1));
 	}
 	
 	template<>

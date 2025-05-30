@@ -16,6 +16,8 @@ namespace SnackerEngine
 	public:
 		SERPID(unsigned int id = 0)
 			: id{ id < 10000 ? id : 9999 } {}
+		SERPID(uint16_t id)
+			: SERPID(unsigned int(id)) {}
 		operator unsigned int() const { return id; }
 		static const SERPID SERVER_ID;
 	};

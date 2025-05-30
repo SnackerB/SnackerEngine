@@ -19,6 +19,8 @@ namespace SnackerEngine
 		uint16_t statusCode;	// SERP Status Code
 		bool getResponseFlag() const;
 		void setResponseFlag(bool response);
+		bool getLargeMessageFlag() const;
+		void setLargeMessageFlag(bool isLargeMessage);
 	private:
 		/// Helper functions used during serialization / deserialization
 		void toNetworkByteOrder();
@@ -58,8 +60,8 @@ namespace SnackerEngine
 		// Move constructor and assignment operator
 		SERPMessage(SERPMessage&& other) = default;
 		SERPMessage& operator=(SERPMessage&& other) = default;
-		bool isResponse();
-		bool isRequest();
+		bool isResponse() const;
+		bool isRequest() const;
 		const SERPHeader& getHeader() const { return header; }
 		SERPHeader& getHeader() { return header; }
 	};

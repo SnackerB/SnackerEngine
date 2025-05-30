@@ -26,6 +26,7 @@
 #include "Gui\GuiElements\VectorElements\GuiEditVariableVec.h"
 #include "Gui\GuiElements\VectorElements\GuiSliderVec.h"
 #include "Gui\GuiElements\GuiSelectionBox.h"
+#include "Gui\GuiElements\GuiClickableTextBox.h"
 
 namespace SnackerEngine
 {
@@ -743,6 +744,7 @@ namespace SnackerEngine
 		registerGuiElementType<GuiSliderVec4d>("_DOUBLE");
 		registerGuiElementType<GuiSliderVec4i>("_INT");
 		registerGuiElementType<GuiSelectionBox>();
+		registerGuiElementType<GuiClickableTextBox>();
 		// Initialize static default font
 		GuiElement::defaultFont = Font("fonts/Arial.ttf");
 		// Initialize static default background shader

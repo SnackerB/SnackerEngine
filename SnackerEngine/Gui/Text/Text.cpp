@@ -817,6 +817,9 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::constructModel()
 	{
+		//infoLogger << LOGGER::BEGIN << "Reconstructing text model." <<
+		//	" text: " << text <<
+		//	", textWidth: " << textWidth << LOGGER::ENDL;
 		switch (parseMode)
 		{
 		case SnackerEngine::StaticText::ParseMode::WORD_BY_WORD: model = parseTextWordByWord(); break;

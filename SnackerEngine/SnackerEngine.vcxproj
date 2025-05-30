@@ -194,6 +194,7 @@
     <ClCompile Include="Gui\GuiElement.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiButton.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiCheckBox.cpp" />
+    <ClCompile Include="Gui\GuiElements\GuiClickableTextBox.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiEditBox.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiImage.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiPanel.cpp" />
@@ -267,6 +268,7 @@
     <ClInclude Include="Gui\GuiElement.h" />
     <ClInclude Include="Gui\GuiElements\GuiButton.h" />
     <ClInclude Include="Gui\GuiElements\GuiCheckBox.h" />
+    <ClInclude Include="Gui\GuiElements\GuiClickableTextBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiEditBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiEditVariable.h" />
     <ClInclude Include="Gui\GuiElements\GuiImage.h" />

@@ -13,6 +13,11 @@ namespace SnackerEngine
 		return 7777;
 	}
 
+	int getSERPServerDataPort()
+	{
+		return 7778;
+	}
+
 	sockaddr_in getSERPServerAdressTCP()
 	{
 		// For now: local host

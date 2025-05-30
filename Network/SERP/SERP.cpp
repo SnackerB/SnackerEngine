@@ -20,6 +20,21 @@ namespace SnackerEngine
 		}
 	}
 
+	bool SERPHeader::getLargeMessageFlag() const
+	{
+		return flags & 0b0100000000000000;
+	}
+
+	void SERPHeader::setLargeMessageFlag(bool isLargeMessage)
+	{
+		if (isLargeMessage) {
+			flags |= 0b0100000000000000;
+		}
+		else {
+			flags &= 0b1011111111111111;
+		}
+	}
+
 	void SERPHeader::toNetworkByteOrder()
 	{
 		source = htons(source);
@@ -87,12 +102,12 @@ namespace SnackerEngine
 		return *this;
 	}
 
-	bool SERPMessage::isResponse()
+	bool SERPMessage::isResponse() const
 	{
 		return header.getResponseFlag();
 	}
 
-	bool SERPMessage::isRequest()
+	bool SERPMessage::isRequest() const
 	{
 		return !header.getResponseFlag();
 	}

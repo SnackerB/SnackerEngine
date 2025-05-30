@@ -42,10 +42,12 @@ namespace SnackerEngine
 
 	/// Returns the port number of the SERP server in host byte order
 	int getSERPServerPort();
+	/// Returns the port number of the SERP server incomingDataRequest socket in host byte order
+	int getSERPServerDataPort();
 	/// Returns the address of the SERP server
 	sockaddr_in getSERPServerAdressTCP();
 
-	/// Compares to sockaddr_in and returns true when they are equal
+	/// Compares two sockaddr_in and returns true when they are equal
 	bool compare(const sockaddr_in& addr1, const sockaddr_in& addr2);
 
 	/// Creates a blocking TCP socket and binds it to the given port.

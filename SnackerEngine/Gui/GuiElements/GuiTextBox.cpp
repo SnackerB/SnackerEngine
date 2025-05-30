@@ -99,6 +99,16 @@ namespace SnackerEngine
 		if (json == "SINGLE_LINE") return DynamicText::ParseMode::SINGLE_LINE;
 		return DynamicText::ParseMode::WORD_BY_WORD;
 	}
+	template<> std::string to_string(const GuiTextBox::SizeHintMode& sizeHintMode)
+	{
+		switch (sizeHintMode)
+		{
+			case GuiTextBox::SizeHintMode::ARBITRARY: return "ARBITRATRY";
+			case GuiTextBox::SizeHintMode::SET_TO_TEXT_WIDTH: return "SET_TO_TEXT_WIDTH";
+			case GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT: return "SET_TO_TEXT_HEIGHT";
+			case GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE: return "SET_TO_TEXT_SIZE";
+		}
+	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::computeModelMatrices()
 	{
@@ -220,7 +230,9 @@ namespace SnackerEngine
 			dynamicText->recompute();
 			computeModelMatrices();
 		}
+		//infoLogger << LOGGER::BEGIN << "Recomputed text! size: " << dynamicText->getTextSize() << LOGGER::ENDL;
 		computeHeightHints();
+		comouteWidthHints();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::onRegister(std::unique_ptr<DynamicText>&& dynamicText)
@@ -344,6 +356,7 @@ namespace SnackerEngine
 		default:
 			break;
 		}
+		//infoLogger << LOGGER::BEGIN << "height hints: " << getMinHeight() << " " << getMaxHeight() << " " << getPreferredHeight() << LOGGER::ENDL;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::comouteWidthHints()
@@ -385,6 +398,7 @@ namespace SnackerEngine
 		default:
 			break;
 		}
+		//infoLogger << LOGGER::BEGIN << "widht hints: " << getMinWidth() << " " << getMaxWidth() << " " << getPreferredWidth() << LOGGER::ENDL;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Material GuiTextBox::constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor)
@@ -444,6 +458,7 @@ namespace SnackerEngine
 			if (json.contains("maxHeight")) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::SET_TO_TEXT_WIDTH;
 			if (json.contains("maxSize") || (json.contains("maxWidth") && json.contains("maxHeight"))) sizeHintModes.sizeHintModeMaxSize = SizeHintMode::ARBITRARY;
 		}
+		//SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << SnackerEngine::to_string(sizeHintModes.sizeHintModeMinSize) << " " << SnackerEngine::to_string(sizeHintModes.sizeHintModeMaxSize) << " " << SnackerEngine::to_string(sizeHintModes.sizeHintModePreferredSize) << SnackerEngine::LOGGER::ENDL; // DEBUG
 		computeHeightHints();
 		comouteWidthHints();
 	}

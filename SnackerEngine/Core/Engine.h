@@ -74,6 +74,8 @@ namespace SnackerEngine
 		static const std::string& getDefaultResourcePath();
 		/// Loads a file relative to the resource path. Returns an empty optional if anything fails
 		static std::optional<Buffer> loadFileRelativeToResourcePath(const std::string& path);
+		/// Checks if the given file exists relative to the resource path.
+		static bool doesFileExistsRelativeToResourcePath(const std::string& path);
 		/// Loads and parses a JSON file relative to the resource path. Returns an
 		/// empty optional if anything fails
 		static std::optional<nlohmann::json> loadJSONRelativeToResourcePath(const std::string& path);

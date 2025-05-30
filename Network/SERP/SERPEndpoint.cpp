@@ -70,11 +70,23 @@ namespace SnackerEngine
 		return std::move(result.first);
 	}
 
-	void SERPEndpoint::sendMessage(SERPMessage& message, bool setMessageID)
+	void SERPEndpoint::finalizeAndSendMessage(SERPMessage& message, bool setMessageID)
 	{
 		if (message.isRequest() && setMessageID) message.header.messageID = nextMessageID++;
 		message.finalize();
 		Buffer buffer = message.serialize();
+		endpointTCP.sendData(buffer.getBufferView());
+	}
+
+	void SERPEndpoint::finalizeMessage(SERPMessage& message, bool setMessageID)
+	{
+		if (message.isRequest() && setMessageID) message.header.messageID = nextMessageID++;
+		message.finalize();
+	}
+
+	void SERPEndpoint::sendMessage(SERPMessage& message)
+	{
+		Buffer buffer = message.serialize(); // TODO: I think we can do better here, just serialize the message ONCE!
 		endpointTCP.sendData(buffer.getBufferView());
 	}
 
