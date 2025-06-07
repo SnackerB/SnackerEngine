@@ -40,12 +40,15 @@ namespace SnackerEngine
 			std::unique_ptr<SERPResponse> response;
 			/// The expected messageID
 			std::size_t expectedMesageID;
+			/// The expected serpID
+			SERPID expectedSerpID;
 			/// Helper function that should be called on move
 			void onMove(PendingResponse* other);
 		public:
 			/// Constructor should only be called by SERPManager!
-			PendingResponse(SERPManager* serpManager, std::size_t messageID)
-				: serpManager{ serpManager }, status{ Status::PENDING }, response(nullptr), expectedMesageID(messageID) {}
+			PendingResponse(SERPManager* serpManager, std::size_t messageID, SERPID serpID)
+				: serpManager{ serpManager }, status{ Status::PENDING }, response{ nullptr }, 
+				expectedMesageID{ messageID }, expectedSerpID{ serpID } {}
 			/// Deleted copy constructor and assignment operator
 			PendingResponse(const PendingResponse& other) = delete;
 			PendingResponse& operator=(const PendingResponse& other) = delete;
@@ -99,8 +102,9 @@ namespace SnackerEngine
 		std::queue<std::unique_ptr<SERPResponse>> incomingResponses;
 		std::mutex incomingResponsesMutex;
 		/// Map of all requests that were sent and have not yet received an answer. This map is used to map incoming responses to these requests.
-		/// The key is the messageID of the requests. This map is only accessed by the main thread, so we don't need a mutex.
-		std::unordered_map<std::size_t, SentRequest> sentRequests;
+		/// The first key is the messageID of the requests, the second key is the destination/sourceID. 
+		/// This map is only accessed by the main thread, so we don't need a mutex.
+		std::unordered_map<std::size_t, std::unordered_map<uint16_t, SentRequest>> sentRequests;
 		/// Map of all responses that were sent in recent past. This map is used to quickly resend responses if they got lost somewhere and the other
 		/// client is resending the request. The key to the map is the message id of the request, for each messageID we store a vector for responses
 		/// to different clients.
@@ -189,6 +193,8 @@ namespace SnackerEngine
 		/// sent out later.
 		PendingResponse sendRequest(std::unique_ptr<SERPRequest>&& request, double timeout = 0.5, unsigned repetitions = 1);
 		PendingResponse sendRequest(SERPRequest& request, double timeout = 0.5, unsigned repetitions = 1);
+		std::vector<PendingResponse> sendRequestMulti(std::unique_ptr<SERPRequest>&& request, double timeout = 0.5, unsigned repetitions = 1);
+		std::vector<PendingResponse> sendRequestMulti(SERPRequest& request, double timeout = 0.5, unsigned repetitions = 1);
 		/// Sends a SERPResponse. If possible, use the first definition of the function, as the second definition makes an
 		/// additional copy of the response.
 		void sendResponse(std::unique_ptr<SERPResponse>&& response);

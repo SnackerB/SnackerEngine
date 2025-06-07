@@ -12,7 +12,7 @@ namespace SnackerEngine
 	struct SERPHeader
 	{
 		uint16_t source;		// SERPID of source
-		uint16_t destination;	// SERPID of destination
+		uint16_t destination;	// SERPID of destination, or number of destination clients if multisend flag is set.
 		uint32_t messageID;		// unique (per sent message of source) message identifier
 		uint32_t contentLength;	// Content length in bytes
 		uint16_t flags;			// Additional boolean information about the message
@@ -21,6 +21,8 @@ namespace SnackerEngine
 		void setResponseFlag(bool response);
 		bool getLargeMessageFlag() const;
 		void setLargeMessageFlag(bool isLargeMessage);
+		bool getMultiSendFlag() const;
+		void setMultiSendFlag(bool isMultiSend);
 	private:
 		/// Helper functions used during serialization / deserialization
 		void toNetworkByteOrder();
@@ -28,7 +30,7 @@ namespace SnackerEngine
 	public:
 		/// Serializes the header into the given buffer. Turns all integers to network byte order.
 		/// Returns true on success and false on failure. Only works if the buffer has the correct size
-		/// of sizeof(SERPHeader).
+		/// of sizeof(SERPHeader)
 		bool serialize(BufferView buffer);
 		/// Tries to parse a Header from the given buffer. Returns an empty optional on failure.
 		/// Only works when the buffer has the size sizeof(SERPHeader). 
@@ -50,9 +52,22 @@ namespace SnackerEngine
 		virtual Buffer serialize() { return Buffer{}; }
 	protected:
 		SERPHeader header;
-		/// Constructor
+		std::vector<SERPID> destinations; // Vector of destination SERPIDs in case of multisend.
+		/// Constructors
 		SERPMessage(const SERPHeader& header)
-			: header(header) {};
+			: header(header), destinations{} {};
+		SERPMessage(const SERPHeader& header, std::vector<SERPID> destinations)
+			: header(header), destinations{ std::move(destinations) } {};
+		/// Helper function that copies the destinations into the buffer. Only works if the buffer has size
+		/// destinations.size() * sizeof(uint16_t)
+		bool serializeDestinations(BufferView buffer);
+		/// Helper function that tries to parse destinations from the given buffer.
+		/// Returns vector of destinations in host byte order
+		static std::vector<SERPID> parseDestinations(ConstantBufferView bufferView, std::uint16_t count);
+		/// Helper function turning all destinations to network byte order
+		void destinationsToNetworkByteOrder();
+		/// Helper function turning all destinations to host byte order
+		void destinationsToHostByteOrder();
 	public:
 		// Copy constructor and assignment operator
 		SERPMessage(const SERPMessage& other);
@@ -64,6 +79,8 @@ namespace SnackerEngine
 		bool isRequest() const;
 		const SERPHeader& getHeader() const { return header; }
 		SERPHeader& getHeader() { return header; }
+		const std::vector<SERPID>& getDestinations() const { return destinations; }
+		void addDestination(SERPID destination);
 	};
 
 	class SERPRequest : public SERPMessage
@@ -73,8 +90,9 @@ namespace SnackerEngine
 		friend class SERPMessage;
 		// Finalizes the message. Is called by SERP Endpoint when the message is sent.
 		void finalize() override;
-		/// Constructor used in parse function
+		/// Constructors used in parse function
 		SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content);
+		SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content, std::vector<SERPID> destinations);
 		/// Tries to parse a SERPRequest from a header and a content buffer. Returns nullptr on failure
 		static std::unique_ptr<SERPRequest> parse(const SERPHeader& header, ConstantBufferView buffer);
 		/// Serializes this message into a buffer
@@ -106,6 +124,7 @@ namespace SnackerEngine
 		void finalize() override;
 		/// Constructor used in parse function
 		SERPResponse(SERPHeader header, ConstantBufferView content);
+		SERPResponse(SERPHeader header, ConstantBufferView content, std::vector<SERPID> destinations);
 		SERPResponse(uint32_t messageID);
 		/// Tries to parse a SERPResponse from a header and a content buffer. Returns nullptr on failure
 		static std::unique_ptr<SERPResponse> parse(const SERPHeader& header, ConstantBufferView buffer);

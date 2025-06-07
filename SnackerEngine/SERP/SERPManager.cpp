@@ -13,8 +13,11 @@ namespace SnackerEngine
 		if (serpManager) {
 			auto it = serpManager->sentRequests.find(expectedMesageID);
 			if (it != serpManager->sentRequests.end()) {
-				if (it->second.pendingResponse == other) it->second.pendingResponse = this;
-				else errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+				auto it2 = it->second.find(expectedSerpID);
+				if (it2 != it->second.end()) {
+					if (it2->second.pendingResponse == other) it2->second.pendingResponse = this;
+					else errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+				}
 			}
 			else {
 				errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << expectedMesageID << LOGGER::ENDL;
@@ -23,7 +26,8 @@ namespace SnackerEngine
 	}
 	
 	SERPManager::PendingResponse::PendingResponse(PendingResponse&& other) noexcept
-		: serpManager{ other.serpManager }, status{ other.status }, response{ std::move(other.response) }, expectedMesageID{ other.expectedMesageID }
+		: serpManager{ other.serpManager }, status{ other.status }, response{ std::move(other.response) },
+		expectedMesageID{ other.expectedMesageID }, expectedSerpID(other.expectedSerpID)
 	{
 		onMove(&other);
 		other.serpManager = nullptr;
@@ -35,6 +39,7 @@ namespace SnackerEngine
 		this->status = other.status;
 		this->response = std::move(other.response);
 		this->expectedMesageID = other.expectedMesageID;
+		this->expectedSerpID = other.expectedSerpID;
 		onMove(&other);
 		other.serpManager = nullptr;
 		return *this;
@@ -47,8 +52,11 @@ namespace SnackerEngine
 			// Look for sentRequest with the messageID
 			auto it = serpManager->sentRequests.find(expectedMesageID);
 			if (it != serpManager->sentRequests.end()) {
-				if (it->second.pendingResponse == this) it->second.pendingResponse = nullptr;
-				else errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+				auto it2 = it->second.find(expectedSerpID);
+				if (it2 != it->second.end()) {
+					if (it2->second.pendingResponse == this) it2->second.pendingResponse = nullptr;
+					else errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+				}
 			}
 			else {
 				errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << expectedMesageID << LOGGER::ENDL;
@@ -62,8 +70,11 @@ namespace SnackerEngine
 		// Look for sentRequest with the messageID
 		auto it = serpManager->sentRequests.find(expectedMesageID);
 		if (it != serpManager->sentRequests.end()) {
-			// Compute and return time left until timeout
-			return it->second.repetitions * it->second.timeBetweenResend + it->second.timeSinceLastSend;
+			auto it2 = it->second.find(expectedSerpID);
+			if (it2 != it->second.end()) {
+				// Compute and return time left until timeout
+				return it2->second.repetitions * it2->second.timeBetweenResend + it2->second.timeSinceLastSend;
+			}
 		}
 		else {
 			errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << expectedMesageID << LOGGER::ENDL;
@@ -196,11 +207,16 @@ namespace SnackerEngine
 
 	void SERPManager::handleReceivedMessage(std::unique_ptr<SERPMessage>&& message)
 	{
-		if (message->isRequest()) {
-			handleIncomingRequest(std::move(message));
+		if (message->getHeader().getMultiSendFlag()) {
+			warningLogger << LOGGER::BEGIN << "Received message with multiple destinations!" << LOGGER::ENDL;
 		}
 		else {
-			handleIncomingResponse(std::move(message));
+			if (message->isRequest()) {
+				handleIncomingRequest(std::move(message));
+			}
+			else {
+				handleIncomingResponse(std::move(message));
+			}
 		}
 	}
 
@@ -493,6 +509,16 @@ namespace SnackerEngine
 	SERPManager::PendingResponse SERPManager::sendRequest(SERPRequest& request, double timeout, unsigned repetitions)
 	{
 		return std::move(sendRequest(std::move(std::make_unique<SERPRequest>(request)), timeout, repetitions));
+	}
+
+	std::vector<PendingResponse> SERPManager::sendRequestMulti(std::unique_ptr<SERPRequest>&& request, double timeout, unsigned repetitions)
+	{
+		return std::vector<PendingResponse>();
+	}
+
+	std::vector<PendingResponse> SERPManager::sendRequestMulti(SERPRequest& request, double timeout, unsigned repetitions)
+	{
+		return std::vector<PendingResponse>();
 	}
 
 	void SERPManager::sendResponse(std::unique_ptr<SERPResponse>&& response)
