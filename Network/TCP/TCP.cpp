@@ -75,13 +75,17 @@ namespace SnackerEngine
 	ConnectResult connectToNonBlocking(SocketTCP& socket, const sockaddr_in& addr)
 	{
 		int result = connect(socket.sock, (const sockaddr*)&addr, sizeof(sockaddr_in));
-		if (result == 0) return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
+		if (result == 0) {
+			socket.valid = true;
+			return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
+		}
 		else {
 			int error = WSAGetLastError();
 			if (error == WSAEINPROGRESS || error == WSAEWOULDBLOCK || error == WSAEALREADY) {
 				return ConnectResult{ ConnectResult::Result::PENDING, 0 };
 			}
 			else if (error == WSAEISCONN) {
+				socket.valid = true;
 				return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
 			}
 			else {
@@ -92,12 +96,12 @@ namespace SnackerEngine
 
 	bool sendTo(const SocketTCP& socket, ConstantBufferView buffer)
 	{
-		return send(socket.sock, (const char*) buffer.getDataPtr(), buffer.size(), 0) >= 0;
+		return send(socket.sock, (const char*) buffer.getDataPtr(), static_cast<int>(buffer.size()), 0) >= 0;
 	}
 
 	bool sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer)
 	{
-		int result = send(socket.sock, (const char*)buffer.getDataPtr(), buffer.size(), 0);
+		int result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
 		if (result >= 0) return true;
 		int error = WSAGetLastError();
 		if (error == WSAEWOULDBLOCK) return true;
@@ -111,7 +115,7 @@ namespace SnackerEngine
 	{
 		std::vector<std::byte> data{};
 		while (true) {
-			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), storageBuffer.size(), NULL);
+			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), static_cast<int>(storageBuffer.size()), NULL);
 			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
@@ -136,7 +140,7 @@ namespace SnackerEngine
 	{
 		std::vector<std::byte> data{};
 		while (true) {
-			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), storageBuffer.size(), NULL);
+			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), static_cast<int>(storageBuffer.size()), NULL);
 			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
@@ -181,6 +185,10 @@ namespace SnackerEngine
 			int result = closesocket(sock);
 			if (result == -1) std::cout << "closesocket() failed with errorcode " << WSAGetLastError() << std::endl;
 		}
+		//else {
+		//	// DEBUG
+		//	std::cout << "destroyed invalid socket!" << std::endl;
+		//}
 	}
 
 	SocketTCP::SocketTCP(SocketTCP&& other) noexcept

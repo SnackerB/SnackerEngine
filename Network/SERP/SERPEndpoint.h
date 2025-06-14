@@ -36,7 +36,6 @@ namespace SnackerEngine
 		/// Returns a const reference to the underlying TCP Endpoint
 		TCPEndpoint& getTCPEndpoint() { return endpointTCP; };
 		/// Tries to connect to SERP 
-
 		ConnectResult connectToSERPServer() { return endpointTCP.connectToSERPServer(); }
 		/// Tries to receive messages through the endpoint
 		std::vector<std::unique_ptr<SERPMessage>> receiveMessages();

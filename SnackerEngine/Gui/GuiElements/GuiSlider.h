@@ -2,7 +2,7 @@
 
 #include "Gui/GuiElements/GuiTextBox.h"
 #include "Utility\Keys.h"
-#include "Math/Conversions.h"
+#include "Utility/Conversions.h"
 #include "Graphics/Renderer.h"
 #include "Utility\Formatting.h"
 #include "Gui\GuiManager.h"

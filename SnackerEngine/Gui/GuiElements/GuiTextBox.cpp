@@ -107,6 +107,7 @@ namespace SnackerEngine
 			case GuiTextBox::SizeHintMode::SET_TO_TEXT_WIDTH: return "SET_TO_TEXT_WIDTH";
 			case GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT: return "SET_TO_TEXT_HEIGHT";
 			case GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE: return "SET_TO_TEXT_SIZE";
+			default: return "ARBITRATRY";
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

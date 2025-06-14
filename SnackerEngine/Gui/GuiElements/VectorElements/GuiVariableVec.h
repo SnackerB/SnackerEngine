@@ -33,8 +33,8 @@ namespace SnackerEngine
 			GuiVariableVecVariableHandle(GuiVariableVec* parentElement)
 				: VariableHandle<VecT>(), parentElement(parentElement) {}
 			void set(const T& value, std::size_t index) {
-				if (this->value[index] != value) {
-					this->value[index] = value;
+				if (this->value[static_cast<unsigned int>(index)] != value) {
+					this->value[static_cast<unsigned int>(index)] = value;
 					this->notifyAllConnectedHandles();
 				}
 			}
@@ -163,7 +163,9 @@ namespace SnackerEngine
 	template<typename T, typename VecT, std::size_t N>
 	inline void GuiVariableVec<T, VecT, N>::updateChildElements()
 	{
-		for (std::size_t i = 0; i < N; ++i) componentVariableHandles[i].set(value.get()[i]);
+		for (std::size_t i = 0; i < N; ++i) {
+			componentVariableHandles[static_cast<unsigned int>(i)].set(value.get()[static_cast<unsigned int>(i)]);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, std::size_t N>
@@ -237,7 +239,7 @@ namespace SnackerEngine
 		if (!json.contains("shrinkHeightToChildren")) setShrinkHeightToChildren(true);
 		// Initialize variableHandles
 		componentVariableHandles.reserve(N);
-		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, this->value.get()[i]));
+		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, this->value.get()[static_cast<unsigned int>(i)]));
 		updateChildElements();
 	}
 	//--------------------------------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <string>
+#include <unordered_set>
 #include "Utility\Buffer.h"
 #include "Network\SERP\StatusCodes.h"
 #include "Network\SERP\SERPID.h"
@@ -52,22 +53,18 @@ namespace SnackerEngine
 		virtual Buffer serialize() { return Buffer{}; }
 	protected:
 		SERPHeader header;
-		std::vector<SERPID> destinations; // Vector of destination SERPIDs in case of multisend.
+		std::unordered_set<uint16_t> destinations; // set of destination SERPIDs in case of multisend.
 		/// Constructors
 		SERPMessage(const SERPHeader& header)
 			: header(header), destinations{} {};
-		SERPMessage(const SERPHeader& header, std::vector<SERPID> destinations)
+		SERPMessage(const SERPHeader& header, std::unordered_set<uint16_t> destinations)
 			: header(header), destinations{ std::move(destinations) } {};
 		/// Helper function that copies the destinations into the buffer. Only works if the buffer has size
 		/// destinations.size() * sizeof(uint16_t)
 		bool serializeDestinations(BufferView buffer);
 		/// Helper function that tries to parse destinations from the given buffer.
-		/// Returns vector of destinations in host byte order
-		static std::vector<SERPID> parseDestinations(ConstantBufferView bufferView, std::uint16_t count);
-		/// Helper function turning all destinations to network byte order
-		void destinationsToNetworkByteOrder();
-		/// Helper function turning all destinations to host byte order
-		void destinationsToHostByteOrder();
+		/// Returns set of destinations in host byte order
+		static std::unordered_set<uint16_t> parseDestinations(ConstantBufferView bufferView, std::uint16_t count);
 	public:
 		// Copy constructor and assignment operator
 		SERPMessage(const SERPMessage& other);
@@ -79,8 +76,10 @@ namespace SnackerEngine
 		bool isRequest() const;
 		const SERPHeader& getHeader() const { return header; }
 		SERPHeader& getHeader() { return header; }
-		const std::vector<SERPID>& getDestinations() const { return destinations; }
+		const std::unordered_set<uint16_t>& getDestinations() const { return destinations; }
 		void addDestination(SERPID destination);
+		void removeDestination(SERPID destination);
+		void clearDestinations();
 	};
 
 	class SERPRequest : public SERPMessage
@@ -92,7 +91,7 @@ namespace SnackerEngine
 		void finalize() override;
 		/// Constructors used in parse function
 		SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content);
-		SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content, std::vector<SERPID> destinations);
+		SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content, std::unordered_set<uint16_t> destinations);
 		/// Tries to parse a SERPRequest from a header and a content buffer. Returns nullptr on failure
 		static std::unique_ptr<SERPRequest> parse(const SERPHeader& header, ConstantBufferView buffer);
 		/// Serializes this message into a buffer
@@ -124,7 +123,7 @@ namespace SnackerEngine
 		void finalize() override;
 		/// Constructor used in parse function
 		SERPResponse(SERPHeader header, ConstantBufferView content);
-		SERPResponse(SERPHeader header, ConstantBufferView content, std::vector<SERPID> destinations);
+		SERPResponse(SERPHeader header, ConstantBufferView content, std::unordered_set<uint16_t> destinations);
 		SERPResponse(uint32_t messageID);
 		/// Tries to parse a SERPResponse from a header and a content buffer. Returns nullptr on failure
 		static std::unique_ptr<SERPResponse> parse(const SERPHeader& header, ConstantBufferView buffer);

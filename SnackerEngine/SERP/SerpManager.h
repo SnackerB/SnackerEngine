@@ -76,7 +76,8 @@ namespace SnackerEngine
 			double timeBetweenResend;
 			double timeSinceLastSend;
 			std::shared_ptr<SERPRequest> request;
-			PendingResponse* pendingResponse;
+			// We need a map for storing pendingResponses because of possibility of multisend!
+			std::unordered_map<uint16_t, PendingResponse*> pendingResponses;
 		};
 		/// Class that represents a sent response. Each response that is sent by this SERPManager produces a SentResponse entry in the
 		/// SentResponses map. If the response does not arrive at the destination and the other client resends the same request again,
@@ -104,7 +105,7 @@ namespace SnackerEngine
 		/// Map of all requests that were sent and have not yet received an answer. This map is used to map incoming responses to these requests.
 		/// The first key is the messageID of the requests, the second key is the destination/sourceID. 
 		/// This map is only accessed by the main thread, so we don't need a mutex.
-		std::unordered_map<std::size_t, std::unordered_map<uint16_t, SentRequest>> sentRequests;
+		std::unordered_map<std::size_t, SentRequest> sentRequests;
 		/// Map of all responses that were sent in recent past. This map is used to quickly resend responses if they got lost somewhere and the other
 		/// client is resending the request. The key to the map is the message id of the request, for each messageID we store a vector for responses
 		/// to different clients.
@@ -188,11 +189,11 @@ namespace SnackerEngine
 		/// under the given path.
 		std::deque<std::unique_ptr<SERPRequest>> getIncomingRequests(const std::string& path);
 		/// Sends a request to the client with the given serpID and returns a PendingResponse object that can be used to check
-		/// the response or detect a timeout. Note that no other request can be sent to the client with the given SERPID, until the
-		/// original request either times out or is answered. Further requests to the same clients are instead placed in a queue and 
-		/// sent out later.
-		PendingResponse sendRequest(std::unique_ptr<SERPRequest>&& request, double timeout = 0.5, unsigned repetitions = 1);
-		PendingResponse sendRequest(SERPRequest& request, double timeout = 0.5, unsigned repetitions = 1);
+		/// the response or detect a timeout.
+		std::optional<PendingResponse> sendRequest(std::unique_ptr<SERPRequest>&& request, double timeout = 0.5, unsigned repetitions = 1);
+		std::optional<PendingResponse> sendRequest(SERPRequest& request, double timeout = 0.5, unsigned repetitions = 1);
+		/// Sends a request to multiple clients and returns a vector of PendingResponse objects that can be used to check the
+		/// responses or detect timeouts.
 		std::vector<PendingResponse> sendRequestMulti(std::unique_ptr<SERPRequest>&& request, double timeout = 0.5, unsigned repetitions = 1);
 		std::vector<PendingResponse> sendRequestMulti(SERPRequest& request, double timeout = 0.5, unsigned repetitions = 1);
 		/// Sends a SERPResponse. If possible, use the first definition of the function, as the second definition makes an

@@ -39,14 +39,14 @@ namespace SnackerEngine
 	/// found, std::string::npos is returned instead.
 	static std::size_t find_first_of(const std::vector<std::byte>::const_iterator& begin, const std::vector<std::byte>::const_iterator& end, std::byte byte, std::size_t offset)
 	{
-		for (std::size_t i = offset; i < end - begin; ++i) {
+		for (std::size_t i = offset; i < static_cast<std::size_t>(end - begin); ++i) {
  			if (*(std::next(begin, i)) == byte) return i;
 		}
 		return std::string::npos;
 	}
 	static std::size_t find_first_of(const std::vector<std::byte>::const_iterator& begin, const std::vector<std::byte>::const_iterator& end, const std::vector<std::byte>& bytes, std::size_t offset)
 	{
-		for (std::size_t i = offset; i < end - begin; ++i) {
+		for (std::size_t i = offset; i < static_cast<std::size_t>(end - begin); ++i) {
 			for (const auto& byte : bytes) {
 				if (*(std::next(begin, i)) == byte) return i;
 			}
@@ -59,14 +59,14 @@ namespace SnackerEngine
 	/// given byte, std::string::npos is returned instead.
 	static std::size_t find_first_not_of(const std::vector<std::byte>::const_iterator& begin, const std::vector<std::byte>::const_iterator& end, std::byte byte, std::size_t offset)
 	{
-		for (std::size_t i = offset; i < end - begin; ++i) {
+		for (std::size_t i = offset; i < static_cast<std::size_t>(end - begin); ++i) {
 			if (*(std::next(begin, i)) != byte) return i;
 		}
 		return std::string::npos;
 	}
 	static std::size_t find_first_not_of(const std::vector<std::byte>::const_iterator& begin, const std::vector<std::byte>::const_iterator& end, const std::vector<std::byte>& bytes, std::size_t offset)
 	{
-		for (std::size_t i = offset; i < end - begin; ++i) {
+		for (std::size_t i = offset; i < static_cast<std::size_t>(end - begin); ++i) {
 			for (const auto& byte : bytes) {
 				if (*(std::next(begin, i)) != byte) return i;
 			}
@@ -88,7 +88,7 @@ namespace SnackerEngine
 	static bool compare(const std::vector<std::byte>::const_iterator& begin, const std::vector<std::byte>::const_iterator& end, const std::string& string)
 	{
 		if ((end - begin) != string.length()) return false;
-		for (std::size_t i = 0; i < (end - begin); ++i) {
+		for (std::size_t i = 0; i < static_cast<std::size_t>(end - begin); ++i) {
 			if (*(std::next(begin, i)) != static_cast<std::byte>(string[i])) return false;
 		}
 		return true;

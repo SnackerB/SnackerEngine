@@ -331,10 +331,10 @@ namespace SnackerEngine
 		int width, height, nrComponents;
 		void* data = nullptr;
 		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
-			data = stbi_loadf_from_memory((stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+			data = stbi_loadf_from_memory((stbi_uc*)buffer.getDataPtr(), static_cast<int>(buffer.size() * sizeof(std::byte) / sizeof(stbi_uc)), &width, &height, &nrComponents, 0);
 		}
 		else {
-			data = stbi_load_from_memory((stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+			data = stbi_load_from_memory((stbi_uc*)buffer.getDataPtr(), static_cast<int>(buffer.size() * sizeof(std::byte) / sizeof(stbi_uc)), &width, &height, &nrComponents, 0);
 		}
 		if (!data) {
 			warningLogger << LOGGER::BEGIN << "Texture " << fullPath << " failed to load from memory. " << stbi_failure_reason() << LOGGER::ENDL;
@@ -654,11 +654,11 @@ namespace SnackerEngine
 		int width, height, nrComponents, bytesPerPixel;
 		void* data = nullptr;
 		if (textureData.textureDataType == Texture::TextureDataType::FLOAT) {
-			data = stbi_loadf_from_memory((const stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+			data = stbi_loadf_from_memory((const stbi_uc*)buffer.getDataPtr(), static_cast<int>(buffer.size() * sizeof(std::byte) / sizeof(stbi_uc)), &width, &height, &nrComponents, 0);
 			bytesPerPixel = sizeof(float);
 		}
 		else {
-			data = stbi_loadf_from_memory((const stbi_uc*)buffer.getDataPtr(), buffer.size() * sizeof(std::byte) / sizeof(stbi_uc), &width, &height, &nrComponents, 0);
+			data = stbi_loadf_from_memory((const stbi_uc*)buffer.getDataPtr(), static_cast<int>(buffer.size() * sizeof(std::byte) / sizeof(stbi_uc)), &width, &height, &nrComponents, 0);
 			bytesPerPixel = sizeof(stbi_uc);
 		}
 		if (!data) {
@@ -710,7 +710,7 @@ namespace SnackerEngine
 	Texture TextureManager::createTextureFromBuffer(TextureDataBuffer& buffer, const bool& mip)
 	{
 		// TODO: Make this work with cubemaps as well
-		Texture texture = createTexture(buffer.size(), Texture::TextureType::TEXTURE2D, buffer.textureDataType, buffer.textureDataFormat, buffer.textureDataPrecision);
+		Texture texture = createTexture(buffer.size2D, Texture::TextureType::TEXTURE2D, buffer.textureDataType, buffer.textureDataFormat, buffer.textureDataPrecision);
 		texture.fill2D(buffer, mip);
 		return texture;
 	}
@@ -726,11 +726,11 @@ namespace SnackerEngine
 		if (textureData.textureDataType != textureDataBuffer.textureDataType ||
 			textureData.textureDataPrecision != textureDataBuffer.textureDataPrecision ||
 			textureData.textureDataFormat != textureDataBuffer.textureDataFormat ||
-			textureData.size != textureDataBuffer.size()) {
+			textureData.size != textureDataBuffer.size2D) {
 			warningLogger << LOGGER::BEGIN << "Could not fill texture: Buffer and textureData do not match" << LOGGER::ENDL;
 			return;
 		}
-		fillTexture2D(texture, (void*)textureDataBuffer.getDataPtr(), offset, textureDataBuffer.size(), mip);
+		fillTexture2D(texture, (void*)textureDataBuffer.getDataPtr(), offset, textureDataBuffer.size2D, mip);
 	}
 	//------------------------------------------------------------------------------------------------------
 	void TextureManager::copyTexture2D(const Texture& source, Texture& target, const Vec2i& offset)

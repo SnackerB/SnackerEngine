@@ -91,7 +91,7 @@ namespace SnackerEngine
 		optionListLayout->setOuterVerticalBorder(0);
 		optionListLayout->setHorizontalBorder(0);
 		optionListLayout->setResizeMode(ResizeMode::RESIZE_RANGE);
-		optionListLayout->setSize(Vec2i(getWidth(), getHeight() * options.size()));
+		optionListLayout->setSize(Vec2i(getWidth(), getHeight() * static_cast<int>(options.size())));
 		optionListLayout->setPosition(getWorldPosition() + Vec2i(0, getHeight()));
 		guiManager->registerElement(*optionListLayout);
 		// Push back option buttons
@@ -111,7 +111,7 @@ namespace SnackerEngine
 		for (std::size_t i = 0; i < options.size(); ++i) {
 			GuiButton optionButton(templateButton);
 			optionButton.setText(options[i]);
-			optionButtonEventHandles.push_back(GuiSelectionBoxEventHandle(*this, i));
+			optionButtonEventHandles.push_back(GuiSelectionBoxEventHandle(*this, static_cast<int>(i)));
 			optionButton.subscribeToEventButtonPress(optionButtonEventHandles.back());
 			optionListLayout->registerChild(optionButton);
 			guiManager->moveElement<GuiButton>(std::move(optionButton));

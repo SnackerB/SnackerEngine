@@ -4280,9 +4280,11 @@ inline void concat_into(OutStringType& out, const Arg& arg, Args&& ... rest)
 template<typename OutStringType = std::string, typename... Args>
 inline OutStringType concat(Args && ... args)
 {
-    OutStringType str;
+    OutStringType str{};
     str.reserve(concat_length(std::forward<Args>(args)...));
+#pragma warning(disable:26800)
     concat_into(str, std::forward<Args>(args)...);
+#pragma warning(default:26800)
     return str;
 }
 
@@ -4700,7 +4702,7 @@ template<typename BasicJsonType, typename EnumType,
          enable_if_t<std::is_enum<EnumType>::value, int> = 0>
 inline void from_json(const BasicJsonType& j, EnumType& e)
 {
-    typename std::underlying_type<EnumType>::type val;
+    typename std::underlying_type<EnumType>::type val{};
     get_arithmetic_value(j, val);
     e = static_cast<EnumType>(val);
 }
@@ -4779,7 +4781,7 @@ auto from_json_array_impl(const BasicJsonType& j, ConstructibleArrayType& arr, p
 {
     using std::end;
 
-    ConstructibleArrayType ret;
+    ConstructibleArrayType ret{};
     ret.reserve(j.size());
     std::transform(j.begin(), j.end(),
                    std::inserter(ret, end(ret)), [](const BasicJsonType & i)
@@ -4800,7 +4802,7 @@ inline void from_json_array_impl(const BasicJsonType& j, ConstructibleArrayType&
 {
     using std::end;
 
-    ConstructibleArrayType ret;
+    ConstructibleArrayType ret{};
     std::transform(
         j.begin(), j.end(), std::inserter(ret, end(ret)),
         [](const BasicJsonType & i)
@@ -4872,7 +4874,7 @@ inline void from_json(const BasicJsonType& j, ConstructibleObjectType& obj)
         JSON_THROW(type_error::create(302, concat("type must be object, but is ", j.type_name()), &j));
     }
 
-    ConstructibleObjectType ret;
+    ConstructibleObjectType ret{};
     const auto* inner_object = j.template get_ptr<const typename BasicJsonType::object_t*>();
     using value_type = typename ConstructibleObjectType::value_type;
     std::transform(
@@ -9361,7 +9363,7 @@ class binary_reader
             case 0x02: // string
             {
                 std::int32_t len{};
-                string_t value;
+                string_t value{};
                 return get_number<std::int32_t, true>(input_format_t::bson, len) && get_bson_string(len, value) && sax->string(value);
             }
 
@@ -9378,7 +9380,7 @@ class binary_reader
             case 0x05: // binary
             {
                 std::int32_t len{};
-                binary_t value;
+                binary_t value{};
                 return get_number<std::int32_t, true>(input_format_t::bson, len) && get_bson_binary(len, value) && sax->binary(value);
             }
 
@@ -9852,7 +9854,7 @@ class binary_reader
 
                     case cbor_tag_handler_t::store:
                     {
-                        binary_t b;
+                        binary_t b{};
                         // use binary subtype and store in binary container
                         switch (current)
                         {
@@ -10225,7 +10227,7 @@ class binary_reader
 
         if (len != 0)
         {
-            string_t key;
+            string_t key{};
             if (len != static_cast<std::size_t>(-1))
             {
                 for (std::size_t i = 0; i < len; ++i)
@@ -10875,7 +10877,7 @@ class binary_reader
             return false;
         }
 
-        string_t key;
+        string_t key{};
         for (std::size_t i = 0; i < len; ++i)
         {
             get();
@@ -11681,7 +11683,7 @@ class binary_reader
                                     exception_message(input_format, "BJData object does not support ND-array size in optimized format", "object"), nullptr));
         }
 
-        string_t key;
+        string_t key{};
         if (size_and_type.first != npos)
         {
             if (JSON_HEDLEY_UNLIKELY(!sax->start_object(size_and_type.first)))
@@ -14530,7 +14532,7 @@ class json_pointer
             JSON_THROW(detail::type_error::create(314, "only objects can be unflattened", &value));
         }
 
-        BasicJsonType result;
+        BasicJsonType result{};
 
         // iterate the JSON object values
         for (const auto& element : *value.m_value.object)
@@ -16756,7 +16758,7 @@ class binary_writer
     {
         static_assert(sizeof(std::uint8_t) == sizeof(CharType), "size of CharType must be equal to std::uint8_t");
         static_assert(std::is_trivial<CharType>::value, "CharType must be trivial");
-        CharType result;
+        CharType result{};
         std::memcpy(&result, &x, sizeof(x));
         return result;
     }
@@ -16870,7 +16872,7 @@ Target reinterpret_bits(const Source source)
 {
     static_assert(sizeof(Target) == sizeof(Source), "size mismatch");
 
-    Target target;
+    Target target{};
     std::memcpy(&target, &source, sizeof(Source));
     return target;
 }
@@ -20483,7 +20485,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
                   const bool ensure_ascii = false,
                   const error_handler_t error_handler = error_handler_t::strict) const
     {
-        string_t result;
+        string_t result{};
         serializer s(detail::output_adapter<char, string_t>(result), indent_char, error_handler);
 
         if (indent >= 0)
@@ -23333,7 +23335,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
                           const bool strict = true,
                           const bool ignore_comments = false)
     {
-        auto ia = i.get();
+        detail::contiguous_bytes_input_adapter ia = i.get();
         return format == input_format_t::json
                // NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
                ? parser(std::move(ia), nullptr, true, ignore_comments).sax_parse(sax, strict)
@@ -23597,7 +23599,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
     {
         basic_json result;
         detail::json_sax_dom_parser<basic_json> sdp(result, allow_exceptions);
-        auto ia = i.get();
+        detail::contiguous_bytes_input_adapter ia = i.get();
         // NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
         const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
         return res ? result : basic_json(value_t::discarded);
@@ -23651,7 +23653,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
     {
         basic_json result;
         detail::json_sax_dom_parser<basic_json> sdp(result, allow_exceptions);
-        auto ia = i.get();
+        detail::contiguous_bytes_input_adapter ia = i.get();
         // NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
         const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
         return res ? result : basic_json(value_t::discarded);
@@ -23705,7 +23707,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
     {
         basic_json result;
         detail::json_sax_dom_parser<basic_json> sdp(result, allow_exceptions);
-        auto ia = i.get();
+        detail::contiguous_bytes_input_adapter ia = i.get();
         // NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
         const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
         return res ? result : basic_json(value_t::discarded);
@@ -23790,7 +23792,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
     {
         basic_json result;
         detail::json_sax_dom_parser<basic_json> sdp(result, allow_exceptions);
-        auto ia = i.get();
+        detail::contiguous_bytes_input_adapter ia = i.get();
         // NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
         const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
         return res ? result : basic_json(value_t::discarded);

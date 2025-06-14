@@ -4,11 +4,11 @@
 #include "Core/Engine.h"
 #include "Graphics/Color.h"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <fstream>
 #include <optional>
 #include <sstream>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 namespace SnackerEngine
 {
@@ -250,7 +250,7 @@ namespace SnackerEngine
 		if (loadedShadersCount >= maxShaders)
 		{
 			// Resize vector and add new available shaderID slots accordingly. For now: double size everytime this happens and send warning!
-			shaderDataArray.resize(maxShaders * 2 + 1);
+			shaderDataArray.resize(static_cast<std::size_t>(maxShaders) * 2 + 1);
 			for (ShaderID id = maxShaders + 1; id <= 2 * maxShaders; ++id)
 			{
 				availableShaderIDs.push(id);
@@ -274,7 +274,7 @@ namespace SnackerEngine
 			availableShaderIDs.push(id);
 		}
 		// shaderDataArray[0] stores the default shader
-		shaderDataArray.resize(startingSize + 1);
+		shaderDataArray.resize(static_cast<std::size_t>(startingSize) + 1);
 		maxShaders = startingSize;
 		// Load default shader!
 		auto GPU_ID = loadAndCompileShader(std::string(defaultShaderPath));

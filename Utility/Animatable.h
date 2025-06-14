@@ -2,6 +2,8 @@
 
 #include <functional>
 #include "AnimationFunctions.h"
+#include "Handles\VariableHandle.h"
+#include "Conversions.h"
 
 namespace SnackerEngine
 {
@@ -36,9 +38,10 @@ namespace SnackerEngine
 	private:
 		T startVal;
 		T stopVal;
+		VariableHandle<T> variableHandle;
 	protected:
 		/// This function is called whenever the current value changes. Can be overwritten
-		virtual void onAnimate(const T& currentVal) {};
+		virtual void onAnimate(const T& currentVal);
 	public:
 		ValueAnimatable(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		/// Updates the animation with timestep dt. Can be overwritten for custom animation procedure.
@@ -46,10 +49,17 @@ namespace SnackerEngine
 		/// Getters
 		const T& getStartVal() const { return startVal; }
 		const T& getStopVal() const { return stopVal; }
+		VariableHandle<T>& getVariableHandle() { return variableHandle; }
 		/// Setters
 		void setStartVal(const T& startVal);
 		void setStopVal(const T& stopVal);
 	};
+
+	template<typename T>
+	inline void ValueAnimatable<T>::onAnimate(const T& currentVal)
+	{
+		variableHandle = currentVal;
+	}
 
 	template<typename T>
 	inline ValueAnimatable<T>::ValueAnimatable(const T& startVal, const T& stopVal, double duration, std::function<double(double)> animationFunction)
@@ -60,7 +70,7 @@ namespace SnackerEngine
 	{
 		time = std::min(time + dt, duration);
 		double percentage = animationFunction(time / duration);
-		onAnimate(startVal + (stopVal - startVal) * percentage);
+		onAnimate(interpolate(startVal, stopVal, percentage));
 	}
 
 	template<typename T>

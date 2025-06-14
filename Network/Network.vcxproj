@@ -79,6 +79,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Network;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -86,7 +87,8 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)x64/Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Utility.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>Math.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalOptions>/NODEFAULTLIB %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,7 +112,8 @@
     <Lib />
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)x64/Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Utility.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>Math.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalOptions>/NODEFAULTLIB %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,6 +125,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Network;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,7 +133,8 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)x64/Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Utility.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>Math.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalOptions>/VERBOSE  /NODEFAULTLIB %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,7 +158,8 @@
     <Lib />
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)x64/Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Utility.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>Math.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalOptions>/NODEFAULTLIB %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

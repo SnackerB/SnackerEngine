@@ -7,11 +7,10 @@
 #include "Gui/GuiManager.h"
 #include "Utility\Random.h"
 
+#include <filesystem>
+#include <shellscalingapi.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <filesystem>
-
-#include <shellscalingapi.h>
 
 namespace SnackerEngine
 {

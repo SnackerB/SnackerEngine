@@ -38,9 +38,9 @@ namespace SnackerEngine
 			return *this;
 		}
 		case LOGGER::ENDL:
-		{
 			return *(static_cast<Logger*>(this)) << '\n';
-		}
+		default:
+			return *this;
 		}
 	}
 	//------------------------------------------------------------------------------------------------------

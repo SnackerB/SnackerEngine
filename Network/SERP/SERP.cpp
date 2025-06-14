@@ -110,37 +110,30 @@ namespace SnackerEngine
 
 	bool SERPMessage::serializeDestinations(BufferView buffer)
 	{
+		if (destinations.empty()) return true;
 		if (buffer.size() != sizeof(uint16_t) * destinations.size()) return false;
 		if (destinations.size() != header.destination) return false;
-		destinationsToNetworkByteOrder();
-		memcpy(&buffer[0], &destinations[0], sizeof(uint16_t)*destinations.size());
-		destinationsToHostByteOrder();
+		std::size_t offset = 0;
+		uint16_t temp;
+		for (auto it = destinations.begin(); it != destinations.end(); ++it) {
+			temp = *it;
+			temp = htons(temp);
+			memcpy(&buffer[offset], &temp, sizeof(uint16_t));
+			offset += sizeof(uint16_t);
+		}
 		return true;
 	}
 
-	std::vector<SERPID> SERPMessage::parseDestinations(ConstantBufferView bufferView, std::uint16_t count)
+	std::unordered_set<uint16_t> SERPMessage::parseDestinations(ConstantBufferView bufferView, std::uint16_t count)
 	{
 		if (bufferView.size() != count * sizeof(uint16_t)) return {};
-		std::vector<SERPID> destinations(count);
-		memcpy(&destinations[0], &(bufferView[0]), sizeof(uint16_t) * count);
-		for (std::size_t i = 0; i < destinations.size(); ++i) {
-			destinations[i] = ntohs(destinations[i]);
+		std::unordered_set<uint16_t> destinations;
+		for (std::size_t i = 0; i < count; ++i) {
+			std::uint16_t destination;
+			memcpy(&destination, &bufferView[i * sizeof(uint16_t)], sizeof(uint16_t));
+			destinations.insert(ntohs(destination));
 		}
 		return destinations;
-	}
-
-	void SERPMessage::destinationsToNetworkByteOrder()
-	{
-		for (std::size_t i = 0; i < destinations.size(); ++i) {
-			destinations[i] = htons(destinations[i]);
-		}
-	}
-
-	void SERPMessage::destinationsToHostByteOrder()
-	{
-		for (std::size_t i = 0; i < destinations.size(); ++i) {
-			destinations[i] = ntohs(destinations[i]);
-		}
 	}
 
 	SERPMessage::SERPMessage(const SERPMessage& other)
@@ -166,8 +159,20 @@ namespace SnackerEngine
 	void SERPMessage::addDestination(SERPID destination)
 	{
 		header.setMultiSendFlag(true);
-		destinations.push_back(destination);
+		destinations.insert(destination);
 		header.destination = static_cast<uint16_t>(destinations.size());
+	}
+
+	void SERPMessage::removeDestination(SERPID destination)
+	{
+		destinations.erase(destination);
+		header.destination = static_cast<uint16_t>(destinations.size());
+	}
+
+	void SERPMessage::clearDestinations()
+	{
+		destinations.clear();
+		header.destination = 0;
 	}
 
 	void SERPRequest::finalize()
@@ -178,7 +183,7 @@ namespace SnackerEngine
 	SERPRequest::SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content)
 		: SERPMessage(header), target(target), content(content.copyBytes()) {}
 
-	SERPRequest::SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content, std::vector<SERPID> destinations)
+	SERPRequest::SERPRequest(SERPHeader header, const std::string& target, ConstantBufferView content, std::unordered_set<uint16_t> destinations)
 		: SERPMessage(header, std::move(destinations)), target(target), content(content.copyBytes()) {}
 
 	std::unique_ptr<SERPRequest> SERPRequest::parse(const SERPHeader& header, ConstantBufferView buffer)
@@ -186,11 +191,11 @@ namespace SnackerEngine
 		// Check if content has correct length
 		if (header.contentLength != buffer.size()) return nullptr;
 		// Check if multisend and parse destinations
-		std::vector<SERPID> destinations{};
+		std::unordered_set<uint16_t> destinations{};
 		if (header.getMultiSendFlag()) {
 			if (buffer.size() < header.destination * sizeof(uint16_t)) return nullptr;
+			destinations = std::move(parseDestinations(buffer.getBufferView(0, header.destination*sizeof(uint16_t)), header.destination));
 			if (destinations.size() != header.destination) return nullptr;
-			destinations = std::move(parseDestinations(buffer.getBufferView(0, header.destination), header.destination));
 			buffer = buffer.getBufferView(header.destination * sizeof(uint16_t));
 		}
 		// Find first newline to parse target string
@@ -271,7 +276,7 @@ namespace SnackerEngine
 	SERPResponse::SERPResponse(SERPHeader header, ConstantBufferView content)
 		: SERPMessage(header), content(content.copyBytes()) {}
 
-	SERPResponse::SERPResponse(SERPHeader header, ConstantBufferView content, std::vector<SERPID> destinations)
+	SERPResponse::SERPResponse(SERPHeader header, ConstantBufferView content, std::unordered_set<uint16_t> destinations)
 		: SERPMessage(header, std::move(destinations)), content(content.copyBytes()) {}
 
 	SERPResponse::SERPResponse(uint32_t messageID)
@@ -284,7 +289,7 @@ namespace SnackerEngine
 		// Check if multisend and parse destinations
 		if (header.getMultiSendFlag()) {
 			if (buffer.size() < header.destination * sizeof(uint16_t)) return nullptr;
-			std::vector<SERPID> destinations = std::move(parseDestinations(buffer.getBufferView(0, header.destination), header.destination));
+			std::unordered_set<uint16_t> destinations = std::move(parseDestinations(buffer.getBufferView(0, header.destination), header.destination));
 			if (destinations.size() != header.destination) return nullptr;
 			buffer = buffer.getBufferView(header.destination * sizeof(uint16_t));
 			// Return new message

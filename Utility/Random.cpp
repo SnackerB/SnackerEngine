@@ -8,7 +8,7 @@ namespace SnackerEngine
 
 	void initializeRNG()
 	{
-		std::srand(std::time(NULL));
+		std::srand(static_cast<unsigned int>(std::time(NULL)));
 		randomEngine.seed(std::rand());
 	}
 
@@ -18,7 +18,7 @@ namespace SnackerEngine
 		return dist(randomEngine);
 	}
 
-	float randomDouble(double min, double max)
+	double randomDouble(double min, double max)
 	{
 		static std::uniform_real_distribution<double> dist(min, max);
 		return dist(randomEngine);

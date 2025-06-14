@@ -64,7 +64,7 @@ namespace SnackerEngine
 		if (loadedMeshesCount >= maxMeshes)
 		{
 			// Resize vector and add new available meshID slots accordingly. For now: double size everytime this happens and send warning!
-			meshDataArray.resize(maxMeshes * 2 + 1);
+			meshDataArray.resize(static_cast<std::size_t>(maxMeshes) * 2 + 1);
 			for (MeshID id = maxMeshes + 1; id <= 2 * maxMeshes; ++id)
 			{
 				availableMeshIDs.push(id);
@@ -88,7 +88,7 @@ namespace SnackerEngine
 			availableMeshIDs.push(id);
 		}
 		// meshDataArray[0] stores the default/invalid mesh. TODO: Maybe add default mesh?
-		meshDataArray.resize(startingSize + 1);
+		meshDataArray.resize(static_cast<std::size_t>(startingSize) + 1);
 		maxMeshes = startingSize;
 	}
 	//------------------------------------------------------------------------------------------------------

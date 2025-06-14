@@ -8,6 +8,7 @@
 #include "Gui/Text/Unicode.h"
 #include "Core\Assert.h"
 
+#include <fstream>
 #include <msdfgen.h>
 #include <msdfgen-ext.h>
 #include <msdf-atlas-gen.h>
@@ -16,7 +17,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "External\nlohmann_json\json.hpp"
-#include <fstream>
 
 namespace SnackerEngine
 {

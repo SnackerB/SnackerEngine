@@ -1,1 +1,2 @@
 C:\Users\benja\Documents\dev\SnackerEngine\SnackerEngine\SnackerEngine\Dependencies\freetype-2.12.1\objs\x64\Release Static\freetype.lib
+D:\dev\SnackerEngine\Dependencies\freetype-2.12.1\objs\x64\Release Static\freetype.lib
