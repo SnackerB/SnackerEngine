@@ -9,7 +9,8 @@
 namespace SnackerEngine
 {
 
-	/// Forward declaration of BufferView
+	/// Forward declaration of Buffer and BufferView
+	class Buffer;
 	class BufferView;
 
 	/// A constant bufferView is a view into a (partial) buffer, that is not allowed to

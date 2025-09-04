@@ -1,0 +1,3 @@
+/media/benjamin/Data2/dev/SnackerEngine/Utility/CMakeFiles/Utility.dir
+/media/benjamin/Data2/dev/SnackerEngine/Utility/CMakeFiles/edit_cache.dir
+/media/benjamin/Data2/dev/SnackerEngine/Utility/CMakeFiles/rebuild_cache.dir

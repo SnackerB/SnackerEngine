@@ -1,7 +1,7 @@
 #include "Alignment.h"
 #include "Json.h"
 
-#include "External\nlohmann_json\json.hpp"
+#include "External/nlohmann_json/json.hpp"
 
 namespace SnackerEngine
 {

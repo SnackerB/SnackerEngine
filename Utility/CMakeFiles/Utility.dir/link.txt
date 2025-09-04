@@ -1,0 +1,2 @@
+/usr/bin/ar qc libUtility.a CMakeFiles/Utility.dir/Alignment.cpp.o CMakeFiles/Utility.dir/Animatable.cpp.o CMakeFiles/Utility.dir/AnimationFunctions.cpp.o CMakeFiles/Utility.dir/base64.cpp.o CMakeFiles/Utility.dir/Buffer.cpp.o CMakeFiles/Utility.dir/Conversions.cpp.o CMakeFiles/Utility.dir/Formatting.cpp.o CMakeFiles/Utility.dir/Json.cpp.o CMakeFiles/Utility.dir/Random.cpp.o CMakeFiles/Utility.dir/Timer.cpp.o CMakeFiles/Utility.dir/Handles/EventHandle.cpp.o CMakeFiles/Utility.dir/Handles/VectorEventHandle.cpp.o
+/usr/bin/ranlib libUtility.a

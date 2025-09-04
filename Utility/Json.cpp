@@ -63,35 +63,35 @@ namespace SnackerEngine
 
 	template<> std::string parseJSON(const nlohmann::json& json, JsonTag<std::string> tag)
 	{
-		return std::string(json);
+		return static_cast<std::string>(json);
 	}
 	template<> std::size_t parseJSON(const nlohmann::json& json, JsonTag<std::size_t> tag)
 	{
-		return std::size_t(json);
+		return static_cast<std::size_t>(json);
 	}
 	template<> int parseJSON(const nlohmann::json& json, JsonTag<int> tag)
 	{
-		return int(json);
+		return static_cast<int>(json);
 	}
 	template<> long long int parseJSON(const nlohmann::json& json, JsonTag<long long int> tag)
 	{
-		return long long int(json);
+		return static_cast<long long int>(json);
 	}
 	template<> unsigned parseJSON(const nlohmann::json& json, JsonTag<unsigned> tag)
 	{
-		return unsigned(json);
+		return static_cast<unsigned>(json);
 	}
 	template<> float parseJSON(const nlohmann::json& json, JsonTag<float> tag)
 	{
-		return float(json);
+		return static_cast<float>(json);
 	}
 	template<> double parseJSON(const nlohmann::json& json, JsonTag<double> tag)
 	{
-		return double(json);
+		return static_cast<double>(json);
 	}
 	template<> bool parseJSON(const nlohmann::json& json, JsonTag<bool> tag)
 	{
-		return bool(json);
+		return static_cast<bool>(json);
 	}
 
 }

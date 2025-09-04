@@ -1,5 +1,6 @@
 #include "Random.h"
 #include <random>
+#include <ctime>
 
 namespace SnackerEngine
 {
@@ -8,7 +9,7 @@ namespace SnackerEngine
 
 	void initializeRNG()
 	{
-		std::srand(static_cast<unsigned int>(std::time(NULL)));
+		std::srand(static_cast<unsigned int>(time(NULL)));
 		randomEngine.seed(std::rand());
 	}
 

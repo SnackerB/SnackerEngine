@@ -2,7 +2,7 @@
 
 #include <functional>
 #include "AnimationFunctions.h"
-#include "Handles\VariableHandle.h"
+#include "Handles/VariableHandle.h"
 #include "Conversions.h"
 
 namespace SnackerEngine

@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 #include <cmath>
+#include <cstdint>
 
 #ifdef min
 #undef min
