@@ -40,7 +40,7 @@ namespace SnackerEngine
 		/// Tries to receive messages through the endpoint
 		std::vector<std::unique_ptr<SERPMessage>> receiveMessages();
 		/// Finalizes and sends a given message
-		void finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
+		bool finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
 		/// Finalizes a message, but doesn't send it.
 		void finalizeMessage(SERPMessage& message, bool setMessageID = true);
 		/// sends a message (message should already be finalized)

@@ -70,12 +70,12 @@ namespace SnackerEngine
 		return std::move(result.first);
 	}
 
-	void SERPEndpoint::finalizeAndSendMessage(SERPMessage& message, bool setMessageID)
+	bool SERPEndpoint::finalizeAndSendMessage(SERPMessage& message, bool setMessageID)
 	{
 		if (message.isRequest() && setMessageID) message.header.messageID = nextMessageID++;
 		message.finalize();
 		Buffer buffer = message.serialize();
-		endpointTCP.sendData(buffer.getBufferView());
+		return endpointTCP.sendData(buffer.getBufferView());
 	}
 
 	void SERPEndpoint::finalizeMessage(SERPMessage& message, bool setMessageID)
