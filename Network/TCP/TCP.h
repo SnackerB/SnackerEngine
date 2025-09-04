@@ -3,13 +3,15 @@
 #include <optional>
 #include <memory>
 
-#include "Utility\Buffer.h"
+#include "Utility/Buffer.h"
 
 #ifdef _WINDOWS
 #include <winsock2.h>
 #endif
 #ifdef _LINUX
-// TODO
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #endif
 
 #ifdef ERROR
@@ -22,12 +24,12 @@ namespace SnackerEngine
 	struct SocketTCP {
 #ifdef _WINDOWS
 		SOCKET sock;
-		sockaddr_in addr;
-		bool valid;
 #endif
 #ifdef _LINUX
-		// TODO
+		int sock;
 #endif
+		sockaddr_in addr;
+		bool valid;
 		/// Constructor
 		SocketTCP();
 		/// Destructor

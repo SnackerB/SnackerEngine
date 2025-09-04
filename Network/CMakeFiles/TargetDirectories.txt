@@ -1,0 +1,3 @@
+/media/benjamin/Data2/dev/SnackerEngine/Network/CMakeFiles/Network.dir
+/media/benjamin/Data2/dev/SnackerEngine/Network/CMakeFiles/edit_cache.dir
+/media/benjamin/Data2/dev/SnackerEngine/Network/CMakeFiles/rebuild_cache.dir

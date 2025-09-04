@@ -4,7 +4,7 @@
 #include <ostream>
 #include <sstream>
 
-#include "Utility\Formatting.h"
+#include "Utility/Formatting.h"
 
 namespace SnackerEngine
 {
@@ -51,7 +51,7 @@ namespace SnackerEngine
 		T dot(const Vec2<T>& other) const { return x * other.x + y * other.y; }
 		/// Explicit conversions
 		template<typename T2>
-		Vec2<T>(const Vec2<T2>& other);
+		Vec2(const Vec2<T2>& other);
 	};
 	//------------------------------------------------------------------------------------------------------
 	/// 3-dimensional Vector
@@ -94,7 +94,7 @@ namespace SnackerEngine
 		T squaredMagnitude() const { return x * x + y * y + z * z; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
 		void normalize();
-		Vec3<T> cross(const Vec3<T>& other) const { return Vec3<T>(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x); }
+		Vec3 cross(const Vec3<T>& other) const { return Vec3<T>(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x); }
 		T dot(const Vec3<T>& other) const { return x * other.x + y * other.y + z * other.z; }
 		/// Explicit conversions
 		template<typename T2>

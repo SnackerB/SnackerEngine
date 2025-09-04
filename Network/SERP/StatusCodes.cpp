@@ -1,5 +1,5 @@
-#include "SERP\StatusCodes.h"
-#include "Utility\Formatting.h"
+#include "StatusCodes.h"
+#include "Utility/Formatting.h"
 
 namespace SnackerEngine
 {
@@ -47,13 +47,13 @@ namespace SnackerEngine
 	template<typename T>
 	std::ostream& operator<<(std::ostream& ostream, const RequestStatusCode& requestStatusCode)
 	{
-		ostream << to_string(requestStatusCode);
+		return ostream << to_string(requestStatusCode);
 	}
 
 	template<typename T>
 	std::ostream& operator<<(std::ostream& ostream, const ResponseStatusCode& responseStatusCode)
 	{
-		ostream << to_string(responseStatusCode);
+		return ostream << to_string(responseStatusCode);
 	}
 
 }

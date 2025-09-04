@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Network\TCP\TCPEndpoint.h"
-#include "Network\SERP\SERP.h"
+#include "Network/TCP/TCPEndpoint.h"
+#include "SERP.h"
 
 namespace SnackerEngine
 {

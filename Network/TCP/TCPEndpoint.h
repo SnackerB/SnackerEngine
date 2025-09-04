@@ -1,6 +1,6 @@
 #pragma once
-#include "Utility\Buffer.h"
-#include "Network\TCP\TCP.h"
+#include "Utility/Buffer.h"
+#include "TCP.h"
 
 namespace SnackerEngine
 {

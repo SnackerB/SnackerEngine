@@ -1,6 +1,14 @@
-#include "Network\SERP\SERP.h"
+#include "SERP.h"
+#include "Utility/Formatting.h"
+
+#ifdef _WINDOWS
 #include <WinSock2.h>
-#include "Utility\Formatting.h"
+#endif // _WINDOWS
+#ifdef _LINUX
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#endif // _LINUX
 
 namespace SnackerEngine
 {

@@ -3,6 +3,10 @@
 #include <string>
 #include <optional>
 
+#ifdef _LINUX
+#include <cstdint>
+#endif // _LINUX
+
 namespace SnackerEngine
 {
 
@@ -17,7 +21,7 @@ namespace SnackerEngine
 		SERPID(unsigned int id = 0)
 			: id{ id < 10000 ? id : 9999 } {}
 		SERPID(uint16_t id)
-			: SERPID(unsigned int(id)) {}
+			: SERPID(static_cast<unsigned int>(id)) {}
 		operator unsigned int() const { return id; }
 		static const SERPID SERVER_ID;
 	};

@@ -1,9 +1,21 @@
+#include "TCP.h"
+
+#ifdef _WINDOWS
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <tchar.h>
-#include <iostream>
+#endif // _WINDOWS
+#ifdef _LINUX
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <cerrno>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#endif // _LINUX
 
-#include "TCP/TCP.h"
+#include <iostream>
 
 namespace SnackerEngine
 {
@@ -24,7 +36,12 @@ namespace SnackerEngine
 		sockaddr_in result{};
 		memset(&result, 0, sizeof(sockaddr_in));
 		result.sin_family = AF_INET;
+#ifdef _WINDOWS
 		InetPton(AF_INET, _T("127.0.0.1"), &result.sin_addr.s_addr);
+#endif // _WINDOWS
+#ifdef _LINUX
+		inet_pton(AF_INET, "127.0.0.1", &result.sin_addr.s_addr);
+#endif // _LINUX
 		result.sin_port = htons(getSERPServerPort());
 		return result;
 	}
@@ -41,7 +58,12 @@ namespace SnackerEngine
 	{
 		SocketTCP result{};
 		// Create socket
+#ifdef _WINDOWS
 		result.sock = socket(AF_INET, SOCK_STREAM, NULL);
+#endif // _WINDOWS
+#ifdef _LINUX
+		result.sock = socket(AF_INET, SOCK_STREAM, 0);
+#endif // _LINUX
 		if (result.sock == -1) return std::nullopt;
 		// bind socket to port
 		result.addr.sin_family = AF_INET;
@@ -53,8 +75,16 @@ namespace SnackerEngine
 
 	bool setToNonBlocking(SocketTCP& socket)
 	{
+#ifdef _WINDOWS
 		u_long mode = 1;  // 1 to enable non-blocking socket
 		return ioctlsocket(socket.sock, FIONBIO, &mode) == 0;
+#endif // _WINDOWS
+#ifdef _LINUX
+		int flags = fcntl(socket.sock, F_GETFL, 0);
+    	if (flags == -1) return false;
+    	flags |= O_NONBLOCK;
+    	return (fcntl(socket.sock, F_SETFL, flags) != -1);
+#endif // _LINUX
 	}
 
 	bool markAsListen(SocketTCP& socket, int backlog_queue_size)
@@ -80,6 +110,7 @@ namespace SnackerEngine
 			return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
 		}
 		else {
+#ifdef _WINDOWS
 			int error = WSAGetLastError();
 			if (error == WSAEINPROGRESS || error == WSAEWOULDBLOCK || error == WSAEALREADY) {
 				return ConnectResult{ ConnectResult::Result::PENDING, 0 };
@@ -91,6 +122,20 @@ namespace SnackerEngine
 			else {
 				return ConnectResult{ ConnectResult::Result::ERROR, error };
 			}
+#endif // _WINDOWS
+#ifdef _LINUX
+			int error = errno;
+			if (error == EINPROGRESS || error == EWOULDBLOCK || error == EALREADY) {
+				return ConnectResult{ ConnectResult::Result::PENDING, 0 };
+			}
+			else if (error == EISCONN) {
+				socket.valid = true;
+				return ConnectResult{ ConnectResult::Result::SUCCESS, 0 };
+			}
+			else {
+				return ConnectResult{ ConnectResult::Result::ERROR, error };
+			}
+#endif // _LINUX
 		}
 	}
 
@@ -103,8 +148,14 @@ namespace SnackerEngine
 	{
 		int result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
 		if (result >= 0) return true;
+#ifdef _WINDOWS
 		int error = WSAGetLastError();
 		if (error == WSAEWOULDBLOCK) return true;
+#endif // _WINDOWS
+#ifdef _LINUX
+		int error = errno;
+		if (error == EWOULDBLOCK) return true;
+#endif // _LINUX
 		else {
 			std::cout << "send() failed with error code " << error << std::endl;
 			return false;
@@ -115,15 +166,26 @@ namespace SnackerEngine
 	{
 		std::vector<std::byte> data{};
 		while (true) {
+#ifdef _WINDOWS
 			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), static_cast<int>(storageBuffer.size()), NULL);
+#endif // _WINDOWS
+#ifdef _LINUX
+			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), static_cast<int>(storageBuffer.size()), 0);
+#endif // _LINUX
 			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
 				return std::move(Buffer(std::move(data)));
 			}
 			else {
+#ifdef _WINDOWS
 				int error = WSAGetLastError();
 				if (error == WSAEMSGSIZE) {
+#endif // _WINDOWS
+#ifdef _LINUX
+				int error = errno;
+				if (error == EMSGSIZE) {
+#endif // _LINUX
 					data.resize(data.size() + storageBuffer.size());
 					memcpy(&(data[0]), storageBuffer.getDataPtr(), storageBuffer.size());
 				}
@@ -140,18 +202,32 @@ namespace SnackerEngine
 	{
 		std::vector<std::byte> data{};
 		while (true) {
+#ifdef _WINDOWS
 			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), static_cast<int>(storageBuffer.size()), NULL);
+#endif // _WINDOWS
+#ifdef _LINUX
+			int result = recv(socket.sock, (char*)storageBuffer.getDataPtr(), static_cast<int>(storageBuffer.size()), 0);
+#endif // _LINUX			
 			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
 				return std::move(Buffer(std::move(data)));
 			}
 			else {
+#ifdef _WINDOWS
 				int error = WSAGetLastError();
 				if (error == WSAEWOULDBLOCK) {
 					return {};
 				}
 				if (error == WSAEMSGSIZE) {
+#endif // _WINDOWS
+#ifdef _LINUX
+				int error = errno;
+				if (error == EWOULDBLOCK) {
+					return {};
+				}
+				if (error == EMSGSIZE) {
+#endif // _LINUX
 					data.resize(data.size() + storageBuffer.size());
 					memcpy(&(data[0]), storageBuffer.getDataPtr(), storageBuffer.size());
 				}
@@ -167,10 +243,18 @@ namespace SnackerEngine
 	std::optional<SocketTCP> acceptConnectionRequest(SocketTCP& socket)
 	{
 		SocketTCP newSocket{};
-		int addrLen = sizeof(sockaddr_in);
-		newSocket.sock = accept(socket.sock, (sockaddr*)&newSocket.addr, &addrLen);
-		if (newSocket.sock == -1) {
+#ifdef _WINDOWS
+			int addrLen = sizeof(sockaddr_in);
+			newSocket.sock = accept(socket.sock, (sockaddr*)&newSocket.addr, &addrLen);
+			if (newSocket.sock == -1) {
 			std::cout << "accept() failed with errorcode " << WSAGetLastError() << std::endl;
+#endif // _WINDOWS
+#ifdef _LINUX
+			unsigned int addrLen = sizeof(sockaddr_in);
+			newSocket.sock = accept(socket.sock, (sockaddr*)&newSocket.addr, &addrLen);
+			if (newSocket.sock == -1) {
+			std::cout << "accept() failed with error " << errno << " " << strerror(errno) << std::endl;
+#endif // _LINUX
 			return std::nullopt;
 		}
 		return std::move(newSocket);
@@ -182,8 +266,14 @@ namespace SnackerEngine
 	SocketTCP::~SocketTCP()
 	{
 		if (valid) {
+#ifdef _WINDOWS
 			int result = closesocket(sock);
 			if (result == -1) std::cout << "closesocket() failed with errorcode " << WSAGetLastError() << std::endl;
+#endif // _WINDOWS
+#ifdef _LINUX
+			int result = close(sock);
+			if (result == -1) std::cout << "close(sock) failed with error " << errno << " " << strerror(errno) << std::endl;
+#endif // _LINUX
 		}
 		//else {
 		//	// DEBUG
@@ -200,7 +290,12 @@ namespace SnackerEngine
 	SocketTCP& SocketTCP::operator=(SocketTCP&& other) noexcept
 	{
 		if (valid) {
+#ifdef _WINDOWS
 			closesocket(sock);
+#endif // _WINDOWS
+#ifdef _LINUX
+			close(sock);
+#endif // _LINUX
 		}
 		sock = other.sock;
 		addr = other.addr;
@@ -208,7 +303,5 @@ namespace SnackerEngine
 		other.valid = false;
 		return *this;
 	}
-
-	
 
 }

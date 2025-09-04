@@ -1,11 +1,12 @@
 #pragma once
 
+#include "Utility/Buffer.h"
+#include "StatusCodes.h"
+#include "SERPID.h"
+
 #include <inttypes.h>
 #include <string>
 #include <unordered_set>
-#include "Utility\Buffer.h"
-#include "Network\SERP\StatusCodes.h"
-#include "Network\SERP\SERPID.h"
 
 namespace SnackerEngine
 {

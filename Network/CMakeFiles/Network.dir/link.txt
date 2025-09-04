@@ -1,0 +1,2 @@
+/usr/bin/ar qc libNetwork.a CMakeFiles/Network.dir/Network.cpp.o CMakeFiles/Network.dir/TCP/TCP.cpp.o CMakeFiles/Network.dir/TCP/TCPEndpoint.cpp.o CMakeFiles/Network.dir/SERP/SERP.cpp.o CMakeFiles/Network.dir/SERP/SERPEndpoint.cpp.o CMakeFiles/Network.dir/SERP/SERPID.cpp.o CMakeFiles/Network.dir/SERP/StatusCodes.cpp.o
+/usr/bin/ranlib libNetwork.a

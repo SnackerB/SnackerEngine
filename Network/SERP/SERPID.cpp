@@ -1,16 +1,17 @@
-#include "SERP\SERPID.h"
+#include "SERPID.h"
+#include "Utility/Formatting.h"
+#include "Utility/Json.h"
+
 #include <random>
-#include "Utility\Formatting.h"
-#include "Utility\Json.h"
 
 namespace SnackerEngine
 {
 
-	const SERPID SERPID::SERVER_ID = unsigned int(0);
+	const SERPID SERPID::SERVER_ID = static_cast<unsigned int>(0);
 
 	SERPID getRandomSerpID()
 	{
-		return SERPID(unsigned int ((std::rand() % 9999) + 1));
+		return SERPID(static_cast<unsigned int>((std::rand() % 9999) + 1));
 	}
 	
 	template<>
