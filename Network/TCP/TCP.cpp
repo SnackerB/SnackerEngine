@@ -147,9 +147,9 @@ namespace SnackerEngine
 
 	std::size_t sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer)
 	{
-		std::size_t result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
+		int result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
 		std::cout << "sendToNonBlocking() called with buffer of size " << buffer.size() << ". Result = " << result << std::endl;
-		if (result >= 0) return result;
+		if (result >= 0) return std::size_t(result);
 #ifdef _WINDOWS
 		int error = WSAGetLastError();
 		if (error == WSAEWOULDBLOCK) {
