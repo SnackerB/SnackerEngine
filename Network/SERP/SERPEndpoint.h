@@ -2,6 +2,7 @@
 
 #include "Network/TCP/TCPEndpoint.h"
 #include "SERP.h"
+#include <queue>
 
 namespace SnackerEngine
 {
@@ -12,14 +13,18 @@ namespace SnackerEngine
 		uint32_t nextMessageID = 0;
 		/// The TCP Endpoint through which messages are received and sent
 		TCPEndpoint endpointTCP{};
-		/// Header of an unfinished message that is yet to be fully parsed
+		/// Header of an unfinished to be received message that is yet to be fully parsed
 		std::optional<SERPHeader> tempMessageHeader = std::nullopt;
-		/// Buffer storing the content of the temporary message
+		/// Buffer storing the content of the temporary message to be received
 		Buffer tempMessageBuffer{};
 		/// StorageBuffer used for storing partial messages
 		Buffer storageBuffer{};
 		/// Bytes left to parse for the temporary message
 		std::size_t tempMessageBytesLeftToParse = 0;
+		/// Queue of messages to be sent
+		std::queue<Buffer> messagesToBeSent{};
+		/// Number of bytes of the current messages that were already sent
+		int sentBytes{};
 		/// Helper function that parses as many messages as possible from the given buffer. Returns pointers to all fully parsed messages.
 		/// If a message is only partially obtained, it is placed in the temporaryMessage member variable. If at any point an error occurs,
 		/// eg. an invalid header is parsed, the parsing is aborted and all messages that were parsed up to this point are returned.
@@ -45,6 +50,10 @@ namespace SnackerEngine
 		void finalizeMessage(SERPMessage& message, bool setMessageID = true);
 		/// sends a message (message should already be finalized)
 		void sendMessage(SERPMessage& message);
+		/// Returns true if there are still (partly) unsent messages in the queue, in which case updateSend() should be called
+		bool isUnsentMessages() { return !messagesToBeSent.empty(); }
+		/// Performs one unblocking send call on the first message in the messagesToBeSent queue. Should be called regularly.
+		void updateSend(); // TODO: Implement
 	};
 
 }
