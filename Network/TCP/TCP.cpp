@@ -41,7 +41,7 @@ namespace SnackerEngine
 #endif // _WINDOWS
 #ifdef _LINUX
 		//inet_pton(AF_INET, "127.0.0.1", &result.sin_addr.s_addr);
-		inet_pton(AF_INET, "45.131.109.173", &result.sin_addr.s_addr);
+	    inet_pton(AF_INET, "45.131.109.173", &result.sin_addr.s_addr);
 #endif // _LINUX
 		result.sin_port = htons(getSERPServerPort());
 		return result;
@@ -145,28 +145,28 @@ namespace SnackerEngine
 		return send(socket.sock, (const char*) buffer.getDataPtr(), static_cast<int>(buffer.size()), 0) >= 0;
 	}
 
-	bool sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer)
+	std::size_t sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer)
 	{
-		int result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
+		std::size_t result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
 		std::cout << "sendToNonBlocking() called with buffer of size " << buffer.size() << ". Result = " << result << std::endl;
-		if (result >= 0) return true;
+		if (result >= 0) return result;
 #ifdef _WINDOWS
 		int error = WSAGetLastError();
 		if (error == WSAEWOULDBLOCK) {
 			std::cout << "endpointTCP: WSAEWOULDBLOCK detected." << std::endl; // DEBUG
-			return true;
+			return 0;
 		}
 #endif // _WINDOWS
 #ifdef _LINUX
 		int error = errno;
 		if (error == EWOULDBLOCK) {
 			std::cout << "endpointTCP: WSAEWOULDBLOCK detected." << std::endl; // DEBUG
-			return true;
+			return 0;
 		}
 #endif // _LINUX
 		else {
 			std::cout << "send() failed with error code " << error << std::endl;
-			return false;
+			return 0;
 		}
 	}
 

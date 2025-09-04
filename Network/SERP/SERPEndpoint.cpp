@@ -70,12 +70,13 @@ namespace SnackerEngine
 		return std::move(result.first);
 	}
 
-	bool SERPEndpoint::finalizeAndSendMessage(SERPMessage& message, bool setMessageID)
+	void SERPEndpoint::finalizeAndSendMessage(SERPMessage& message, bool setMessageID)
 	{
 		if (message.isRequest() && setMessageID) message.header.messageID = nextMessageID++;
 		message.finalize();
 		Buffer buffer = message.serialize();
-		return endpointTCP.sendData(buffer.getBufferView());
+		messagesToBeSent.push(std::move(buffer));
+		updateSend();
 	}
 
 	void SERPEndpoint::finalizeMessage(SERPMessage& message, bool setMessageID)
@@ -87,7 +88,24 @@ namespace SnackerEngine
 	void SERPEndpoint::sendMessage(SERPMessage& message)
 	{
 		Buffer buffer = message.serialize(); // TODO: I think we can do better here, just serialize the message ONCE!
-		endpointTCP.sendData(buffer.getBufferView());
+		messagesToBeSent.push(std::move(buffer));
+		updateSend();
+	}
+
+	void SERPEndpoint::updateSend()
+	{
+		while (!messagesToBeSent.empty()) {
+			sentBytes += endpointTCP.sendData(messagesToBeSent.front().getBufferView(sentBytes));
+			if (sentBytes >= messagesToBeSent.front().size()) {
+				messagesToBeSent.pop();
+				sentBytes = 0;
+			}
+			else {
+				// SendToNonBlocking returned before sending full message, this means we should wait a bit before
+				// calling updateSend() again next tick!
+				return;
+			}
+		}
 	}
 
 }

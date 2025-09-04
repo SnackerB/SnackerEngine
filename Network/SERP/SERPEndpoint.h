@@ -24,7 +24,7 @@ namespace SnackerEngine
 		/// Queue of messages to be sent
 		std::queue<Buffer> messagesToBeSent{};
 		/// Number of bytes of the current messages that were already sent
-		int sentBytes{};
+		std::size_t sentBytes{ 0 };
 		/// Helper function that parses as many messages as possible from the given buffer. Returns pointers to all fully parsed messages.
 		/// If a message is only partially obtained, it is placed in the temporaryMessage member variable. If at any point an error occurs,
 		/// eg. an invalid header is parsed, the parsing is aborted and all messages that were parsed up to this point are returned.
@@ -45,15 +45,15 @@ namespace SnackerEngine
 		/// Tries to receive messages through the endpoint
 		std::vector<std::unique_ptr<SERPMessage>> receiveMessages();
 		/// Finalizes and sends a given message
-		bool finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
+		void finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
 		/// Finalizes a message, but doesn't send it.
 		void finalizeMessage(SERPMessage& message, bool setMessageID = true);
 		/// sends a message (message should already be finalized)
 		void sendMessage(SERPMessage& message);
 		/// Returns true if there are still (partly) unsent messages in the queue, in which case updateSend() should be called
-		bool isUnsentMessages() { return !messagesToBeSent.empty(); }
+		bool hasUnsentMessages() { return !messagesToBeSent.empty(); }
 		/// Performs one unblocking send call on the first message in the messagesToBeSent queue. Should be called regularly.
-		void updateSend(); // TODO: Implement
+		void updateSend();
 	};
 
 }

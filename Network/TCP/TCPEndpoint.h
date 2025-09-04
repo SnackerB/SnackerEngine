@@ -26,8 +26,8 @@ namespace SnackerEngine
 		/// If no more data is to be received, the function will return earlier.
 		/// If 0.0 is passed as the wallTime, data is received until no new data is in the queue.
 		Buffer receiveData();
-		/// Tries to send data through the socket.
-		bool sendData(ConstantBufferView data);
+		/// Tries to send data through the socket. Returns the number of bytes sent.
+		std::size_t sendData(ConstantBufferView data);
 		/// Getters
 		const SocketTCP& getSocket() const { return socket; }
 		SocketTCP& getSocket() { return socket; }

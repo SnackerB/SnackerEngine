@@ -88,7 +88,8 @@ namespace SnackerEngine
 	bool sendTo(const SocketTCP& socket, ConstantBufferView buffer);
 
 	/// Tries to send data through the given socket, without blocking.
-	bool sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer);
+	/// Returns the number of bytes sent
+	std::size_t sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer);
 
 	/// Tries to receive data from the given socket.
 	/// This is a blocking operation. Data will first be transferred
