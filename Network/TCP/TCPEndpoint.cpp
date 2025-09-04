@@ -35,7 +35,7 @@ namespace SnackerEngine
 		return std::move(result.value());
 	}
 
-	bool TCPEndpoint::sendData(ConstantBufferView data)
+	std::size_t TCPEndpoint::sendData(ConstantBufferView data)
 	{
 		return sendToNonBlocking(socket, data);
 	}

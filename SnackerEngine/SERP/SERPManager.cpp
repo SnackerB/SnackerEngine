@@ -339,6 +339,7 @@ namespace SnackerEngine
 				// Else just keep sending messages
 				endpointSERP.sendMessage(*message);
 			}
+			while (endpointSERP.hasUnsentMessages()) endpointSERP.updateSend();
 		}
 	}
 
