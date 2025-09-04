@@ -148,6 +148,7 @@ namespace SnackerEngine
 	bool sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer)
 	{
 		int result = send(socket.sock, (const char*)buffer.getDataPtr(), static_cast<int>(buffer.size()), 0);
+		std::cout << "sendToNonBlocking() called with buffer of size " << buffer.size() << ". Result = " << result << std::endl;
 		if (result >= 0) return true;
 #ifdef _WINDOWS
 		int error = WSAGetLastError();
