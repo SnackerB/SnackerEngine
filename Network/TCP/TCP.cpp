@@ -32,15 +32,16 @@ namespace SnackerEngine
 
 	sockaddr_in getSERPServerAdressTCP()
 	{
-		// For now: local host
 		sockaddr_in result{};
 		memset(&result, 0, sizeof(sockaddr_in));
 		result.sin_family = AF_INET;
 #ifdef _WINDOWS
-		InetPton(AF_INET, _T("127.0.0.1"), &result.sin_addr.s_addr);
+		//InetPton(AF_INET, _T("127.0.0.1"), &result.sin_addr.s_addr);
+		InetPton(AF_INET, _T("45.131.109.173"), &result.sin_addr.s_addr);
 #endif // _WINDOWS
 #ifdef _LINUX
-		inet_pton(AF_INET, "127.0.0.1", &result.sin_addr.s_addr);
+		//inet_pton(AF_INET, "127.0.0.1", &result.sin_addr.s_addr);
+		inet_pton(AF_INET, "45.131.109.173", &result.sin_addr.s_addr);
 #endif // _LINUX
 		result.sin_port = htons(getSERPServerPort());
 		return result;
@@ -150,11 +151,17 @@ namespace SnackerEngine
 		if (result >= 0) return true;
 #ifdef _WINDOWS
 		int error = WSAGetLastError();
-		if (error == WSAEWOULDBLOCK) return true;
+		if (error == WSAEWOULDBLOCK) {
+			std::cout << "endpointTCP: WSAEWOULDBLOCK detected." << std::endl; // DEBUG
+			return true;
+		}
 #endif // _WINDOWS
 #ifdef _LINUX
 		int error = errno;
-		if (error == EWOULDBLOCK) return true;
+		if (error == EWOULDBLOCK) {
+			std::cout << "endpointTCP: WSAEWOULDBLOCK detected." << std::endl; // DEBUG
+			return true;
+		}
 #endif // _LINUX
 		else {
 			std::cout << "send() failed with error code " << error << std::endl;
