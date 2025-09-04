@@ -1,4 +1,4 @@
-# Install script for directory: /media/benjamin/Data2/dev/SnackerEngine/Math
+# Install script for directory: /root/bin/SnackerEngine/Math
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/media/benjamin/Data2/dev/SnackerEngine/Math/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/root/bin/SnackerEngine/Math/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
