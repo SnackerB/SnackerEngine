@@ -112,8 +112,9 @@ namespace SnackerEngine
 		std::unordered_map<std::uint32_t, std::vector<SentResponse>> sentResponses;
 		std::mutex sentResponsesMutex;
 		/// Queue containing messages to be sent.
-		std::queue<std::shared_ptr<SERPMessage>> messagesToBeSent;
-		std::mutex messagesToBeSentMutex;
+		std::queue<std::shared_ptr<SERPMessage>> messagesToBeSent{};
+		std::mutex messagesToBeSentMutex{};
+		std::atomic<bool> areMessagesToBeSent{ false };
 		/// Duration for how long sent responses are stored in the sentResponses map, in seconds.
 		double sentResponsesTimeout;
 		/// Sender and receiver threads
