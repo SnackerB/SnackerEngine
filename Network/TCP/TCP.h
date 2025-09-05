@@ -91,14 +91,21 @@ namespace SnackerEngine
 	/// Returns the number of bytes sent
 	std::size_t sendToNonBlocking(const SocketTCP& socket, ConstantBufferView buffer);
 
+	/// struct returned by receiveFrom()
+	struct ReceiveFromResult
+	{
+		std::optional<Buffer> buffer;
+		std::optional<int> error;
+	};
+
 	/// Tries to receive data from the given socket.
 	/// This is a blocking operation. Data will first be transferred
 	/// to the intermediate storageBuffer.
-	std::optional<Buffer> receiveFrom(const SocketTCP& socket, BufferView storageBuffer);
+	ReceiveFromResult receiveFrom(const SocketTCP& socket, BufferView storageBuffer);
 
 	/// Tries to receive data from the given socket, without blocking.
 	/// Data will first be transferred to the intermediate storageBuffer.
-	std::optional<Buffer> receiveFromNonBlocking(const SocketTCP& socket, BufferView storageBuffer);
+	ReceiveFromResult receiveFromNonBlocking(const SocketTCP& socket, BufferView storageBuffer);
 
 	/// Accepts a connection request on the given socket. The given socket should
 	/// be marked as listening. If currently no request is present, an empty optional

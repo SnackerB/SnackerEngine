@@ -42,8 +42,8 @@ namespace SnackerEngine
 		TCPEndpoint& getTCPEndpoint() { return endpointTCP; };
 		/// Tries to connect to SERP 
 		ConnectResult connectToSERPServer() { return endpointTCP.connectToSERPServer(); }
-		/// Tries to receive messages through the endpoint
-		std::vector<std::unique_ptr<SERPMessage>> receiveMessages();
+		/// Tries to receive messages through the endpoint. If std::nullopt is returned, this means there was an error when recieving.
+		std::optional<std::vector<std::unique_ptr<SERPMessage>>> receiveMessages();
 		/// Finalizes and sends a given message
 		void finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
 		/// Finalizes a message, but doesn't send it.

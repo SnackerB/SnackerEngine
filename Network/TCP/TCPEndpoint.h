@@ -22,10 +22,8 @@ namespace SnackerEngine
 		/// SUCCESS or ERROR.
 		ConnectResult connectToSERPServer();
 		/// Tries to receive data from the socket. Returns a buffer containing the received data.
-		/// wallTimeSeconds is the maximum time spent in this function before it returns.
-		/// If no more data is to be received, the function will return earlier.
-		/// If 0.0 is passed as the wallTime, data is received until no new data is in the queue.
-		Buffer receiveData();
+		/// If std::nullopt is returned, an error occured.
+		ReceiveFromResult receiveData();
 		/// Tries to send data through the socket. Returns the number of bytes sent.
 		std::size_t sendData(ConstantBufferView data);
 		/// Getters

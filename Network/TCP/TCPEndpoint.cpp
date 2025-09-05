@@ -28,11 +28,9 @@ namespace SnackerEngine
 		return connectToNonBlocking(socket, getSERPServerAdressTCP());
 	}
 
-	Buffer TCPEndpoint::receiveData()
+	ReceiveFromResult TCPEndpoint::receiveData()
 	{
-		std::optional<Buffer> result = receiveFromNonBlocking(socket, storageBuffer.getBufferView());
-		if (!result.has_value()) return Buffer{};
-		return std::move(result.value());
+		return receiveFromNonBlocking(socket, storageBuffer.getBufferView());
 	}
 
 	std::size_t TCPEndpoint::sendData(ConstantBufferView data)
