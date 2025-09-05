@@ -300,6 +300,7 @@ namespace SnackerEngine
 		{
 		std::lock_guard lock(messagesToBeSentMutex);
 		messagesToBeSent.push(std::move(message));
+		areMessagesToBeSent = true;
 		}
 		// Wake up sender thread
 		senderThreadConditionVariable.notify_one();
@@ -318,6 +319,9 @@ namespace SnackerEngine
 				message = std::move(messagesToBeSent.front());
 				messagesToBeSent.pop();
 			}
+			else {
+				areMessagesToBeSent = false;
+			}
 			// Before we send, unlock the queue again, st. other threads don't have to wait
 			lock.unlock();
 			// Now we can send the message
@@ -330,6 +334,9 @@ namespace SnackerEngine
 					if (!messagesToBeSent.empty()) {
 						message = std::move(messagesToBeSent.front());
 						messagesToBeSent.pop();
+					}
+					else {
+						areMessagesToBeSent = false;
 					}
 				}
 				// If we are disconnected, stop the thread
@@ -415,7 +422,6 @@ namespace SnackerEngine
 				receiverThread = std::thread(&SERPManager::runReceiverThread, this);
 				// Send SERPIDRequest
 				serpIDResponse = std::move(sendRequest(std::move(std::make_unique<SERPRequest>(unsigned int(0), RequestStatusCode::GET, "/serpID"))));
-				SnackerEngine::infoLogger << SnackerEngine::LOGGER::BEGIN << "Connected and sent SERP request!" << SnackerEngine::LOGGER::ENDL;
 				return { ConnectResult::Result::PENDING, "" };
 			}
 			else if (result.result == SnackerEngine::ConnectResult::Result::ERROR) {
@@ -583,6 +589,9 @@ namespace SnackerEngine
 		updateSentRequests(dt);
 		// Update all sentResponse objects
 		updateSentResponses(dt);
+		// If there are unsent messages, wake up sender thread (should happen automatically when a message is put
+		// into the messagesToBeSent queue, but problems can occur sometimes, eg. on thread startup)
+		if (areMessagesToBeSent) senderThreadConditionVariable.notify_one();
 	}
 
 	void SERPManager::disconnect()
