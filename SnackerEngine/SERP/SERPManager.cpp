@@ -372,9 +372,12 @@ namespace SnackerEngine
 			}
 			else if (incomingMesageFD.revents & POLLRDNORM) {
 				// We received a message!
-				std::vector<std::unique_ptr<SnackerEngine::SERPMessage>> result = std::move(endpointSERP.receiveMessages());
-				for (unsigned int i = 0; i < result.size(); ++i) {
-					handleReceivedMessage(std::move(result[i]));
+				std::optional<std::vector<std::unique_ptr<SnackerEngine::SERPMessage>>> result = std::move(endpointSERP.receiveMessages());
+				if (!result.has_value()) disconnect();
+				else {
+					for (unsigned int i = 0; i < result.value().size(); ++i) {
+						handleReceivedMessage(std::move(result.value()[i]));
+					}
 				}
 			}
 		}

@@ -55,14 +55,16 @@ namespace SnackerEngine
 		}
 	}
 
-	std::vector<std::unique_ptr<SERPMessage>> SERPEndpoint::receiveMessages()
+	std::optional<std::vector<std::unique_ptr<SERPMessage>>> SERPEndpoint::receiveMessages()
 	{
-		Buffer resultBuffer = endpointTCP.receiveData();
-		if (storageBuffer.empty()) storageBuffer = std::move(resultBuffer);
+		SnackerEngine::ReceiveFromResult receiveFromResult = endpointTCP.receiveData();
+		if (receiveFromResult.error.has_value()) return std::nullopt;
+		if (!receiveFromResult.buffer.has_value()) return std::vector<std::unique_ptr<SERPMessage>>();
+		if (storageBuffer.empty()) storageBuffer = std::move(receiveFromResult.buffer.value());
 		else {
-			Buffer temp = Buffer(storageBuffer.size() + resultBuffer.size());
+			Buffer temp = Buffer(storageBuffer.size() + receiveFromResult.buffer.value().size());
 			memcpy(&temp[0], &storageBuffer[0], storageBuffer.size());
-			if (!resultBuffer.empty()) memcpy(&temp[storageBuffer.size()], &resultBuffer[0], resultBuffer.size());
+			if (!receiveFromResult.buffer.value().empty()) memcpy(&temp[storageBuffer.size()], &receiveFromResult.buffer.value()[0], receiveFromResult.buffer.value().size());
 			storageBuffer = std::move(temp);
 		}
 		auto result = parseMessages(storageBuffer.getBufferView());

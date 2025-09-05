@@ -167,7 +167,7 @@ namespace SnackerEngine
 		}
 	}
 
-	std::optional<Buffer> receiveFrom(const SocketTCP& socket, BufferView storageBuffer)
+	ReceiveFromResult receiveFrom(const SocketTCP& socket, BufferView storageBuffer)
 	{
 		std::vector<std::byte> data{};
 		while (true) {
@@ -180,7 +180,7 @@ namespace SnackerEngine
 			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
-				return std::move(Buffer(std::move(data)));
+				return ReceiveFromResult{ Buffer(std::move(data)), std::nullopt };
 			}
 			else {
 #ifdef _WINDOWS
@@ -196,14 +196,14 @@ namespace SnackerEngine
 				}
 				else {
 					std::cout << "recv() failed with error code " << error << std::endl;
-					return std::nullopt;
+					return ReceiveFromResult{ std::nullopt, error };
 				}
 			}
 		}
-		return std::nullopt;
+		return ReceiveFromResult{ std::nullopt, std::nullopt };
 	}
 
-	std::optional<Buffer> receiveFromNonBlocking(const SocketTCP& socket, BufferView storageBuffer)
+	ReceiveFromResult receiveFromNonBlocking(const SocketTCP& socket, BufferView storageBuffer)
 	{
 		std::vector<std::byte> data{};
 		while (true) {
@@ -216,7 +216,7 @@ namespace SnackerEngine
 			if (result > 0) {
 				data.resize(data.size() + result);
 				memcpy(&(data[0]), storageBuffer.getDataPtr(), result);
-				return std::move(Buffer(std::move(data)));
+				return ReceiveFromResult{ Buffer(std::move(data)), std::nullopt };
 			}
 			else {
 #ifdef _WINDOWS
@@ -238,11 +238,11 @@ namespace SnackerEngine
 				}
 				else {
 					std::cout << "recv() failed with error code " << error << std::endl;
-					return std::nullopt;
+					return ReceiveFromResult{ std::nullopt, error };
 				}
 			}
 		}
-		return std::nullopt;
+			return ReceiveFromResult{ std::nullopt, std::nullopt };
 	}
 
 	std::optional<SocketTCP> acceptConnectionRequest(SocketTCP& socket)
