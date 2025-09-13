@@ -105,7 +105,8 @@ namespace SnackerEngine
 		setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		setSizeHintModeMaxSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
-		setAlignment(StaticText::Alignment::CENTER);
+		setAlignmentHorizontal(AlignmentHorizontal::CENTER);
+		setAlignmentVertical(AlignmentVertical::CENTER);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -120,7 +121,8 @@ namespace SnackerEngine
 		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 		if (!json.contains("preferredWidth") && !json.contains("preferredSize")) setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
-		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::CENTER);
+		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
+		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
 		updateText();
 	}
 	//--------------------------------------------------------------------------------------------------

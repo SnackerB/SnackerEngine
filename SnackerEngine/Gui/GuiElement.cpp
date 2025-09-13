@@ -673,6 +673,11 @@ namespace SnackerEngine
 		pushClippingBox(Vec4i(worldPosition.x, worldPosition.y, size.x, size.y));
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiElement::pushClippingBox(const Vec2i& worldPosition, const Vec2i& offset, const Vec2i& size)
+	{
+		pushClippingBox(Vec4i(worldPosition.x+offset.x, worldPosition.y+offset.y, size.x, size.y));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiElement::popClippingBox()
 	{
 		if (guiManager) guiManager->popClippingBox();

@@ -9,6 +9,11 @@ namespace SnackerEngine
 	Color4f GuiButton::defaultPressedColor = scaleRGB(GuiButton::defaultDefaultColor, 0.8f); 
 	Color4f GuiButton::defaultPressedHoverColor = scaleRGB(GuiButton::defaultDefaultColor, 0.7f); 
 	Color4f GuiButton::defaultLockedColor = Color4f(0.5f, 1.0f);
+	Color4f GuiButton::defaultDefaultBorderColor = GuiButton::defaultDefaultBorderColor;
+	Color4f GuiButton::defaultHoverBorderColor = GuiButton::defaultHoverBorderColor;
+	Color4f GuiButton::defaultPressedBorderColor = GuiButton::defaultPressedBorderColor;
+	Color4f GuiButton::defaultPressedHoverBorderColor = GuiButton::defaultPressedHoverBorderColor;
+	Color4f GuiButton::defaultLockedBorderColor = GuiButton::defaultLockedBorderColor;
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::onButtonPress()
 	{
@@ -23,7 +28,8 @@ namespace SnackerEngine
 			setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
 			setResizeMode(ResizeMode::RESIZE_RANGE);
 		}
-		setAlignment(StaticText::Alignment::CENTER);
+		setAlignmentHorizontal(AlignmentHorizontal::CENTER);
+		setAlignmentVertical(AlignmentVertical::CENTER);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(const std::string& text)
@@ -37,16 +43,26 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(pressedColor, "pressedColor", json, data, parameterNames);
 		parseJsonOrReadFromData(pressedHoverColor, "pressedHoverColor", json, data, parameterNames);
 		parseJsonOrReadFromData(lockedColor, "lockedColor", json, data, parameterNames);
+
+		parseJsonOrReadFromData(defaultBorderColor, "defaultBorderColor", json, data, parameterNames);
+		parseJsonOrReadFromData(hoverBorderColor, "hoverBorderColor", json, data, parameterNames);
+		parseJsonOrReadFromData(pressedBorderColor, "pressedBorderColor", json, data, parameterNames);
+		parseJsonOrReadFromData(pressedHoverBorderColor, "pressedHoverBorderColor", json, data, parameterNames);
+		parseJsonOrReadFromData(lockedBorderColor, "lockedBorderColor", json, data, parameterNames);
+
 		parseJsonOrReadFromData(locked, "locked", json, data, parameterNames);
-		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::CENTER);
+		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
+		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::~GuiButton() {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(const GuiButton& other) noexcept
 		: GuiTextBox(other), observableButtonPressed{}, defaultColor(other.defaultColor),
-		hoverColor(other.hoverColor), pressedColor(other.pressedColor), pressedHoverColor(other.pressedHoverColor), lockedColor(other.lockedColor),
-		isBeingPressed(false), isBeingHovered(false), locked(other.locked) {}
+		hoverColor(other.hoverColor), pressedColor(other.pressedColor), pressedHoverColor(other.pressedHoverColor), 
+		lockedColor(other.lockedColor), defaultBorderColor(other.defaultBorderColor), hoverBorderColor(other.hoverBorderColor), 
+		pressedBorderColor(other.pressedBorderColor), pressedHoverBorderColor(other.pressedHoverBorderColor),
+		lockedBorderColor(other.lockedBorderColor), isBeingPressed(false), isBeingHovered(false), locked(other.locked) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton& GuiButton::operator=(const GuiButton& other) noexcept
 	{
@@ -57,6 +73,11 @@ namespace SnackerEngine
 		pressedColor = other.pressedColor;
 		pressedHoverColor = other.pressedHoverColor;
 		lockedColor = other.lockedColor;
+		defaultBorderColor = other.defaultBorderColor;
+		hoverBorderColor = other.hoverBorderColor;
+		pressedBorderColor = other.pressedBorderColor;
+		pressedHoverBorderColor = other.pressedHoverBorderColor;
+		lockedBorderColor = other.lockedBorderColor;
 		isBeingPressed = false;
 		isBeingHovered = false;
 		locked = other.locked;
@@ -64,22 +85,29 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton::GuiButton(GuiButton&& other) noexcept
-		: GuiTextBox(std::move(other)), observableButtonPressed(std::move(other.observableButtonPressed)), defaultColor(other.defaultColor),
-		hoverColor(other.hoverColor), pressedColor(other.pressedColor), pressedHoverColor(other.pressedHoverColor), lockedColor(other.lockedColor),
-		isBeingPressed(other.isBeingPressed), isBeingHovered(other.isBeingHovered), locked(other.locked) {}
+		: GuiTextBox(std::move(other)), observableButtonPressed(std::move(other.observableButtonPressed)), defaultColor(std::move(other.defaultColor)),
+		hoverColor(std::move(other.hoverColor)), pressedColor(std::move(other.pressedColor)), pressedHoverColor(std::move(other.pressedHoverColor)), lockedColor(std::move(other.lockedColor)),
+		defaultBorderColor(std::move(other.defaultBorderColor)), hoverBorderColor(std::move(other.hoverBorderColor)), pressedBorderColor(std::move(other.pressedBorderColor)), 
+		pressedHoverBorderColor(std::move(other.pressedHoverBorderColor)), lockedBorderColor(std::move(other.lockedBorderColor)),
+		isBeingPressed(std::move(other.isBeingPressed)), isBeingHovered(std::move(other.isBeingHovered)), locked(std::move(other.locked)) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiButton& GuiButton::operator=(GuiButton&& other) noexcept
 	{
 		GuiTextBox::operator=(std::move(other));
 		observableButtonPressed = std::move(other.observableButtonPressed);
-		defaultColor = other.defaultColor;
-		hoverColor = other.hoverColor;
-		pressedColor = other.pressedColor;
-		pressedHoverColor = other.pressedHoverColor;
-		lockedColor = other.lockedColor;
-		isBeingPressed = other.isBeingPressed;
-		isBeingHovered = other.isBeingHovered;
-		locked = other.locked;
+		defaultColor = std::move(other.defaultColor);
+		hoverColor = std::move(other.hoverColor);
+		pressedColor = std::move(other.pressedColor);
+		pressedHoverColor = std::move(other.pressedHoverColor);
+		lockedColor = std::move(other.lockedColor);
+		defaultBorderColor = std::move(other.defaultBorderColor);
+		hoverBorderColor = std::move(other.hoverBorderColor);
+		pressedBorderColor = std::move(other.pressedBorderColor);
+		pressedHoverBorderColor = std::move(other.pressedHoverBorderColor);
+		lockedBorderColor = std::move(other.lockedBorderColor);
+		isBeingPressed = std::move(other.isBeingPressed);
+		isBeingHovered = std::move(other.isBeingHovered);
+		locked = std::move(other.locked);
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -96,16 +124,21 @@ namespace SnackerEngine
 		isBeingHovered = false;
 		locked = true;
 		setBackgroundColor(lockedColor);
+		setBorderColor(lockedBorderColor);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::unlock()
 	{
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		locked = false;
-		if (isBeingHovered)
+		if (isBeingHovered) {
 			setBackgroundColor(hoverColor);
-		else
+			setBorderColor(hoverBorderColor);
+		}
+		else {
 			setBackgroundColor(defaultColor);
+			setBorderColor(defaultBorderColor);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::setDefaultColor(const Color4f& defaultColor)
@@ -145,6 +178,46 @@ namespace SnackerEngine
 		this->lockedColor = lockedColor;
 		if (locked) {
 			setBackgroundColor(this->lockedColor);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::setDefaultBorderColor(const Color4f& defaultBorderColor)
+	{
+		this->defaultBorderColor = defaultBorderColor;
+		if (locked == false && isBeingHovered == false && isBeingPressed == false) {
+			setBorderColor(this->defaultBorderColor);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::setHoverBorderColor(const Color4f& hoverBorderColor)
+	{
+		this->hoverBorderColor = hoverBorderColor;
+		if (locked == false && isBeingHovered == true && isBeingPressed == false) {
+			setBorderColor(this->hoverBorderColor);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::setPressedBorderColor(const Color4f& pressedBorderColor)
+	{
+		this->pressedBorderColor = pressedBorderColor;
+		if (locked == false && isBeingHovered == false && isBeingPressed == true) {
+			setBorderColor(this->pressedBorderColor);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::setPressedHoverBorderColor(const Color4f& pressedHoverBorderColor)
+	{
+		this->pressedHoverBorderColor = pressedHoverBorderColor;
+		if (locked == false && isBeingHovered == true && isBeingPressed == true) {
+			setBorderColor(this->pressedHoverBorderColor);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiButton::setLockedBorderColor(const Color4f& lockedBorderColor)
+	{
+		this->lockedBorderColor = lockedBorderColor;
+		if (locked) {
+			setBorderColor(this->lockedBorderColor);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -208,22 +281,76 @@ namespace SnackerEngine
 		return std::make_unique<GuiButtonLockedColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animateDefaultBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonDefaultBorderColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setDefaultBorderColor(currentVal); }
+		public:
+			GuiButtonDefaultBorderColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiButtonDefaultBorderColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animateHoverBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonHoverBorderColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setHoverBorderColor(currentVal); }
+		public:
+			GuiButtonHoverBorderColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiButtonHoverBorderColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animatePressedBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonPressedBorderColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setPressedBorderColor(currentVal); }
+		public:
+			GuiButtonPressedBorderColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiButtonPressedBorderColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animatePressedHoverBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonPressedHoverBorderColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setPressedHoverBorderColor(currentVal); }
+		public:
+			GuiButtonPressedHoverBorderColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiButtonPressedHoverBorderColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiButton::animateLockedBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiButtonLockedBorderColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiButton*>(element)->setLockedBorderColor(currentVal); }
+		public:
+			GuiButtonLockedBorderColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiButtonLockedBorderColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiButton::onRegister()
 	{
 		GuiTextBox::onRegister();
 		setBackgroundColor(defaultColor);
+		setBorderColor(defaultBorderColor);
 		if (!locked) {
 			signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		}
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
 		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiButton::IsCollidingResult GuiButton::isColliding(const Vec2i& offset) const
-	{
-		return (offset.x > 0 && offset.x < getWidth()
-			&& offset.y > 0 && offset.y < getHeight()) ?
-			IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT : IsCollidingResult::NOT_COLLIDING;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiButton::callbackMouseButton(const int& button, const int& action, const int& mods)
@@ -234,10 +361,12 @@ namespace SnackerEngine
 			{
 				onButtonPress();
 				setBackgroundColor(hoverColor);
+				setBorderColor(hoverBorderColor);
 			}
 			else
 			{
 				setBackgroundColor(defaultColor);
+				setBorderColor(defaultBorderColor);
 			}
 			isBeingPressed = false;
 			signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
@@ -250,6 +379,7 @@ namespace SnackerEngine
 		{
 			isBeingPressed = true;
 			setBackgroundColor(pressedHoverColor);
+			setBorderColor(pressedHoverBorderColor);
 			signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
 		}
 	}
@@ -260,9 +390,11 @@ namespace SnackerEngine
 		if (!locked) {
 			if (isBeingPressed) {
 				setBackgroundColor(pressedHoverColor);
+				setBorderColor(pressedHoverBorderColor);
 			}
 			else {
 				setBackgroundColor(hoverColor);
+				setBorderColor(hoverBorderColor);
 			}
 		}
 	}
@@ -273,9 +405,11 @@ namespace SnackerEngine
 		if (!locked) {
 			if (isBeingPressed) {
 				setBackgroundColor(pressedColor);
+				setBorderColor(pressedBorderColor);
 			}
 			else {
 				setBackgroundColor(defaultColor);
+				setBorderColor(defaultBorderColor);
 			}
 		}
 	}

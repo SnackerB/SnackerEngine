@@ -4,6 +4,7 @@
 #include "Gui/Text/Text.h"
 #include "Graphics/Material.h"
 #include "Graphics/Color.h"
+#include "Utility\Alignment.h"
 
 namespace SnackerEngine
 {
@@ -65,8 +66,8 @@ namespace SnackerEngine
 		Vec2f computeTextPosition();
 		/// Helper function that draws the text
 		void drawText(const Vec2i& worldPosition);
-		/// Helper function that draws the text, scaling it by the given scale matrix
-		void drawText(const Vec2i& worldPosition, const Mat4f& scale);
+		/// Helper function that draws the text, transforming it by the given transform matrix
+		void drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix);
 		/// Helper function that recomputes the text and corresponding model matrices.
 		/// This function should be called when the text needs to be recomputed, eg.
 		/// when the font or fontSize changes.
@@ -88,7 +89,7 @@ namespace SnackerEngine
 		SizeHintModes sizeHintModes = defaultSizeHintModes;
 		/// border between the box and the text in pixels
 		int border = GuiElement::defaultBorderSmall;
-		/// The normal font size of the text (without any rescaling)
+		/// The normal font size of the text (without any rescaling), in pt.
 		double fontSize = GuiElement::defaultFontSizeNormal;
 		/// The number of tries that are being made to resize the text when the textBoxMode is set to 
 		/// FORCE_SIZE_RECOMPUTE_SCALE_DOWN or FORCE_SIZE_RECOMPUTE_SCALE
@@ -104,7 +105,8 @@ namespace SnackerEngine
 		/// The parse mode
 		StaticText::ParseMode parseMode = StaticText::ParseMode::SINGLE_LINE;
 		/// The text alignment
-		StaticText::Alignment alignment = StaticText::Alignment::LEFT;
+		AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT;
+		AlignmentVertical alignmentVertical = AlignmentVertical::CENTER;
 		/// The font of the text
 		Font font = GuiElement::defaultFont;
 		/// Helper function that Computes the modelMatrix of the text and the background box.
@@ -154,7 +156,8 @@ namespace SnackerEngine
 		bool isDoRecomputeOnSizeChange() const { return doRecomputeOnSizeChange; }
 		const std::string& getText() const { return text; }
 		StaticText::ParseMode getParseMode() const { return parseMode; }
-		StaticText::Alignment getAlignment() const { return alignment; }
+		AlignmentHorizontal getAlignmentHorizontal() const { return alignmentHorizontal; }
+		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		const Font& getFont() const { return font; }
 		/// Setters
 		void setTextColor(const Color4f& textColor);
@@ -169,7 +172,8 @@ namespace SnackerEngine
 		void setDoRecomputeOnSizeChange(const bool& doRecomputeOnSizeChange);
 		void setText(const std::string& text);
 		void setParseMode(const StaticText::ParseMode& parseMode);
-		void setAlignment(const StaticText::Alignment& alignment);
+		void setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal);
+		void setAlignmentVertical(AlignmentVertical alignmentVertical);
 		void setFont(const Font& font);
 		void setBackgroundColor(const Color4f& backgroundColor) override;
 
@@ -183,6 +187,15 @@ namespace SnackerEngine
 		std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear) override;
 
 	protected:
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. This function can be called by child elements.
+		/// Does not draw children.
+		void draw(const Vec2i& worldPosition, const Mat4f& transformMatrix);
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. This function can be called by child elements.
+		/// Does not draw children. Clipping box for drawing text is modified by the offset and the
+		/// clipping box is of the given size.
+		void draw(const Vec2i& worldPosition, const Mat4f& transformMatrix, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space

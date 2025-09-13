@@ -3,6 +3,7 @@
 #include "Gui/Text/Font.h"
 #include "Math/Vec.h"
 #include "Graphics/Model.h"
+#include "Utility\Alignment.h"
 
 #include <string>
 #include <vector>
@@ -50,29 +51,22 @@ namespace SnackerEngine
 			CHARACTERS,		/// The parser does not care about words and just parses each character
 			SINGLE_LINE,	/// Same as characters, but never goes to a new line!
 		};
-		/// Enum for the different horitontal alignment modes a StaticText object can use
-		enum class Alignment
-		{
-			LEFT,
-			CENTER,
-			RIGHT,
-		};
 	protected:
 		/// The model used for rendering
 		Model model;
 		/// Constructs the model using the given parameters and using parse mode 'CHARACTERS'
-		Model parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment = Alignment::LEFT);
+		Model parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Constructs the model using the given parameters and using parse mode 'WORD_BY_WORD'
-		Model parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment = Alignment::LEFT);
+		Model parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Constructs the model from the text member variable using parse mode 'SINGLE_LINE'
-		Model parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment = Alignment::LEFT);
+		Model parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Constructs the model from the text member variable
-		virtual void constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		virtual void constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 	public:
 		/// Default constructor
 		StaticText();
 		/// Constuctor using a string and various parameters
-		StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Copy and Move constructors and operators
 		StaticText(const StaticText& other) = delete;
 		StaticText(StaticText&& other) noexcept;
@@ -96,7 +90,7 @@ namespace SnackerEngine
 		/// The mode used while parsing
 		ParseMode parseMode = ParseMode::CHARACTERS;
 		/// The alignment of the text
-		Alignment alignment = Alignment::LEFT;
+		AlignmentHorizontal alignment = AlignmentHorizontal::LEFT;
 		/// The right border of the text, in pt. Gets set when the model is constructed
 		double right = 0.0;
 		/// Vector of unicode characters
@@ -115,7 +109,7 @@ namespace SnackerEngine
 		/// Default constructor
 		DynamicText();
 		/// Constuctor using a string and various parameters
-		DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Copy and Move constructors and operators
 		DynamicText(const DynamicText& other) noexcept;
 		DynamicText(DynamicText&& other) noexcept;
@@ -129,7 +123,7 @@ namespace SnackerEngine
 		virtual const std::string& getText();
 		const Model& getModel() const;
 		const ParseMode& getParseMode() const;
-		const Alignment& getAlignment() const;
+		AlignmentHorizontal getAlignment() const;
 		/// Returns the y coordinate of the top of the text (in pt)
 		/// The 0 coordinate is the baseline of the first character
 		double getTop() const;
@@ -163,7 +157,7 @@ namespace SnackerEngine
 		/// set recompute to false
 		virtual void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true);
 		/// Sets the alignment.
-		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true);
+		virtual void setAlignment(AlignmentHorizontal alignment, bool recompute = true);
 		/// Recomputes the text model
 		virtual void recompute();
 	};
@@ -223,7 +217,7 @@ namespace SnackerEngine
 		/// Default constructor
 		EditableText();
 		/// Constuctor using a string and various parameters
-		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, const Alignment& alignment = Alignment::LEFT);
+		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Copy and Move constructors and operators
 		EditableText(const EditableText& other) noexcept;
 		EditableText(EditableText&& other) noexcept;
@@ -305,7 +299,7 @@ namespace SnackerEngine
 		/// set recompute to false
 		virtual void setParseMode(const StaticText::ParseMode& parseMode, bool recompute = true) override;
 		/// Sets the alignment.
-		virtual void setAlignment(const StaticText::Alignment& alignment, bool recompute = true) override;
+		virtual void setAlignment(AlignmentHorizontal alignment, bool recompute = true) override;
 		/// Sets the cursor width
 		void setCursorWidth(const float& cursorWidth);
 		/// Returns true if the selectionIndex is different from the cursor index, ie. if a selection

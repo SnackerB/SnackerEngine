@@ -45,6 +45,19 @@ namespace SnackerEngine
 		return inches * T(72);
 	}
 	//------------------------------------------------------------------------------------------------------
+	template<typename T>
+	T pointsToPixels(const T& points)
+	{
+		return static_cast<T>(static_cast<double>(points) * 1.3); // TODO: Is this correct?
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<typename T>
+	/// points to pixels
+	T pixelsToPoints(const T& points)
+	{
+		return static_cast<T>(static_cast<double>(points) / 1.3); // TODO: Is this correct?
+	}
+	//------------------------------------------------------------------------------------------------------
 	/// Struct that can be used for standard library templates using hasing when one wants to hash pairs of integers
 	struct Pairhash final {
 	public:

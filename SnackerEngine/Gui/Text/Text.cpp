@@ -108,7 +108,7 @@ namespace SnackerEngine
 		/// Constructs the model from the characters and lines vectors. At this time a last alignment pass
 		/// is made that shifts the text based on the alignment mode. Returns the Model and the right border
 		/// of the text in pt.
-		std::pair<Model, double> alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices);
+		std::pair<Model, double> alignAndConstructModel(AlignmentHorizontal alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices);
 	};
 	//--------------------------------------------------------------------------------------------------
 	ParseData::ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines)
@@ -589,7 +589,7 @@ namespace SnackerEngine
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::pair<Model, double> ParseData::alignAndConstructModel(const StaticText::Alignment& alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices)
+	std::pair<Model, double> ParseData::alignAndConstructModel(AlignmentHorizontal alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices)
 	{
 		if (characters.empty()) return std::make_pair(Model(), 0.0);
 		vertices.clear();
@@ -615,14 +615,14 @@ namespace SnackerEngine
 			double horizontalOffset = 0.0;
 			switch (alignment)
 			{
-			case StaticText::Alignment::LEFT: break;
-			case StaticText::Alignment::CENTER:
+			case AlignmentHorizontal::LEFT: break;
+			case AlignmentHorizontal::CENTER:
 			{
 				double lineWidth = characters[line.endIndex].right - characters[line.beginIndex].left;
 				horizontalOffset = (longestLineWidth - lineWidth) / 2.0;
 				break;
 			}
-			case StaticText::Alignment::RIGHT:
+			case AlignmentHorizontal::RIGHT:
 			{
 				double lineWidth = characters[line.endIndex].right;
 				horizontalOffset = longestLineWidth - lineWidth;
@@ -669,7 +669,7 @@ namespace SnackerEngine
 		return std::make_pair(Model(mesh), right);
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model StaticText::parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment)
+	Model StaticText::parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment)
 	{
 		// Create ParseDynamicTextData object
 		std::vector<Character> characters;
@@ -687,7 +687,7 @@ namespace SnackerEngine
 		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model StaticText::parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment)
+	Model StaticText::parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment)
 	{
 		// Create ParseDynamicTextData object
 		std::vector<Character> characters;
@@ -705,7 +705,7 @@ namespace SnackerEngine
 		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model StaticText::parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const Alignment& alignment)
+	Model StaticText::parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment)
 	{
 		// Create ParseDynamicTextData object
 		std::vector<Character> characters;
@@ -724,7 +724,7 @@ namespace SnackerEngine
 		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void StaticText::constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, const Alignment& alignment)
+	void StaticText::constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
 	{
 		switch (parseMode)
 		{
@@ -738,7 +738,7 @@ namespace SnackerEngine
 	StaticText::StaticText()
 		: model{} {}
 	//--------------------------------------------------------------------------------------------------
-	StaticText::StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, const Alignment& alignment)
+	StaticText::StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
 		: model{}
 	{
 		constructModel(text, font, fontSize, textWidth, parseMode, alignment);
@@ -835,7 +835,7 @@ namespace SnackerEngine
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
-	DynamicText::DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, const Alignment& alignment)
+	DynamicText::DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
 		: StaticText(), font(font), fontSize(fontSize), textWidth(textWidth), text(text), parseMode(parseMode),
 		alignment(alignment), right(0.0), characters{}, lines{}
 	{
@@ -925,7 +925,7 @@ namespace SnackerEngine
 		return parseMode;
 	}
 	//--------------------------------------------------------------------------------------------------
-	const StaticText::Alignment& DynamicText::getAlignment() const
+	AlignmentHorizontal DynamicText::getAlignment() const
 	{
 		return alignment;
 	}
@@ -989,7 +989,7 @@ namespace SnackerEngine
 		if (recompute) constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void DynamicText::setAlignment(const StaticText::Alignment& alignment, bool recompute)
+	void DynamicText::setAlignment(AlignmentHorizontal alignment, bool recompute)
 	{
 		this->alignment = alignment;
 		if (recompute) constructModel();
@@ -1189,15 +1189,15 @@ namespace SnackerEngine
 		result.first = characterIndex;
 		switch (alignment)
 		{
-		case SnackerEngine::StaticText::Alignment::LEFT:
+		case SnackerEngine::AlignmentHorizontal::LEFT:
 			break;
-		case SnackerEngine::StaticText::Alignment::CENTER: 
+		case SnackerEngine::AlignmentHorizontal::CENTER: 
 		{
 			double lineWidth = getRight(lineNumber);
 			result.second.x += static_cast<float>((right - lineWidth) / 2.0);
 			break;
 		}
-		case SnackerEngine::StaticText::Alignment::RIGHT:
+		case SnackerEngine::AlignmentHorizontal::RIGHT:
 		{
 			double lineWidth = getRight(lineNumber);
 			result.second.x += static_cast<float>(right - lineWidth);
@@ -1215,7 +1215,7 @@ namespace SnackerEngine
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
-	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode, const Alignment& alignment)
+	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
 		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, static_cast<float>(font.getLineHeight()))
 	{
 		constructModel();
@@ -1321,14 +1321,14 @@ namespace SnackerEngine
 		double textOffsetX = 0.0;
 		switch (alignment)
 		{
-		case SnackerEngine::StaticText::Alignment::LEFT:
+		case SnackerEngine::AlignmentHorizontal::LEFT:
 			break;
-		case SnackerEngine::StaticText::Alignment::CENTER:
+		case SnackerEngine::AlignmentHorizontal::CENTER:
 		{
 			textOffsetX = (right - getRight(lineNumber)) / 2.0;
 			break;
 		}
-		case SnackerEngine::StaticText::Alignment::RIGHT:
+		case SnackerEngine::AlignmentHorizontal::RIGHT:
 		{
 			textOffsetX = right - getRight(lineNumber);
 			break;
@@ -1629,7 +1629,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void EditableText::setAlignment(const StaticText::Alignment& alignment, bool recompute)
+	void EditableText::setAlignment(AlignmentHorizontal alignment, bool recompute)
 	{
 		if (this->alignment != alignment) {
 			this->alignment = alignment;

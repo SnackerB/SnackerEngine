@@ -14,6 +14,11 @@ namespace SnackerEngine
 		static Color4f defaultPressedColor;
 		static Color4f defaultPressedHoverColor;
 		static Color4f defaultLockedColor;
+		static Color4f defaultDefaultBorderColor;
+		static Color4f defaultHoverBorderColor;
+		static Color4f defaultPressedBorderColor;
+		static Color4f defaultPressedHoverBorderColor;
+		static Color4f defaultLockedBorderColor;
 	private:
 		/// The event that happens when the button is pressed
 		EventHandle::Observable observableButtonPressed;
@@ -23,13 +28,18 @@ namespace SnackerEngine
 		Color4f pressedColor = defaultPressedColor;
 		Color4f pressedHoverColor = defaultPressedHoverColor;
 		Color4f lockedColor = defaultLockedColor;
+		Color4f defaultBorderColor = defaultDefaultBorderColor;
+		Color4f hoverBorderColor = defaultHoverBorderColor;
+		Color4f pressedBorderColor = defaultPressedBorderColor;
+		Color4f pressedHoverBorderColor = defaultPressedHoverBorderColor;
+		Color4f lockedBorderColor = defaultLockedBorderColor;
+	protected:
 		/// Set to true if the button was pressed and the mouse is held down currently
 		bool isBeingPressed = false;
 		/// Set to true if the mouse is currently inside the button
 		bool isBeingHovered = false;
 		/// Set to true if the button is currently locked
 		bool locked = false;
-	protected:
 		/// Helper function that is called when the button is pressed.
 		/// Can be overwritten by child elements
 		virtual void onButtonPress();
@@ -60,12 +70,22 @@ namespace SnackerEngine
 		virtual void setPressedColor(const Color4f& pressedColor);
 		virtual void setPressedHoverColor(const Color4f& pressedHoverColor);
 		virtual void setLockedColor(const Color4f& lockedColor);
+		virtual void setDefaultBorderColor(const Color4f& defaultBorderColor);
+		virtual void setHoverBorderColor(const Color4f& hoverBorderColor);
+		virtual void setPressedBorderColor(const Color4f& pressedBorderColor);
+		virtual void setPressedHoverBorderColor(const Color4f& pressedHoverBorderColor);
+		virtual void setLockedBorderColor(const Color4f& lockedBorderColor);
 		/// Getters
-		const Color4f& getDefaultColorColor() const { return defaultColor; }
+		const Color4f& getDefaultColor() const { return defaultColor; }
 		const Color4f& getHoverColor() const { return hoverColor; }
 		const Color4f& getPressedColor() const { return pressedColor; }
 		const Color4f& getpressedHoverColor() const { return pressedHoverColor; }
 		const Color4f& getLockedColor() const { return lockedColor; }
+		const Color4f& getDefaultBorderColor() const { return defaultBorderColor; }
+		const Color4f& getHoverBorderColor() const { return hoverBorderColor; }
+		const Color4f& getPressedBorderColor() const { return pressedBorderColor; }
+		const Color4f& getpressedHoverBorderColor() const { return pressedHoverBorderColor; }
+		const Color4f& getLockedBorderColor() const { return lockedBorderColor; }
 		bool isLocked() const { return locked; }
 
 		//==============================================================================================
@@ -77,6 +97,11 @@ namespace SnackerEngine
 		std::unique_ptr<GuiElementAnimatable> animatePressedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animatePressedHoverColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateLockedColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateDefaultBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateHoverBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePressedBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animatePressedHoverBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateLockedBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 	protected:
 
@@ -92,15 +117,6 @@ namespace SnackerEngine
 	public:
 		/// Subscribes an event handle
 		void subscribeToEventButtonPress(EventHandle& eventHandle);
-
-		//==============================================================================================
-		// Collisions
-		//==============================================================================================
-
-	public:
-		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
-		/// collides with this element
-		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
 
 		//==============================================================================================
 		// Events

@@ -329,6 +329,9 @@ namespace SnackerEngine
 		void pushClippingBox(const Vec4i& clippingBox);
 		/// Computes a clipping box from the worldPosition and pushes it to the stack
 		void pushClippingBox(const Vec2i& worldPosition);
+		/// Computes a clipping box from the worldPosition, given a custom offset and size,
+		/// and pushes it to the stack
+		void pushClippingBox(const Vec2i& worldPosition, const Vec2i& offset, const Vec2i& size);
 		/// pops a clipping box from the stack
 		void popClippingBox();
 

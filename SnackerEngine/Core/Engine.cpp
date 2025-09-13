@@ -251,6 +251,7 @@ namespace SnackerEngine
 		}
 		if (std::filesystem::exists(path))
 			return path;
+		warningLogger << LOGGER::BEGIN << "Could not resolve full path for \"" << path << "\": No such file." << LOGGER::ENDL;
 		return {};
 	}
 	//------------------------------------------------------------------------------------------------------

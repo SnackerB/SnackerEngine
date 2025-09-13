@@ -172,7 +172,8 @@ namespace SnackerEngine
 		selectedOption.setBorder(border);
 		selectedOption.setFontSize(fontSize);
 		selectedOption.setFont(font);
-		selectedOption.setAlignment(StaticText::Alignment::LEFT);
+		selectedOption.setAlignmentHorizontal(AlignmentHorizontal::LEFT);
+		selectedOption.setAlignmentVertical(AlignmentVertical::CENTER);
 		selectedOption.setSizeHintModeMinSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE);
 		// Set attributes of arrowButton
 		arrowButton.setDefaultColor(arrowButtonMenuClosedColor);

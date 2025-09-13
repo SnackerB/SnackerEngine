@@ -20,7 +20,7 @@ namespace SnackerEngine
 		/// Each material needs a shader
 		Shader shader{};
 		// Destructor. Deletes the material from the GPU if it was loaded.
-		~MaterialData();
+		virtual ~MaterialData();
 
 		/// Binds this material
 		virtual void bind();

@@ -27,6 +27,7 @@
 #include "Gui\GuiElements\VectorElements\GuiSliderVec.h"
 #include "Gui\GuiElements\GuiSelectionBox.h"
 #include "Gui\GuiElements\GuiClickableTextBox.h"
+#include "Gui\GuiElements\GuiScaleButton.h"
 
 namespace SnackerEngine
 {
@@ -745,6 +746,7 @@ namespace SnackerEngine
 		registerGuiElementType<GuiSliderVec4i>("_INT");
 		registerGuiElementType<GuiSelectionBox>();
 		registerGuiElementType<GuiClickableTextBox>();
+		registerGuiElementType<GuiScaleButton>();
 		// Initialize static default font
 		GuiElement::defaultFont = Font("fonts/Arial.ttf");
 		// Initialize static default background shader
@@ -814,11 +816,6 @@ namespace SnackerEngine
 	GuiManager::~GuiManager()
 	{
 		clear();
-		signOff(parentElement);
-		ownedGuiElements.clear();
-		namedElements.clear();
-		guiGroups.clear();
-		guiGroupMap.clear();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerElement(GuiElement& guiElement)
@@ -907,6 +904,7 @@ namespace SnackerEngine
 			}
 		}
 		namedElements.clear();
+		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader)

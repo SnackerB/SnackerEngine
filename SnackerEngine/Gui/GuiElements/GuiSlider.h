@@ -182,7 +182,8 @@ namespace SnackerEngine
 			setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 			setMaxWidth(SIZE_HINT_ARBITRARY);
 		}
-		setAlignment(StaticText::Alignment::CENTER);
+		setAlignmentHorizontal(AlignmentHorizontal::CENTER);
+		setAlignmentVertical(AlignmentVertical::CENTER);
 		setBackgroundColor(defaultBackgroundColor);
 		setSizeHintModes(defaultSizeHintModes);
 	}
@@ -198,7 +199,8 @@ namespace SnackerEngine
 		setResizeMode(ResizeMode::RESIZE_RANGE);
 		setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 		setMaxWidth(SIZE_HINT_ARBITRARY);
-		setAlignment(StaticText::Alignment::CENTER);
+		setAlignmentHorizontal(StaticText::Alignment::CENTER);
+		setAlignmentVertical(StaticText::Alignment::CENTER);
 		setBackgroundColor(defaultBackgroundColor);
 		setSizeHintModes(defaultSizeHintModes);
 	}
@@ -222,7 +224,8 @@ namespace SnackerEngine
 			setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 			setMaxWidth(SIZE_HINT_ARBITRARY);
 		}
-		if (!json.contains("alignment")) setAlignment(StaticText::Alignment::CENTER);
+		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
+		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
 		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
 		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);

@@ -87,6 +87,8 @@ namespace SnackerEngine
 		inline static FontID loadedFontsCount;
 		/// Used to look up Fonts using a path string (to prevent double loading)
 		inline static std::unordered_map<std::string, FontID> stringToFontID;
+		/// If this is set to true, all fonts are loaded persistently, i.e. never unloaded
+		inline static bool loadFontsPersistently;
 
 		/// Helper function to setup the missing character codepoint for a 
 		/// newly loaded font
@@ -137,6 +139,10 @@ namespace SnackerEngine
 	public:
 		/// Deleted constructor: this is a purely virtual class!
 		FontManager() = delete;
+		/// Sets the loadFontsPersistently bool variable. If this is set to true, all fonts are loaded persistently
+		/// per default, i.e. they are only deleted when the engine terminates.
+		void setLoadFontsPersistently(bool loadFontsPersistently) { FontManager::loadFontsPersistently = loadFontsPersistently; }
+		bool isLoadFontsPersistently() { return loadFontsPersistently; }
 
 		// DEBUG
 		/// Tries to load a fontData object from a given file path

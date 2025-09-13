@@ -12,7 +12,7 @@ namespace SnackerEngine
 	Color4f GuiTextBox::defaultTextColor = Color4f(1.0f, 1.0f);
 	Color4f GuiTextBox::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	unsigned GuiTextBox::defaultRecomputeTries = 10;
-	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE };
+	GuiTextBox::SizeHintModes GuiTextBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::ARBITRARY };
 	//--------------------------------------------------------------------------------------------------
 	/// Helper functions for parsing JSON
 	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiTextBox::TextScaleMode> tag)
@@ -61,25 +61,6 @@ namespace SnackerEngine
 		if (json == "SET_TO_TEXT_HEIGHT") return GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT;
 		return GuiTextBox::SizeHintMode::ARBITRARY;
 	}
-	template<> bool isOfType(const nlohmann::json& json, JsonTag<DynamicText::Alignment> tag)
-	{
-		if (!json.is_string()) {
-			warningLogger << LOGGER::BEGIN << "GuiDynamicTextBox option \"alignment\" has to be given as string." << LOGGER::ENDL;
-			return false;
-		}
-		if (json == "LEFT" ||
-			json == "CENTER" ||
-			json == "RIGHT") return true;
-		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid alignment." << LOGGER::ENDL;
-		return false;
-	}
-	template<> DynamicText::Alignment parseJSON(const nlohmann::json& json, JsonTag<DynamicText::Alignment> tag)
-	{
-		if (json == "LEFT") return DynamicText::Alignment::LEFT;
-		if (json == "CENTER") return DynamicText::Alignment::CENTER;
-		if (json == "RIGHT") return DynamicText::Alignment::RIGHT;
-		return DynamicText::Alignment::LEFT;
-	}
 	template<> bool isOfType(const nlohmann::json& json, JsonTag<DynamicText::ParseMode> tag)
 	{
 		if (!json.is_string()) {
@@ -114,31 +95,30 @@ namespace SnackerEngine
 	void GuiTextBox::computeModelMatrices()
 	{
 		if (!dynamicText) return;
-		unsigned int DPI = Engine::getDPI().y;
 		scaleFactor = 1.0;
 		switch (textScaleMode)
 		{
 		case SnackerEngine::GuiTextBox::TextScaleMode::SCALE_UP:
 		{
-			double textWidth = pointsToInches((dynamicText->getRight() - dynamicText->getLeft())) * DPI;
+			double textWidth = pointsToPixels((dynamicText->getRight() - dynamicText->getLeft()));
 			if (textWidth > getWidth() - 2 * border) break;
-			double textHeight = pointsToInches((dynamicText->getTop() - dynamicText->getBottom())) * DPI;
+			double textHeight = pointsToPixels((dynamicText->getTop() - dynamicText->getBottom()));
 			if (textHeight > getHeight() - 2 * border) break;
 			scaleFactor = std::min((getWidth() - 2 * border) / textWidth, (getHeight() - 2 * border) / textHeight);
 			break;
 		}
 		case SnackerEngine::GuiTextBox::TextScaleMode::SCALE_DOWN:
 		{
-			double textWidth = pointsToInches((dynamicText->getRight() - dynamicText->getLeft())) * DPI;
-			double textHeight = pointsToInches((dynamicText->getTop() - dynamicText->getBottom())) * DPI;
+			double textWidth = pointsToPixels((dynamicText->getRight() - dynamicText->getLeft()));
+			double textHeight = pointsToPixels((dynamicText->getTop() - dynamicText->getBottom()));
 			if (textWidth < getWidth() - 2 * border && textHeight < getHeight() - 2 * border) break;
 			scaleFactor = std::min((getWidth() - 2 * border) / textWidth, (getHeight() - 2 * border) / textHeight);
 			break;
 		}
 		case SnackerEngine::GuiTextBox::TextScaleMode::SCALE_UP_DOWN:
 		{
-			double textWidth = pointsToInches((dynamicText->getRight() - dynamicText->getLeft())) * DPI;
-			double textHeight = pointsToInches((dynamicText->getTop() - dynamicText->getBottom())) * DPI;
+			double textWidth = pointsToPixels((dynamicText->getRight() - dynamicText->getLeft()));
+			double textHeight = pointsToPixels((dynamicText->getTop() - dynamicText->getBottom()));
 			scaleFactor = std::min((getWidth() - 2 * border) / textWidth, (getHeight() - 2 * border) / textHeight);
 			break;
 		}
@@ -148,24 +128,23 @@ namespace SnackerEngine
 		}
 		}
 		Vec2f textPosition = computeTextPosition();
-		if (dynamicText) modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), Vec3f(static_cast<float>(pointsToInches(dynamicText->getFontSize()) * static_cast<double>(DPI) * scaleFactor)));
+		if (dynamicText) modelMatrixText = Mat4f::TranslateAndScale(Vec3f(textPosition.x, textPosition.y, 0), Vec3f(static_cast<float>(pointsToPixels(dynamicText->getFontSize()) * scaleFactor)));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::recomputeText()
 	{
 		if (!dynamicText) return;
 		if (textScaleMode == TextScaleMode::RECOMPUTE_DOWN) {
-			dynamicText->setTextWidth((getWidth() - 2 * border) / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
+			dynamicText->setTextWidth((getWidth() - 2 * border) / pointsToPixels(1.0f), false);
 			dynamicText->setFontSize(fontSize, false);
-			unsigned int DPI = Engine::getDPI().y;
 			double maxFontSize = 0.0;
 			double minFontSize = 0.0;
 			for (unsigned int i = 0; i < recomputeTries; ++i)
 			{
 				dynamicText->recompute();
-				double textHeight = pointsToInches((dynamicText->getTop() - dynamicText->getBottom())) * DPI;
+				double textHeight = pointsToPixels((dynamicText->getTop() - dynamicText->getBottom()));
 				// Check text width only in single line parse mode!
-				if (textHeight < (getHeight() - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((dynamicText->getRight() - dynamicText->getLeft())) * DPI < getWidth() - 2 * border)) {
+				if (textHeight < (getHeight() - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToPixels((dynamicText->getRight() - dynamicText->getLeft())) < getWidth() - 2 * border)) {
 					minFontSize = dynamicText->getFontSize();
 					if (minFontSize == fontSize) break;
 					if (maxFontSize == 0) {
@@ -191,18 +170,17 @@ namespace SnackerEngine
 			computeModelMatrices();
 		}
 		else if (textScaleMode == TextScaleMode::RECOMPUTE_UP_DOWN) {
-			dynamicText->setTextWidth((getWidth() - 2 * border) / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
+			dynamicText->setTextWidth((getWidth() - 2 * border) / pointsToPixels(1.0f), false);
 			dynamicText->setFontSize(fontSize, false);
-			unsigned int DPI = Engine::getDPI().y;
 			double maxFontSize = 0.0;
 			double minFontSize = 0.0;
 			//infoLogger << "recomputing text, starting with font size " << text->getFontSize() << LOGGER::ENDL;
 			for (unsigned int i = 0; i < recomputeTries; ++i)
 			{
 				dynamicText->recompute();
-				double textHeight = pointsToInches((dynamicText->getTop() - dynamicText->getBottom())) * DPI;
+				double textHeight = pointsToPixels((dynamicText->getTop() - dynamicText->getBottom()));
 				// Check text width only in single line parse mode!
-				if (textHeight < (getHeight() - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToInches((dynamicText->getRight() - dynamicText->getLeft())) * DPI < (getHeight() - 2 * border))) {
+				if (textHeight < (getHeight() - 2 * border) && (getParseMode() != StaticText::ParseMode::SINGLE_LINE || pointsToPixels((dynamicText->getRight() - dynamicText->getLeft())) < (getHeight() - 2 * border))) {
 					minFontSize = dynamicText->getFontSize();
 					if (maxFontSize == 0) {
 						dynamicText->setFontSize(minFontSize * 2.0, false);
@@ -227,7 +205,7 @@ namespace SnackerEngine
 		}
 		else {
 			// Just compute the text with the size.x as textWidth:
-			dynamicText->setTextWidth((getWidth() - 2 * border) / static_cast<float>(Engine::getDPI().y) / pointsToInches(1.0f), false);
+			dynamicText->setTextWidth((getWidth() - 2 * border) / pointsToPixels(1.0f), false);
 			dynamicText->recompute();
 			computeModelMatrices();
 		}
@@ -238,7 +216,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::onRegister(std::unique_ptr<DynamicText>&& dynamicText)
 	{
-		GuiElement::onRegister();
+		GuiPanel::onRegister();
 		this->dynamicText = std::move(dynamicText);
 		material = constructTextMaterial(font, textColor, getBackgroundColor());
 		computeModelMatrices();
@@ -263,31 +241,50 @@ namespace SnackerEngine
 	Vec2f GuiTextBox::computeTextPosition()
 	{
 		if (!dynamicText) return Vec2i();
-		unsigned int DPI = Engine::getDPI().y;
 		// Compute offset due to centering
 		Vec2f textOffset = Vec2f(0.0f, 0.0f);
+		// Compute horizontal alignment
 		switch (dynamicText->getAlignment())
 		{
-		case StaticText::Alignment::LEFT:
+		case AlignmentHorizontal::LEFT:
 		{
-			// Align to the top of the text box
-			textOffset.y = static_cast<float>(-pointsToInches(dynamicText->getTop()) * static_cast<double>(DPI) * scaleFactor);
 			// Is already aligned to the left!
 			break;
 		}
-		case StaticText::Alignment::CENTER:
+		case AlignmentHorizontal::CENTER:
 		{
 			// Align to the center of the text box
-			textOffset.y = static_cast<float>(-pointsToInches((dynamicText->getTop() + dynamicText->getBottom()) / 2.0) * static_cast<double>(DPI) * scaleFactor - static_cast<double>(getHeight() - 2 * border) / 2.0);
-			textOffset.x = static_cast<float>(static_cast<double>(getWidth() - 2 * border) / 2.0 - pointsToInches((dynamicText->getRight() - dynamicText->getLeft()) / 2.0) * DPI * scaleFactor);
+			textOffset.x = static_cast<float>(static_cast<double>(getWidth() - 2 * border) / 2.0 - pointsToPixels((dynamicText->getRight() - dynamicText->getLeft()) / 2.0) * scaleFactor);
 			break;
 		}
-		case StaticText::Alignment::RIGHT:
+		case AlignmentHorizontal::RIGHT:
+		{
+			// Align to the right of the text box
+			textOffset.x = static_cast<float>(static_cast<double>(getWidth() - 2 * border) - pointsToPixels((dynamicText->getRight() - dynamicText->getLeft())) * scaleFactor);
+			break;
+		}
+		default:
+			break;
+		}
+		// Compute vertical alignment
+		switch (alignmentVertical)
+		{
+		case AlignmentVertical::TOP:
 		{
 			// Align to the top of the text box
-			textOffset.y = static_cast<float>(-pointsToInches(dynamicText->getTop()) * static_cast<double>(DPI) * scaleFactor);
-			// Align to the right of the text box
-			textOffset.x = static_cast<float>(static_cast<double>(getWidth() - 2 * border) - pointsToInches((dynamicText->getRight() - dynamicText->getLeft())) * static_cast<double>(DPI) * scaleFactor);
+			textOffset.y = static_cast<float>(-pointsToPixels(dynamicText->getTop()) * scaleFactor);
+			break;
+		}
+		case AlignmentVertical::CENTER:
+		{
+			// Align to the center of the text box
+			textOffset.y = static_cast<float>(-pointsToPixels((dynamicText->getTop() + dynamicText->getBottom()) / 2.0) * scaleFactor - static_cast<double>(getHeight() - 2 * border) / 2.0);
+			break;
+		}
+		case AlignmentVertical::BOTTOM:
+		{
+			// Align to the bottom of the text box
+			textOffset.y = static_cast<float>(-pointsToPixels((dynamicText->getTop() - dynamicText->getBottom())) * scaleFactor - static_cast<double>(getHeight() - 2 * border));
 			break;
 		}
 		default:
@@ -311,7 +308,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::drawText(const Vec2i& worldPosition, const Mat4f& scale)
+	void GuiTextBox::drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -319,7 +316,7 @@ namespace SnackerEngine
 			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 			material.bind();
 			guiManager->setUniformViewAndProjectionMatrices(material.getShader());
-			material.getShader().setUniform<Mat4f>("u_model", translationMatrix * scale * modelMatrixText);
+			material.getShader().setUniform<Mat4f>("u_model", translationMatrix * transformMatrix * modelMatrixText);
 			material.getShader().setUniform<float>("u_pxRange", static_cast<float>(dynamicText->getFont().getPixelRange()));
 			SnackerEngine::Renderer::draw(dynamicText->getModel(), material);
 		}
@@ -328,7 +325,7 @@ namespace SnackerEngine
 	void GuiTextBox::computeHeightHints()
 	{
 		if (!dynamicText) return;
-		int textHeight = static_cast<int>(std::ceil((dynamicText->getTop() - dynamicText->getBottom()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().y)));
+		int textHeight = static_cast<int>(std::ceil((dynamicText->getTop() - dynamicText->getBottom()) * pointsToPixels(1.0)));
 		textHeight += 2 * border;
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
@@ -365,11 +362,11 @@ namespace SnackerEngine
 		if (!dynamicText) return;
 		int textWidth{};
 		if (parseMode == StaticText::ParseMode::SINGLE_LINE) {
-			textWidth = static_cast<int>(std::ceil((dynamicText->getRight() - dynamicText->getLeft()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().x)));
+			textWidth = static_cast<int>(std::ceil((dynamicText->getRight() - dynamicText->getLeft()) * pointsToPixels(1.0)));
 		}
 		else {
-			DynamicText tempText(this->text, this->font, this->fontSize, 0.0f, StaticText::ParseMode::SINGLE_LINE, this->alignment);
-			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToInches(1.0) * static_cast<double>(Engine::getDPI().x)));
+			DynamicText tempText(this->text, this->font, this->fontSize, 0.0f, StaticText::ParseMode::SINGLE_LINE, this->alignmentHorizontal);
+			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToPixels(1.0)));
 		}
 		textWidth += 2 * border;
 		switch (sizeHintModes.sizeHintModeMinSize)
@@ -441,12 +438,18 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(doRecomputeOnSizeChange, "doRecomputeOnSizeChange", json, data, parameterNames);
 		parseJsonOrReadFromData(text, "text", json, data, parameterNames);
 		parseJsonOrReadFromData(parseMode, "parseMode", json, data, parameterNames);
-		parseJsonOrReadFromData(alignment, "alignment", json, data, parameterNames);
+		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
+		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
 		parseJsonOrReadFromData(font, "font", json, data, parameterNames);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
+		if (json.contains("size") || (json.contains("width") && json.contains("height"))) {
+			sizeHintModes.sizeHintModeMinSize = SizeHintMode::ARBITRARY;
+			sizeHintModes.sizeHintModeMaxSize = SizeHintMode::ARBITRARY;
+			sizeHintModes.sizeHintModePreferredSize = SizeHintMode::ARBITRARY;
+		}
 		if (!json.contains("sizeHintModePreferredSize")) {
 			if (json.contains("preferredWidth")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::SET_TO_TEXT_HEIGHT;
-			if (json.contains("preferredHeight")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::SET_TO_TEXT_WIDTH;
+			else if (json.contains("preferredHeight")) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::SET_TO_TEXT_WIDTH;
 			if (json.contains("preferredSize") || (json.contains("preferredWidth") && json.contains("preferredHeight"))) sizeHintModes.sizeHintModePreferredSize = SizeHintMode::ARBITRARY;
 		}
 		if (!json.contains("sizeHintModeMinSize")) {
@@ -472,7 +475,8 @@ namespace SnackerEngine
 		fontSize(other.fontSize), recomputeTries(other.recomputeTries), 
 		doRecomputeOnSizeChange(other.doRecomputeOnSizeChange),
 		lastSizeOnRecomputeText(other.lastSizeOnRecomputeText), text(other.text),
-		parseMode(other.parseMode), alignment(other.alignment), font(other.font) {}
+		parseMode(other.parseMode), alignmentHorizontal(other.alignmentHorizontal),
+		alignmentVertical(other.alignmentVertical), font(other.font) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiTextBox& GuiTextBox::operator=(const GuiTextBox& other) noexcept
 	{
@@ -491,7 +495,8 @@ namespace SnackerEngine
 		lastSizeOnRecomputeText = other.lastSizeOnRecomputeText;
 		text = other.text;
 		parseMode = other.parseMode;
-		alignment = other.alignment;
+		alignmentHorizontal = other.alignmentHorizontal;
+		alignmentVertical = other.alignmentVertical;
 		font = other.font;
 		return *this;
 	}
@@ -607,15 +612,24 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::setAlignment(const StaticText::Alignment& alignment)
+	void GuiTextBox::setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal)
 	{
-		if (this->alignment != alignment) {
-			this->alignment = alignment;
+		if (this->alignmentHorizontal != alignmentHorizontal) {
+			this->alignmentHorizontal = alignmentHorizontal;
 			if (dynamicText) {
-				dynamicText->setAlignment(alignment, false);
+				dynamicText->setAlignment(alignmentHorizontal, false);
 				recomputeText();
 				computeModelMatrices();
 			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::setAlignmentVertical(AlignmentVertical alignmentVertical)
+	{
+		if (this->alignmentVertical != alignmentVertical) {
+			this->alignmentVertical = alignmentVertical;
+			recomputeText();
+			computeModelMatrices();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -687,6 +701,30 @@ namespace SnackerEngine
 		return std::make_unique<GuiTextBoxBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::draw(const Vec2i& worldPosition, const Mat4f& transformMatrix)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		// Draw background
+		GuiPanel::draw(worldPosition, transformMatrix);
+		pushClippingBox(worldPosition);
+		// Draw text
+		drawText(worldPosition, transformMatrix);
+		popClippingBox();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiTextBox::draw(const Vec2i& worldPosition, const Mat4f& transformMatrix, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		// Draw background
+		GuiPanel::draw(worldPosition, transformMatrix);
+		pushClippingBox(worldPosition, clippingBoxOffset, clippingBoxSize);
+		// Draw text
+		drawText(worldPosition, transformMatrix);
+		popClippingBox();
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
@@ -701,7 +739,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::onRegister()
 	{
-		onRegister(std::move(std::make_unique<DynamicText>(text, font, fontSize, inchesToPoints(static_cast<double>(getWidth() - 2 * border) / Engine::getDPI().y), parseMode, alignment)));
+		onRegister(std::move(std::make_unique<DynamicText>(text, font, fontSize, pixelsToPoints(static_cast<double>(getWidth() - 2 * border)), parseMode, alignmentHorizontal)));
 		comouteWidthHints();
 		computeHeightHints();
 	}

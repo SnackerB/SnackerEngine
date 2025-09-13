@@ -12,11 +12,17 @@ namespace SnackerEngine
 	public:
 		/// Static default Attributes
 		static Color4f defaultBackgroundColor;
+		static Color4f defaultBorderColor;
 		static Shader defaultBackgroundShader;
 	private:
 		Color4f backgroundColor = defaultBackgroundColor;
-		Mat4f modelMatrix = {};
+		Color4f borderColor = defaultBorderColor;
+		Mat4f modelMatrix{};
 		Shader shader = defaultBackgroundShader;
+		float roundedCorners{ 0.0f };
+		float borderThickness{ 0.0f };
+		/// Selects the correct shader
+		void selectShader();
 		/// Computes the modelMatrix
 		void computeModelMatrix();
 	protected:
@@ -28,7 +34,10 @@ namespace SnackerEngine
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiPanel(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(),
-			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, const Color4f& backgroundColor = defaultBackgroundColor);
+			const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE, 
+			const Color4f& backgroundColor = defaultBackgroundColor, 
+			const Color4f& borderColor = defaultBorderColor,
+			float roundedCorners = 0.0f, float borderThickness = 0.0f);
 		/// Constructor from JSON. 
 		GuiPanel(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
@@ -41,13 +50,19 @@ namespace SnackerEngine
 		GuiPanel& operator=(GuiPanel&& other) noexcept;
 		/// Setters and Getters
 		virtual void setBackgroundColor(const Color4f& backgroundColor);
+		void setBorderColor(const Color4f& borderColor);
+		void setRoundedCorners(float roundedCorners);
+		void setBorderThickness(float borderThickness);
 		const Color4f& getBackgroundColor() const { return backgroundColor; }
+		const Color4f& getBorderColor() const { return borderColor; }
 		const Shader& getPanelShader() const { return shader; }
+		float getRoundedCorners() const { return roundedCorners; }
+		float getBorderThickness() const { return borderThickness; }
 	protected:
-		/// Function that draws the panel relative to its parent element, but also rescales according
-		/// to the given scaling matrix. This function can be called by child elements.
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. This function can be called by child elements.
 		/// Does not draw children.
-		void draw(const Vec2i& worldPosition, const Mat4f& scale);
+		void draw(const Vec2i& worldPosition, const Mat4f& transformMatrix);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space
@@ -68,7 +83,7 @@ namespace SnackerEngine
 		//==============================================================================================
 		// Collisions
 		//==============================================================================================
-
+	public:
 		/// Returns how the given offset vector (relative to the top left corner of the guiElement)
 		/// collides with this element
 		virtual IsCollidingResult isColliding(const Vec2i& offset) const override;
@@ -78,6 +93,9 @@ namespace SnackerEngine
 		//==============================================================================================
 
 		virtual std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCorners(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateBorderThickness(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 	};
 }

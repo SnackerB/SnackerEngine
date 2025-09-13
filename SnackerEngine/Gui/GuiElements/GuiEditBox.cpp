@@ -37,23 +37,19 @@ namespace SnackerEngine
 		auto result = static_cast<EditableText&>(*dynamicText).getSelectionBoxes();
 		if (result.empty()) return;
 		Vec2f textPosition = computeTextPosition();
-		unsigned int DPI = Engine::getDPI().y;
 		for (const auto& selectionBox : result) {
-			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position) * static_cast<float>(scaleFactor) * static_cast<float>(DPI), pointsToInches(selectionBox.size) * static_cast<float>(scaleFactor) * static_cast<float>(DPI)));
+			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + Vec2f(pointsToPixels(selectionBox.position.x), pointsToPixels(selectionBox.position.y)) * static_cast<float>(scaleFactor), Vec2f(pointsToPixels(selectionBox.size.x), pointsToPixels(selectionBox.size.y)) * static_cast<float>(scaleFactor)));
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2d GuiEditBox::getMouseOffsetToText()
 	{
-		Vec2d DPI = Engine::getDPI();
 		// Compute offset due to centering
 		Vec2f textOffset = computeTextPosition();
 		// Get mouse offset to upper left corner of element
 		Vec2d mousePos = getMouseOffset();
 		mousePos = Vec2i(-static_cast<int>(textOffset.x), -static_cast<int>(textOffset.y)) + Vec2i(static_cast<int>(mousePos.x), -static_cast<int>(mousePos.y));
-		mousePos.x /= DPI.x;
-		mousePos.y /= DPI.y;
-		mousePos /= pointsToInches(1.0);
+		mousePos /= pointsToPixels(1.0);
 		return mousePos;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -177,7 +173,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::onRegister()
 	{
-		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), inchesToPoints(static_cast<double>(getWidth() - 2 * getBorder()) / Engine::getDPI().y), cursorWidth, getParseMode(), getAlignment())));
+		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - 2 * getBorder())), cursorWidth, getParseMode(), getAlignmentHorizontal())));
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		signUpEvent(CallbackType::MOUSE_ENTER);
 		signUpEvent(CallbackType::MOUSE_LEAVE);

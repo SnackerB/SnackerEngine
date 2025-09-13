@@ -97,7 +97,8 @@ namespace SnackerEngine
 		int getRecomputeTries() const { return components[0].getRecomputeTries(); }
 		bool isDoRecomputeOnSizeChange() const { return components[0].isDoRecomputeOnSizeChange(); }
 		StaticText::ParseMode getParseMode() const { return components[0].getParseMode(); }
-		StaticText::Alignment getAlignment() const { return components[0].getAlignment(); }
+		AlignmentHorizontal getAlignmentHorizontal() const { return components[0].getAlignmentHorizontal(); }
+		AlignmentVertical getAlignmentVertical() const { return components[0].getAlignmentVertical(); }
 		const Font& getFont() const { return components[0].getFont(); }
 		const VecT& getValue() const { return value; }
 		VariableHandle<VecT>& getVariableHandle() { return value; }
@@ -141,8 +142,11 @@ namespace SnackerEngine
 		void setParseMode(const StaticText::ParseMode& parseMode) {
 			for (const auto& component : components) component->setParseMode(parseMode);
 		}
-		void setAlignment(const StaticText::Alignment& alignment) {
-			for (const auto& component : components) component->setAlignment(alignment);
+		void setAlignmentHorizontal(AlignmentHorizontal alignment) {
+			for (const auto& component : components) component->setAlignmentHorizontal(alignment);
+		}
+		void setAlignmentVertical(AlignmentVertical alignment) {
+			for (const auto& component : components) component->setAlignmentVertical(alignment);
 		}
 		void setFont(const Font& font) {
 			for (const auto& component : components) component->setFont(font);
@@ -203,8 +207,10 @@ namespace SnackerEngine
 		if (text.has_value()) setText(text.value());
 		std::optional<StaticText::ParseMode> parseMode = parseJsonOrReadFromData<StaticText::ParseMode>("parseMode", json, data, parameterNames);
 		if (parseMode.has_value()) setParseMode(parseMode.value());
-		std::optional<StaticText::Alignment> alignment = parseJsonOrReadFromData<StaticText::Alignment>("alignment", json, data, parameterNames);
-		if (alignment.has_value()) setAlignment(alignment.value());
+		std::optional<AlignmentHorizontal> alignmentHorizontal = parseJsonOrReadFromData<AlignmentHorizontal>("alignmentHorizontal", json, data, parameterNames);
+		if (alignmentHorizontal.has_value()) setAlignmentHorizontal(alignmentHorizontal.value());
+		std::optional<AlignmentVertical> alignmentVertical = parseJsonOrReadFromData<AlignmentVertical>("alignmentVertical", json, data, parameterNames);
+		if (alignmentVertical.has_value()) setAlignmentVertical(alignmentVertical.value());
 		std::optional<Font> font = parseJsonOrReadFromData<Font>("font", json, data, parameterNames);
 		if (font.has_value()) setFont(font.value());
 		// JSON parsing for the value
