@@ -7,6 +7,7 @@
 #include "Core/Engine.h"
 #include "Gui/Text/Unicode.h"
 #include "Core\Assert.h"
+#include "Gui\Text\FontData.h"
 
 #include <fstream>
 #include <msdfgen.h>
@@ -20,15 +21,9 @@
 
 namespace SnackerEngine
 {
-    //======================================================================================================
-    // FontData implementation
-    //======================================================================================================
-    FontManager::FontData::~FontData() { }
-    //------------------------------------------------------------------------------------------------------
-    void FontManager::FontData::bind(const unsigned int& slot)
-    {
-        msdfTexture.bind(slot);
-    }
+    /// Vector that stores all FontData structs. FontIDs are indices into this vector
+    static std::vector<FontData> fontDataArray{};
+    
     //======================================================================================================
     // Helper functions for loading and updating fonts
     //======================================================================================================
@@ -431,7 +426,7 @@ namespace SnackerEngine
             msdfgen::deinitializeFreetype(freetypeHandle);
     }
     //------------------------------------------------------------------------------------------------------
-    const FontManager::FontData& FontManager::getFontData(const Font& font)
+    const FontData& FontManager::getFontData(const Font& font)
     {
         return fontDataArray[font.fontID];
     }

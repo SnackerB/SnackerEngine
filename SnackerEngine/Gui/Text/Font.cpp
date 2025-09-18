@@ -8,7 +8,7 @@
 
 #include <msdfgen.h>
 #include <msdfgen-ext.h>
-#include "Gui/Text/Font.h"
+#include "Gui\Text\FontData.h"
 #include "Utility\Json.h"
 
 namespace SnackerEngine
@@ -103,7 +103,7 @@ namespace SnackerEngine
 		return 0.0f;
 	}
 	//------------------------------------------------------------------------------------------------------
-	double Font::getAdvance(Unicode first, Unicode second)
+	double Font::getAdvance(Unicode first, Unicode second) const
 	{
 		if (!FontManager::isValidGlyph(*this, first)) {
 			first = FontManager::getFontData(*this).missingCharacterReplacement;

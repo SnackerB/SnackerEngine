@@ -37,7 +37,7 @@ namespace SnackerEngine
 		/// returns the vertical distance between two lines
 		double getVerticalLineDistance();
 		/// Returns the advance distance between two specific glyphs (kerning)
-		double getAdvance(Unicode first, Unicode second);
+		double getAdvance(Unicode first, Unicode second) const;
 		/// Returns the pixel range of this font
 		double getPixelRange() const;
 		/// Returns true if this font is valid and corresponds to a msdf texture on the GPU

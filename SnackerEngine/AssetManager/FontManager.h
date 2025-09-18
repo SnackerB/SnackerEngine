@@ -4,8 +4,6 @@
 #include "GUI/Text/Font.h"
 #include "Gui/Text/Glyph.h"
 
-#include <msdf-atlas-gen.h>
-
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -15,68 +13,21 @@ namespace msdfgen {
 	class FreetypeHandle;
 	class FontHandle;
 }
-class DynamicAtlas;
 
 namespace SnackerEngine
 {
+	/// Forward declaration of struct that stores all the data that is necessary to store for each font
+	struct FontData;
 
 	class FontManager
 	{
 	private:
 		/// We use unsigned as unicode type
 		using Unicode = unsigned int;
-		/// specifies the parameters of the atlas generator
-		/// 1st template argument: pixel type of buffer for individual glyphs depends on generator function
-		/// 2nd template argument: number of atlas color channels
-		/// 3rd template argument: function to generate bitmaps for individual glyphs
-		/// 4th template argument: class that stores the atlas bitmap
-		using AtlasGenerator = msdf_atlas::ImmediateAtlasGenerator<float, 3, msdf_atlas::msdfGenerator, msdf_atlas::BitmapAtlasStorage<msdf_atlas::byte, 3>>;
-		using DynamicAtlas = msdf_atlas::DynamicAtlas<AtlasGenerator>;
-		/// This struct stores all the data that is necessary to store for each font
-		struct FontData
-		{
-			FontData() = default;
-			/// move constructor and assignment operator
-			FontData(FontData&& other) = default;
-			FontData& operator=(FontData&& other) = default;
-			/// msdf texture
-			Texture msdfTexture;
-			/// Number of times this font is referenced by other objects
-			unsigned int referenceCount{};
-			/// If this is set to false, this font will get deleted if referenceCount reaches zero
-			bool persistent{};
-			/// This is set to false by standard and is set to true if an actual font is stored!
-			bool valid{};
-			/// File path of the font
-			std::string path{};
-			/// parameters used in msdf generation
-			double maxCornerAngle{};
-			double glyphScale{};
-			double pixelRange{};
-			double miterLimit{};
-			/// Unicode symbol that is used as a replacement for missing/unknowns characters
-			Unicode missingCharacterReplacement{};
-			/// msdf atlas
-			DynamicAtlas dynamicAtlas{};
-			/// Vector of glyphs, stores important geometry information about each glyph
-			std::vector<msdf_atlas::GlyphGeometry> glyphs{};
-			/// Font geometry object, used to access specific glyphs
-			msdf_atlas::FontGeometry fontGeometry{};
-			/// Set of Unicode symbols that are represented by the "missing" symbol,
-			/// ie. symbols that could not be loaded with this font
-			std::unordered_set<Unicode> missingCharacters{};
-			/// Destructor. Deletes the texture from the GPU if it was loaded.
-			~FontData();
-
-			/// Binds this font
-			void bind(const unsigned int& slot = 0);
-		};
 		/// We just use unsigned ints as fontIDs. The IDs are also indices into the fontDataArray!
 		using FontID = unsigned int;
 		/// Freetype handle
 		inline static msdfgen::FreetypeHandle* freetypeHandle;
-		/// Vector that stores all FontData structs. FontIDs are indices into this vector
-		inline static std::vector<FontData> fontDataArray;
 		/// Vector that stores all fontHandle objects. FontIDs are indices into this vector
 		inline static std::vector<msdfgen::FontHandle*> fontHandles;
 		/// Queue of available (unused) FontIDs
@@ -141,8 +92,8 @@ namespace SnackerEngine
 		FontManager() = delete;
 		/// Sets the loadFontsPersistently bool variable. If this is set to true, all fonts are loaded persistently
 		/// per default, i.e. they are only deleted when the engine terminates.
-		void setLoadFontsPersistently(bool loadFontsPersistently) { FontManager::loadFontsPersistently = loadFontsPersistently; }
-		bool isLoadFontsPersistently() { return loadFontsPersistently; }
+		static void setLoadFontsPersistently(bool loadFontsPersistently) { FontManager::loadFontsPersistently = loadFontsPersistently; }
+		static bool isLoadFontsPersistently() { return loadFontsPersistently; }
 
 		// DEBUG
 		/// Tries to load a fontData object from a given file path

@@ -225,6 +225,7 @@
     <ClCompile Include="Gui\Layouts\VerticalWeightedLayout.cpp" />
     <ClCompile Include="Gui\SizeHints.cpp" />
     <ClCompile Include="Gui\Text\Font.cpp" />
+    <ClCompile Include="Gui\Text\FontData.cpp" />
     <ClCompile Include="Gui\Text\Glyph.cpp" />
     <ClCompile Include="Gui\Text\Text.cpp" />
     <ClCompile Include="Gui\Text\TextMaterial.cpp" />
@@ -308,6 +309,7 @@
     <ClInclude Include="Gui\Layouts\VerticalWeightedLayout.h" />
     <ClInclude Include="Gui\SizeHints.h" />
     <ClInclude Include="Gui\Text\Font.h" />
+    <ClInclude Include="Gui\Text\FontData.h" />
     <ClInclude Include="Gui\Text\Glyph.h" />
     <ClInclude Include="Gui\Text\Text.h" />
     <ClInclude Include="Gui\Text\TextMaterial.h" />

@@ -152,10 +152,8 @@ namespace SnackerEngine
 			for (const auto& component : components) component->setFont(font);
 		}
 		void setValue(const VecT& value) {
-			if (this->value != value) {
-				static_cast<VariableHandle<VecT>&>(this->value).set(value);
-				updateChildElements();
-			}
+			static_cast<VariableHandle<VecT>&>(this->value).set(value);
+			updateChildElements();
 		}
 	protected:
 		/// This function is called by the guiManager after registering this GuiElement object.
