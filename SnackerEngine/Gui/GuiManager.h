@@ -94,6 +94,8 @@ namespace SnackerEngine
 		Model squareModel;
 		Model triangleModel;
 
+		Shader alphaColorShader;
+
 		//==============================================================================================
 		// Rectangle clipping (scissor testing)
 		//==============================================================================================
@@ -365,6 +367,8 @@ namespace SnackerEngine
 		Model getModelSquare();
 		/// Returns a model of a triangle, with positions and texture coordinates
 		Model getModelTriangle();
+		/// Returns a basic alpha color shader
+		Shader getAlphaColorShader();
 		/// Takes a size and a guiElement and clips the size according to minSize and maxSize of the guiElement
 		Vec2i clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement);
 		int clipWidthToMinMaxWidth(const int& width, const GuiID& guiElement);

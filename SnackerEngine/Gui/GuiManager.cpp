@@ -780,7 +780,7 @@ namespace SnackerEngine
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, eventVectorDrawOnTop{}, signOffQueue{}, squareModel{},
-		triangleModel{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, // animations{}, TODO: Uncomment
+		triangleModel{}, alphaColorShader{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, // animations{}, TODO: Uncomment
 		screenDims{}, namedElements{}, guiGroupMap{}, guiGroups{},
 		registeredGuiGroupsCount(0), availableGuiGroupIDs{}, maxGuiGroups(startingSize)
 	{
@@ -937,6 +937,14 @@ namespace SnackerEngine
 			return triangleModel;
 		triangleModel = Model(createMeshTriangle());
 		return triangleModel;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Shader GuiManager::getAlphaColorShader()
+	{
+		if (alphaColorShader.isValid())
+			return alphaColorShader;
+		alphaColorShader = Shader("shaders/gui/simpleAlphaColor.shader");
+		return alphaColorShader;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiManager::clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement)

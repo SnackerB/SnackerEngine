@@ -92,7 +92,7 @@ namespace SnackerEngine
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f)
+		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
 		{
 			shader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shader);
@@ -120,7 +120,7 @@ namespace SnackerEngine
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f)
+		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
 		{
 			shader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shader);

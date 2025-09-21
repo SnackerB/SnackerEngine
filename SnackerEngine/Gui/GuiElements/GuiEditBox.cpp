@@ -16,16 +16,13 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::computeModelMatrixCursor()
 	{
-		unsigned int DPI = Engine::getDPI().y;
 		if (!dynamicText) return;
 		Vec2f cursorOffset = static_cast<EditableText&>(*dynamicText).getCursorPos() * static_cast<float>(scaleFactor);
-		cursorOffset.x = pointsToInches(cursorOffset.x);
-		cursorOffset.y = pointsToInches(cursorOffset.y);
-		cursorOffset *= static_cast<float>(DPI);
+		cursorOffset.x = pointsToPixels(cursorOffset.x);
+		cursorOffset.y = pointsToPixels(cursorOffset.y);
 		Vec2f cursorSize = static_cast<EditableText&>(*dynamicText).getCursorSize() * static_cast<float>(scaleFactor);
-		cursorSize.x = pointsToInches(cursorSize.x);
-		cursorSize.y = pointsToInches(cursorSize.y);
-		cursorSize *= static_cast<float>(DPI);
+		cursorSize.x = pointsToPixels(cursorSize.x);
+		cursorSize.y = pointsToPixels(cursorSize.y);
 		Vec2f textOffset = computeTextPosition();
 		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(textOffset.x + cursorOffset.x, textOffset.y + cursorOffset.y, 0.0f), cursorSize);
 	}
@@ -59,8 +56,8 @@ namespace SnackerEngine
 		if (dynamicText) setText(dynamicText->getText());
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, const Color4f& backgroundColor)
-		: GuiTextBox(position, size, text, font, fontSize, backgroundColor) {}
+	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const Color4f& backgroundColor)
+		: GuiTextBox(position, size, text, font, fontSize, lineHeight, backgroundColor) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiTextBox(json, data, parameterNames)
@@ -70,11 +67,11 @@ namespace SnackerEngine
 		std::optional<double> cursorBlinkTime = parseJsonOrReadFromData<double>("cursorBlinkTime", json, data, parameterNames);
 		if (cursorBlinkTime.has_value()) cursorBlinkingTimer.setTimeStep(cursorBlinkTime.value());
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
-		if (!json.contains("sizeHintModeMinSize") && getTextScaleMode() != TextScaleMode::SCALE_DOWN && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN &&
-			getTextScaleMode() != TextScaleMode::RECOMPUTE_DOWN && getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
-		if (!json.contains("sizeHintModePreferredSize") && getTextScaleMode() == TextScaleMode::DONT_SCALE) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);
-		if (!json.contains("sizeHintModeMaxSize") && getTextScaleMode() != TextScaleMode::SCALE_UP && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN
-			&& getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
+		//if (!json.contains("sizeHintModeMinSize") && getTextScaleMode() != TextScaleMode::SCALE_DOWN && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN &&
+		//	getTextScaleMode() != TextScaleMode::RECOMPUTE_DOWN && getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
+		//if (!json.contains("sizeHintModePreferredSize") && getTextScaleMode() == TextScaleMode::DONT_SCALE) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);
+		//if (!json.contains("sizeHintModeMaxSize") && getTextScaleMode() != TextScaleMode::SCALE_UP && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN
+		//	&& getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const GuiEditBox& other) noexcept
@@ -150,20 +147,22 @@ namespace SnackerEngine
 		// Draw selection boxes
 		pushClippingBox(worldPosition);
 		for (const auto& modelMatrixSelectionBox : modelMatricesSelectionBoxes) {
-			getPanelShader().bind();
-			guiManager->setUniformViewAndProjectionMatrices(getPanelShader());
-			getPanelShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixSelectionBox);
-			getPanelShader().setUniform<Color4f>("u_color", selectionBoxColor);
+			Shader tempShader = guiManager->getAlphaColorShader();
+			tempShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(tempShader);
+			tempShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixSelectionBox);
+			tempShader.setUniform<Color4f>("u_color", selectionBoxColor);
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw text
 		drawText(worldPosition);
 		// Draw cursor
 		if (cursorIsVisible) {
-			getPanelShader().bind();
-			guiManager->setUniformViewAndProjectionMatrices(getPanelShader());
-			getPanelShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixCursor);
-			getPanelShader().setUniform<Color4f>("u_color", getTextColor());
+			Shader tempShader = guiManager->getAlphaColorShader();
+			tempShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(tempShader);
+			tempShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixCursor);
+			tempShader.setUniform<Color4f>("u_color", getTextColor());
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw children
@@ -173,7 +172,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::onRegister()
 	{
-		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - 2 * getBorder())), cursorWidth, getParseMode(), getAlignmentHorizontal())));
+		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - 2 * getBorder())), cursorWidth, getLineHeight(), getParseMode(), getAlignmentHorizontal())));
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		signUpEvent(CallbackType::MOUSE_ENTER);
 		signUpEvent(CallbackType::MOUSE_LEAVE);

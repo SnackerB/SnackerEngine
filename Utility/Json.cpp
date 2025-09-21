@@ -46,7 +46,7 @@ namespace SnackerEngine
 	}
 	template<> bool isOfType(const nlohmann::json& json, JsonTag<unsigned> tag)
 	{
-		return json.is_number_unsigned();
+		return json.is_number_integer() && static_cast<int>(json) >= 0;
 	}
 	template<> bool isOfType(const nlohmann::json& json, JsonTag<float> tag)
 	{

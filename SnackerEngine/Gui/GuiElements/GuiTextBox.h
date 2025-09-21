@@ -18,7 +18,8 @@ namespace SnackerEngine
 			DONT_SCALE,			/// Text is not scaled
 			SCALE_UP,			/// Text is scaled up to try to fit the box better.
 			/// Works best in SINGLE_LINE parse mode
-			SCALE_DOWN,			/// Text is scaled down to try to fit the box better.
+			SCALE_DOWN,				/// Text is scaled down to try to fit the box better.
+			SCALE_DOWN_HORIZONTAL,	/// Text is scaled down to try to fit the box better, but is only scaled based on width
 			/// Works best in SINGLE_LINE parse mode
 			SCALE_UP_DOWN,		/// Text is scaled up or down to try to fit the box better.
 			/// Works best in SINGLE_LINE parse mode
@@ -91,6 +92,9 @@ namespace SnackerEngine
 		int border = GuiElement::defaultBorderSmall;
 		/// The normal font size of the text (without any rescaling), in pt.
 		double fontSize = GuiElement::defaultFontSizeNormal;
+		/// The line height of the text (without any rescaling), in pt. If set to std::nullopt, the standard
+		/// line height of the font will be used.
+		std::optional<double> lineHeight;
 		/// The number of tries that are being made to resize the text when the textBoxMode is set to 
 		/// FORCE_SIZE_RECOMPUTE_SCALE_DOWN or FORCE_SIZE_RECOMPUTE_SCALE
 		unsigned int recomputeTries = defaultRecomputeTries;
@@ -133,7 +137,7 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_TEXT_BOX";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
+		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, std::optional<double> lineHeight = std::nullopt, const Color4f& backgroundColor = defaultBackgroundColor);
 		GuiTextBox(const std::string& text);
 		/// Constructor from JSON
 		GuiTextBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
@@ -152,6 +156,7 @@ namespace SnackerEngine
 		const SizeHintModes& getSizeHintModes() const { return sizeHintModes; }
 		const int getBorder() const { return border; }
 		double getFontSize() const { return fontSize; }
+		double getLineHeight() const { return lineHeight.has_value() ? lineHeight.value() : font.getLineHeight(); }
 		int getRecomputeTries() const { return recomputeTries; }
 		bool isDoRecomputeOnSizeChange() const { return doRecomputeOnSizeChange; }
 		const std::string& getText() const { return text; }
@@ -168,6 +173,7 @@ namespace SnackerEngine
 		void setSizeHintModes(const SizeHintModes& sizeHintModes);
 		void setBorder(const int& border);
 		void setFontSize(const double& fontSize);
+		void setLineHeight(std::optional<double> lineHeight);
 		void setRecomputeTries(int recomputeTries);
 		void setDoRecomputeOnSizeChange(const bool& doRecomputeOnSizeChange);
 		void setText(const std::string& text);

@@ -55,18 +55,18 @@ namespace SnackerEngine
 		/// The model used for rendering
 		Model model;
 		/// Constructs the model using the given parameters and using parse mode 'CHARACTERS'
-		Model parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		Model parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Constructs the model using the given parameters and using parse mode 'WORD_BY_WORD'
-		Model parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		Model parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Constructs the model from the text member variable using parse mode 'SINGLE_LINE'
-		Model parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		Model parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Constructs the model from the text member variable
-		virtual void constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		virtual void constructModel(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 	public:
 		/// Default constructor
 		StaticText();
 		/// Constuctor using a string and various parameters
-		StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, std::optional<double> lineHeight = std::nullopt, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Copy and Move constructors and operators
 		StaticText(const StaticText& other) = delete;
 		StaticText(StaticText&& other) noexcept;
@@ -83,6 +83,8 @@ namespace SnackerEngine
 		Font font{};
 		/// The font size in pt
 		double fontSize = 0.0;
+		/// The line height in pt
+		std::optional<double> lineHeight = std::nullopt;
 		/// The width of the text in pt
 		double textWidth = 0.0;
 		/// The contents of the text
@@ -109,7 +111,7 @@ namespace SnackerEngine
 		/// Default constructor
 		DynamicText();
 		/// Constuctor using a string and various parameters
-		DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, std::optional<double> lineHeight = std::nullopt, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Copy and Move constructors and operators
 		DynamicText(const DynamicText& other) noexcept;
 		DynamicText(DynamicText&& other) noexcept;
@@ -119,6 +121,7 @@ namespace SnackerEngine
 		const Font& getFont() const;
 		double getFontSize() const;
 		double getTextWidth() const;
+		double getLineHeight() const;
 		Vec2d getTextSize() const;
 		virtual const std::string& getText();
 		const Model& getModel() const;
@@ -152,6 +155,10 @@ namespace SnackerEngine
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
 		virtual void setFont(const Font& font, bool recompute = true);
+		/// Sets the line height. If set to std::nullopt, the default lineHeight of the font will be used. 
+		/// May need to recompute the text model. If you want to set multiple parameters and not yet want 
+		/// to recompute the text model, set recompute to false
+		virtual void setLineHeight(std::optional<double> lineHeight, bool recompute = true);
 		/// Sets the parse mode. May need to recompute the text model
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false
@@ -217,7 +224,7 @@ namespace SnackerEngine
 		/// Default constructor
 		EditableText();
 		/// Constuctor using a string and various parameters
-		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
+		EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, std::optional<double> lineHeight = std::nullopt, const ParseMode& parseMode = ParseMode::WORD_BY_WORD, AlignmentHorizontal alignment = AlignmentHorizontal::LEFT);
 		/// Copy and Move constructors and operators
 		EditableText(const EditableText& other) noexcept;
 		EditableText(EditableText&& other) noexcept;

@@ -38,16 +38,18 @@ namespace SnackerEngine
 		double textWidth;
 		/// The font size we'd like to parse in
 		const double& fontSize;
+		/// The line height of the text in pt
+		double lineHeight;
 		/// Vector of characters
 		std::vector<StaticText::Character>& characters;
 		/// Vector of lines
 		std::vector<StaticText::Line>& lines;
 
 		/// Constructor
-		ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines);
+		ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::optional<double> lineHeight, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines);
 
 		/// Checks if the given x position still is inside the maximum allowed line width
-		bool isInsideTextWidth(const double& x);
+		bool isInsideTextWidth(const double& x) const;
 		/// Goes to the next line, changing currentBaseline. Does not set lastCodepoint to zero!
 		virtual void goToNextLine();
 		/// Goes to the next line, changing currentBaseline. Does not set lastCodepoint to zero!
@@ -111,10 +113,12 @@ namespace SnackerEngine
 		std::pair<Model, double> alignAndConstructModel(AlignmentHorizontal alignment, std::vector<Vec4f>& vertices, std::vector<unsigned int>& indices);
 	};
 	//--------------------------------------------------------------------------------------------------
-	ParseData::ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines)
-		: font(font), currentBaseline(currentBaseline), lastCodepoint(lastCodepoint), textWidth(textWidth), fontSize(fontSize), characters(characters), lines(lines) {}
+	ParseData::ParseData(Font& font, const Vec2d& currentBaseline, const Unicode& lastCodepoint, const double& textWidth, const double& fontSize, std::optional<double> lineHeight, std::vector<StaticText::Character>& characters, std::vector<StaticText::Line>& lines)
+		: font(font), currentBaseline(currentBaseline), lastCodepoint(lastCodepoint), textWidth(textWidth), 
+		fontSize(fontSize), lineHeight{ lineHeight.has_value() ? lineHeight.value() : font.getLineHeight() }, 
+		characters(characters), lines(lines) {}
 	//--------------------------------------------------------------------------------------------------
-	bool ParseData::isInsideTextWidth(const double& x)
+	bool ParseData::isInsideTextWidth(const double& x) const
 	{
 		return (textWidth == 0.0) || (x * fontSize <= textWidth);
 	}
@@ -123,7 +127,7 @@ namespace SnackerEngine
 	{
 		// Change current baseline
 		currentBaseline.x = 0;
-		currentBaseline.y -= font.getLineHeight();
+		currentBaseline.y -= lineHeight;
 		// Update the lines vector!
 		lines.back().endIndex = static_cast<unsigned int>(characters.size() - 1);
 		lines.push_back(StaticText::Line{ static_cast<double>(currentBaseline.y), static_cast<unsigned int>(characters.size()),
@@ -136,7 +140,7 @@ namespace SnackerEngine
 		if (textWidth == 0.0) return;
 		// Change current baseline
 		currentBaseline.x = 0;
-		currentBaseline.y -= font.getLineHeight();
+		currentBaseline.y -= lineHeight;
 		// Update the lines vector!
 		lines.back().endIndex = firstCharacterOnNewlineIndex - 1;
 		lines.push_back(StaticText::Line{ static_cast<double>(currentBaseline.y), firstCharacterOnNewlineIndex,
@@ -669,14 +673,14 @@ namespace SnackerEngine
 		return std::make_pair(Model(mesh), right);
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model StaticText::parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment)
+	Model StaticText::parseTextCharacters(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, AlignmentHorizontal alignment)
 	{
 		// Create ParseDynamicTextData object
 		std::vector<Character> characters;
 		std::vector<Line> lines;
 		lines.push_back({ 0.0, 0, 0 });
 		Font tempFont(font);
-		ParseData data{ tempFont, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
+		ParseData data{ tempFont, Vec2d{}, Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -687,14 +691,14 @@ namespace SnackerEngine
 		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model StaticText::parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment)
+	Model StaticText::parseTextWordByWord(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, AlignmentHorizontal alignment)
 	{
 		// Create ParseDynamicTextData object
 		std::vector<Character> characters;
 		std::vector<Line> lines;
 		lines.push_back({ 0.0, 0, 0 });
 		Font tempFont(font);
-		ParseData data{ tempFont, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
+		ParseData data{ tempFont, Vec2d{}, Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseWordByWord(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -705,14 +709,14 @@ namespace SnackerEngine
 		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Model StaticText::parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, AlignmentHorizontal alignment)
+	Model StaticText::parseTextSingleLine(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, AlignmentHorizontal alignment)
 	{
 		// Create ParseDynamicTextData object
 		std::vector<Character> characters;
 		std::vector<Line> lines;
 		lines.push_back({ 0.0, 0, 0 });
 		Font tempFont(font);
-		ParseData data{ tempFont, Vec2d{}, Unicode{0}, 0.0, fontSize, characters, lines };
+		ParseData data{ tempFont, Vec2d{}, Unicode{0}, 0.0, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -724,13 +728,13 @@ namespace SnackerEngine
 		return data.alignAndConstructModel(alignment, vertices, indices).first;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void StaticText::constructModel(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
+	void StaticText::constructModel(const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
 	{
 		switch (parseMode)
 		{
-		case SnackerEngine::StaticText::ParseMode::WORD_BY_WORD: model = parseTextWordByWord(text, font, fontSize, textWidth, alignment); break;
-		case SnackerEngine::StaticText::ParseMode::CHARACTERS: model = parseTextCharacters(text, font, fontSize, textWidth, alignment); break;
-		case SnackerEngine::StaticText::ParseMode::SINGLE_LINE: model = parseTextSingleLine(text, font, fontSize, textWidth, alignment); break;
+		case SnackerEngine::StaticText::ParseMode::WORD_BY_WORD: model = parseTextWordByWord(text, font, fontSize, lineHeight, textWidth, alignment); break;
+		case SnackerEngine::StaticText::ParseMode::CHARACTERS: model = parseTextCharacters(text, font, fontSize, lineHeight, textWidth, alignment); break;
+		case SnackerEngine::StaticText::ParseMode::SINGLE_LINE: model = parseTextSingleLine(text, font, fontSize, lineHeight, textWidth, alignment); break;
 		default: break;
 		}
 	}
@@ -738,11 +742,11 @@ namespace SnackerEngine
 	StaticText::StaticText()
 		: model{} {}
 	//--------------------------------------------------------------------------------------------------
-	StaticText::StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
+	StaticText::StaticText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, std::optional<double> lineHeight, const ParseMode& parseMode, AlignmentHorizontal alignment)
 		: model{}
 	{
-		constructModel(text, font, fontSize, textWidth, parseMode, alignment);
-	}
+		constructModel(text, font, fontSize, lineHeight, textWidth, parseMode, alignment);
+	}	
 	//--------------------------------------------------------------------------------------------------
 	StaticText::StaticText(StaticText&& other) noexcept
 		: model(std::move(other.model))
@@ -763,7 +767,7 @@ namespace SnackerEngine
 		characters.clear();
 		lines.clear();
 		lines.push_back({ 0.0, 0, 0 });
-		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
+		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -782,7 +786,7 @@ namespace SnackerEngine
 		characters.clear();
 		lines.clear();
 		lines.push_back({ 0.0, 0, 0 });
-		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
+		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseWordByWord(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -801,7 +805,7 @@ namespace SnackerEngine
 		characters.clear();
 		lines.clear();
 		lines.push_back({ 0.0, 0, 0 });
-		ParseData data{ font, Vec2d{}, Unicode{0}, 0.0, fontSize, characters, lines };
+		ParseData data{ font, Vec2d{}, Unicode{0}, 0.0, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -835,19 +839,19 @@ namespace SnackerEngine
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
-	DynamicText::DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
-		: StaticText(), font(font), fontSize(fontSize), textWidth(textWidth), text(text), parseMode(parseMode),
+	DynamicText::DynamicText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, std::optional<double> lineHeight, const ParseMode& parseMode, AlignmentHorizontal alignment)
+		: StaticText(), font(font), fontSize(fontSize), lineHeight{ lineHeight }, textWidth(textWidth), text(text), parseMode(parseMode),
 		alignment(alignment), right(0.0), characters{}, lines{}
 	{
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
 	DynamicText::DynamicText(const DynamicText& other) noexcept
-		: DynamicText(other.text, other.font, other.fontSize, other.textWidth, other.parseMode, other.alignment) {}
+		: DynamicText(other.text, other.font, other.fontSize, other.textWidth, other.lineHeight, other.parseMode, other.alignment) {}
 	//--------------------------------------------------------------------------------------------------
 	DynamicText::DynamicText(DynamicText&& other) noexcept
-		: StaticText(std::move(other)), font(std::move(other.font)), fontSize(std::move(other.fontSize)), 
-		textWidth(std::move(other.textWidth)), text(std::move(other.text)), 
+		: StaticText(std::move(other)), font(std::move(other.font)), fontSize(std::move(other.fontSize)),
+		lineHeight{ std::move(other.lineHeight) }, textWidth(std::move(other.textWidth)), text(std::move(other.text)), 
 		parseMode(std::move(other.parseMode)), alignment(std::move(other.alignment)), 
 		right(std::move(other.right)), characters(std::move(other.characters)), 
 		lines(std::move(other.lines))
@@ -862,6 +866,7 @@ namespace SnackerEngine
 		text = other.text;
 		font = other.font;
 		fontSize = other.fontSize;
+		lineHeight = other.lineHeight;
 		textWidth = other.textWidth;
 		parseMode = other.parseMode;
 		alignment = other.alignment;
@@ -877,6 +882,7 @@ namespace SnackerEngine
 		StaticText::operator=(std::move(other));
 		font = std::move(other.font);
 		fontSize = std::move(other.fontSize);
+		lineHeight = std::move(other.lineHeight);
 		textWidth = std::move(other.textWidth);
 		text = std::move(other.text);
 		parseMode = std::move(other.parseMode);
@@ -903,6 +909,12 @@ namespace SnackerEngine
 	double DynamicText::getTextWidth() const
 	{
 		return textWidth;
+	}
+	//--------------------------------------------------------------------------------------------------
+	double DynamicText::getLineHeight() const
+	{
+		if (lineHeight.has_value()) return lineHeight.value();
+		else return font.getLineHeight();
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2d DynamicText::getTextSize() const
@@ -983,6 +995,12 @@ namespace SnackerEngine
 		if (recompute) constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
+	void DynamicText::setLineHeight(std::optional<double> lineHeight, bool recompute)
+	{
+		this->lineHeight = lineHeight;
+		if (recompute) constructModel();
+	}
+	//--------------------------------------------------------------------------------------------------
 	void DynamicText::setParseMode(const StaticText::ParseMode& parseMode, bool recompute)
 	{
 		this->parseMode = parseMode;
@@ -1013,7 +1031,7 @@ namespace SnackerEngine
 		characters.clear();
 		lines.clear();
 		lines.push_back({ 0.0, 0, 0 });
-		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
+		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseCharacterByCharacter(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -1030,7 +1048,7 @@ namespace SnackerEngine
 		characters.clear();
 		lines.clear();
 		lines.push_back({ 0.0, 0, 0 });
-		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, characters, lines };
+		ParseData data{ font, Vec2d{}, Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseWordByWord(0, static_cast<unsigned int>(text.size()), text);
 		// Finalize the lines vector
@@ -1046,8 +1064,8 @@ namespace SnackerEngine
 		// Create ParseDynamicTextData object
 		lines.resize(lineIndex);
 		if (lineIndex == 0) lines.push_back({ 0.0, 0, 0 });
-		else lines.push_back({ lines.back().baselineY - font.getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
-		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, textWidth, fontSize, characters, lines};
+		else lines.push_back({ lines.back().baselineY - getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1});
+		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, textWidth, fontSize, lineHeight, characters, lines};
 		// Parse the text
 		data.parseCharacterByCharacter(lines.back().beginIndex, static_cast<unsigned int>(characters.size()));
 		// Finalize the lines vector
@@ -1063,8 +1081,8 @@ namespace SnackerEngine
 		// Create ParseDynamicTextData object
 		lines.resize(lineIndex);
 		if (lineIndex == 0) lines.push_back({ 0.0, 0, 0 });
-		else lines.push_back({ lines.back().baselineY - font.getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
-		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, 0.0, fontSize, characters, lines };
+		else lines.push_back({ lines.back().baselineY - getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
+		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, 0.0, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseCharacterByCharacter(lines.back().beginIndex, static_cast<unsigned int>(characters.size()));
 		// Finalize the lines vector
@@ -1084,8 +1102,8 @@ namespace SnackerEngine
 		// Create ParseDynamicTextData object
 		lines.resize(newLineIndex);
 		if (newLineIndex == 0) lines.push_back({ 0.0, 0, 0 });
-		else lines.push_back({ lines.back().baselineY - font.getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
-		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, textWidth, fontSize, characters, lines };
+		else lines.push_back({ lines.back().baselineY - getLineHeight(), lines.back().endIndex + 1, lines.back().endIndex + 1 });
+		ParseData data{ font, Vec2d(0.0, lines.back().baselineY), Unicode{0}, textWidth, fontSize, lineHeight, characters, lines };
 		// Parse the text
 		data.parseWordByWord(lines.back().beginIndex, static_cast<unsigned int>(characters.size()));
 		// Finalize the lines vector
@@ -1215,15 +1233,15 @@ namespace SnackerEngine
 		constructModel();
 	}
 	//--------------------------------------------------------------------------------------------------
-	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, const ParseMode& parseMode, AlignmentHorizontal alignment)
-		: DynamicText(text, font, fontSize, textWidth, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, static_cast<float>(font.getLineHeight()))
+	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, std::optional<double> lineHeight, const ParseMode& parseMode, AlignmentHorizontal alignment)
+		: DynamicText(text, font, fontSize, textWidth, lineHeight, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, getLineHeight())
 	{
 		constructModel();
 		setCursorPos(0);
 	}
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(const EditableText& other) noexcept
-		: EditableText(other.text, other.font, other.fontSize, other.textWidth, other.cursorSize.x, other.parseMode, other.alignment) {}
+		: EditableText(other.text, other.font, other.fontSize, other.textWidth, other.cursorSize.x, other.lineHeight, other.parseMode, other.alignment) {}
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(EditableText&& other) noexcept
 		: DynamicText(std::move(other)), textIsUpToDate(std::move(other.textIsUpToDate)), 
@@ -1247,7 +1265,7 @@ namespace SnackerEngine
 		cursorPosIndex = 0;
 		selectionIndex = 0; 
 		cursorPos = Vec2f();
-		cursorSize = Vec2i(static_cast<int>(other.cursorSize.x), static_cast<int>(font.getLineHeight()));
+		cursorSize = Vec2i(static_cast<int>(other.cursorSize.x), getLineHeight());
 		constructModel();
 		setCursorPos(0);
 		return *this;
@@ -1617,7 +1635,7 @@ namespace SnackerEngine
 	void EditableText::setFont(const Font& font, bool recompute)
 	{
 		this->font = font;
-		cursorSize = Vec2f(cursorSize.x, static_cast<float>(font.getLineHeight()));
+		cursorSize = Vec2f(cursorSize.x, getLineHeight());
 		if (recompute) constructModelFrom(0);
 	}
 	//--------------------------------------------------------------------------------------------------

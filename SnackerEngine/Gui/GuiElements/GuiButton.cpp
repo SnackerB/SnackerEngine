@@ -345,6 +345,7 @@ namespace SnackerEngine
 	{
 		GuiTextBox::onRegister();
 		setBackgroundColor(defaultColor);
+		if (locked) setBackgroundColor(lockedColor);
 		setBorderColor(defaultBorderColor);
 		if (!locked) {
 			signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);

@@ -286,7 +286,7 @@ namespace SnackerEngine
 			shaderData.GPU_ID = GPU_ID.value();
 			shaderData.referenceCount = 0;
 			shaderData.persistent = true;
-			shaderData.valid = true;
+			shaderData.valid = false;
 			shaderData.path = "";
 		}
 	}
