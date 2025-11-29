@@ -27,6 +27,16 @@ namespace SnackerEngine
 		/// If this is set to true, the cursor is currently visible. This bool is switched
 		/// on and off while the cursor is blinking
 		bool cursorIsVisible = false;
+		/// If this is set to true, the text is repositioned such that the cursor is always visible
+		bool repositionTextToFitCursor = true;
+		/// text position, relative to the background
+		Vec2f textPosition{};
+		/// text offset relative to the normal textPosition
+		Vec2f textOffset{};
+		/// offset of the cursor, relative to the position of the text
+		Vec2f cursorOffsetFromText{};
+		/// offset of the cursor, relative to the background
+		Vec2f cursorPosition{};
 		/// The timer controlling the blinking time
 		Timer cursorBlinkingTimer = Timer(defaultCursorBlinkingTime);
 		/// The model matrix of the cursor
@@ -38,6 +48,11 @@ namespace SnackerEngine
 		EventHandle::Observable eventTextWasEdited;
 		/// The event that happens when the isActive was set to true and enter is pressed
 		EventHandle::Observable eventEnterWasPressed;
+		/// Helper functions for computing textOffsrt and cursorOffset
+		void computeTextOffsetAndCursorOffset(); // Full recompute
+		void computeTextOffsetAndCursorOffsetKeepTextOffset(); // Try to keep textOffset
+		void computeTextOffsetAndCursorOffsetKeepCursorOffset(); // Try to keep cursorOffset
+		void computeTextOffsetAndCursorOffsetAdvanceCursor(); // Try to advance cursor while keeping textOffset constant
 		/// Helper function that computes the model matrix of the cursor
 		void computeModelMatrixCursor();
 		/// Helper function that Computes the model matrices of the selection boxes
@@ -67,7 +82,7 @@ namespace SnackerEngine
 		/// Getters
 		const Color4f& getSelectionBoxColor() const { return selectionBoxColor; }
 		bool isActive() const { return active; }
-		float getCursorWidth() { return cursorWidth; };
+		float getCursorWidth() const { return cursorWidth; };
 		double getCursorBlinkTime() const { return cursorBlinkingTimer.getTimeStep(); }
 		/// Setters
 		void setSelectionBoxColor(const Color4f& selectionBoxColor) { this->selectionBoxColor = selectionBoxColor; }

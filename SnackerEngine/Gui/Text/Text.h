@@ -121,6 +121,7 @@ namespace SnackerEngine
 		const Font& getFont() const;
 		double getFontSize() const;
 		double getTextWidth() const;
+		double getTextHeight() const;
 		double getLineHeight() const;
 		Vec2d getTextSize() const;
 		virtual const std::string& getText();
@@ -139,6 +140,8 @@ namespace SnackerEngine
 		double getRight() const;
 		/// Returns most right point of the given line (in pt)
 		double getRight(const unsigned int& lineIndex) const;
+		/// Returns the number of characters
+		std::size_t getNumCharacters();
 		/// Sets the contents of the text. Needs to recompute the text model.
 		/// If you want to set multiple parameters and not yet want to recompute the text model,
 		/// set recompute to false

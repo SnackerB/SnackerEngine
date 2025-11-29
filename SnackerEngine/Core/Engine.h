@@ -40,8 +40,11 @@ namespace SnackerEngine
 		static void callbackMouseButton(GLFWwindow* window, int button, int action, int mods);
 		static void callbackMouseMotion(GLFWwindow* window, double xpos, double ypos);
 		static void callbackWindowResize(GLFWwindow* window, int width, int height);
+		static void callbackWindowPos(GLFWwindow* window, int posX, int posY);
 		static void callbackMouseScroll(GLFWwindow* window, double xoffset, double yoffset);
 		static void callbackCharacterInput(GLFWwindow* window, unsigned int codepoint);
+		/// Helper function that sets the window size
+		static void onUpdateWindowSize(Vec2i windowSize);
 	public:
 		/// Initializes the engine and creates a window
 		static bool initialize(const int& windowWidth, const int& windowHeight, const std::string& windowName, const std::string& resourceFolderPath = "");
@@ -56,6 +59,10 @@ namespace SnackerEngine
 		static Vec2i constrainMouseCenter(const bool& enable);
 		/// Returns the x and y dpi of the monitor the engine is run on
 		static Vec2<unsigned int> getDPI();
+		/// Sets the window size
+		static void setWindowSize(Vec2i windowSize);
+		/// Sets the window position
+		static void setWindowPosition(Vec2i windowPosition);
 		/// Returns the current string stored in the clipboard
 		static std::optional<std::string> getClipboardString();
 		/// Sets the given string to be stored in the clipboard

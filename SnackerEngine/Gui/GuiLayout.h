@@ -1,24 +1,25 @@
 #pragma once
 
-#include "Gui/GuiElement.h"
+#include "Gui/GuiElements/GuiPanel.h"
 
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	class GuiLayout : public GuiElement
+	class GuiLayout : public GuiPanel
 	{
 	public:
 		/// Default constructor
 		GuiLayout()
-			: GuiElement(Vec2i(), Vec2i(), ResizeMode::SAME_AS_PARENT) {}
+			: GuiPanel(Vec2i(), Vec2i(), ResizeMode::SAME_AS_PARENT, Color4f(0.0f, 0.0f, 0.0f, 0.0f)) {}
 		/// Constructor from JSON
 		GuiLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-			: GuiElement(json, data, parameterNames) 
+			: GuiPanel(json, data, parameterNames)
 		{
 			if (!json.contains("resizeMode") && !json.contains("position")
 				&& !json.contains("positionX") && !json.contains("positionY")
 				&& !json.contains("size") && !json.contains("width")
 				&& !json.contains("height")) setResizeMode(ResizeMode::SAME_AS_PARENT);
+			if (!json.contains("backgroundColor")) setBackgroundColor(Color4f(0.0f, 0.0f, 0.0f, 0.0f));
 		}
 		/// Removes the given child from this GuiElement object
 		std::optional<unsigned> removeChild(GuiID guiElement)

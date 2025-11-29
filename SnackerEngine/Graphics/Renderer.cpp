@@ -77,6 +77,14 @@ namespace SnackerEngine
 		return screenDims;
 	}
 	//------------------------------------------------------------------------------------------------------
+	Vec2i Renderer::getWindowPosition()
+	{
+		if (!activeWindow) return Vec2i();
+		Vec2i result{};
+		GLCall(glfwGetWindowPos(activeWindow, &result.x, &result.y));
+		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
 	void Renderer::changeViewPort(const Vec2i& viewPort)
 	{
 		currentViewPort = viewPort;

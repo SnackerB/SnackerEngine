@@ -50,13 +50,13 @@ namespace SnackerEngine
 			for (const auto& component : this->components) static_cast<GuiSlider<T>*>(component.get())->setSliderButtonShader(sliderButtonShader);
 		}
 		void setValue(const VecT& value) {
-			for (std::size_t i = 0; i < N; ++i) static_cast<GuiSlider<T>*>(this->components[i].get())->setValue(value.values[i]);
+			for (std::size_t i = 0; i < N; ++i) static_cast<GuiSlider<T>*>(this->components[i].get())->setValue(value[i]);
 		}
 		void setMinValue(const VecT& minValue) {
-			for (std::size_t i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMinValue(minValue.values[i]);
+			for (std::size_t i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMinValue(minValue[i]);
 		}
 		void setMaxValue(const VecT& maxValue) {
-			for (std::size_t i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMaxValue(maxValue.values[i]);
+			for (std::size_t i = 0; i < N; ++i)  static_cast<GuiSlider<T>*>(this->components[i].get())->setMaxValue(maxValue[i]);
 		}
 		void setMinValue(const T& minValue, std::size_t index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setMinValue(minValue.values[index]); }
 		void setMaxValue(const T& maxValue, std::size_t index) { static_cast<GuiSlider<T>*>(this->components[index].get())->setMaxValue(maxValue.values[index]); }

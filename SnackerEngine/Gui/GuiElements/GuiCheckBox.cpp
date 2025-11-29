@@ -22,8 +22,8 @@ namespace SnackerEngine
 	void GuiCheckBox::onButtonPress()
 	{
 		checked.set(!checked);
-		updateButtonColor();
 		GuiButton::onButtonPress();
+		updateButtonColor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiCheckBox::updateButtonColor()
@@ -43,17 +43,18 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(int size)
-		: GuiButton(Vec2i(), Vec2i(size, size), "")
+		: GuiScaleButton(Vec2i(), Vec2i(size, size), "")
 	{
-		updateButtonColor();
 		setSize(Vec2i{ size, size });
 		setMinSize(Vec2i{ size, size });
 		setPreferredSize(Vec2i{ size, size });
 		setMaxSize(Vec2i{ size, size });
 		setSizeHintModes({ SizeHintMode::ARBITRARY, SizeHintMode::ARBITRARY , SizeHintMode::ARBITRARY });
+		updateButtonColor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+		: GuiScaleButton::GuiScaleButton(json, data, parameterNames)
 	{
 		bool temp = false;
 		parseJsonOrReadFromData(temp, "checked", json, data, parameterNames);
@@ -82,14 +83,14 @@ namespace SnackerEngine
 		if (minSize.has_value()) setMinSize(Vec2i(minSize.value()));
 		auto maxSize = parseJsonOrReadFromData<int>("maxSize", json, data, parameterNames);
 		if (maxSize.has_value()) setMaxSize(Vec2i(maxSize.value()));
-		updateButtonColor();
 		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::ARBITRARY);
 		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::ARBITRARY);
 		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(SizeHintMode::ARBITRARY);
+		updateButtonColor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(const GuiCheckBox& other) noexcept
-		: GuiButton(other), checked(other.checked), colorDefaultTrue(other.colorDefaultTrue),
+		: GuiScaleButton(other), checked(other.checked), colorDefaultTrue(other.colorDefaultTrue),
 		colorHoverTrue(other.colorHoverTrue), colorPressedTrue(other.colorPressedTrue),
 		colorHoverPressedTrue(other.colorHoverPressedTrue), colorDefaultFalse(other.colorDefaultFalse),
 		colorHoverFalse(other.colorHoverFalse), colorPressedFalse(other.colorPressedFalse),
@@ -117,7 +118,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox::GuiCheckBox(GuiCheckBox&& other) noexcept
-		: GuiButton(std::move(other)), checked(std::move(other.checked)), 
+		: GuiScaleButton(std::move(other)), checked(std::move(other.checked)),
 		colorDefaultTrue(std::move(other.colorDefaultTrue)), colorHoverTrue(std::move(other.colorHoverTrue)), 
 		colorPressedTrue(std::move(other.colorPressedTrue)), colorHoverPressedTrue(std::move(other.colorHoverPressedTrue)), 
 		colorDefaultFalse(std::move(other.colorDefaultFalse)), colorHoverFalse(std::move(other.colorHoverFalse)), 
@@ -130,7 +131,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox& GuiCheckBox::operator=(GuiCheckBox&& other) noexcept
 	{
-		GuiButton::operator=(std::move(other));
+		GuiScaleButton::operator=(std::move(other));
 		checked = std::move(other.checked);
 		checked.parentElement = this;
 		colorDefaultTrue = std::move(other.colorDefaultTrue);
@@ -158,7 +159,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiCheckBox::draw(const Vec2i& worldPosition)
 	{
-		GuiButton::draw(worldPosition);
+		GuiScaleButton::draw(worldPosition);
 		// Draw check mark
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -167,7 +168,7 @@ namespace SnackerEngine
 			checkMarkShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(checkMarkShader);
 			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			checkMarkShader.setUniform<Mat4f>("u_model", translationMatrix * GuiPanel::getModelMatrix());
+			checkMarkShader.setUniform<Mat4f>("u_model", translationMatrix * getTransformMatrix() * GuiPanel::getModelMatrix());
 			checkMarkShader.setUniform<Color4f>("u_color", checkMarkColor);
 			checkMarkShader.setUniform<float>("u_pxRange", 4.0);
 			checkMarkShader.setUniform<int>("u_msdf", 0);

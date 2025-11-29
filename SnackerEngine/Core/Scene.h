@@ -40,6 +40,9 @@ namespace SnackerEngine
 		/// Callback function for resizing the window
 		/// screenDims:	The new screen dimensions in pixels
 		virtual void callbackWindowResize(const Vec2i& screenDims) {};
+		/// Callback function for changing the window position
+		/// windowPos:	The new window position in pixels
+		virtual void callbackWindowPosition(const Vec2i& windowPos) {};
 		/// Callback function for scrolling the mouse wheel
 		/// offset:		scroll offset along the x- and y-axis
 		virtual void callbackMouseScroll(const Vec2d& offset) {};

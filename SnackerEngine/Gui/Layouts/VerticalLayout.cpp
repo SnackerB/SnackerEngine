@@ -57,7 +57,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalLayout::computeWidthHintsFromChildren()
 	{
-		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT || !shrinkWidthToChildren) return;
 		int minWidth = 0;
 		std::optional<int> preferredWidth = std::nullopt;
 		for (auto childID : getChildren()) {
@@ -85,13 +85,11 @@ namespace SnackerEngine
 			}
 		}
 		setMinWidth(minWidth);
-		if (shrinkWidthToChildren) {
-			if (preferredWidth.has_value()) {
-				setPreferredWidth(preferredWidth.value() + 2 * horizontalBorder);
-			}
-			else {
-				setPreferredWidth(SIZE_HINT_ARBITRARY);
-			}
+		if (preferredWidth.has_value()) {
+			setPreferredWidth(preferredWidth.value() + 2 * horizontalBorder);
+		}
+		else {
+			setPreferredWidth(SIZE_HINT_ARBITRARY);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

@@ -11,9 +11,6 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	class GuiVerticalListLayout : public GuiVerticalLayout
 	{
-	public:
-		/// Static default Attributes
-		static Color4f defaultBackgroundColor;
 	private:
 		/// Class that is used for grouping multiple horizontal layouts together
 		class VerticalLayoutGroup : public GuiGroup
@@ -49,12 +46,6 @@ namespace SnackerEngine
 		unsigned verticalBorder = defaultBorderNormal;
 		/// Border between top/bottom edge of layout and elements in pixels
 		unsigned outerVerticalBorder = defaultBorderNormal;
-		/// Background color
-		Color4f backgroundColor = defaultBackgroundColor;
-		/// model matrix of the background
-		Mat4f modelMatrixBackground{};
-		/// Shader for drawing the background
-		Shader backgroundShader = Shader("shaders/gui/simpleAlphaColor.shader");
 		/// The ID of the VerticalLayoutGroup this element is in
 		GuiGroupID groupID = -1;
 		/// The name of the VerticalLayoutGroup this element is in
@@ -72,7 +63,7 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_VERTICAL_LIST_LAYOUT";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiVerticalListLayout(Color4f backgroundColor = Color4f(1.0f, 0.0f));
+		GuiVerticalListLayout(const Color4f& backgroundColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f));
 		/// Constructor from JSON.
 		GuiVerticalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
@@ -87,8 +78,6 @@ namespace SnackerEngine
 		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		unsigned getVerticalBorder() const { return verticalBorder; }
 		unsigned getOuterVerticalBorder() const { return outerVerticalBorder; }
-		Color4f getBackgroundColor() const { return backgroundColor; }
-		Shader& getBackgroundShader() { return backgroundShader; }
 		std::optional<GuiGroupID> getVerticalLayoutGroupID() const { return groupID == -1 ? std::optional<GuiGroupID>() : groupID; }
 		const std::string* getVerticalLayoutGroupName() const { return groupID == -1 ? nullptr : &groupName; }
 		bool isShrinkHeightToChildren() const { return this->shrinkHeightToChildren; }
@@ -96,8 +85,6 @@ namespace SnackerEngine
 		void setAlignmentVertical(AlignmentVertical alignmentVertical);
 		void setVerticalBorder(unsigned verticalBorder);
 		void setOuterVerticalBorder(unsigned outerVerticalBorder);
-		void setBackgroundColor(Color4f backgroundColor) { this->backgroundColor = backgroundColor; };
-		void setBackgroundShader(Shader backgroundShader) { this->backgroundShader = backgroundShader; };
 		bool setVerticalLayoutGroupID(GuiGroupID groupID);
 		bool setVerticalLayoutGroupName(const std::string& groupName);
 		void setShrinkHeightToChildren(bool shrinkHeightToChildren);
@@ -106,16 +93,7 @@ namespace SnackerEngine
 		//==============================================================================================
 		std::unique_ptr<GuiElementAnimatable> animateVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateOuterVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
-		std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
-		/// Computes the background model matrix
-		void computeModelMatrix();
-		/// Draws the background. Is called by draw()
-		void drawBackground(const Vec2i& worldPosition);
-		/// Draws this GuiElement object relative to its parent element. Will also recursively
-		/// draw all children of this element.
-		/// worldPosition:		position of the upper left corner of the guiElement in world space
-		virtual void draw(const Vec2i& worldPosition) override;
 		/// This function is called by the guiManager after registering this GuiElement object.
 		/// When this function is called, the guiManager pointer was already set.
 		/// This function can e.g. be used for registering callbacks at the guiManager

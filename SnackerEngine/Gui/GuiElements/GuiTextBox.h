@@ -89,7 +89,10 @@ namespace SnackerEngine
 		/// Size hint modes
 		SizeHintModes sizeHintModes = defaultSizeHintModes;
 		/// border between the box and the text in pixels
-		int border = GuiElement::defaultBorderSmall;
+		int leftBorder = GuiElement::defaultBorderSmall;
+		int rightBorder = GuiElement::defaultBorderSmall;
+		int topBorder = GuiElement::defaultBorderSmall;
+		int bottomBorder = GuiElement::defaultBorderSmall;
 		/// The normal font size of the text (without any rescaling), in pt.
 		double fontSize = GuiElement::defaultFontSizeNormal;
 		/// The line height of the text (without any rescaling), in pt. If set to std::nullopt, the standard
@@ -121,7 +124,7 @@ namespace SnackerEngine
 		void recomputeTextOnSizeChange();
 		/// Helper functions computing the correct values for the size hint height variables, ie.
 		/// minheight, maxheight and preferredHeight.
-		void comouteWidthHints();
+		void computeWidthHints();
 		/// Helper function computing the correct values for the size hint width variables, ie.
 		/// minWidth, maxWidth and preferredWidth. This function should only be called if the text,
 		/// font, fontsize, ord border changes. The width hint is computed as if the parse mode was set
@@ -154,7 +157,11 @@ namespace SnackerEngine
 		const Color4f& getTextColor() const { return textColor; }
 		TextScaleMode getTextScaleMode() const { return textScaleMode; }
 		const SizeHintModes& getSizeHintModes() const { return sizeHintModes; }
-		const int getBorder() const { return border; }
+		int getLeftBorder() const { return leftBorder; }
+		int getRightBorder() const { return rightBorder; }
+		int getTopBorder() const { return topBorder; }
+		int getBottomBorder() const { return bottomBorder; }
+		int getMaxBorder() const;
 		double getFontSize() const { return fontSize; }
 		double getLineHeight() const { return lineHeight.has_value() ? lineHeight.value() : font.getLineHeight(); }
 		int getRecomputeTries() const { return recomputeTries; }
@@ -171,6 +178,10 @@ namespace SnackerEngine
 		void setSizeHintModeMaxSize(const SizeHintMode& sizeHintModeMaxSize);
 		void setSizeHintModePreferredSize(const SizeHintMode& sizeHintModePreferredSize);
 		void setSizeHintModes(const SizeHintModes& sizeHintModes);
+		void setLeftBorder(const int& leftBorder);
+		void setRightBorder(const int& rightBorder);
+		void setTopBorder(const int& topBorder);
+		void setBottomBorder(const int& bottomBorder);
 		void setBorder(const int& border);
 		void setFontSize(const double& fontSize);
 		void setLineHeight(std::optional<double> lineHeight);
@@ -189,6 +200,10 @@ namespace SnackerEngine
 
 		std::unique_ptr<GuiElementAnimatable> animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateLeftBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateRightBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateTopBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateBottomBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear) override;
 

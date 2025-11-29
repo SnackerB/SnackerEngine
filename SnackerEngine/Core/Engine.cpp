@@ -45,11 +45,14 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	void Engine::callbackWindowResize(GLFWwindow* window, int width, int height)
 	{
-		Renderer::screenDims = Vec2i(width, height);
-		Renderer::changeViewPort(Renderer::screenDims);
+		setWindowSize(Vec2i(width, height));
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::callbackWindowPos(GLFWwindow* window, int posX, int posY)
+	{
 		if (activeScene)
 		{
-			activeScene->callbackWindowResize(Vec2i(width, height));
+			activeScene->callbackWindowPosition(Vec2i(posX, posY));
 		}
 	}
 	//------------------------------------------------------------------------------------------------------
@@ -66,6 +69,16 @@ namespace SnackerEngine
 		if (activeScene)
 		{
 			activeScene->callbackCharacterInput(codepoint);
+		}
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::onUpdateWindowSize(Vec2i windowSize)
+	{
+		Renderer::screenDims = windowSize;
+		Renderer::changeViewPort(Renderer::screenDims);
+		if (activeScene)
+		{
+			activeScene->callbackWindowResize(windowSize);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------
@@ -139,6 +152,7 @@ namespace SnackerEngine
 		GLCall(glfwSetMouseButtonCallback(Renderer::activeWindow, &callbackMouseButton));
 		GLCall(glfwSetCursorPosCallback(Renderer::activeWindow, &callbackMouseMotion));
 		GLCall(glfwSetWindowSizeCallback(Renderer::activeWindow, &callbackWindowResize));
+		GLCall(glfwSetWindowPosCallback(Renderer::activeWindow, &callbackWindowPos));
 		GLCall(glfwSetScrollCallback(Renderer::activeWindow, &callbackMouseScroll));
 		GLCall(glfwSetCharCallback(Renderer::activeWindow, &callbackCharacterInput));
 
@@ -218,6 +232,27 @@ namespace SnackerEngine
 			return Vec2<unsigned int>(10, 10);
 		}
 		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::setWindowSize(Vec2i windowSize)
+	{
+		// Clip window to native screen dimensions if it is too large
+		Vec2i nativeScreenDims = Renderer::getNativeScreenDimensions();
+		if (nativeScreenDims.x < windowSize.x)
+			windowSize.x = nativeScreenDims.x;
+		if (nativeScreenDims.y < windowSize.y)
+			windowSize.y = nativeScreenDims.y;
+		GLCall(glfwSetWindowSize(Renderer::activeWindow, windowSize.x, windowSize.y));
+		onUpdateWindowSize(windowSize);
+	}
+	//------------------------------------------------------------------------------------------------------
+	void Engine::setWindowPosition(Vec2i windowPosition)
+	{
+		GLCall(glfwSetWindowPos(Renderer::activeWindow, windowPosition.x, windowPosition.y));
+		if (activeScene)
+		{
+			activeScene->callbackWindowResize(windowPosition);
+		}
 	}
 	//------------------------------------------------------------------------------------------------------
 	std::optional<std::string> Engine::getClipboardString()

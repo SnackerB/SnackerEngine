@@ -48,7 +48,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalLayout::computeHeightHintsFromChildren()
 	{
-		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT || !shrinkHeightToChildren) return;
 		int minHeight = 0;
 		std::optional<int> preferredHeight = std::nullopt;
 		for (auto childID : getChildren()) {
@@ -76,13 +76,11 @@ namespace SnackerEngine
 			}
 		}
 		setMinHeight(minHeight);
-		if (shrinkHeightToChildren) {
-			if (preferredHeight.has_value()) {
-				setPreferredHeight(preferredHeight.value() + 2 * verticalBorder);
-			}
-			else {
-				setPreferredHeight(SIZE_HINT_ARBITRARY);
-			}
+		if (preferredHeight.has_value()) {
+			setPreferredHeight(preferredHeight.value() + 2 * verticalBorder);
+		}
+		else {
+			setPreferredHeight(SIZE_HINT_ARBITRARY);
 		}
 	}	
 	//--------------------------------------------------------------------------------------------------

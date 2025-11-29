@@ -28,6 +28,9 @@ namespace SnackerEngine
 	protected:
 		/// Returns a const reference to the model matrix
 		const Mat4f& getModelMatrix() { return modelMatrix; };
+		/// Draws the background without drawing children. This is used by some derived layouts.
+		void drawBackground(const Vec2i& worldPosition);
+		void drawBackground(const Vec2i& worldPosition, const Mat4f& transformMatrix);
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_PANEL";

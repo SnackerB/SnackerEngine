@@ -13,19 +13,18 @@ namespace SnackerEngine
 	template<typename T>
 	struct Vec2
 	{
-		union {
-			struct {
-				T x;
-				T y;
-			};
-			T values[2];
-		};
+		T x;
+		T y;
 		/// Constructors
 		Vec2(const T& x, const T& y)
 			: x(x), y(y) {}
 		Vec2(const T& val)
 			: x(val), y(val) {}
 		Vec2() = default;
+		Vec2(const Vec2& other) = default;
+		Vec2(Vec2&& other) = default;
+		Vec2& operator=(const Vec2& other) = default;
+		Vec2& operator=(Vec2&& other) = default;
 		/// Operators
 		Vec2<T> operator+(const Vec2<T>& other) const { return Vec2<T>(x + other.x, y + other.y); }
 		void operator+=(const Vec2<T>& other) { x += other.x; y += other.y; }
@@ -41,8 +40,8 @@ namespace SnackerEngine
 		bool operator==(const Vec2<T>& other) const { return x == other.x && y == other.y; }
 		bool operator!=(const Vec2<T>& other) const { return x != other.x || y != other.y; }
 		/// Getter
-		const T& operator[](unsigned i) const { return values[i]; }
-		T& operator[](unsigned i) { return values[i]; }
+		const T& operator[](unsigned i) const { if (i == 0) return x; else if (i == 1) return y; else return x; }
+		T& operator[](unsigned i) { if (i == 0) return x; else if (i == 1) return y; else return x; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
@@ -64,7 +63,11 @@ namespace SnackerEngine
 				T y;
 				T z;
 			};
-			T values[3];
+			struct {
+				T r;
+				T g;
+				T b;
+			};
 		};
 		/// Constructors
 		Vec3(const T& x, const T& y, const T& z)
@@ -88,8 +91,8 @@ namespace SnackerEngine
 		bool operator==(const Vec3<T>& other) const { return x == other.x && y == other.y && z == other.z; }
 		bool operator!=(const Vec3<T>& other) const { return x != other.x || y != other.y || z != other.z; }
 		/// Getter
-		const T& operator[](unsigned i) const { return values[i]; }
-		T& operator[](unsigned i) { return values[i]; }
+		const T& operator[](unsigned i) const { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else return x; }
+		T& operator[](unsigned i) { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else return x; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
@@ -112,7 +115,12 @@ namespace SnackerEngine
 				T z;
 				T w;
 			};
-			T values[4];
+			struct {
+				T r;
+				T g;
+				T b;
+				T alpha;
+			};
 		};
 		/// Constructors
 		Vec4(const T& x, const T& y, const T& z, const T& w)
@@ -134,8 +142,8 @@ namespace SnackerEngine
 		bool operator==(const Vec4<T>& other) const { return x == other.x && y == other.y && z == other.z && w == other.w; }
 		bool operator!=(const Vec4<T>& other) const { return x != other.x || y != other.y || z != other.z || w != other.w; }
 		/// Getter
-		const T& operator[](unsigned i) const { return values[i]; }
-		T& operator[](unsigned i) { return values[i]; }
+		const T& operator[](unsigned i) const { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else if (i == 3) return w; else return x; }
+		T& operator[](unsigned i) { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else if (i == 3) return w; else return x; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z + w * w; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }

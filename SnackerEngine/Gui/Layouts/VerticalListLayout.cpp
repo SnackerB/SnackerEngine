@@ -4,7 +4,6 @@
 
 namespace SnackerEngine
 {
-	Color4f GuiVerticalListLayout::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	//--------------------------------------------------------------------------------------------------
 	std::vector<int> GuiVerticalListLayout::computeChildHeights(const std::vector<int>& minHeights, const std::vector<int>& preferredHeights, const std::vector<int>& maxHeights, int height)
 	{
@@ -15,7 +14,7 @@ namespace SnackerEngine
 			heights.push_back(minHeights[i]);
 			totalMinHeight += minHeights[i];
 			if (preferredHeights[i] == SIZE_HINT_AS_LARGE_AS_POSSIBLE) totalPreferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
-			else if (preferredHeights[i] >= 0 && totalPreferredHeight >= 0) totalPreferredHeight += preferredHeights[i] == SIZE_HINT_ARBITRARY ? minHeights[i] : preferredHeights[i];
+			else if (totalPreferredHeight >= 0) totalPreferredHeight += preferredHeights[i] == SIZE_HINT_ARBITRARY ? minHeights[i] : preferredHeights[i];
 		}
 		int remainingHeight = height - totalMinHeight;
 		if (remainingHeight > 0) {
@@ -113,7 +112,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalListLayout::computeHeightHintsFromChildren()
 	{
-		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT || !shrinkHeightToChildren) return;
 		int totalMinHeight = 0;
 		int totalPreferredHeight = SIZE_HINT_ARBITRARY;
 		for (auto childID : getChildren()) {
@@ -134,19 +133,20 @@ namespace SnackerEngine
 		totalMinHeight += totalBorders;
 		if (totalPreferredHeight >= 0) totalPreferredHeight += totalBorders;
 		setMinHeight(totalMinHeight);
-		if (shrinkHeightToChildren) setPreferredHeight(totalPreferredHeight);
+		setPreferredHeight(totalPreferredHeight);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiVerticalListLayout::GuiVerticalListLayout(Color4f backgroundColor)
-		: GuiVerticalLayout(), backgroundColor(backgroundColor) {}
+	GuiVerticalListLayout::GuiVerticalListLayout(const Color4f& backgroundColor)
+		: GuiVerticalLayout() 
+	{
+		setBackgroundColor(backgroundColor);
+	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalListLayout::GuiVerticalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiVerticalLayout(json, data, parameterNames)
 	{
 		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
 		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(backgroundColor, "backgroundColor", json, data, parameterNames);
-		parseJsonOrReadFromData(backgroundShader, "backgroundShader", json, data, parameterNames);
 		parseJsonOrReadFromData(groupName, "verticalLayoutGroupName", json, data, parameterNames);
 		parseJsonOrReadFromData(outerVerticalBorder, "outerVerticalBorder", json, data, parameterNames);
 		if (!json.contains("outerVerticalBorder")) outerVerticalBorder = verticalBorder;
@@ -160,9 +160,8 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalListLayout::GuiVerticalListLayout(const GuiVerticalListLayout& other) noexcept
 		: GuiVerticalLayout(other), alignmentVertical(other.alignmentVertical),
-		verticalBorder(other.verticalBorder), outerVerticalBorder(other.outerVerticalBorder),
-		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground), 
-		backgroundShader(other.backgroundShader), groupID(-1), groupName("")
+		verticalBorder(other.verticalBorder), outerVerticalBorder(other.outerVerticalBorder), 
+		groupID(-1), groupName("")
 	{
 		if (other.groupID != -1) setVerticalLayoutGroupID(other.groupID);
 		else if (!other.groupName.empty()) setVerticalLayoutGroupName(other.groupName);
@@ -175,9 +174,6 @@ namespace SnackerEngine
 		alignmentVertical = other.alignmentVertical;
 		verticalBorder = other.verticalBorder;
 		outerVerticalBorder = other.outerVerticalBorder;
-		backgroundColor = other.backgroundColor;
-		modelMatrixBackground = other.modelMatrixBackground;
-		backgroundShader = other.backgroundShader;
 		groupID = -1;
 		groupName = "";
 		if (other.groupID != -1) setVerticalLayoutGroupID(other.groupID);
@@ -188,9 +184,7 @@ namespace SnackerEngine
 	GuiVerticalListLayout::GuiVerticalListLayout(GuiVerticalListLayout&& other) noexcept
 		: GuiVerticalLayout(std::move(other)), alignmentVertical(other.alignmentVertical),
 		verticalBorder(other.verticalBorder), outerVerticalBorder(other.outerVerticalBorder),
-		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground),
-		backgroundShader(std::move(other.backgroundShader)), groupID(other.groupID), 
-		groupName(std::move(other.groupName))
+		groupID(other.groupID), groupName(std::move(other.groupName))
 	{
 		other.groupID = -1;
 		other.groupName = "";
@@ -203,9 +197,6 @@ namespace SnackerEngine
 		alignmentVertical = other.alignmentVertical;
 		verticalBorder = other.verticalBorder;
 		outerVerticalBorder = other.outerVerticalBorder;
-		backgroundColor = other.backgroundColor;
-		modelMatrixBackground = other.modelMatrixBackground;
-		backgroundShader = std::move(other.backgroundShader);
 		groupID = other.groupID;
 		groupName = std::move(other.groupName);
 		other.leaveGroup(other.groupID);
@@ -303,59 +294,15 @@ namespace SnackerEngine
 		return std::make_unique<GuiVerticalListLayoutOuterVerticalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::unique_ptr<GuiElementAnimatable> GuiVerticalListLayout::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
-	{
-		class GuiVerticalListLayoutBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
-		{
-			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiVerticalListLayout*>(element)->setBackgroundColor(currentVal); }
-		public:
-			GuiVerticalListLayoutBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
-				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
-		};
-		return std::make_unique<GuiVerticalListLayoutBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalListLayout::computeModelMatrix()
-	{
-		modelMatrixBackground = Mat4f::TranslateAndScale(
-			Vec3f(0.0f, static_cast<float>(-getHeight()), 0.0f),
-			Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalListLayout::drawBackground(const Vec2i& worldPosition)
-	{
-		GuiManager* const& guiManager = getGuiManager();
-		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f)
-		{
-			backgroundShader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
-			backgroundShader.setUniform<Color4f>("u_color", backgroundColor);
-			Renderer::draw(guiManager->getModelSquare());
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalListLayout::draw(const Vec2i& worldPosition)
-	{
-		drawBackground(worldPosition);
-		pushClippingBox(worldPosition);
-		GuiElement::draw(worldPosition);
-		popClippingBox();
-	}
-	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalListLayout::onRegister()
 	{
 		GuiLayout::onRegister();
-		computeModelMatrix();
 		if (groupName != "" && groupID == -1) setVerticalLayoutGroupName(groupName);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalListLayout::onSizeChange()
 	{
 		GuiLayout::onSizeChange();
-		computeModelMatrix();
 		if (groupID != -1) {
 			GuiGroup* groupPointer = getGroup(groupID);
 			if (groupPointer) static_cast<VerticalLayoutGroup*>(groupPointer)->markForRecompute();

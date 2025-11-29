@@ -44,6 +44,14 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(pressedHoverColor, "pressedHoverColor", json, data, parameterNames);
 		parseJsonOrReadFromData(lockedColor, "lockedColor", json, data, parameterNames);
 
+		std::optional<Color4f> allBorderColor = parseJsonOrReadFromData<Color4f>("allBorderColor", json, data, parameterNames);
+		if (allBorderColor.has_value()) {
+			setDefaultBorderColor(allBorderColor.value());
+			setHoverBorderColor(allBorderColor.value());
+			setPressedBorderColor(allBorderColor.value());
+			setPressedHoverBorderColor(allBorderColor.value());
+		}
+
 		parseJsonOrReadFromData(defaultBorderColor, "defaultBorderColor", json, data, parameterNames);
 		parseJsonOrReadFromData(hoverBorderColor, "hoverBorderColor", json, data, parameterNames);
 		parseJsonOrReadFromData(pressedBorderColor, "pressedBorderColor", json, data, parameterNames);

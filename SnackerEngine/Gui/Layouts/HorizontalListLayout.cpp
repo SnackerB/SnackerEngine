@@ -4,7 +4,6 @@
 
 namespace SnackerEngine
 {
-	Color4f GuiHorizontalListLayout::defaultBackgroundColor = Color4f(0.0f, 0.0f);
 	//--------------------------------------------------------------------------------------------------
 	std::vector<int> GuiHorizontalListLayout::computeChildWidths(const std::vector<int>& minWidths, const std::vector<int>& preferredWidths, const std::vector<int>& maxWidths, int width)
 	{
@@ -15,7 +14,7 @@ namespace SnackerEngine
 			widths.push_back(minWidths[i]);
 			totalMinWidth += minWidths[i];
 			if (preferredWidths[i] == SIZE_HINT_AS_LARGE_AS_POSSIBLE) totalPreferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
-			else if (preferredWidths[i] >= 0 && totalPreferredWidth >= 0) totalPreferredWidth += preferredWidths[i] == SIZE_HINT_ARBITRARY ? minWidths[i] : preferredWidths[i];
+			else if (totalPreferredWidth >= 0) totalPreferredWidth += (preferredWidths[i] == SIZE_HINT_ARBITRARY ? minWidths[i] : preferredWidths[i]);
 		}
 		int remainingWidth = width - totalMinWidth;
 		if (remainingWidth > 0) {
@@ -49,7 +48,7 @@ namespace SnackerEngine
 					}
 					// Handle remaining childs
 					for (auto it = indicesOfChildrenLeftToResize.begin() + 1; it != indicesOfChildrenLeftToResize.end(); ++it) {
-						if (preferredWidths[childIndex] != SIZE_HINT_AS_LARGE_AS_POSSIBLE && preferredWidths[*it] < minWidths[*it] + widthSlice) {
+						if (preferredWidths[*it] != SIZE_HINT_AS_LARGE_AS_POSSIBLE && preferredWidths[*it] < minWidths[*it] + widthSlice) {
 							widths[*it] = preferredWidths[*it];
 							remainingWidth -= preferredWidths[*it] - minWidths[*it];
 							indicesOfChildrenLeftToResize.erase(it);
@@ -113,7 +112,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::computeWidthHintsFromChildren()
 	{
-		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT || !shrinkWidthToChildren) return;
 		if (groupID != -1 && groupExists(groupID)) {
 			GuiGroup* groupPointer = getGroup(groupID);
 			if (groupPointer != nullptr) {
@@ -143,19 +142,17 @@ namespace SnackerEngine
 		totalMinWidth += totalBorders;
 		if (groupID == -1 && totalPreferredWidth >= 0) totalPreferredWidth += totalBorders;
 		setMinWidth(totalMinWidth);
-		if (groupID == -1 && shrinkWidthToChildren) setPreferredWidth(totalPreferredWidth);
+		setPreferredWidth(totalPreferredWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiHorizontalListLayout::GuiHorizontalListLayout(Color4f backgroundColor)
-		: GuiHorizontalLayout(), backgroundColor(backgroundColor) {}
+	GuiHorizontalListLayout::GuiHorizontalListLayout()
+		: GuiHorizontalLayout() {}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiHorizontalLayout(json, data, parameterNames)
 	{
 		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
 		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(backgroundColor, "backgroundColor", json, data, parameterNames);
-		parseJsonOrReadFromData(backgroundShader, "backgroundShader", json, data, parameterNames);
 		parseJsonOrReadFromData(groupName, "horizontalLayoutGroupName", json, data, parameterNames);
 		parseJsonOrReadFromData(outerHorizontalBorder, "outerHorizontalBorder", json, data, parameterNames);
 		if (!json.contains("outerHorizontalBorder")) outerHorizontalBorder = horizontalBorder;
@@ -170,8 +167,7 @@ namespace SnackerEngine
 	GuiHorizontalListLayout::GuiHorizontalListLayout(const GuiHorizontalListLayout& other) noexcept
 		: GuiHorizontalLayout(other), alignmentHorizontal(other.alignmentHorizontal), 
 		horizontalBorder(other.horizontalBorder), outerHorizontalBorder(other.outerHorizontalBorder),
-		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground), 
-		backgroundShader(other.backgroundShader), groupID(-1), groupName("")
+		groupID(-1), groupName("")
 	{
 		if (other.groupID != -1) setHorizontalLayoutGroupID(other.groupID);
 		else if (!other.groupName.empty()) setHorizontalLayoutGroupName(other.groupName);
@@ -184,9 +180,6 @@ namespace SnackerEngine
 		alignmentHorizontal = other.alignmentHorizontal;
 		horizontalBorder = other.horizontalBorder;
 		outerHorizontalBorder = other.outerHorizontalBorder;
-		backgroundColor = other.backgroundColor;
-		modelMatrixBackground = other.modelMatrixBackground;
-		backgroundShader = other.backgroundShader;
 		groupID = -1;
 		groupName = "";
 		if (other.groupID != -1) setHorizontalLayoutGroupID(other.groupID);
@@ -197,8 +190,6 @@ namespace SnackerEngine
 	GuiHorizontalListLayout::GuiHorizontalListLayout(GuiHorizontalListLayout&& other) noexcept
 		: GuiHorizontalLayout(std::move(other)), alignmentHorizontal(other.alignmentHorizontal),
 		horizontalBorder(other.horizontalBorder), outerHorizontalBorder(other.outerHorizontalBorder),
-		backgroundColor(other.backgroundColor), modelMatrixBackground(other.modelMatrixBackground), 
-		backgroundShader(std::move(other.backgroundShader)),
 		groupID(other.groupID), groupName(std::move(other.groupName))
 	{
 		other.groupID = -1;
@@ -212,9 +203,6 @@ namespace SnackerEngine
 		alignmentHorizontal = other.alignmentHorizontal;
 		horizontalBorder = other.horizontalBorder;
 		outerHorizontalBorder = other.outerHorizontalBorder;
-		backgroundColor = other.backgroundColor;
-		modelMatrixBackground = other.modelMatrixBackground;
-		backgroundShader = std::move(other.backgroundShader);
 		groupID = other.groupID;
 		groupName = std::move(other.groupName);
 		other.leaveGroup(other.groupID);
@@ -312,59 +300,15 @@ namespace SnackerEngine
 		return std::make_unique<GuiHorizontalListLayoutOuterHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::unique_ptr<GuiElementAnimatable> GuiHorizontalListLayout::animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
-	{
-		class GuiHorizontalListLayoutBackgroundColorAnimatable : public GuiElementValueAnimatable<Color4f>
-		{
-			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiHorizontalListLayout*>(element)->setBackgroundColor(currentVal); }
-		public:
-			GuiHorizontalListLayoutBackgroundColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
-				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
-		};
-		return std::make_unique<GuiHorizontalListLayoutBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalListLayout::computeModelMatrix()
-	{
-		modelMatrixBackground = Mat4f::TranslateAndScale(
-			Vec3f(0.0f, static_cast<float>(-getHeight()), 0.0f),
-			Vec3f(static_cast<float>(getWidth()), static_cast<float>(getHeight()), 0.0f));
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalListLayout::drawBackground(const Vec2i& worldPosition)
-	{
-		GuiManager* const& guiManager = getGuiManager();
-		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f)
-		{
-			backgroundShader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(backgroundShader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			backgroundShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixBackground);
-			backgroundShader.setUniform<Color4f>("u_color", backgroundColor);
-			Renderer::draw(guiManager->getModelSquare());
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	void GuiHorizontalListLayout::draw(const Vec2i& worldPosition)
-	{
-		drawBackground(worldPosition);
-		pushClippingBox(worldPosition);
-		GuiElement::draw(worldPosition);
-		popClippingBox();
-	}
-	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::onRegister()
 	{
 		GuiLayout::onRegister();
-		computeModelMatrix();
 		if (groupName != "" && groupID == -1) setHorizontalLayoutGroupName(groupName);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalListLayout::onSizeChange()
 	{
 		GuiLayout::onSizeChange();
-		computeModelMatrix();
 		if (groupID != -1) {
 			GuiGroup* groupPointer = getGroup(groupID);
 			if (groupPointer) static_cast<HorizontalLayoutGroup*>(groupPointer)->markForRecompute();

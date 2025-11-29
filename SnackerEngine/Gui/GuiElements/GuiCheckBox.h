@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Gui\GuiElements\GuiButton.h"
+#include "Gui\GuiElements\GuiScaleButton.h"
 #include "Utility\Handles\VariableHandle.h"
 
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	class GuiCheckBox : public GuiButton
+	class GuiCheckBox : public GuiScaleButton
 	{
 	public:
 		/// Static default Attributes

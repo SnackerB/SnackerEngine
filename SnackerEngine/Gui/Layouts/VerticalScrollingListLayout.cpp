@@ -281,8 +281,8 @@ namespace SnackerEngine
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
-		drawBackground(worldPosition);
-		pushClippingBox(worldPosition);
+		GuiVerticalListLayout::drawBackground(worldPosition);
+		if (getClipChildren()) pushClippingBox(worldPosition);
 		// Draw children
 		const auto& children = getChildren();
 		for (unsigned int i = firstVisibleElement; i < std::min(static_cast<std::size_t>(lastVisibleElement + 1), children.size()); ++i) {
@@ -291,7 +291,7 @@ namespace SnackerEngine
 		}
 		// Draw scrollBar
 		if (drawScrollBar) {
-			Shader& scrollbarShader = getBackgroundShader();
+			const Shader& scrollbarShader = getPanelShader();
 			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 			scrollbarShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(scrollbarShader);
@@ -302,7 +302,7 @@ namespace SnackerEngine
 			scrollbarShader.setUniform<Color4f>("u_color", scrollbarColor);
 			Renderer::draw(guiManager->getModelSquare());
 		}
-		popClippingBox();
+		if (getClipChildren()) popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalScrollingListLayout::onRegister()

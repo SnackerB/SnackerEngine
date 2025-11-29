@@ -908,7 +908,12 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	double DynamicText::getTextWidth() const
 	{
-		return textWidth;
+		return getRight() - getLeft();
+	}
+	//--------------------------------------------------------------------------------------------------
+	double DynamicText::getTextHeight() const
+	{
+		return getTop() - getBottom();
 	}
 	//--------------------------------------------------------------------------------------------------
 	double DynamicText::getLineHeight() const
@@ -919,7 +924,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	Vec2d DynamicText::getTextSize() const
 	{
-		return Vec2d(getTextWidth(), getTop() - getBottom());
+		return Vec2d(getRight() - getLeft(), getTop() - getBottom());
 	}
 	//--------------------------------------------------------------------------------------------------
 	const std::string& DynamicText::getText()
@@ -968,6 +973,11 @@ namespace SnackerEngine
 		const auto& line = lines[lineIndex];
 		if (line.beginIndex >= characters.size() || line.endIndex >= characters.size()) return 0.0;
 		return characters[line.endIndex].right;
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::size_t DynamicText::getNumCharacters()
+	{
+		return characters.size();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void DynamicText::setText(const std::string& text, bool recompute)
@@ -1234,7 +1244,7 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	EditableText::EditableText(const std::string& text, const Font& font, const double& fontSize, const double& textWidth, const float& cursorWidth, std::optional<double> lineHeight, const ParseMode& parseMode, AlignmentHorizontal alignment)
-		: DynamicText(text, font, fontSize, textWidth, lineHeight, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, getLineHeight())
+		: DynamicText(text, font, fontSize, textWidth, lineHeight, parseMode, alignment), textIsUpToDate(true), vertices{}, indices{}, cursorPosIndex(0), selectionIndex(0), cursorPos{}, cursorSize(cursorWidth, static_cast<float>(getLineHeight()))
 	{
 		constructModel();
 		setCursorPos(0);
@@ -1265,7 +1275,7 @@ namespace SnackerEngine
 		cursorPosIndex = 0;
 		selectionIndex = 0; 
 		cursorPos = Vec2f();
-		cursorSize = Vec2i(static_cast<int>(other.cursorSize.x), getLineHeight());
+		cursorSize = Vec2i(static_cast<int>(other.cursorSize.x), static_cast<int>(getLineHeight()));
 		constructModel();
 		setCursorPos(0);
 		return *this;
@@ -1384,11 +1394,13 @@ namespace SnackerEngine
 	void EditableText::moveCursorToLeft(const bool& moveSelection)
 	{
 		if (cursorPosIndex != 0) setCursorPos(cursorPosIndex - 1, moveSelection);
+		if (moveSelection) setSelectionIndexToCursor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::moveCursorToRight(const bool& moveSelection)
 	{
 		if (cursorPosIndex != characters.size()) setCursorPos(cursorPosIndex + 1, moveSelection);
+		if (moveSelection) setSelectionIndexToCursor();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void EditableText::moveCursorToLeftWordBeginning(const bool& moveSelection)
@@ -1396,10 +1408,10 @@ namespace SnackerEngine
 		if (cursorPosIndex == 0) return;
 		unsigned int newIndex = cursorPosIndex - 1;
 		if (!isNewline(characters[newIndex].codepoint)) {
-			while (newIndex > 0 && isWhiteSpace(characters[newIndex].codepoint) && !isNewline(characters[newIndex].codepoint)) {
-				newIndex--;
+			while (newIndex > 0 && !isAlphaNumeric(characters[newIndex].codepoint) && !isNewline(characters[newIndex].codepoint)) {
+				newIndex--; 
 			}
-			while (newIndex > 0 && !isWhiteSpace(characters[static_cast<std::size_t>(newIndex) - 1].codepoint)) {
+			while (newIndex > 0 && isAlphaNumeric(characters[static_cast<std::size_t>(newIndex) - 1].codepoint)) {
 				newIndex--;
 			}
 		}
@@ -1414,10 +1426,10 @@ namespace SnackerEngine
 			newIndex++;
 		}
 		else {
-			while (newIndex < characters.size() && !isWhiteSpace(characters[newIndex].codepoint)) {
+			while (newIndex < characters.size() && isAlphaNumeric(characters[newIndex].codepoint)) {
 				newIndex++;
 			}
-			while (newIndex < characters.size() && isWhiteSpace(characters[newIndex].codepoint) && !isNewline(characters[newIndex].codepoint)) {
+			while (newIndex < characters.size() && !isAlphaNumeric(characters[newIndex].codepoint) && !isNewline(characters[newIndex].codepoint)) {
 				newIndex++;
 			}
 		}
@@ -1541,10 +1553,10 @@ namespace SnackerEngine
 			if (cursorPosIndex == 0) return;
 			unsigned int beginIndex = cursorPosIndex - 1;
 			if (!isNewline(characters[beginIndex].codepoint)) {
-				while (beginIndex > 0 && isWhiteSpace(characters[beginIndex].codepoint) && !isNewline(characters[beginIndex].codepoint)) {
+				while (beginIndex > 0 && !isAlphaNumeric(characters[beginIndex].codepoint) && !isNewline(characters[beginIndex].codepoint)) {
 					beginIndex--;
 				}
-				while (beginIndex > 0 && !isWhiteSpace(characters[static_cast<std::size_t>(beginIndex) - 1].codepoint)) {
+				while (beginIndex > 0 && isAlphaNumeric(characters[static_cast<std::size_t>(beginIndex) - 1].codepoint)) {
 					beginIndex--;
 				}
 			}
@@ -1575,10 +1587,10 @@ namespace SnackerEngine
 			if (cursorPosIndex >= characters.size()) return;
 			unsigned int endIndex = cursorPosIndex;
 			if (!isNewline(characters[endIndex].codepoint)) {
-				while (endIndex < characters.size() && !isWhiteSpace(characters[endIndex].codepoint)) {
+				while (endIndex < characters.size() && isAlphaNumeric(characters[endIndex].codepoint)) {
 					endIndex++;
 				}
-				while (static_cast<std::size_t>(endIndex) + 1 < characters.size() && isWhiteSpace(characters[static_cast<std::size_t>(endIndex) + 1].codepoint) && !isNewline(characters[static_cast<std::size_t>(endIndex) + 1].codepoint)) {
+				while (static_cast<std::size_t>(endIndex) + 1 < characters.size() && !isAlphaNumeric(characters[static_cast<std::size_t>(endIndex) + 1].codepoint) && !isNewline(characters[static_cast<std::size_t>(endIndex) + 1].codepoint)) {
 					endIndex++;
 				}
 			}
@@ -1635,7 +1647,7 @@ namespace SnackerEngine
 	void EditableText::setFont(const Font& font, bool recompute)
 	{
 		this->font = font;
-		cursorSize = Vec2f(cursorSize.x, getLineHeight());
+		cursorSize = Vec2f(cursorSize.x, static_cast<float>(getLineHeight()));
 		if (recompute) constructModelFrom(0);
 	}
 	//--------------------------------------------------------------------------------------------------

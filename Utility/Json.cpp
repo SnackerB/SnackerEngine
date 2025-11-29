@@ -94,4 +94,37 @@ namespace SnackerEngine
 		return static_cast<bool>(json);
 	}
 
+	template<> nlohmann::json toJson(const std::string& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const std::size_t& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const int& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const long long int& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const unsigned& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const float& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const double& value)
+	{
+		return nlohmann::json(value);
+	}
+	template<> nlohmann::json toJson(const bool& value)
+	{
+		return nlohmann::json(value);
+	}
+
 }

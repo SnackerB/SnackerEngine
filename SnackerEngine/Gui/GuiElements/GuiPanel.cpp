@@ -90,58 +90,14 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::draw(const Vec2i& worldPosition, const Mat4f& transformMatrix)
 	{
-		GuiManager* const& guiManager = getGuiManager();
-		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
-		{
-			shader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(shader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			shader.setUniform<Mat4f>("u_model", translationMatrix * transformMatrix * modelMatrix);
-			shader.setUniform<Color4f>("u_color", backgroundColor);
-			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
-				shader.setUniform<Vec2f>("u_size", getSize());
-				if (roundedCorners != 0.0f) {
-					shader.setUniform<float>("u_roundedCorners", roundedCorners);
-				}
-				if (borderThickness != 0.0f) {
-					shader.setUniform<float>("u_borderThickness", borderThickness);
-					shader.setUniform<Color4f>("u_borderColor", borderColor);
-				}
-			}
-			Renderer::draw(guiManager->getModelSquare());
-		}
-		pushClippingBox(worldPosition);
+		drawBackground(worldPosition, transformMatrix);
 		GuiElement::draw(worldPosition);
-		popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::draw(const Vec2i& worldPosition)
 	{
-		GuiManager* const& guiManager = getGuiManager();
-		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
-		{
-			shader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(shader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
-			shader.setUniform<Color4f>("u_color", backgroundColor);
-			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
-				shader.setUniform<Vec2f>("u_size", getSize());
-				if (roundedCorners != 0.0f) {
-					shader.setUniform<float>("u_roundedCorners", roundedCorners);
-				}
-				if (borderThickness != 0.0f) {
-					shader.setUniform<float>("u_borderThickness", borderThickness);
-					shader.setUniform<Color4f>("u_borderColor", borderColor);
-				}
-			}
-			Renderer::draw(guiManager->getModelSquare());
-		}
-		pushClippingBox(worldPosition);
+		drawBackground(worldPosition);
 		GuiElement::draw(worldPosition);
-		popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::onRegister()
@@ -242,6 +198,56 @@ namespace SnackerEngine
 		modelMatrix = Mat4f::TranslateAndScale(
 			Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
 			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::drawBackground(const Vec2i& worldPosition)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
+		{
+			shader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(shader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+			shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
+			shader.setUniform<Color4f>("u_color", backgroundColor);
+			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
+				shader.setUniform<Vec2f>("u_size", getSize());
+				if (roundedCorners != 0.0f) {
+					shader.setUniform<float>("u_roundedCorners", roundedCorners);
+				}
+				if (borderThickness != 0.0f) {
+					shader.setUniform<float>("u_borderThickness", borderThickness);
+					shader.setUniform<Color4f>("u_borderColor", borderColor);
+				}
+			}
+			Renderer::draw(guiManager->getModelSquare());
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::drawBackground(const Vec2i& worldPosition, const Mat4f& transformMatrix)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
+		{
+			shader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(shader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+			shader.setUniform<Mat4f>("u_model", translationMatrix * transformMatrix * modelMatrix);
+			shader.setUniform<Color4f>("u_color", backgroundColor);
+			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
+				shader.setUniform<Vec2f>("u_size", getSize());
+				if (roundedCorners != 0.0f) {
+					shader.setUniform<float>("u_roundedCorners", roundedCorners);
+				}
+				if (borderThickness != 0.0f) {
+					shader.setUniform<float>("u_borderThickness", borderThickness);
+					shader.setUniform<Color4f>("u_borderColor", borderColor);
+				}
+			}
+			Renderer::draw(guiManager->getModelSquare());
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 }

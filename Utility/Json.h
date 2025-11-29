@@ -30,6 +30,9 @@ namespace SnackerEngine
 	/// an exception if isOfType<T>(json) returned true.
 	template<typename T> T parseJSON(const nlohmann::json& json, JsonTag<T> tag);
 	//--------------------------------------------------------------------------------------------------
+	// Gives a JSON representation, that will be successfully parsed when calling parseJSON.
+	template<typename T> nlohmann::json toJson(const T& value);
+	//--------------------------------------------------------------------------------------------------
 	/// Returns an instance of the given type, parsed from the JSON or read from the data (if json has
 	/// a string "name" as value, data["name"] is returned). If nothing could be parsed, an empty
 	/// optional will be returned.

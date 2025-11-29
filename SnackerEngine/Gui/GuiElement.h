@@ -104,6 +104,7 @@ namespace SnackerEngine
 		void setPreferredWidth(const int& preferredWidth);
 		void setPreferredHeight(const int& preferredHeight);
 		void setResizeMode(ResizeMode resizeMode) { this->resizeMode = resizeMode; }
+		void setClipChildren(bool clipCildren) { this->clipChildren = clipChildren; }
 		/// Getters
 		const std::string& getName() const { return name; }
 		GuiID getGuiID() const { return guiID; }
@@ -130,6 +131,7 @@ namespace SnackerEngine
 		const int& getPreferredHeight() const { return sizeHints.preferredSize.y; }
 		const GuiSizeHints& getSizeHints() const { return sizeHints; }
 		const std::vector<GuiID>& getChildren() const { return children; }
+		bool getClipChildren() const { return clipChildren; }
 		/// Returns mouseOffset from this GuiElement
 		const Vec2i getMouseOffset() const;
 		int getMouseOffsetX() const;
@@ -165,6 +167,8 @@ namespace SnackerEngine
 		/// one and is drawn first. If bringToForeground() is called on a GuiElement, it and all of 
 		/// its parent elements are brought to the back of the importance vector.
 		std::vector<GuiID> sortedChildren{};
+		/// Wether or not one should clip children when drawing this guiElement
+		bool clipChildren = true;
 		/// Tells this GuiElement object that the guiManager was deleted.
 		virtual void signOff();
 		/// Friend classes

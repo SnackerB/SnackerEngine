@@ -78,5 +78,9 @@ namespace SnackerEngine
 		/// Callback function for the mouse leaving the element. Parameter the same as in Scene.h
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseLeave(const Vec2d& position) override;
+		// Make scale transforms accessible for derived classes
+		const Mat4f& getTransformMatrix() { return transformMatrix; }
+		const Vec2i& getClippingBoxOffset() { return clippingBoxOffset; }
+		const Vec2i& getClippingBoxSize() { return clippingBoxSize; }
 	};	
 }

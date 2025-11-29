@@ -53,6 +53,7 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(sizeHints.preferredSize.x, "preferredWidth", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHints.preferredSize.y, "preferredHeight", json, data, parameterNames);
 		parseJsonOrReadFromData(sizeHints.preferredSize, "preferredSize", json, data, parameterNames);
+		parseJsonOrReadFromData(clipChildren, "clipChildren", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::~GuiElement()
@@ -376,10 +377,12 @@ namespace SnackerEngine
 	void GuiElement::draw(const Vec2i& worldPosition)
 	{
 		if (!guiManager) return;
+		if (clipChildren) pushClippingBox(worldPosition);
 		for (const auto& childID : sortedChildren) {
 			auto child = getElement(childID);
 			if (child) child->draw(worldPosition + child->getPosition());
 		}
+		if (clipChildren) popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiElement::removeChild(GuiID guiElement)
