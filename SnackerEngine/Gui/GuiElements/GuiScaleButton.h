@@ -17,8 +17,6 @@ namespace SnackerEngine
 		Mat4f transformMatrix{};
 		Vec2i clippingBoxOffset{};
 		Vec2i clippingBoxSize{};
-		/// Computes the transform matrix and the clippingBox offset and size
-		void computeTransformMatrixAndClippingBox();
 		/// Sets the current button scale and recomputes transform matrix
 		void setCurrentButtonScale(float currentButtonScale);
 		/// Animation duration in seconds
@@ -38,32 +36,39 @@ namespace SnackerEngine
 		AnimationFunction::AnimationFunction selectAnimationFunction(float goalButtonScale);
 		/// Helper function that starts the button animation
 		void animateButtonScale(float goalButtonScale);
+	protected:
+		/// Computes the transform matrix and the clippingBox offset and size
+		void computeTransformMatrixAndClippingBox();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_SCALE_BUTTON";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
 		GuiScaleButton(const Vec2i& position = Vec2i{}, const Vec2i& size = Vec2i{}, const std::string& label = "");
-		GuiScaleButton(const std::string& label = "");
+		GuiScaleButton(const std::string& label);
 		/// Constructor from JSON
 		GuiScaleButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
 		/// Destructor
 		virtual ~GuiScaleButton() {}
 		/// Setters
-		void setHoverButtonScale(float hoverButtonScale);
-		void setPressedButtonScale(float pressedButtonScale);
-		void setPressedHoverButtonScale(float pressedHoverButtonScale);
+		virtual void setHoverButtonScale(float hoverButtonScale);
+		virtual void setPressedButtonScale(float pressedButtonScale);
+		virtual void setPressedHoverButtonScale(float pressedHoverButtonScale);
 		void setScaleAnimationDuration(double scaleAnimationDuration) { this->scaleAnimationDuration = scaleAnimationDuration; }
 		void setAnimationFunctionIncreaseScale(AnimationFunction::AnimationFunction animationFunctionIncreaseScale) { this->animationFunctionIncreaseScale = animationFunctionIncreaseScale; }
 		void setAnimationFunctionDecreaseScale(AnimationFunction::AnimationFunction animationFunctionDecreaseScale) { this->animationFunctionDecreaseScale = animationFunctionDecreaseScale; }
 		/// Getters
-		float getHoverButtonScale() const { return hoverButtonScale; }
-		float getPressedButtonScale() const { return pressedButtonScale; }
-		float getPressedHoverButtonScale() const { return pressedHoverButtonScale; }
+		virtual float getHoverButtonScale() const { return hoverButtonScale; }
+		virtual float getPressedButtonScale() const { return pressedButtonScale; }
+		virtual float getPressedHoverButtonScale() const { return pressedHoverButtonScale; }
 		double getScaleAnimationDuration() const { return scaleAnimationDuration; }
 		const AnimationFunction::AnimationFunction& getAnimationFunctionIncreaseScale() { return animationFunctionIncreaseScale; }
 		const AnimationFunction::AnimationFunction& getAnimationFunctionDecreaseScale() { return animationFunctionDecreaseScale; }
 	protected:
+		/// This function is called when the size changes. Can eg. be. be used to
+		/// compute model matrices. Not called by the constructor. Do not enforce layouts
+		/// in this function!
+		virtual void onSizeChange() override;
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space

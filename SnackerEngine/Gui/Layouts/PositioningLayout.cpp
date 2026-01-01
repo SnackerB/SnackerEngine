@@ -45,6 +45,10 @@ namespace SnackerEngine
 		: GuiLayout(json, data, parameterNames), mode(Mode::CENTER)
 	{
 		parseJsonOrReadFromData(mode, "mode", json, data, parameterNames);
+		parseJsonOrReadFromData(leftBorder, "leftBorder", json, data, parameterNames);
+		parseJsonOrReadFromData(rightBorder, "rightBorder", json, data, parameterNames);
+		parseJsonOrReadFromData(topBorder, "topBorder", json, data, parameterNames);
+		parseJsonOrReadFromData(bottomBorder, "bottomBorder", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiPositioningLayout::GuiPositioningLayout(const GuiPositioningLayout& other) noexcept
@@ -67,6 +71,38 @@ namespace SnackerEngine
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setLeftBorder(int leftBorder)
+	{
+		if (this->leftBorder != leftBorder) {
+			this->leftBorder = leftBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setRightBorder(int rightBorder)
+	{
+		if (this->rightBorder != rightBorder) {
+			this->rightBorder = rightBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setTopBorder(int topBorder)
+	{
+		if (this->topBorder != topBorder) {
+			this->topBorder = topBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setBottomBorder(int bottomBorder)
+	{
+		if (this->bottomBorder != bottomBorder) {
+			this->bottomBorder = bottomBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiPositioningLayout::setMode(Mode mode)
 	{
 		if (this->mode != mode) {
@@ -85,56 +121,62 @@ namespace SnackerEngine
 			GuiElement* child = getElement(childID);
 			if (!child) continue;
 			Vec2i childSize = child->getPreferredSize();
-			if (child->getResizeMode() == ResizeMode::SAME_AS_PARENT) childSize = getSize();
-			else {
-				if (childSize.x < 0) childSize.x = getWidth();
-				if (childSize.y < 0) childSize.y = getHeight();
-			}
-			if (childSize.x > getWidth()) childSize.x = getWidth();
-			if (childSize.y > getHeight()) childSize.y = getHeight();
-			childSize = child->clampToMinMaxSize(childSize);
-			// Compute position
 			Vec2i childPosition{};
-			switch (mode)
-			{
-			case Mode::CENTER:
-				childPosition.x = (mySize.x - childSize.x) / 2;
-				childPosition.y = (mySize.y - childSize.y) / 2;
-				break;
-			case Mode::LEFT:
-				childPosition.x = 0;
-				childPosition.y = (mySize.y - childSize.y) / 2;
-				break;
-			case Mode::TOP_LEFT:
-				childPosition.x = 0;
-				childPosition.y = 0;
-				break;
-			case Mode::TOP:
-				childPosition.x = (mySize.x - childSize.x) / 2;
-				childPosition.y = 0;
-				break;
-			case Mode::TOP_RIGHT:
-				childPosition.x = mySize.x - childSize.x;
-				childPosition.y = 0;
-				break;
-			case Mode::RIGHT:
-				childPosition.x = mySize.x - childSize.x;
-				childPosition.y = (mySize.y - childSize.y) / 2;
-				break;
-			case Mode::BOTTOM_RIGHT:
-				childPosition.x = mySize.x - childSize.x;
-				childPosition.y = mySize.y - childSize.y;
-				break;
-			case Mode::BOTTOM:
-				childPosition.x = (mySize.x - childSize.x) / 2;
-				childPosition.y = mySize.y - childSize.y;
-				break;
-			case Mode::BOTTOM_LEFT:
-				childPosition.x = 0;
-				childPosition.y = mySize.y - childSize.y;
-				break;
-			default:
-				break;
+			if (child->getResizeMode() == ResizeMode::SAME_AS_PARENT) {
+				childSize = mySize;
+				childPosition = Vec2i(0, 0);
+			}
+			else {
+				if (childSize.x < 0) childSize.x = mySize.x - leftBorder - rightBorder;
+				if (childSize.y < 0) childSize.y = mySize.y - topBorder - bottomBorder;
+				if (childSize.x > mySize.x - leftBorder - rightBorder) childSize.x = mySize.x - leftBorder - rightBorder;
+				if (childSize.y > mySize.y - topBorder - bottomBorder) childSize.y = mySize.y - topBorder - bottomBorder;
+				// Compute position
+				switch (mode)
+				{
+				case Mode::CENTER:
+					childPosition.x = (mySize.x - childSize.x) / 2;
+					childPosition.y = (mySize.y - childSize.y) / 2;
+					break;
+				case Mode::LEFT:
+					childPosition.x = leftBorder;
+					childPosition.y = (mySize.y - childSize.y) / 2;
+					break;
+				case Mode::TOP_LEFT:
+					childPosition.x = leftBorder;
+					childPosition.y = topBorder;
+					break;
+				case Mode::TOP:
+					childPosition.x = (mySize.x - childSize.x) / 2;
+					childPosition.y = topBorder;
+					break;
+				case Mode::TOP_RIGHT:
+					childPosition.x = mySize.x - childSize.x - rightBorder;
+					childPosition.y = topBorder;
+					break;
+				case Mode::RIGHT:
+					childPosition.x = mySize.x - childSize.x - rightBorder;
+					childPosition.y = (mySize.y - childSize.y) / 2;
+					break;
+				case Mode::BOTTOM_RIGHT:
+					childPosition.x = mySize.x - childSize.x - rightBorder;
+					childPosition.y = mySize.y - childSize.y - bottomBorder;
+					break;
+				case Mode::BOTTOM:
+					childPosition.x = (mySize.x - childSize.x) / 2;
+					childPosition.y = mySize.y - childSize.y - bottomBorder;
+					break;
+				case Mode::BOTTOM_LEFT:
+					childPosition.x = leftBorder;
+					childPosition.y = mySize.y - childSize.y - bottomBorder;
+					break;
+				default:
+					break;
+				}
+				childPosition.x = std::min(childPosition.x, mySize.x - leftBorder - childSize.x);
+				childPosition.x = std::max(childPosition.x, rightBorder);
+				childPosition.y = std::min(childPosition.y, mySize.y - bottomBorder - childSize.y);
+				childPosition.y = std::max(childPosition.y, topBorder);
 			}
 			// Enforce Layout
 			setPositionAndSizeOfChild(childID, childPosition, childSize);

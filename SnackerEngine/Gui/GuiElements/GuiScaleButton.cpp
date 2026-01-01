@@ -83,6 +83,12 @@ namespace SnackerEngine
 		}
 	}
 
+	void GuiScaleButton::onSizeChange()
+	{
+		GuiButton::onSizeChange();
+		computeTransformMatrixAndClippingBox();
+	}
+
 	void GuiScaleButton::draw(const Vec2i& worldPosition)
 	{
 		GuiButton::draw(worldPosition, transformMatrix, clippingBoxOffset, clippingBoxSize);

@@ -146,7 +146,7 @@ namespace SnackerEngine
 		if (textScaleMode == TextScaleMode::RECOMPUTE_DOWN) {
 			dynamicText->setTextWidth((getWidth() - leftBorder - rightBorder) / pointsToPixels(1.0f), false);
 			dynamicText->setFontSize(fontSize, false);
-			dynamicText->setLineHeight(lineHeight, false);
+			dynamicText->setLineHeightMultiplier(lineHeightMultiplier, false);
 			double maxFontSize = 0.0;
 			double minFontSize = 0.0;
 			for (unsigned int i = 0; i < recomputeTries; ++i)
@@ -335,8 +335,7 @@ namespace SnackerEngine
 	void GuiTextBox::computeHeightHints()
 	{
 		if (!dynamicText) return;
-		int textHeight = static_cast<int>(std::ceil((dynamicText->getTop() - dynamicText->getBottom()) * pointsToPixels(1.0)));
-		textHeight += topBorder + bottomBorder;
+		int textHeight = getTextHeight();
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
@@ -372,11 +371,11 @@ namespace SnackerEngine
 		if (!dynamicText) return;
 		int textWidth{};
 		if (parseMode == StaticText::ParseMode::SINGLE_LINE) {
-			textWidth = static_cast<int>(std::ceil((dynamicText->getRight() - dynamicText->getLeft()) * pointsToPixels(1.0)));
+			textWidth = getTextWidth();
 		}
 		else {
-			DynamicText tempText(this->text, this->font, this->fontSize, 0.0f, this->lineHeight, StaticText::ParseMode::SINGLE_LINE, this->alignmentHorizontal);
-			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToPixels(1.0)));
+			DynamicText tempText(this->text, this->font, this->fontSize, 0.0f, this->lineHeightMultiplier, StaticText::ParseMode::SINGLE_LINE, this->alignmentHorizontal);
+			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToPixels(1.0))) + leftBorder + rightBorder;
 		}
 		textWidth += leftBorder + rightBorder;
 		switch (sizeHintModes.sizeHintModeMinSize)
@@ -415,8 +414,8 @@ namespace SnackerEngine
 			font, textColor)));
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiTextBox::GuiTextBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const Color4f& backgroundColor)
-		: GuiPanel(position, size, ResizeMode::RESIZE_RANGE, backgroundColor), fontSize(fontSize), lineHeight(lineHeight), text(text), font(font) {}
+	GuiTextBox::GuiTextBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, double lineHeightMultiplier, const Color4f& backgroundColor)
+		: GuiPanel(position, size, ResizeMode::RESIZE_RANGE, backgroundColor), fontSize(fontSize), lineHeightMultiplier(lineHeightMultiplier), text(text), font(font) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiTextBox::GuiTextBox(const std::string& text)
 		: GuiPanel({}, {}, ResizeMode::RESIZE_RANGE, defaultBackgroundColor), text(text) {}
@@ -456,7 +455,7 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(topBorder, "topBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(bottomBorder, "bottomBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(fontSize, "fontSize", json, data, parameterNames);
-		lineHeight = parseJsonOrReadFromData<double>("lineHeight", json, data, parameterNames);
+		parseJsonOrReadFromData(lineHeightMultiplier, "lineHeightMultiplier", json, data, parameterNames);
 		parseJsonOrReadFromData(recomputeTries, "recomputeTries", json, data, parameterNames);
 		parseJsonOrReadFromData(doRecomputeOnSizeChange, "doRecomputeOnSizeChange", json, data, parameterNames);
 		parseJsonOrReadFromData(text, "text", json, data, parameterNames);
@@ -496,7 +495,7 @@ namespace SnackerEngine
 		modelMatrixText(other.modelMatrixText), textScaleMode(other.textScaleMode),
 		sizeHintModes(other.sizeHintModes), leftBorder(other.leftBorder), rightBorder(other.rightBorder),
 		topBorder(other.topBorder), bottomBorder(other.bottomBorder), scaleFactor(other.scaleFactor),
-		fontSize(other.fontSize), lineHeight(other.lineHeight), recomputeTries(other.recomputeTries), 
+		fontSize(other.fontSize), lineHeightMultiplier(other.lineHeightMultiplier), recomputeTries(other.recomputeTries),
 		doRecomputeOnSizeChange(other.doRecomputeOnSizeChange),
 		lastSizeOnRecomputeText(other.lastSizeOnRecomputeText), text(other.text),
 		parseMode(other.parseMode), alignmentHorizontal(other.alignmentHorizontal),
@@ -517,7 +516,7 @@ namespace SnackerEngine
 		bottomBorder = other.bottomBorder;
 		scaleFactor = other.scaleFactor;
 		fontSize = other.fontSize;
-		lineHeight = other.lineHeight;
+		lineHeightMultiplier = other.lineHeightMultiplier;
 		recomputeTries = other.recomputeTries;
 		doRecomputeOnSizeChange = other.doRecomputeOnSizeChange;
 		lastSizeOnRecomputeText = other.lastSizeOnRecomputeText;
@@ -529,15 +528,27 @@ namespace SnackerEngine
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	Vec2i GuiTextBox::getTextSize() const
+	int GuiTextBox::getTextWidth() const 
 	{
-		if (!dynamicText) return Vec2i{};
-		return Vec2i(pointsToPixels(dynamicText->getTextWidth()), pointsToPixels(dynamicText->getTextHeight()));
+		if (!dynamicText) return 0;
+		return pointsToPixels(dynamicText->getTextWidth()) + leftBorder + rightBorder;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiTextBox::getTextHeight() const
+	{
+		if (!dynamicText) return 0;
+		return pointsToPixels(dynamicText->getTextHeight()) + topBorder + bottomBorder;
 	}
 	//--------------------------------------------------------------------------------------------------
 	int GuiTextBox::getMaxBorder() const
 	{
 		return std::max(leftBorder, std::max(rightBorder, std::max(topBorder, bottomBorder)));
+	}
+	//--------------------------------------------------------------------------------------------------
+	double GuiTextBox::getLineHeight() const
+	{
+		if (dynamicText) return dynamicText->getLineHeight();
+		return 0.0;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::setTextColor(const Color4f& textColor)
@@ -656,12 +667,12 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::setLineHeight(std::optional<double> lineHeight)
+	void GuiTextBox::setLineHeightMultiplier(double lineHeightMultiplier)
 	{
-		if (this->lineHeight != lineHeight) {
-			this->lineHeight = lineHeight;
+		if (this->lineHeightMultiplier != lineHeightMultiplier) {
+			this->lineHeightMultiplier = lineHeightMultiplier;
 			if (this->dynamicText) {
-				this->dynamicText->setLineHeight(lineHeight, false);
+				this->dynamicText->setLineHeightMultiplier(lineHeightMultiplier, false);
 				recomputeText();
 				computeWidthHints();
 				computeModelMatrices();
@@ -885,7 +896,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiTextBox::onRegister()
 	{
-		onRegister(std::move(std::make_unique<DynamicText>(text, font, fontSize, pixelsToPoints(static_cast<double>(getWidth() - leftBorder - rightBorder)), lineHeight, parseMode, alignmentHorizontal)));
+		onRegister(std::move(std::make_unique<DynamicText>(text, font, fontSize, pixelsToPoints(static_cast<double>(getWidth() - leftBorder - rightBorder)), lineHeightMultiplier, parseMode, alignmentHorizontal)));
 		computeWidthHints();
 		computeHeightHints();
 	}

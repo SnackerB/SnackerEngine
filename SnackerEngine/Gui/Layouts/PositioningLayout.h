@@ -23,6 +23,10 @@ namespace SnackerEngine
 		};
 	private:
 		Mode mode;
+		int leftBorder = 0;
+		int rightBorder = 0;
+		int topBorder = 0;
+		int bottomBorder = 0;
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_POSITIONING_LAYOUT";
@@ -41,7 +45,15 @@ namespace SnackerEngine
 		GuiPositioningLayout& operator=(GuiPositioningLayout&& other) noexcept;
 		/// Getters
 		Mode getMode() const { return mode; }
+		int getLeftBorder() const { return leftBorder; }
+		int getRightBorder() const { return rightBorder; }
+		int getTopBorder() const { return topBorder; }
+		int getBottomBorder() const { return bottomBorder; }
 		/// Setters
+		void setLeftBorder(int leftBorder);
+		void setRightBorder(int rightBorder);
+		void setTopBorder(int topBorder);
+		void setBottomBorder(int bottomBorder);
 		void setMode(Mode mode);
 	protected:
 		/// Sets the position and size of the children of this element according to

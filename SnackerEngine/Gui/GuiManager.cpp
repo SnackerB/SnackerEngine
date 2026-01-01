@@ -754,10 +754,17 @@ namespace SnackerEngine
 		// Initialize static default image shader
 		GuiImage::defaultImageShader = Shader("shaders/gui/basicTexture.shader");
 		/// Initialize static default checkmark texture
-		auto result = Texture::Load2D("gui/textures/checkmark.png");
-		if (result.second) GuiCheckBox::defaultCheckMarkTexture = result.first;
+		auto resultCheckMark = Texture::Load2D("gui/textures/checkmark.png");
+		if (resultCheckMark.second) GuiCheckBox::defaultCheckMarkTexture = resultCheckMark.first;
 		/// Initialize static default checkmark shader
 		GuiCheckBox::defaultCheckMarkShader = Shader("shaders/gui/msdfShader.shader");
+		/// Initialize static default dropdown symbol textures
+		auto resultDropDownSymbolClosed = Texture::Load2D("gui/textures/caret_down.png");
+		if (resultDropDownSymbolClosed.second) GuiSelectionBox::defaultDropdownSymbolTextureClosed = resultDropDownSymbolClosed.first;
+		auto resultDropDownSymbolOpen = Texture::Load2D("gui/textures/caret_down.png");
+		if (resultDropDownSymbolOpen.second) GuiSelectionBox::defaultDropdownSymbolTextureOpen = resultDropDownSymbolOpen.first;
+		/// Initialize static default dropdown symbol shader
+		GuiSelectionBox::defaultDropdownSymbolShader = Shader("shaders/gui/msdfShader.shader");
 		/// Compute default parameters based on GuiScale
 		double guiScale = Engine::getDPI().y / 250.0;
 		recomputeDefaultGuiElementValues(guiScale);
@@ -771,6 +778,9 @@ namespace SnackerEngine
 		GuiImage::defaultImageShader = Shader();
 		GuiCheckBox::defaultCheckMarkShader = Shader();
 		GuiCheckBox::defaultCheckMarkTexture = Texture();
+		GuiSelectionBox::defaultDropdownSymbolTextureClosed = Texture();
+		GuiSelectionBox::defaultDropdownSymbolTextureOpen = Texture();
+		GuiSelectionBox::defaultDropdownSymbolShader = Shader();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiManager(const unsigned int& startingSize)
@@ -1178,7 +1188,7 @@ namespace SnackerEngine
 		GuiElement::defaultBorderLarge = std::max(1, static_cast<int>(scale * 15));
 		GuiElement::defaultBorderHuge = std::max(1, static_cast<int>(scale * 20));
 		GuiCheckBox::defaultCheckBoxSize = std::max(1, static_cast<int>(scale * 50));
-		GuiEditBox::defaultCursorWidth = static_cast<float>(scale * 0.1f);
+		GuiEditBox::defaultCursorWidth = static_cast<float>(scale * 0.05f);
 		GuiVerticalScrollingListLayout::defaultScrollBarWidth = std::max(1, static_cast<int>(scale * 23));
 		GuiSliderFloat::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
 		GuiSliderDouble::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));

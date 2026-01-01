@@ -95,9 +95,8 @@ namespace SnackerEngine
 		int bottomBorder = GuiElement::defaultBorderSmall;
 		/// The normal font size of the text (without any rescaling), in pt.
 		double fontSize = GuiElement::defaultFontSizeNormal;
-		/// The line height of the text (without any rescaling), in pt. If set to std::nullopt, the standard
-		/// line height of the font will be used.
-		std::optional<double> lineHeight;
+		/// Line height multiplier for changing the default lineHeight of the font
+		double lineHeightMultiplier = 1.0;
 		/// The number of tries that are being made to resize the text when the textBoxMode is set to 
 		/// FORCE_SIZE_RECOMPUTE_SCALE_DOWN or FORCE_SIZE_RECOMPUTE_SCALE
 		unsigned int recomputeTries = defaultRecomputeTries;
@@ -122,17 +121,18 @@ namespace SnackerEngine
 		/// Helper function that should be called on size change. Only recomputes the text
 		/// if it is absolutely necessary, saving computation time!
 		void recomputeTextOnSizeChange();
+		/// Helper function that constructs the text material
+		static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor);
+	protected:
 		/// Helper functions computing the correct values for the size hint height variables, ie.
 		/// minheight, maxheight and preferredHeight.
-		void computeWidthHints();
+		virtual void computeWidthHints();
 		/// Helper function computing the correct values for the size hint width variables, ie.
 		/// minWidth, maxWidth and preferredWidth. This function should only be called if the text,
 		/// font, fontsize, ord border changes. The width hint is computed as if the parse mode was set
 		/// to single_line.
-		void computeHeightHints();
-		/// Helper function that constructs the text material
-		static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor);
-	protected:
+		virtual void computeHeightHints();
+		void computeSizeHints() { computeWidthHints(); computeHeightHints(); }
 		/// Sets the internal text variable. Can be used by derived GuiElements
 		void setTextInternal(const std::string& text) { this->text = text; };
 	public:
@@ -140,7 +140,7 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_TEXT_BOX";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, std::optional<double> lineHeight = std::nullopt, const Color4f& backgroundColor = defaultBackgroundColor);
+		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, double lineHeightMultiplier = 1.0, const Color4f& backgroundColor = defaultBackgroundColor);
 		GuiTextBox(const std::string& text);
 		/// Constructor from JSON
 		GuiTextBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
@@ -153,7 +153,6 @@ namespace SnackerEngine
 		GuiTextBox(GuiTextBox&& other) noexcept = default;
 		GuiTextBox& operator=(GuiTextBox&& other) noexcept = default;
 		/// Getters
-		Vec2i getTextSize() const;
 		const Color4f& getTextColor() const { return textColor; }
 		TextScaleMode getTextScaleMode() const { return textScaleMode; }
 		const SizeHintModes& getSizeHintModes() const { return sizeHintModes; }
@@ -163,7 +162,8 @@ namespace SnackerEngine
 		int getBottomBorder() const { return bottomBorder; }
 		int getMaxBorder() const;
 		double getFontSize() const { return fontSize; }
-		double getLineHeight() const { return lineHeight.has_value() ? lineHeight.value() : font.getLineHeight(); }
+		double getLineHeightMultiplier() const { return lineHeightMultiplier; }
+		double getLineHeight() const;
 		int getRecomputeTries() const { return recomputeTries; }
 		bool isDoRecomputeOnSizeChange() const { return doRecomputeOnSizeChange; }
 		const std::string& getText() const { return text; }
@@ -171,6 +171,9 @@ namespace SnackerEngine
 		AlignmentHorizontal getAlignmentHorizontal() const { return alignmentHorizontal; }
 		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		const Font& getFont() const { return font; }
+		int getTextWidth() const;
+		int getTextHeight() const;
+		Vec2i getTextSize() const { return Vec2i(getTextWidth(), getTextHeight()); }
 		/// Setters
 		void setTextColor(const Color4f& textColor);
 		void setTextScaleMode(TextScaleMode textScaleMode);
@@ -184,7 +187,7 @@ namespace SnackerEngine
 		void setBottomBorder(const int& bottomBorder);
 		void setBorder(const int& border);
 		void setFontSize(const double& fontSize);
-		void setLineHeight(std::optional<double> lineHeight);
+		void setLineHeightMultiplier(double lineHeightMultiplier);
 		void setRecomputeTries(int recomputeTries);
 		void setDoRecomputeOnSizeChange(const bool& doRecomputeOnSizeChange);
 		void setText(const std::string& text);

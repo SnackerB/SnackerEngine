@@ -59,6 +59,8 @@ namespace SnackerEngine
 		Vec2i getSize() const;
 		/// Checks wether this texture is validand corresponds to actual data on the GPU
 		bool isValid() const;
+		/// returns the texture ID
+		TextureID getTextureID() const { return textureID; };
 		
 		/// Destructor
 		~Texture();

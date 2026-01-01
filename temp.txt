@@ -1,0 +1,355 @@
+#include "Gui\GuiElements\GuiSelectionBox.h"
+#include "Gui\GuiManager.h"
+#include "Utility\Keys.h"
+
+namespace SnackerEngine
+{
+
+	Color4f GuiSelectionBox::defaultOptionButtonColor = scaleRGB(Color4f(0.5f, 0.5f, 0.7f, 1.0f), 0.8f);
+	Color4f GuiSelectionBox::defaultOptionButtonPressedColor = scaleRGB(GuiSelectionBox::defaultOptionButtonColor, 0.8f);
+	Color4f GuiSelectionBox::defaultOptionButtonHoverColor = scaleRGB(GuiSelectionBox::defaultOptionButtonColor, 0.9f);
+	Color4f GuiSelectionBox::defaultOptionButtonPressedHoverColor = scaleRGB(GuiSelectionBox::defaultOptionButtonColor, 0.7f);
+
+	Color4f GuiSelectionBox::defaultSelectedOptionButtonColor = Color4f(0.5f, 0.5f, 0.7f, 1.0f);
+	Color4f GuiSelectionBox::defaultSelectedOptionButtonPressedColor = scaleRGB(GuiSelectionBox::defaultSelectedOptionButtonColor, 0.8f);
+	Color4f GuiSelectionBox::defaultSelectedOptionButtonHoverColor = scaleRGB(GuiSelectionBox::defaultSelectedOptionButtonColor, 0.9f);
+	Color4f GuiSelectionBox::defaultSelectedOptionButtonPressedHoverColor = scaleRGB(GuiSelectionBox::defaultSelectedOptionButtonColor, 0.7f);
+
+	Color4f GuiSelectionBox::defaultDividerColor = Color4f(0.0f, 1.0f);
+
+	Color4f GuiSelectionBox::defaultTextColor = Color4f(1.0f, 1.0f);
+
+	void GuiSelectionBox::notifyEvent(int eventID)
+	{
+		if (optionListLayout && optionListLayout->isValid()) {
+			// the selectionBox is currently open
+			if (eventID < 0) {
+				// currently selected option button was pressed.
+				// We just need to close the selectionBox
+				selectedOptionButtonEventHandle.reset();
+			}
+			else if (eventID < options.size()) {
+				// An option button was pressed. Change the currently selected
+				// option and close the selectionBox
+				selectedOptionIndex.set(eventID);
+				setText(options[eventID]);
+			}
+			closeSelectionBox();
+		}
+		else {
+			// the selectionBox is currently closed
+			if (eventID < 0) {
+				// currently selected option button or arrow button was pressed.
+				// We just need to open the selectionBox
+				selectedOptionButtonEventHandle.reset();
+				openSelectionBox();
+			}
+		}
+	}
+
+	void GuiSelectionBox::openSelectionBox()
+	{
+		if (optionListLayout && optionListLayout->isValid()) return;
+		GuiManager* guiManager = getGuiManager();
+		if (!guiManager) return;
+		optionListLayout = std::make_unique<GuiVerticalListLayout>();
+		optionListLayout->setVerticalBorder(0);
+		optionListLayout->setOuterVerticalBorder(0);
+		optionListLayout->setHorizontalBorder(0);
+		optionListLayout->setResizeMode(ResizeMode::RESIZE_RANGE);
+		optionListLayout->setSize(Vec2i(getWidth(), getHeight() * static_cast<int>(options.size())));
+		optionListLayout->setPosition(getWorldPosition() + Vec2i(0, getHeight()));
+		guiManager->registerElement(*optionListLayout);
+		// Push back option buttons
+		GuiButton templateButton(*this);
+		templateButton.setSize(getSize());
+		templateButton.setPreferredSize(getSize());
+		templateButton.setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::ARBITRARY);
+		templateButton.setDefaultColor(optionButtonColor);
+		templateButton.setPressedColor(optionButtonPressedColor);
+		templateButton.setHoverColor(optionButtonHoverColor);
+		templateButton.setPressedHoverColor(optionButtonPressedHoverColor);
+		templateButton.setTextColor(optionButtonTextColor);
+		templateButton.setRoundedCorners(0.0f);
+		optionButtonEventHandles.clear(); // Clear handles
+		for (std::size_t i = 0; i < options.size(); ++i) {
+			GuiButton optionButton(templateButton);
+			optionButton.setText(options[i]);
+			optionButtonEventHandles.push_back(GuiSelectionBoxEventHandle(*this, static_cast<int>(i)));
+			optionButton.subscribeToEventButtonPress(optionButtonEventHandles.back());
+			// if (i == options.size() - 1) optionButton.setRoundedCorners(); // TODO: First implement different rounded corners for each edge ...
+			optionListLayout->registerChild(optionButton);
+			if (i == options.size() - 1) optionButton.setRoundedCorners(Vec4f(0.0f, 0.0f, roundedCorners, roundedCorners));
+			guiManager->moveElement<GuiButton>(std::move(optionButton));
+		}
+		// Fix corners
+		GuiScaleButton::setRoundedCorners(Vec4f(roundedCorners, roundedCorners, 0.0f, 0.0f));
+		// bring to foreground
+		bringToForeground();
+		optionListLayout->bringToForeground();
+		// Register for mouse callback
+		signUpEvent(CallbackType::MOUSE_BUTTON);
+	}
+
+	void GuiSelectionBox::computeSizeHints()
+	{
+		switch (getSizeHintModes().sizeHintModeMinSize)
+		{
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT: setMinHeight(getMinHeight()); break;
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_WIDTH: setMinWidth(getMinHeight() + minimumWidthOfLongestOption); break;
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE: setMinSize(Vec2i(getMinHeight() + minimumWidthOfLongestOption, getMinHeight())); break;
+		default: break;
+		}
+		switch (getSizeHintModes().sizeHintModeMaxSize)
+		{
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT: setMaxHeight(getMinHeight()); break;
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_WIDTH: setMaxWidth(getMinHeight() + minimumWidthOfLongestOption); break;
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE: setMaxSize(Vec2i(getMinHeight() + minimumWidthOfLongestOption, getMinHeight())); break;
+		default: break;
+		}
+		switch (getSizeHintModes().sizeHintModePreferredSize)
+		{
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT: setPreferredHeight(getMinHeight()); break;
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_WIDTH: setPreferredWidth(getMinHeight() + minimumWidthOfLongestOption); break;
+		case GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE: setPreferredSize(Vec2i(getMinHeight() + minimumWidthOfLongestOption, getMinHeight())); break;
+		default:
+			break;
+		}
+	}
+
+	void GuiSelectionBox::closeSelectionBox()
+	{
+		if (!optionListLayout || !optionListLayout->isValid()) return;
+		optionListLayout->signOffAtNextUpdate();
+		// Fix corners
+		GuiScaleButton::setRoundedCorners(roundedCorners);
+		// Sign off callback
+		signOffEvent(CallbackType::MOUSE_BUTTON);
+	}
+
+	void GuiSelectionBox::draw(const Vec2i& worldPosition)
+	{
+		//pushClippingBox(worldPosition); // TODO: Remove?
+		GuiScaleButton::draw(worldPosition);
+		//popClippingBox();
+	}
+
+	void GuiSelectionBox::callbackMouseButton(const int& button, const int& action, const int& mods)
+	{
+		if (action == ACTION_PRESS) {
+			GuiManager* guiManager = getGuiManager();
+			if (guiManager && (guiManager->isMouseHoveringOver(getGuiID()) || guiManager->isMouseHoveringOver(optionListLayout->getGuiID()))) return;
+			closeSelectionBox();
+		}
+		GuiScaleButton::callbackMouseButton(button, action, mods);
+	}
+
+	void GuiSelectionBox::onRegister()
+	{
+		// Set attributes of selectedOption button
+		setDefaultColor(selectedOptionButtonColor);
+		setHoverColor(selectedOptionButtonHoverColor);
+		setPressedColor(selectedOptionButtonPressedColor);
+		setPressedHoverColor(selectedOptionButtonPressedHoverColor);
+		setTextColor(selectedOptionButtonTextColor);
+		setAlignmentHorizontal(AlignmentHorizontal::LEFT);
+		setAlignmentVertical(AlignmentVertical::CENTER);
+		setSizeHintModeMinSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE);
+		setRoundedCorners(roundedCorners);
+		// Set event handles
+		subscribeToEventButtonPress(selectedOptionButtonEventHandle);
+		// Obtain information on width
+		for (const std::string& option : options) {
+			// Compute the size of the text box
+			setText(option);
+			if (getMinWidth() > minimumWidthOfLongestOption) minimumWidthOfLongestOption = getMinWidth();
+		}
+		if (!options.empty()) setText(options[selectedOptionIndex]);
+		// Finalize
+		onSizeChange();
+	}
+
+	void GuiSelectionBox::onSizeChange()
+	{
+		computeSizeHints();
+		GuiScaleButton::onSizeChange();
+		// TODO: Remove?
+	}
+
+	GuiID GuiSelectionBox::getCollidingChild(const Vec2i& offset) const
+	{
+		return GuiScaleButton::getCollidingChild(offset);
+		// TODO: Remove?
+	}
+
+	void GuiSelectionBox::updateSelection()
+	{
+		setText(options[std::min(selectedOptionIndex.get(), options.size() - 1)]);
+		closeSelectionBox();
+	}
+
+	GuiSelectionBox::GuiSelectionBox(const std::vector<std::string>& options)
+		: GuiScaleButton(), options(options)
+	{
+	}
+
+	GuiSelectionBox::GuiSelectionBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+		: GuiScaleButton(json, data, parameterNames)
+	{
+		if (json.contains("options") && json["options"].is_array()) {
+			for (const auto& option : json["options"]) {
+				if (option.is_string()) options.push_back(option);
+			}
+			if (parameterNames) parameterNames->erase("options");
+		}
+		std::size_t selectedOptionIndexTemp = 0;
+		parseJsonOrReadFromData(selectedOptionIndexTemp, "selectedOptionIndex", json, data, parameterNames);
+		selectedOptionIndex.set(selectedOptionIndexTemp);
+		if (!options.empty()) selectedOptionIndex.set(std::min(selectedOptionIndex.get(), options.size() - 1));
+		parseJsonOrReadFromData(optionButtonColor, "optionButtonColor", json, data, parameterNames);
+		parseJsonOrReadFromData(optionButtonPressedColor, "optionButtonPressedColor", json, data, parameterNames);
+		parseJsonOrReadFromData(optionButtonHoverColor, "optionButtonHoverColor", json, data, parameterNames);
+		parseJsonOrReadFromData(optionButtonPressedHoverColor, "optionButtonPressedHoverColor", json, data, parameterNames);
+		parseJsonOrReadFromData(selectedOptionButtonColor, "selectedOptionButtonColor", json, data, parameterNames);
+		parseJsonOrReadFromData(selectedOptionButtonPressedColor, "selectedOptionButtonPressedColor", json, data, parameterNames);
+		parseJsonOrReadFromData(selectedOptionButtonHoverColor, "selectedOptionButtonHoverColor", json, data, parameterNames);
+		parseJsonOrReadFromData(selectedOptionButtonPressedHoverColor, "selectedOptionButtonPressedHoverColor", json, data, parameterNames);
+		parseJsonOrReadFromData(optionButtonTextColor, "optionButtonTextColor", json, data, parameterNames);
+		parseJsonOrReadFromData(selectedOptionButtonTextColor, "selectedOptionButtonTextColor", json, data, parameterNames);
+		// TODO: Sort in the following parseJSONS
+		parseJsonOrReadFromData(roundedCorners, "roundedCorners", json, data, parameterNames);
+	}
+
+	GuiSelectionBox::~GuiSelectionBox()
+	{
+		closeSelectionBox();
+	}
+
+	GuiSelectionBox::GuiSelectionBox(const GuiSelectionBox& other) noexcept
+		: GuiScaleButton(other), options(other.options),
+		selectedOptionIndex(other.selectedOptionIndex), optionListLayout(nullptr), optionButtonEventHandles(),
+		selectedOptionButtonEventHandle(*this, -1), minimumWidthOfLongestOption(other.minimumWidthOfLongestOption),
+		optionButtonColor(other.optionButtonColor), optionButtonPressedColor(other.optionButtonPressedColor),
+		optionButtonHoverColor(other.optionButtonHoverColor), optionButtonPressedHoverColor(other.optionButtonPressedHoverColor),
+		selectedOptionButtonColor(other.selectedOptionButtonColor),
+		selectedOptionButtonPressedColor(other.selectedOptionButtonPressedColor),
+		selectedOptionButtonHoverColor(other.selectedOptionButtonHoverColor),
+		selectedOptionButtonPressedHoverColor(other.selectedOptionButtonPressedHoverColor),
+		optionButtonTextColor(other.optionButtonTextColor), selectedOptionButtonTextColor(other.selectedOptionButtonTextColor)
+	{
+	}
+
+	GuiSelectionBox& GuiSelectionBox::operator=(const GuiSelectionBox& other) noexcept
+	{
+		closeSelectionBox();
+		GuiElement::operator=(other);
+		options = other.options;
+		selectedOptionIndex = other.selectedOptionIndex;
+		optionListLayout = nullptr;
+		optionButtonEventHandles.clear();
+		selectedOptionButtonEventHandle = GuiSelectionBoxEventHandle(*this, -1);
+		minimumWidthOfLongestOption = other.minimumWidthOfLongestOption;
+		optionButtonColor = other.optionButtonColor;
+		optionButtonPressedColor = other.optionButtonPressedColor;
+		optionButtonHoverColor = other.optionButtonHoverColor;
+		optionButtonPressedHoverColor = other.optionButtonPressedHoverColor;
+		selectedOptionButtonColor = other.selectedOptionButtonColor;
+		selectedOptionButtonPressedColor = other.selectedOptionButtonPressedColor;
+		selectedOptionButtonHoverColor = other.selectedOptionButtonHoverColor;
+		selectedOptionButtonPressedHoverColor = other.selectedOptionButtonPressedHoverColor;
+		optionButtonTextColor = other.optionButtonTextColor;
+		selectedOptionButtonTextColor = other.selectedOptionButtonTextColor;
+		return *this;
+	}
+
+	GuiSelectionBox::GuiSelectionBox(GuiSelectionBox&& other) noexcept
+		: GuiScaleButton(std::move(other)), options(std::move(other.options)),
+		selectedOptionIndex(std::move(other.selectedOptionIndex)),
+		optionListLayout(std::move(other.optionListLayout)), optionButtonEventHandles(std::move(other.optionButtonEventHandles)),
+		selectedOptionButtonEventHandle(std::move(other.selectedOptionButtonEventHandle)), minimumWidthOfLongestOption(std::move(other.minimumWidthOfLongestOption)),
+		optionButtonColor(std::move(other.optionButtonColor)), optionButtonPressedColor(std::move(other.optionButtonPressedColor)),
+		optionButtonHoverColor(std::move(other.optionButtonHoverColor)), optionButtonPressedHoverColor(std::move(other.optionButtonPressedHoverColor)),
+		selectedOptionButtonColor(std::move(other.selectedOptionButtonColor)),
+		selectedOptionButtonPressedColor(std::move(other.selectedOptionButtonPressedColor)),
+		selectedOptionButtonHoverColor(std::move(other.selectedOptionButtonHoverColor)),
+		selectedOptionButtonPressedHoverColor(std::move(other.selectedOptionButtonPressedHoverColor)),
+		optionButtonTextColor(std::move(other.optionButtonTextColor)), selectedOptionButtonTextColor(std::move(other.selectedOptionButtonTextColor))
+	{
+		selectedOptionButtonEventHandle.guiSelectionBox = this;
+		for (auto& optionHandle : optionButtonEventHandles) optionHandle.guiSelectionBox = this;
+	}
+
+	GuiSelectionBox& GuiSelectionBox::operator=(GuiSelectionBox&& other) noexcept
+	{
+		closeSelectionBox();
+		GuiElement::operator=(std::move(other));
+		options = std::move(other.options);
+		selectedOptionIndex = std::move(other.selectedOptionIndex);
+		optionListLayout = std::move(other.optionListLayout);
+		optionButtonEventHandles = std::move(other.optionButtonEventHandles);
+		selectedOptionButtonEventHandle = std::move(other.selectedOptionButtonEventHandle);
+		minimumWidthOfLongestOption = std::move(other.minimumWidthOfLongestOption);
+		optionButtonColor = std::move(other.optionButtonColor);
+		optionButtonPressedColor = std::move(other.optionButtonPressedColor);
+		optionButtonHoverColor = std::move(other.optionButtonHoverColor);
+		optionButtonPressedHoverColor = std::move(other.optionButtonPressedHoverColor);
+		selectedOptionButtonColor = std::move(other.selectedOptionButtonColor);
+		selectedOptionButtonPressedColor = std::move(other.selectedOptionButtonPressedColor);
+		selectedOptionButtonHoverColor = std::move(other.selectedOptionButtonHoverColor);
+		selectedOptionButtonPressedHoverColor = std::move(other.selectedOptionButtonPressedHoverColor);
+		optionButtonTextColor = std::move(other.optionButtonTextColor);
+		selectedOptionButtonTextColor = std::move(other.selectedOptionButtonTextColor);
+		selectedOptionButtonEventHandle.guiSelectionBox = this;
+		for (auto& optionHandle : optionButtonEventHandles) optionHandle.guiSelectionBox = this;
+		return *this;
+	}
+
+	void GuiSelectionBox::addOption(const std::string& option)
+	{
+		options.push_back(option);
+		// Update information on width
+		setText(option);
+		if (getMinWidth() > minimumWidthOfLongestOption) minimumWidthOfLongestOption = getMinWidth();
+		setText(options[std::min(selectedOptionIndex.get(), options.size() - 1)]);
+		closeSelectionBox();
+		computeSizeHints();
+	}
+
+	void GuiSelectionBox::setOptions(const std::vector<std::string>& options)
+	{
+		this->options = options;
+		this->selectedOptionIndex.set(0);
+		// Obtain information on width
+		for (const std::string& option : options) {
+			// Compute the size of the text box
+			setText(option);
+			if (getMinWidth() > minimumWidthOfLongestOption) minimumWidthOfLongestOption = getMinWidth();
+		}
+		closeSelectionBox();
+		updateSelection();
+		computeSizeHints();
+	}
+
+	void GuiSelectionBox::setRoundedCorners(float roundedCorners)
+	{
+		if (this->roundedCorners != roundedCorners) {
+			this->roundedCorners = roundedCorners;
+			if (optionListLayout) {
+				GuiScaleButton::setRoundedCorners(Vec4f(roundedCorners, roundedCorners, 0.0f, 0.0f));
+			}
+			else {
+				setRoundedCorners(roundedCorners);
+			}
+		}
+	}
+
+	void GuiSelectionBox::setSelectedOptionIndex(std::size_t selectedOptionIndex)
+	{
+		std::size_t temp = std::min(selectedOptionIndex, options.size() - 1);
+		if (temp != this->selectedOptionIndex.get()) {
+			this->selectedOptionIndex.set(temp);
+			updateSelection();
+		}
+	}
+
+}

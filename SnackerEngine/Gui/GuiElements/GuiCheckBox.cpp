@@ -71,6 +71,7 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(checkMarkTexture, "checkMarkTexture", json, data, parameterNames);
 		parseJsonOrReadFromData(checkMarkShader, "checkMarkShader", json, data, parameterNames);
 		parseJsonOrReadFromData(drawCheckMark, "drawCheckMark", json, data, parameterNames);
+		parseJsonOrReadFromData(checkMarkSize, "checkMarkSize", json, data, parameterNames);
 		int size = defaultCheckBoxSize;
 		parseJsonOrReadFromData(size, "size", json, data, parameterNames);
 		setSize(Vec2i(size));
@@ -96,12 +97,16 @@ namespace SnackerEngine
 		colorHoverFalse(other.colorHoverFalse), colorPressedFalse(other.colorPressedFalse),
 		colorHoverPressedFalse(other.colorHoverPressedFalse), checkMarkColor(other.checkMarkColor),
 		checkMarkTexture(other.checkMarkTexture), checkMarkShader(other.checkMarkShader), 
-		drawCheckMark(other.drawCheckMark) {}
+		drawCheckMark(other.drawCheckMark), checkMarkSize(other.checkMarkSize)
+	{
+		checked.parentElement = this;
+	}
 	//--------------------------------------------------------------------------------------------------
 	GuiCheckBox& GuiCheckBox::operator=(const GuiCheckBox& other) noexcept
 	{
 		GuiButton::operator=(other);
 		checked = other.checked;
+		checked.parentElement = this;
 		colorDefaultTrue = other.colorDefaultTrue;
 		colorHoverTrue = other.colorHoverTrue; 
 		colorPressedTrue = other.colorPressedTrue;
@@ -114,6 +119,7 @@ namespace SnackerEngine
 		checkMarkTexture = other.checkMarkTexture;
 		checkMarkShader = other.checkMarkShader;
 		drawCheckMark = other.drawCheckMark;
+		checkMarkSize = other.checkMarkSize;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -124,7 +130,8 @@ namespace SnackerEngine
 		colorDefaultFalse(std::move(other.colorDefaultFalse)), colorHoverFalse(std::move(other.colorHoverFalse)), 
 		colorPressedFalse(std::move(other.colorPressedFalse)), colorHoverPressedFalse(std::move(other.colorHoverPressedFalse)),
 		checkMarkColor(std::move(other.checkMarkColor)), checkMarkTexture(std::move(other.checkMarkTexture)),
-		checkMarkShader(std::move(other.checkMarkShader)), drawCheckMark(std::move(other.drawCheckMark))
+		checkMarkShader(std::move(other.checkMarkShader)), drawCheckMark(std::move(other.drawCheckMark)), 
+		checkMarkSize(std::move(other.checkMarkSize))
 	{
 		checked.parentElement = this;
 	}
@@ -146,6 +153,7 @@ namespace SnackerEngine
 		checkMarkTexture = std::move(other.checkMarkTexture);
 		checkMarkShader = std::move(other.checkMarkShader);
 		drawCheckMark = std::move(other.drawCheckMark);
+		checkMarkSize = std::move(other.checkMarkSize);
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -167,8 +175,13 @@ namespace SnackerEngine
 		{
 			checkMarkShader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(checkMarkShader);
+			int trueCheckMarkSize = checkMarkSize;
+			if (trueCheckMarkSize < 0) trueCheckMarkSize = std::min(getWidth(), getHeight());
+			Mat4f modelMatrix = Mat4f::TranslateAndScale(
+				Vec3f(static_cast<float>(getWidth() / 2 - trueCheckMarkSize / 2), static_cast<float>(-trueCheckMarkSize / 2 - getHeight() / 2), 0.0f),
+				Vec3f(static_cast<float>(trueCheckMarkSize), static_cast<float>(trueCheckMarkSize), 0.0f));
 			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			checkMarkShader.setUniform<Mat4f>("u_model", translationMatrix * getTransformMatrix() * GuiPanel::getModelMatrix());
+			checkMarkShader.setUniform<Mat4f>("u_model", translationMatrix * getTransformMatrix() * modelMatrix);
 			checkMarkShader.setUniform<Color4f>("u_color", checkMarkColor);
 			checkMarkShader.setUniform<float>("u_pxRange", 4.0);
 			checkMarkShader.setUniform<int>("u_msdf", 0);

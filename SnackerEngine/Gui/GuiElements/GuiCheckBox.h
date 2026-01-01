@@ -59,6 +59,8 @@ namespace SnackerEngine
 		Shader checkMarkShader = defaultCheckMarkShader;
 		/// If this is set to true, a checkmark will be drawn if the ckeckbox is checked
 		bool drawCheckMark = defaultDrawCheckMark;
+		/// Size of the checkMark. Checkmark is positioned in the center of the box. If this is negative, checkMark is set to size of box.
+		int checkMarkSize = -1;
 	protected:
 		/// Helper function that is called when the button is pressed.
 		/// Overwritten from class GuiButton
@@ -95,7 +97,8 @@ namespace SnackerEngine
 		const Color4f& getCheckMarkColor() const { return checkMarkColor; }
 		const Texture& getCheckMarkTexture() const { return checkMarkTexture; }
 		const Shader& getCheckMarkShader() const { return checkMarkShader; }
-		const bool isDrawCheckMark() const { return drawCheckMark; }
+		bool isDrawCheckMark() const { return drawCheckMark; }
+		int getCheckMarkSize() const { return checkMarkSize; }
 		/// Setters
 		void setChecked(bool checked);
 		void setColorDefaultTrue(const Color4f& colorDefaultTrue) { this->colorDefaultTrue = colorDefaultTrue; updateButtonColor(); }
@@ -110,6 +113,7 @@ namespace SnackerEngine
 		void setCheckMarkTexture(const Texture& checkMarkTexture) { this->checkMarkTexture = checkMarkTexture; }
 		void setCheckMarkShader(const Shader& checkMarkShader) { this->checkMarkShader = checkMarkShader; }
 		void setDrawCheckMark(bool drawCheckMark) { this->drawCheckMark = drawCheckMark; }
+		void setCheckMarkSize(int checkMarkSize) { this->checkMarkSize = checkMarkSize; }
 
 		std::unique_ptr<GuiElementAnimatable> animateColorDefaultTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateColorHoverTrue(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);

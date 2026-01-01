@@ -41,7 +41,7 @@ namespace SnackerEngine
 	void GuiEditBox::computeTextOffsetAndCursorOffsetKeepTextOffset()
 	{
 		if (!dynamicText) return;
-		// If the text width is small enough that the text can fit, call default procedure
+		// If the text width is small enough that the text can fit, or if we anyways scale the text to fit, call default procedure
 		if (!repositionTextToFitCursor || !active || getTextSize().x < getWidth() - getLeftBorder() - getRightBorder()) {
 			computeTextOffsetAndCursorOffset();
 			return;
@@ -137,10 +137,10 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::computeModelMatrixCursor()
 	{
-		Vec2f cursorSize = static_cast<EditableText&>(*dynamicText).getCursorSize() * static_cast<float>(scaleFactor);
+		Vec2f cursorSize = static_cast<EditableText&>(*dynamicText).getCursorSize();
 		cursorSize.x = pointsToPixels(cursorSize.x);
-		cursorSize.y = pointsToPixels(cursorSize.y);
-		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(cursorPosition.x, cursorPosition.y, 0.0f), cursorSize);
+		cursorSize.y = pointsToPixels(cursorSize.y) * scaleFactor;
+		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(cursorPosition.x, cursorPosition.y * scaleFactor, 0.0f), cursorSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::computeModelMatricesSelectionBoxes()
@@ -170,8 +170,8 @@ namespace SnackerEngine
 		if (dynamicText) setText(dynamicText->getText());
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, std::optional<double> lineHeight, const Color4f& backgroundColor)
-		: GuiTextBox(position, size, text, font, fontSize, lineHeight, backgroundColor) {}
+	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, double lineHeightMultiplier, const Color4f& backgroundColor)
+		: GuiTextBox(position, size, text, font, fontSize, lineHeightMultiplier, backgroundColor) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiTextBox(json, data, parameterNames)
@@ -289,7 +289,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::onRegister()
 	{
-		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - getLeftBorder() - getRightBorder())), cursorWidth, getLineHeight(), getParseMode(), getAlignmentHorizontal())));
+		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - getLeftBorder() - getRightBorder())), cursorWidth, getLineHeightMultiplier(), getParseMode(), getAlignmentHorizontal())));
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		signUpEvent(CallbackType::MOUSE_ENTER);
 		signUpEvent(CallbackType::MOUSE_LEAVE);
@@ -496,8 +496,7 @@ namespace SnackerEngine
 				cursorBlinkingTimer.reset();
 				cursorIsVisible = true;
 				recomputeText();
-				if (getAlignmentHorizontal() == AlignmentHorizontal::LEFT) computeTextOffsetAndCursorOffsetKeepTextOffset();
-				else computeTextOffsetAndCursorOffsetAdvanceCursor();
+				computeTextOffsetAndCursorOffset();
 				computeModelMatrixCursor();
 			}
 			else if (key == KEY_A && mods & KEY_MOD_CONTROL) {
@@ -534,8 +533,7 @@ namespace SnackerEngine
 			cursorBlinkingTimer.reset();
 			cursorIsVisible = true;
 			recomputeText();
-			if (getAlignmentHorizontal() == AlignmentHorizontal::LEFT) computeTextOffsetAndCursorOffsetKeepTextOffset();
-			else computeTextOffsetAndCursorOffsetAdvanceCursor();
+			computeTextOffsetAndCursorOffset();
 			computeModelMatrixCursor();
 			computeModelMatricesSelectionBoxes();
 		}

@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Gui\GuiElement.h"
-#include "Gui\GuiElements\GuiButton.h"
+#include "Gui\GuiElements\GuiScaleButton.h"
 #include "Gui\Layouts\VerticalListLayout.h"
 #include "Utility\Handles\VariableHandle.h"
 
 namespace SnackerEngine
 {
 
-	class GuiSelectionBox : public GuiElement
+	class GuiSelectionBox : public GuiScaleButton
 	{
 	public:
 		/// Static default Attributes
@@ -17,23 +17,21 @@ namespace SnackerEngine
 		static Color4f defaultOptionButtonPressedColor;
 		static Color4f defaultOptionButtonHoverColor;
 		static Color4f defaultOptionButtonPressedHoverColor;
-		static /// defaultColor of the selected option button
-		Color4f defaultSelectedOptionButtonColor;
+		/// defaultColor of the selected option button
+		static Color4f defaultSelectedOptionButtonColor;
 		static Color4f defaultSelectedOptionButtonPressedColor;
 		static Color4f defaultSelectedOptionButtonHoverColor;
 		static Color4f defaultSelectedOptionButtonPressedHoverColor;
-		/// defaultColor of the arrow button when the selection menu is closed
-		static Color4f defaultArrowButtonMenuClosedColor;
-		static Color4f defaultArrowButtonMenuClosedPressedColor;
-		static Color4f defaultArrowButtonMenuClosedHoverColor;
-		static Color4f defaultArrowButtonMenuClosedPressedHoverColor;
-		/// defaultColor of the arrow button when the selection menu is open
-		static Color4f defaultArrowButtonMenuOpenColor;
-		static Color4f defaultArrowButtonMenuOpenPressedColor;
-		static Color4f defaultArrowButtonMenuOpenHoverColor;
-		static Color4f defaultArrowButtonMenuOpenPressedHoverColor;
 		/// Text Color
 		static Color4f defaultTextColor;
+		/// Divider color
+		static Color4f defaultDividerColor;
+		/// Dropdown symbol
+		static Color4f defaultDropDownSymbolColorClosed;
+		static Color4f defaultDropDownSymbolColorOpen;
+		static Texture defaultDropdownSymbolTextureClosed;
+		static Texture defaultDropdownSymbolTextureOpen;
+		static Shader defaultDropdownSymbolShader;
 	private:
 		/// EventHandle that notifies this selectionBox that an options button or the arrow button was pressed
 		class GuiSelectionBoxEventHandle : public EventHandle
@@ -72,10 +70,6 @@ namespace SnackerEngine
 		};
 		/// All possible options
 		std::vector<std::string> options{};
-		/// The currently selected option
-		GuiButton selectedOption{};
-		/// The arrow button
-		GuiButton arrowButton{};
 		/// Index of the currently selected option
 		GuiSelectionBoxSelectedOptionIndexVariableHandle selectedOptionIndex{ *this };
 		/// List element displaying buttons for all options. This element gets created/deleted
@@ -83,10 +77,16 @@ namespace SnackerEngine
 		std::unique_ptr<GuiVerticalListLayout> optionListLayout{};
 		/// Vector of eventHandles for the option buttons
 		std::vector<GuiSelectionBoxEventHandle> optionButtonEventHandles{};
-		/// eventHandle for the arrow button
-		GuiSelectionBoxEventHandle arrowButtonEventHandle{ *this, -1 };
+		/// Event handle that gets triggered when the selectedOptionsButton is pressed
+		GuiSelectionBoxEventHandle selectedOptionButtonEventHandle{ *this, -1 };
 		/// Minimum size of the longest option
 		int minimumWidthOfLongestOption = 0;
+		/// Rounded corners
+		float roundedCorners = 0.0f;
+		/// Button scales
+		float selectedOptionHoverButtonScale = 1.0f;
+		float selectedOptionPressedButtonScale = 1.0f;
+		float selectedOptionPressedHoverButtonScale = 1.0f;
 		/// Color of the option buttons
 		Color4f optionButtonColor = defaultOptionButtonColor;
 		Color4f optionButtonPressedColor = defaultOptionButtonPressedColor;
@@ -97,34 +97,28 @@ namespace SnackerEngine
 		Color4f selectedOptionButtonPressedColor = defaultSelectedOptionButtonPressedColor;
 		Color4f selectedOptionButtonHoverColor = defaultSelectedOptionButtonHoverColor;
 		Color4f selectedOptionButtonPressedHoverColor = defaultSelectedOptionButtonPressedHoverColor;
-		/// Color of the arrow button when the selection menu is closed
-		Color4f arrowButtonMenuClosedColor = defaultArrowButtonMenuClosedColor;
-		Color4f arrowButtonMenuClosedPressedColor = defaultArrowButtonMenuClosedPressedColor;
-		Color4f arrowButtonMenuClosedHoverColor = defaultArrowButtonMenuClosedHoverColor;
-		Color4f arrowButtonMenuClosedPressedHoverColor = defaultArrowButtonMenuClosedPressedHoverColor;
-		/// Color of the arrow button when the selection menu is open
-		Color4f arrowButtonMenuOpenColor = defaultArrowButtonMenuOpenColor;
-		Color4f arrowButtonMenuOpenPressedColor = defaultArrowButtonMenuOpenPressedColor;
-		Color4f arrowButtonMenuOpenHoverColor = defaultArrowButtonMenuOpenHoverColor;
-		Color4f arrowButtonMenuOpenPressedHoverColor = defaultArrowButtonMenuOpenPressedHoverColor;
 		/// Text colors
 		Color4f optionButtonTextColor = defaultTextColor;
 		Color4f selectedOptionButtonTextColor = defaultTextColor;
-		Color4f arrowButtonMenuClosedTextColor = defaultTextColor;
-		Color4f arrowButtonMenuOpenTextColor = defaultTextColor;
-		/// border between the box and the text in pixels
-		int border = GuiElement::defaultBorderSmall;
-		/// The normal font size of the text (without any rescaling)
-		double fontSize = GuiElement::defaultFontSizeNormal;
-		/// The font of the text
-		Font font = GuiElement::defaultFont;
-		/// SizeHintModes of the text
-		GuiTextBox::SizeHintModes sizeHintModes{ GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE };
+		/// Parameters for the divider between the currently selected item and other items
+		int dividerThickness = 0;
+		float dividerRoundedCorners = 0.0f;
+		float dividerWidthPercentage = 0.8f;
+		Color4f dividerColor = defaultDividerColor;
+		/// Variables for the dropdown symbol
+		Color4f dropDownSymbolColorClosed = defaultDropDownSymbolColorClosed;
+		Color4f dropDownSymbolColorOpen = defaultDropDownSymbolColorOpen;
+		Texture dropDownSymbolTextureOpen = defaultDropdownSymbolTextureOpen;
+		Texture dropDownSymbolTextureClosed = defaultDropdownSymbolTextureClosed;
+		Shader dropDownSymbolShader = defaultDropdownSymbolShader;
+		bool drawDropDownSymbol = true;
+		Vec2i dropDownSymbolSize = Vec2i(-2, -2); // If the size of the dropDownSymbol is set to (-2, -2), it is set according to the height of the selection box.
 		/// Helper function that gets called by eventHandles to notify this element that
 		/// one of its buttons was pressed.
 		void notifyEvent(int eventID);
-		/// Helper function to compute the size hints
-		void computeSizeHints();
+		/// Helper functions that computes size hints
+		virtual void computeWidthHints() override;
+		virtual void computeHeightHints() override;
 		/// Helper function that opens the selectionBox
 		void openSelectionBox();
 		/// Helper function that closes the selectionBox
@@ -172,9 +166,31 @@ namespace SnackerEngine
 		std::size_t getSelectedOptionIndex() const { return selectedOptionIndex; }
 		VariableHandle<std::size_t>& getSelectedOptionIndexVariableHandle() { return selectedOptionIndex; }
 		void addOption(const std::string& option);
-		void setOptions(const std::vector<std::string>& options);
+		const Vec4f& getRoundedCorners() const override { return Vec4f(roundedCorners); };
+		float getHoverButtonScale() const override { return selectedOptionHoverButtonScale; }
+		float getPressedButtonScale() const override { return selectedOptionPressedButtonScale; }
+		float getPressedHoverButtonScale() const override { return selectedOptionPressedHoverButtonScale; }
+		const Color4f& getDropDownSymbolColorOpen() const { return dropDownSymbolColorOpen; }
+		const Color4f& getDropDownSymbolColorClosed() const { return dropDownSymbolColorClosed; }
+		const Texture& getDropDownSymbolTextureOpen() const { return dropDownSymbolTextureOpen; }
+		const Texture& getDropDownSymbolTextureClosed() const { return dropDownSymbolTextureClosed; }
+		const Shader& getDropDownSymbolShader() const { return dropDownSymbolShader; }
+		bool isDrawDropDownSymbol() const { return drawDropDownSymbol; }
+		const Vec2i& getDropDownSymbolSize() const { return dropDownSymbolSize; }
 		/// Setters
 		void setSelectedOptionIndex(std::size_t selectedOptionIndex);
+		void setOptions(const std::vector<std::string>& options);
+		void setRoundedCorners(float roundedCorners) override;
+		void setHoverButtonScale(float hoverButtonScale) override;
+		void setPressedButtonScale(float pressedButtonScale) override;
+		void setPressedHoverButtonScale(float pressedHoverButtonScale) override;
+		void setDropDownSymbolColorOpen(const Color4f& dropDownSymbolColorOpen) { this->dropDownSymbolColorOpen = dropDownSymbolColorOpen; }
+		void setDropDownSymbolColorClosed(const Color4f& dropDownSymbolColorClosed) { this->dropDownSymbolColorClosed = dropDownSymbolColorClosed; }
+		void setDropDownSymbolTextureOpen(const Texture& dropDownSymbolTextureOpen) { this->dropDownSymbolTextureOpen = dropDownSymbolTextureOpen; }
+		void setDropDownSymbolTextureClosed(const Texture& dropDownSymbolTextureClosed) { this->dropDownSymbolTextureClosed = dropDownSymbolTextureClosed; }
+		void setDropDownSymbolShader(const Shader& dropDownSymbolShader) { this->dropDownSymbolShader = dropDownSymbolShader; }
+		void setDrawDropDownSymbol(bool drawDropDownSymbol);
+		void getDropDownSymbolSize(const Vec2i& dropDownSymbolSize);
 	};
 
 }

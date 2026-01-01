@@ -19,7 +19,7 @@ namespace SnackerEngine
 		Color4f borderColor = defaultBorderColor;
 		Mat4f modelMatrix{};
 		Shader shader = defaultBackgroundShader;
-		float roundedCorners{ 0.0f };
+		Vec4f roundedCorners{ 0.0f }; // top left, top right, bottom right, bottom left
 		float borderThickness{ 0.0f };
 		/// Selects the correct shader
 		void selectShader();
@@ -54,12 +54,21 @@ namespace SnackerEngine
 		/// Setters and Getters
 		virtual void setBackgroundColor(const Color4f& backgroundColor);
 		void setBorderColor(const Color4f& borderColor);
-		void setRoundedCorners(float roundedCorners);
+		virtual void setRoundedCorners(float roundedCorners);
+		void setRoundedCorners(const Vec4f& roundedCorners);
+		void setRoundedCornersTopLeft(float roundedCornersTopLeft);
+		void setRoundedCornersTopRight(float roundedCornersTopRight);
+		void setRoundedCornersBottomRight(float roundedCornersBottomRight);
+		void setRoundedCornersBottomLeft(float roundedCornersBottomLeft);
 		void setBorderThickness(float borderThickness);
 		const Color4f& getBackgroundColor() const { return backgroundColor; }
 		const Color4f& getBorderColor() const { return borderColor; }
 		const Shader& getPanelShader() const { return shader; }
-		float getRoundedCorners() const { return roundedCorners; }
+		virtual const Vec4f& getRoundedCorners() const { return roundedCorners; }
+		float getRoundedCornersTopLeft() const { return roundedCorners[0]; }
+		float getRoundedCornersTopRight() const { return roundedCorners[1]; }
+		float getRoundedCornersBottomRight() const { return roundedCorners[2]; }
+		float getRoundedCornersBottomLeft() const { return roundedCorners[3]; }
 		float getBorderThickness() const { return borderThickness; }
 	protected:
 		/// Function that draws the panel relative to its parent element, but also transforms according
@@ -98,6 +107,11 @@ namespace SnackerEngine
 		virtual std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		virtual std::unique_ptr<GuiElementAnimatable> animateBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCorners(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCorners(const Vec4f& startVal, const Vec4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCornersTopLeft(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCornersTopRight(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCornersBottomRight(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		virtual std::unique_ptr<GuiElementAnimatable> animateRoundedCornersBottomLeft(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		virtual std::unique_ptr<GuiElementAnimatable> animateBorderThickness(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 
 	};

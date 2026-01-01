@@ -117,10 +117,6 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
 		value.set(temp);
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_SIZE);
-		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(SizeHintMode::SET_TO_TEXT_HEIGHT);
-		if (!json.contains("preferredWidth") && !json.contains("preferredSize")) setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
 		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
 		updateText();

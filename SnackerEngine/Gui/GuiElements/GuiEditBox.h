@@ -68,7 +68,7 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_EDIT_BOX";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiEditBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, std::optional<double> lineHeight = std::nullopt, const Color4f& backgroundColor = defaultBackgroundColor);
+		GuiEditBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, double lineHeightMultiplier = 1.0, const Color4f& backgroundColor = defaultBackgroundColor);
 		/// Constructor from JSON
 		GuiEditBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
 		/// Destructor

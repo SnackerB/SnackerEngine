@@ -42,6 +42,8 @@ namespace SnackerEngine
 		/// Getter
 		const T& operator[](unsigned i) const { if (i == 0) return x; else if (i == 1) return y; else return x; }
 		T& operator[](unsigned i) { if (i == 0) return x; else if (i == 1) return y; else return x; }
+		bool isZero() const { return T(x) == 0 & T(y) == 0; }
+		bool allEqual() const { return x == y; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
@@ -93,6 +95,8 @@ namespace SnackerEngine
 		/// Getter
 		const T& operator[](unsigned i) const { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else return x; }
 		T& operator[](unsigned i) { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else return x; }
+		bool isZero() const { return x == T(0) & y == T(0) && z == T(0); }
+		bool allEqual() const { return x == y && x == z; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
@@ -144,6 +148,8 @@ namespace SnackerEngine
 		/// Getter
 		const T& operator[](unsigned i) const { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else if (i == 3) return w; else return x; }
 		T& operator[](unsigned i) { if (i == 0) return x; else if (i == 1) return y; else if (i == 2) return z; else if (i == 3) return w; else return x; }
+		bool isZero() const { return x == T(0) & y == T(0) && z == T(0) && w == T(0); }
+		bool allEqual() const { return x == y && x == z && x == w; }
 		/// More involved computations
 		T squaredMagnitude() const { return x * x + y * y + z * z + w * w; }
 		T magnitude() const { return sqrt(squaredMagnitude()); }
