@@ -13,6 +13,7 @@ namespace SnackerEngine
 		/// Static default Attributes
 		static Color4f defaultSelectionBoxColor;
 		static Color4f defaultBackgroundColor;
+		static Color4f defaultPlaceholderTextColor;
 		static float defaultCursorWidth;
 		static double defaultCursorBlinkingTime;
 		static SizeHintModes defaultSizeHintModes;
@@ -48,6 +49,12 @@ namespace SnackerEngine
 		EventHandle::Observable eventTextWasEdited;
 		/// The event that happens when the isActive was set to true and enter is pressed
 		EventHandle::Observable eventEnterWasPressed;
+		/// This bool is true whenever nothing is currently written in the editBox. In this case some placeholder text is displayed.
+		bool displayPlaceholderText = false;
+		/// The placeholder text is displayed when variable displayPlaceholderText is set to true.
+		std::string placeholderText = "";
+		/// Color of the placeholder text
+		Color4f placeholderTextColor = defaultPlaceholderTextColor;
 		/// Helper functions for computing textOffsrt and cursorOffset
 		void computeTextOffsetAndCursorOffset(); // Full recompute
 		void computeTextOffsetAndCursorOffsetKeepTextOffset(); // Try to keep textOffset
@@ -77,17 +84,23 @@ namespace SnackerEngine
 		GuiEditBox(const GuiEditBox& other) noexcept;
 		GuiEditBox& operator=(const GuiEditBox& other) noexcept;
 		/// Move constructor and assignment operator
-		GuiEditBox(GuiEditBox&& other) noexcept;
-		GuiEditBox& operator=(GuiEditBox&& other) noexcept;
+		GuiEditBox(GuiEditBox&& other) = default;
+		GuiEditBox& operator=(GuiEditBox&& other) = default;
 		/// Getters
 		const Color4f& getSelectionBoxColor() const { return selectionBoxColor; }
 		bool isActive() const { return active; }
 		float getCursorWidth() const { return cursorWidth; };
 		double getCursorBlinkTime() const { return cursorBlinkingTimer.getTimeStep(); }
+		const std::string& getPlaceholderText() const { return placeholderText; }
+		const Color4f& getPlaceholderTextColor() const { return placeholderTextColor; }
+		std::string_view getText() const override;
 		/// Setters
 		void setSelectionBoxColor(const Color4f& selectionBoxColor) { this->selectionBoxColor = selectionBoxColor; }
 		void setCursorWidth(float cursorWidth);
 		void setCursorBlinkTime(double cursorBlinkTime) { cursorBlinkingTimer.setTimeStep(cursorBlinkTime); }
+		void setPlaceholderText(const std::string& placeholderText);
+		void setPlaceholderTextColor(const Color4f& placeholderColor) { this->placeholderTextColor = placeholderTextColor; }
+		void setText(const std::string& text) override;
 		/// Subscribes to the event that happens when the text was edited 
 		/// (isActive is set to true and enter or escape is pressed or the user clicks 
 		/// outside the textBox)

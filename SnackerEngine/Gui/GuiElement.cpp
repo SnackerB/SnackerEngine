@@ -340,6 +340,27 @@ namespace SnackerEngine
 		else return position.y;
 	}
 	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiElement::getPreferredSize() const
+	{
+		return Vec2i(getPreferredWidth(), getPreferredHeight());
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredWidth() const
+	{
+		if (sizeHints.preferredSize.x < 0) return sizeHints.preferredSize.x;
+		int result = std::max(sizeHints.preferredSize.x, sizeHints.minSize.x);
+		if (sizeHints.maxSize.x >= 0) return std::min(result, sizeHints.maxSize.x);
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredHeight() const
+	{
+		if (sizeHints.preferredSize.y < 0) return sizeHints.preferredSize.y;
+		int result = std::max(sizeHints.preferredSize.y, sizeHints.minSize.y);
+		if (sizeHints.maxSize.y >= 0) return std::min(result, sizeHints.maxSize.y);
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
 	const Vec2i GuiElement::getMouseOffset() const
 	{
 		if (guiManager) return guiManager->getMouseOffset(guiID);

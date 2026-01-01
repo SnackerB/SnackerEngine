@@ -38,20 +38,27 @@ namespace SnackerEngine
 	GuiButton::GuiButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
 		: GuiTextBox(json, data, parameterNames)
 	{
+		std::optional<Color4f> backgroundColor = parseJsonOrReadFromData<Color4f>("backgroundColor", json, data, parameterNames);
+		if (backgroundColor.has_value()) {
+			setDefaultColor(backgroundColor.value());
+			setHoverColor(backgroundColor.value());
+			setPressedColor(backgroundColor.value());
+			setPressedHoverColor(backgroundColor.value());
+			setLockedColor(backgroundColor.value());
+		}
 		parseJsonOrReadFromData(defaultColor, "defaultColor", json, data, parameterNames);
 		parseJsonOrReadFromData(hoverColor, "hoverColor", json, data, parameterNames);
 		parseJsonOrReadFromData(pressedColor, "pressedColor", json, data, parameterNames);
 		parseJsonOrReadFromData(pressedHoverColor, "pressedHoverColor", json, data, parameterNames);
 		parseJsonOrReadFromData(lockedColor, "lockedColor", json, data, parameterNames);
 
-		std::optional<Color4f> allBorderColor = parseJsonOrReadFromData<Color4f>("allBorderColor", json, data, parameterNames);
-		if (allBorderColor.has_value()) {
-			setDefaultBorderColor(allBorderColor.value());
-			setHoverBorderColor(allBorderColor.value());
-			setPressedBorderColor(allBorderColor.value());
-			setPressedHoverBorderColor(allBorderColor.value());
+		std::optional<Color4f> borderColor = parseJsonOrReadFromData<Color4f>("borderColor", json, data, parameterNames);
+		if (borderColor.has_value()) {
+			setDefaultBorderColor(borderColor.value());
+			setHoverBorderColor(borderColor.value());
+			setPressedBorderColor(borderColor.value());
+			setPressedHoverBorderColor(borderColor.value());
 		}
-
 		parseJsonOrReadFromData(defaultBorderColor, "defaultBorderColor", json, data, parameterNames);
 		parseJsonOrReadFromData(hoverBorderColor, "hoverBorderColor", json, data, parameterNames);
 		parseJsonOrReadFromData(pressedBorderColor, "pressedBorderColor", json, data, parameterNames);

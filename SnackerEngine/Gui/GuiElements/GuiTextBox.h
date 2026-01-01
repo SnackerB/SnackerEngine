@@ -66,9 +66,9 @@ namespace SnackerEngine
 		/// Helper function that computes the the text position
 		Vec2f computeTextPosition();
 		/// Helper function that draws the text
-		void drawText(const Vec2i& worldPosition);
+		void drawText(const Vec2i& worldPosition, std::optional<Color4f> textColor = std::nullopt);
 		/// Helper function that draws the text, transforming it by the given transform matrix
-		void drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix);
+		void drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix, std::optional<Color4f> textColor = std::nullopt);
 		/// Helper function that recomputes the text and corresponding model matrices.
 		/// This function should be called when the text needs to be recomputed, eg.
 		/// when the font or fontSize changes.
@@ -166,7 +166,7 @@ namespace SnackerEngine
 		double getLineHeight() const;
 		int getRecomputeTries() const { return recomputeTries; }
 		bool isDoRecomputeOnSizeChange() const { return doRecomputeOnSizeChange; }
-		const std::string& getText() const { return text; }
+		virtual std::string_view getText() const { return text; }
 		StaticText::ParseMode getParseMode() const { return parseMode; }
 		AlignmentHorizontal getAlignmentHorizontal() const { return alignmentHorizontal; }
 		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
@@ -190,7 +190,7 @@ namespace SnackerEngine
 		void setLineHeightMultiplier(double lineHeightMultiplier);
 		void setRecomputeTries(int recomputeTries);
 		void setDoRecomputeOnSizeChange(const bool& doRecomputeOnSizeChange);
-		void setText(const std::string& text);
+		virtual void setText(const std::string& text);
 		void setParseMode(const StaticText::ParseMode& parseMode);
 		void setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal);
 		void setAlignmentVertical(AlignmentVertical alignmentVertical);

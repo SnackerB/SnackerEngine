@@ -49,26 +49,8 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(rightBorder, "rightBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(topBorder, "topBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(bottomBorder, "bottomBorder", json, data, parameterNames);
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout::GuiPositioningLayout(const GuiPositioningLayout& other) noexcept
-		: GuiLayout(other), mode(other.mode) {}
-	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout& GuiPositioningLayout::operator=(const GuiPositioningLayout& other) noexcept
-	{
-		GuiLayout::operator=(other);
-		mode = other.mode;
-		return *this;
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout::GuiPositioningLayout(GuiPositioningLayout&& other) noexcept
-		: GuiLayout(std::move(other)), mode(other.mode) {}
-	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout& GuiPositioningLayout::operator=(GuiPositioningLayout&& other) noexcept
-	{
-		GuiLayout::operator=(std::move(other));
-		mode = other.mode;
-		return *this;
+		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
+		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPositioningLayout::setLeftBorder(int leftBorder)
@@ -173,13 +155,64 @@ namespace SnackerEngine
 				default:
 					break;
 				}
-				childPosition.x = std::min(childPosition.x, mySize.x - leftBorder - childSize.x);
-				childPosition.x = std::max(childPosition.x, rightBorder);
+				childPosition.x = std::min(childPosition.x, mySize.x - rightBorder - childSize.x);
+				childPosition.x = std::max(childPosition.x, leftBorder);
 				childPosition.y = std::min(childPosition.y, mySize.y - bottomBorder - childSize.y);
 				childPosition.y = std::max(childPosition.y, topBorder);
 			}
 			// Enforce Layout
 			setPositionAndSizeOfChild(childID, childPosition, childSize);
+		}
+		// Check if we need to modify sizeHints
+		if (shrinkWidthToChildren) {
+			// Find smallest minWidth and largest preferredWidth and maxWidth
+			int minWidth = 0;
+			int preferredWidth = SIZE_HINT_ARBITRARY;
+			int maxWidth = SIZE_HINT_ARBITRARY;
+			for (GuiID childID : children)
+			{
+				GuiElement* child = getElement(childID);
+				if (!child) continue;
+				minWidth = std::max(minWidth, child->getMinWidth());
+				if (preferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					else if (child->getPreferredWidth() != SIZE_HINT_ARBITRARY) preferredWidth = std::max(preferredWidth, child->getPreferredWidth());
+				}
+				if (child->getMaxWidth() >= 0) {
+					if (maxWidth == SIZE_HINT_ARBITRARY) maxWidth = child->getMaxWidth();
+					else maxWidth = std::min(maxWidth, child->getMaxWidth());
+				}
+			}
+			setMinWidth(minWidth + leftBorder + rightBorder);
+			if (preferredWidth >= 0) preferredWidth += leftBorder + rightBorder;
+			setPreferredWidth(preferredWidth);
+			if (maxWidth >= 0) maxWidth += leftBorder + rightBorder;
+			setMaxWidth(maxWidth);
+		}
+		if (shrinkHeightToChildren) {
+			// Find smallest minHeight and largest preferredHeight and maxHeight
+			int minHeight = 0;
+			int preferredHeight = SIZE_HINT_ARBITRARY;
+			int maxHeight = SIZE_HINT_ARBITRARY;
+			for (GuiID childID : children)
+			{
+				GuiElement* child = getElement(childID);
+				if (!child) continue;
+				minHeight = std::max(minHeight, child->getMinHeight());
+				if (preferredHeight != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					else if (child->getPreferredHeight() != SIZE_HINT_ARBITRARY) preferredHeight = std::max(preferredHeight, child->getPreferredHeight());
+				}
+				if (child->getMaxHeight() >= 0) {
+					if (maxHeight == SIZE_HINT_ARBITRARY) maxHeight = child->getMaxHeight();
+					else maxHeight = std::min(maxHeight, child->getMaxHeight());
+				}
+			}
+			setMinHeight(minHeight + topBorder + bottomBorder);
+			if (preferredHeight >= 0) preferredHeight += topBorder + bottomBorder;
+			setPreferredHeight(preferredHeight);
+			if (maxHeight >= 0) maxHeight += topBorder + bottomBorder;
+			setMaxHeight(maxHeight);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

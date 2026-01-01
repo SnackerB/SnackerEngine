@@ -126,9 +126,9 @@ namespace SnackerEngine
 		const Vec2i& getMaxSize() const { return sizeHints.maxSize; }
 		const int& getMaxWidth() const { return sizeHints.maxSize.x; }
 		const int& getMaxHeight() const { return sizeHints.maxSize.y; }
-		const Vec2i& getPreferredSize() const { return sizeHints.preferredSize; }
-		const int& getPreferredWidth() const { return sizeHints.preferredSize.x; }
-		const int& getPreferredHeight() const { return sizeHints.preferredSize.y; }
+		Vec2i getPreferredSize() const;
+		int getPreferredWidth() const;
+		int getPreferredHeight() const;
 		const GuiSizeHints& getSizeHints() const { return sizeHints; }
 		const std::vector<GuiID>& getChildren() const { return children; }
 		bool getClipChildren() const { return clipChildren; }

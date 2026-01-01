@@ -359,7 +359,7 @@ namespace SnackerEngine
 	GuiSelectionBox& GuiSelectionBox::operator=(const GuiSelectionBox& other) noexcept
 	{
 		closeSelectionBox();
-		GuiSelectionBox::operator=(other);
+		GuiScaleButton::operator=(other);
 		options = other.options;
 		selectedOptionIndex = other.selectedOptionIndex;
 		optionListLayout = nullptr;

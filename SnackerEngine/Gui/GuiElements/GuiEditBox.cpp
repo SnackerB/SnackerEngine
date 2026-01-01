@@ -10,6 +10,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	Color4f GuiEditBox::defaultSelectionBoxColor = Color4f(0.8f, 0.8f, 1.0f, 0.5f);
 	Color4f GuiEditBox::defaultBackgroundColor = Color4f(0.0f, 1.0f);
+	Color4f GuiEditBox::defaultPlaceholderTextColor = Color4f(0.0f, 0.5f);
 	float GuiEditBox::defaultCursorWidth{};
 	double GuiEditBox::defaultCursorBlinkingTime = 0.5;
 	GuiTextBox::SizeHintModes GuiEditBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::ARBITRARY };
@@ -179,21 +180,19 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(selectionBoxColor, "selectionBoxColor", json, data, parameterNames);
 		parseJsonOrReadFromData(cursorWidth, "cursorWidth", json, data, parameterNames);
 		parseJsonOrReadFromData(repositionTextToFitCursor, "repositionTextToFitCursor", json, data, parameterNames);
+		parseJsonOrReadFromData(placeholderText, "placeholderText", json, data, parameterNames);
+		parseJsonOrReadFromData(placeholderTextColor, "placeholderTextColor", json, data, parameterNames);
 		std::optional<double> cursorBlinkTime = parseJsonOrReadFromData<double>("cursorBlinkTime", json, data, parameterNames);
 		if (cursorBlinkTime.has_value()) cursorBlinkingTimer.setTimeStep(cursorBlinkTime.value());
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
-		//if (!json.contains("sizeHintModeMinSize") && getTextScaleMode() != TextScaleMode::SCALE_DOWN && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN &&
-		//	getTextScaleMode() != TextScaleMode::RECOMPUTE_DOWN && getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
-		//if (!json.contains("sizeHintModePreferredSize") && getTextScaleMode() == TextScaleMode::DONT_SCALE) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);
-		//if (!json.contains("sizeHintModeMaxSize") && getTextScaleMode() != TextScaleMode::SCALE_UP && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN
-		//	&& getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const GuiEditBox& other) noexcept
 		: GuiTextBox(other), selectionBoxColor(other.selectionBoxColor), cursorWidth(other.cursorWidth), 
 		active(false), cursorIsVisible(false),
 		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor{}, modelMatricesSelectionBoxes{},
-		eventTextWasEdited{}, eventEnterWasPressed{} {}
+		eventTextWasEdited{}, eventEnterWasPressed{}, displayPlaceholderText{ false },
+		placeholderText(other.placeholderText), placeholderTextColor(other.placeholderTextColor) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox& GuiEditBox::operator=(const GuiEditBox& other) noexcept
 	{
@@ -208,33 +207,16 @@ namespace SnackerEngine
 		modelMatricesSelectionBoxes.clear();
 		eventTextWasEdited = EventHandle::Observable();
 		eventEnterWasPressed = EventHandle::Observable();
+		displayPlaceholderText = false;
+		placeholderText = other.placeholderText;
+		placeholderTextColor = other.placeholderTextColor;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(GuiEditBox&& other) noexcept
-		: GuiTextBox(std::move(other)), selectionBoxColor(std::move(other.selectionBoxColor)), 
-		cursorWidth(std::move(cursorWidth)), active(std::move(other.active)), 
-		cursorIsVisible(std::move(other.cursorIsVisible)),
-		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), modelMatrixCursor(std::move(other.modelMatrixCursor)),
-		modelMatricesSelectionBoxes(std::move(other.modelMatricesSelectionBoxes)),
-		eventTextWasEdited(std::move(other.eventTextWasEdited)),
-		eventEnterWasPressed(std::move(other.eventEnterWasPressed))
+	std::string_view GuiEditBox::getText() const
 	{
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiEditBox& GuiEditBox::operator=(GuiEditBox&& other) noexcept
-	{
-		GuiTextBox::operator=(std::move(other));
-		selectionBoxColor = std::move(other.selectionBoxColor);
-		cursorWidth = std::move(other.cursorWidth);
-		active = std::move(other.active);
-		cursorIsVisible = std::move(other.cursorIsVisible);
-		cursorBlinkingTimer = std::move(other.cursorBlinkingTimer);
-		modelMatrixCursor = std::move(other.modelMatrixCursor);
-		modelMatricesSelectionBoxes = std::move(other.modelMatricesSelectionBoxes);
-		eventTextWasEdited = std::move(other.eventTextWasEdited);
-		eventEnterWasPressed = std::move(other.eventEnterWasPressed);
-		return *this;
+		if (displayPlaceholderText) return "";
+		return GuiTextBox::getText();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::setCursorWidth(float cursorWidth)
@@ -242,6 +224,26 @@ namespace SnackerEngine
 		this->cursorWidth = cursorWidth;
 		if (dynamicText) static_cast<EditableText&>(*dynamicText).setCursorWidth(cursorWidth);
 		computeModelMatrixCursor();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::setPlaceholderText(const std::string& placeholderText)
+	{
+		if (this->placeholderText != placeholderText) {
+			this->placeholderText = placeholderText;
+			if (displayPlaceholderText) GuiTextBox::setText(placeholderText);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::setText(const std::string& text)
+	{
+		if (text.empty()) {
+			displayPlaceholderText = true;
+			GuiTextBox::setText(placeholderText);
+		}
+		else {
+			displayPlaceholderText = false;
+			GuiTextBox::setText(text);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::subscribeEventTextWasEdited(EventHandle& eventHandle)
@@ -272,7 +274,8 @@ namespace SnackerEngine
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw text
-		drawText(worldPosition + textOffset);
+		if (displayPlaceholderText) drawText(worldPosition + textOffset, placeholderTextColor);
+		else drawText(worldPosition + textOffset);
 		// Draw cursor
 		if (cursorIsVisible) {
 			Shader tempShader = guiManager->getAlphaColorShader();
@@ -289,7 +292,12 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::onRegister()
 	{
-		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - getLeftBorder() - getRightBorder())), cursorWidth, getLineHeightMultiplier(), getParseMode(), getAlignmentHorizontal())));
+		std::string_view text = getText();
+		if (text == "") {
+			displayPlaceholderText = true;
+			text = placeholderText;
+		}
+		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(text.data(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - getLeftBorder() - getRightBorder())), cursorWidth, getLineHeightMultiplier(), getParseMode(), getAlignmentHorizontal())));
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		signUpEvent(CallbackType::MOUSE_ENTER);
 		signUpEvent(CallbackType::MOUSE_LEAVE);
@@ -548,6 +556,10 @@ namespace SnackerEngine
 			signUpEvent(CallbackType::UPDATE);
 			signUpEvent(CallbackType::MOUSE_BUTTON);
 			signUpEvent(CallbackType::MOUSE_MOTION);
+			if (displayPlaceholderText) {
+				displayPlaceholderText = false;
+				GuiTextBox::setText("");
+			}
 			Vec2d mousePos = getMouseOffsetToText();
 			static_cast<EditableText&>(*dynamicText).computeCursorPosFromMousePos(mousePos / scaleFactor);
 			computeTextOffsetAndCursorOffsetKeepTextOffset();

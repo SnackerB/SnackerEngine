@@ -56,11 +56,11 @@ namespace SnackerEngine
 	}
 
 	template<>
-	std::optional<float> from_string(const std::string& string)
+	std::optional<float> from_string(std::string_view string_view)
 	{
 		try
 		{
-			return std::stof(string);
+			return std::stof(string_view.data());
 		}
 		catch (const std::exception&)
 		{
@@ -69,11 +69,11 @@ namespace SnackerEngine
 	}
 
 	template<>
-	std::optional<double> from_string(const std::string& string)
+	std::optional<double> from_string(std::string_view string_view)
 	{
 		try
 		{
-			return std::stod(string);
+			return std::stod(string_view.data());
 		}
 		catch (const std::exception&)
 		{
@@ -82,11 +82,11 @@ namespace SnackerEngine
 	}
 
 	template<>
-	std::optional<int> from_string(const std::string& string)
+	std::optional<int> from_string(std::string_view string_view)
 	{
 		try
 		{
-			return std::stoi(string);
+			return std::stoi(string_view.data());
 		}
 		catch (const std::exception&)
 		{
@@ -95,11 +95,11 @@ namespace SnackerEngine
 	}
 
 	template<>
-	std::optional<long long int> from_string(const std::string& string)
+	std::optional<long long int> from_string(std::string_view string_view)
 	{
 		try
 		{
-			return std::stoll(string);
+			return std::stoll(string_view.data());
 		}
 		catch (const std::exception&)
 		{
@@ -108,11 +108,11 @@ namespace SnackerEngine
 	}
 
 	template<>
-	std::optional<unsigned int> from_string(const std::string& string)
+	std::optional<unsigned int> from_string(std::string_view string_view)
 	{
 		try
 		{
-			return static_cast<unsigned>(std::stoul(string));
+			return static_cast<unsigned>(std::stoul(string_view.data()));
 		}
 		catch (const std::exception&)
 		{
@@ -121,11 +121,11 @@ namespace SnackerEngine
 	}
 
 	template <>
-	std::optional<std::size_t> from_string(const std::string& string)
+	std::optional<std::size_t> from_string(std::string_view string_view)
 	{
 		try
 		{
-			return static_cast<std::size_t>(std::stoul(string));
+			return static_cast<std::size_t>(std::stoul(string_view.data()));
 		}
 		catch (const std::exception&)
 		{

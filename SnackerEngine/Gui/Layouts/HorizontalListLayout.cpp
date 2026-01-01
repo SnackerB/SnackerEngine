@@ -130,7 +130,7 @@ namespace SnackerEngine
 				totalMinWidth += child->getMinWidth();
 				if (groupID == -1 && totalPreferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
 					int tempPreferredWidth = child->getPreferredWidth();
-					if (tempPreferredWidth >= 0) {
+						if (tempPreferredWidth >= 0) {
 						if (totalPreferredWidth == SIZE_HINT_ARBITRARY) totalPreferredWidth = tempPreferredWidth;
 						else totalPreferredWidth += tempPreferredWidth;
 					}

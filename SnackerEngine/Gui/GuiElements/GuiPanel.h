@@ -64,7 +64,7 @@ namespace SnackerEngine
 		const Color4f& getBackgroundColor() const { return backgroundColor; }
 		const Color4f& getBorderColor() const { return borderColor; }
 		const Shader& getPanelShader() const { return shader; }
-		virtual const Vec4f& getRoundedCorners() const { return roundedCorners; }
+		virtual Vec4f getRoundedCorners() const { return roundedCorners; }
 		float getRoundedCornersTopLeft() const { return roundedCorners[0]; }
 		float getRoundedCornersTopRight() const { return roundedCorners[1]; }
 		float getRoundedCornersBottomRight() const { return roundedCorners[2]; }

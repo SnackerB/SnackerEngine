@@ -166,7 +166,7 @@ namespace SnackerEngine
 		std::size_t getSelectedOptionIndex() const { return selectedOptionIndex; }
 		VariableHandle<std::size_t>& getSelectedOptionIndexVariableHandle() { return selectedOptionIndex; }
 		void addOption(const std::string& option);
-		const Vec4f& getRoundedCorners() const override { return Vec4f(roundedCorners); };
+		Vec4f getRoundedCorners() const override { return Vec4f(roundedCorners); };
 		float getHoverButtonScale() const override { return selectedOptionHoverButtonScale; }
 		float getPressedButtonScale() const override { return selectedOptionPressedButtonScale; }
 		float getPressedHoverButtonScale() const override { return selectedOptionPressedHoverButtonScale; }

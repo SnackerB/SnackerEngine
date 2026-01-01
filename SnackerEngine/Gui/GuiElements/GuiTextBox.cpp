@@ -304,7 +304,7 @@ namespace SnackerEngine
 		return position;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::drawText(const Vec2i& worldPosition)
+	void GuiTextBox::drawText(const Vec2i& worldPosition, std::optional<Color4f> textColor)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -314,11 +314,15 @@ namespace SnackerEngine
 			guiManager->setUniformViewAndProjectionMatrices(material.getShader());
 			material.getShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixText);
 			material.getShader().setUniform<float>("u_pxRange", static_cast<float>(dynamicText->getFont().getPixelRange()));
-			SnackerEngine::Renderer::draw(dynamicText->getModel(), material);
+			if (textColor.has_value()) {
+				material.getShader().setUniform<SnackerEngine::Color4f>("u_color", textColor.value());
+				SnackerEngine::Renderer::draw(dynamicText->getModel());
+			}
+			else SnackerEngine::Renderer::draw(dynamicText->getModel(), material);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiTextBox::drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix)
+	void GuiTextBox::drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix, std::optional<Color4f> textColor)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -328,7 +332,11 @@ namespace SnackerEngine
 			guiManager->setUniformViewAndProjectionMatrices(material.getShader());
 			material.getShader().setUniform<Mat4f>("u_model", translationMatrix * transformMatrix * modelMatrixText);
 			material.getShader().setUniform<float>("u_pxRange", static_cast<float>(dynamicText->getFont().getPixelRange()));
-			SnackerEngine::Renderer::draw(dynamicText->getModel(), material);
+			if (textColor.has_value()) {
+				material.getShader().setUniform<SnackerEngine::Color4f>("u_color", textColor.value());
+				SnackerEngine::Renderer::draw(dynamicText->getModel());
+			}
+			else SnackerEngine::Renderer::draw(dynamicText->getModel(), material);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -375,9 +383,8 @@ namespace SnackerEngine
 		}
 		else {
 			DynamicText tempText(this->text, this->font, this->fontSize, 0.0f, this->lineHeightMultiplier, StaticText::ParseMode::SINGLE_LINE, this->alignmentHorizontal);
-			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToPixels(1.0))) + leftBorder + rightBorder;
+			textWidth = static_cast<int>(std::ceil((tempText.getRight() - tempText.getLeft()) * pointsToPixels(1.0)));
 		}
-		textWidth += leftBorder + rightBorder;
 		switch (sizeHintModes.sizeHintModeMinSize)
 		{
 		case SizeHintMode::ARBITRARY: break;
@@ -405,7 +412,6 @@ namespace SnackerEngine
 		default:
 			break;
 		}
-		//infoLogger << LOGGER::BEGIN << "widht hints: " << getMinWidth() << " " << getMaxWidth() << " " << getPreferredWidth() << LOGGER::ENDL;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Material GuiTextBox::constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor)

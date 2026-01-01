@@ -10,7 +10,7 @@ namespace SnackerEngine
 	std::string to_string(const T& val);
 
 	template<typename T>
-	std::optional<T> from_string(const std::string& string);
+	std::optional<T> from_string(std::string_view string_view);
 
 	template<typename T>
 	class Formatter
@@ -20,7 +20,7 @@ namespace SnackerEngine
 		/// Takes a value and returns a formatted string
 		virtual std::string to_string(const T& val);
 		/// Takes a string and returns a value
-		virtual std::optional<T> from_string(const std::string& string);
+		virtual std::optional<T> from_string(std::string_view string_view);
 	};
 
 	class FloatFormatter : public Formatter<float>
@@ -92,9 +92,9 @@ namespace SnackerEngine
 	}
 
 	template<typename T>
-	inline std::optional<T> Formatter<T>::from_string(const std::string& string)
+	inline std::optional<T> Formatter<T>::from_string(std::string_view string_view)
 	{
-		return from_string(string);
+		return from_string(string_view);
 	}
 
 }

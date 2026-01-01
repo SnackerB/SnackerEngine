@@ -56,7 +56,7 @@ namespace SnackerEngine
 		int getTopBarHeight() const { return topBar.getHeight(); }
 		double getFontSize() const { return topBar.getFontSize(); }
 		const Font& getFont() const { return topBar.getFont(); }
-		const std::string& getName() const { return topBar.getText(); }
+		std::string_view getName() const { return topBar.getText(); }
 		const Color4f& getTopBarColor() const { return topBar.getBackgroundColor(); }
 		const Color4f& getTopBarTextColor() const { return topBar.getTextColor(); }
 		const Color4f& getResizeButtonColor() const { return resizeButtonColor; }
