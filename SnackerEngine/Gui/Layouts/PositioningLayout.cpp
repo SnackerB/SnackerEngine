@@ -45,6 +45,13 @@ namespace SnackerEngine
 		: GuiLayout(json, data, parameterNames), mode(Mode::CENTER)
 	{
 		parseJsonOrReadFromData(mode, "mode", json, data, parameterNames);
+		auto border = parseJsonOrReadFromData<int>("border", json, data, parameterNames);
+		if (border.has_value()) {
+			leftBorder = border.value();
+			rightBorder = border.value();
+			topBorder = border.value();
+			bottomBorder = border.value();
+		}
 		parseJsonOrReadFromData(leftBorder, "leftBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(rightBorder, "rightBorder", json, data, parameterNames);
 		parseJsonOrReadFromData(topBorder, "topBorder", json, data, parameterNames);

@@ -175,7 +175,7 @@ namespace SnackerEngine
 	{
 		if (this->position != position) {
 			this->position = position;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 			onPositionChange();
 		}
 	}
@@ -184,7 +184,7 @@ namespace SnackerEngine
 	{
 		if (this->position.x != positionX) {
 			this->position.x = positionX;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 			onPositionChange();
 		}
 	}
@@ -193,7 +193,7 @@ namespace SnackerEngine
 	{
 		if (this->position.y != positionY) {
 			this->position.y = positionY;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 			onPositionChange();
 		}
 	}
@@ -254,7 +254,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.minSize != minSize) {
 			sizeHints.minSize = minSize;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -262,7 +262,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.minSize.x != minWidth) {
 			sizeHints.minSize.x = minWidth;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -270,7 +270,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.minSize.y != minHeight) {
 			sizeHints.minSize.y = minHeight;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -278,7 +278,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.maxSize != maxSize) {
 			sizeHints.maxSize = maxSize;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -286,7 +286,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.maxSize.x != maxWidth) {
 			sizeHints.maxSize.x = maxWidth;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -294,7 +294,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.maxSize.y != maxHeight) {
 			sizeHints.maxSize.y = maxHeight;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -302,15 +302,15 @@ namespace SnackerEngine
 	{
 		if (sizeHints.preferredSize != preferredSize) {
 			sizeHints.preferredSize = preferredSize;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPreferredWidth(const int& preferredWidth)
 	{
 		if (sizeHints.preferredSize.x != preferredWidth) {
-			sizeHints.preferredSize.x = preferredWidth;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			sizeHints.preferredSize.x = preferredWidth; 
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -318,7 +318,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.preferredSize.y != preferredHeight) {
 			sizeHints.preferredSize.y = preferredHeight;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -515,6 +515,11 @@ namespace SnackerEngine
 	{
 		GuiElement* guiElement = getElement(element);
 		if (guiElement) guiElement->draw(worldPosition);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::registerEnforceLayoutUp()
+	{
+		if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size)

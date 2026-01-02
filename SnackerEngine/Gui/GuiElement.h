@@ -231,6 +231,10 @@ namespace SnackerEngine
 	protected:
 		/// Draws a child
 		void drawElement(GuiID element, Vec2i worldPosition);
+		/// This function can be used to tell the GuiManager that this element wants their parent element to enforce its
+		/// layouts. This is usually automatically called when an element changes its size hints. However, in some circumstances
+		/// this needs to be called explicitly, see GuiImage for an example.
+		void registerEnforceLayoutUp();
 		/// Using these setters a guiElement can change the position and size of child elements.
 		/// This will trigger them to enforce layouts on themselves and their children respectively.
 		/// This will of course also call onSizeChange() and/or onPositionChange() on the child element affected.
