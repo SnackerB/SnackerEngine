@@ -215,6 +215,7 @@
     <ClCompile Include="Gui\GuiLayout.cpp" />
     <ClCompile Include="Gui\GuiManager.cpp" />
     <ClCompile Include="Gui\Layouts\GridLayout.cpp" />
+    <ClCompile Include="Gui\Layouts\GuiWrapperLayout.cpp" />
     <ClCompile Include="Gui\Layouts\HorizontalLayout.cpp" />
     <ClCompile Include="Gui\Layouts\HorizontalListLayout.cpp" />
     <ClCompile Include="Gui\Layouts\HorizontalWeightedLayout.cpp" />
@@ -284,11 +285,12 @@
     <ClInclude Include="Gui\GuiElements\GuiScaleButton.h" />
     <ClInclude Include="Gui\GuiElements\GuiSelectionBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiSlider.h" />
+    <ClInclude Include="Gui\GuiElements\GuiSliderBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiTextBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiTextVariable.h" />
     <ClInclude Include="Gui\GuiElements\GuiWindow.h" />
     <ClInclude Include="Gui\GuiElements\VectorElements\GuiEditVariableVec.h" />
-    <ClInclude Include="Gui\GuiElements\VectorElements\GuiSliderVec.h" />
+    <ClInclude Include="Gui\GuiElements\VectorElements\GuiSliderBoxVec.h" />
     <ClInclude Include="Gui\GuiElements\VectorElements\GuiVariableVec.h" />
     <ClInclude Include="Gui\GuiEventHandles\GuiEventHandle.h" />
     <ClInclude Include="Gui\GuiEventHandles\GuiHandle.h" />
@@ -299,6 +301,7 @@
     <ClInclude Include="Gui\GuiLayout.h" />
     <ClInclude Include="Gui\GuiManager.h" />
     <ClInclude Include="Gui\Layouts\GridLayout.h" />
+    <ClInclude Include="Gui\Layouts\GuiWrapperLayout.h" />
     <ClInclude Include="Gui\Layouts\HorizontalLayout.h" />
     <ClInclude Include="Gui\Layouts\HorizontalListLayout.h" />
     <ClInclude Include="Gui\Layouts\HorizontalWeightedLayout.h" />

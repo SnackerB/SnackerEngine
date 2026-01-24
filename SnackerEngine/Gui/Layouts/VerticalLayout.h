@@ -23,8 +23,9 @@ namespace SnackerEngine
 		AlignmentHorizontal defaultAlignmentHorizontal = AlignmentHorizontal::LEFT;
 		/// Vector storing the alignments of all children
 		std::vector<AlignmentHorizontal> alignmentsHorizontal{};
-		/// border between the left/bottom and the children
-		unsigned horizontalBorder = 0;
+		/// borders between the left/right and the children
+		unsigned horizontalBorderLeft = 0;
+		unsigned horizontalBorderRight = 0;
 		/// If this is set to true, the layouts minWidth and preferredWidth are set according
 		/// to child elements
 		bool shrinkWidthToChildren = false;
@@ -59,7 +60,9 @@ namespace SnackerEngine
 		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
 		/// Setters
 		void setVerticalLayoutMode(VerticalLayoutMode verticalLayoutMode) { if (this->verticalLayoutMode != verticalLayoutMode) { this->verticalLayoutMode = verticalLayoutMode; registerEnforceLayoutDown(); } }
-		void setHorizontalBorder(unsigned horizontalBorder) { if (this->horizontalBorder != horizontalBorder) { this->horizontalBorder = horizontalBorder; registerEnforceLayoutDown(); } }
+		void setHorizontalBorder(unsigned horizontalBorder) { setHorizontalBorderLeft(horizontalBorder); setHorizontalBorderRight(horizontalBorder); }
+		void setHorizontalBorderLeft(unsigned horizontalBorderLeft) { if (this->horizontalBorderLeft != horizontalBorderLeft) { this->horizontalBorderLeft = horizontalBorderLeft; registerEnforceLayoutDown(); } }
+		void setHorizontalBorderRight(unsigned horizontalBorderRight) { if (this->horizontalBorderRight != horizontalBorderRight) { this->horizontalBorderRight = horizontalBorderRight; registerEnforceLayoutDown(); } }
 		void setShrinkWidthToChildren(bool shrinkWidthToChildren);
 		/// Sets the default alignment
 		void setDefaultAlignmentHorizontal(AlignmentHorizontal defaultAlignmentHorizontal) { this->defaultAlignmentHorizontal = defaultAlignmentHorizontal; }
@@ -67,7 +70,8 @@ namespace SnackerEngine
 		void setAlignmentHorizontal(GuiID childID, AlignmentHorizontal alignmentHorizontal);
 		/// Getters
 		VerticalLayoutMode getMode() const { return verticalLayoutMode; }
-		unsigned getHorizontalBorder() const { return horizontalBorder; }
+		unsigned getHorizontalBorderLeft() const { return horizontalBorderLeft; }
+		unsigned getHorizontalBorderRight() const { return horizontalBorderRight; }
 		bool isShrinkWidthToChildren() const { return shrinkWidthToChildren; }
 		AlignmentHorizontal getDefaultAlignmentHorizontal() const { return defaultAlignmentHorizontal; }
 		std::optional<AlignmentHorizontal> getAlignmentHorizontal(GuiID childID);
@@ -75,6 +79,8 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 		std::unique_ptr<GuiElementAnimatable> animateHorizontalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateHorizontalBorderLeft(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateHorizontalBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Removes the given child from this GuiElement object
 		virtual std::optional<unsigned> removeChild(GuiID guiElement) override;
@@ -82,6 +88,9 @@ namespace SnackerEngine
 		/// layout rules, if there are any. May register children and/or parent for
 		/// enforcing layouts as well
 		virtual void enforceLayout() override;
+		/// Helper function used by GuiVerticalScrollingListLayout to set the right border internally without registering for
+		/// enforcing layouts again
+		void setHorizontalBorderRightInternal(unsigned horizontalBorderRight) { this->horizontalBorderRight = horizontalBorderRight; }
 	};
 	//--------------------------------------------------------------------------------------------------
 }

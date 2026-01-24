@@ -24,22 +24,27 @@ namespace SnackerEngine
 		parseJsonOrReadFromData(scrollSpeed, "scrollSpeed", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarBackgroundColor, "scrollbarBackgroundColor", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarColor, "scrollbarColor", json, data, parameterNames);
+		parseJsonOrReadFromData(scrollbarRoundedCorners, "scrollbarRoundedCorners", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarWidth, "scrollbarWidth", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarBorderRight, "scrollbarBorderRight", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarBorderTop, "scrollbarBorderTop", json, data, parameterNames);
 		parseJsonOrReadFromData(scrollbarBorderBottom, "scrollbarBorderBottom", json, data, parameterNames);
 		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
+		parseJsonOrReadFromData(rightBorderWhenScrollbarVisible, "rightBorderWhenScrollbarVisible", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(const GuiVerticalScrollingListLayout& other) noexcept
 		: GuiVerticalListLayout(other), currentVerticalHeight(other.currentVerticalHeight), currentVerticalOffset(other.currentVerticalOffset),
-		scrollSpeed(other.scrollSpeed), drawScrollBar(other.drawScrollBar), visiblePercentage(other.visiblePercentage), 
+		scrollSpeed(other.scrollSpeed), visiblePercentage(other.visiblePercentage), 
 		offsetPercentage(other.offsetPercentage), scrollbarBackgroundColor(other.scrollbarBackgroundColor), 
-		scrollbarColor(other.scrollbarColor), modelMatrixScrollbar{}, modelMatrixScrollbarBackground{},
+		scrollbarColor(other.scrollbarColor), scrollbarRoundedCorners(other.scrollbarRoundedCorners), 
+		scrollbarBackground{ nullptr }, scrollbar{ nullptr },
 		scrollbarWidth(other.scrollbarWidth), 
 		scrollbarBorderRight(other.scrollbarBorderRight), scrollbarBorderTop(other.scrollbarBorderTop),
 		scrollbarBorderBottom(other.scrollbarBorderBottom), mouseOffsetFromScrollBar(0.0f),
-		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement) {}
+		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement), 
+		shrinkHeightToChildren(other.shrinkHeightToChildren),
+		rightBorderWhenScrollbarVisible(other.rightBorderWhenScrollbarVisible) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout& GuiVerticalScrollingListLayout::operator=(const GuiVerticalScrollingListLayout& other) noexcept
 	{
@@ -47,13 +52,13 @@ namespace SnackerEngine
 		currentVerticalHeight = other.currentVerticalHeight;
 		currentVerticalOffset = other.currentVerticalOffset;
 		scrollSpeed = other.scrollSpeed;
-		drawScrollBar = other.drawScrollBar;
 		visiblePercentage = other.visiblePercentage;
 		offsetPercentage = other.offsetPercentage; 
 		scrollbarBackgroundColor = other.scrollbarBackgroundColor;
 		scrollbarColor = other.scrollbarColor;
-		modelMatrixScrollbar = Mat4f();
-		modelMatrixScrollbarBackground = Mat4f();
+		scrollbarBackground = nullptr;
+		scrollbar = nullptr;
+		scrollbarRoundedCorners = other.scrollbarRoundedCorners;
 		scrollbarWidth = other.scrollbarWidth;
 		scrollbarBorderRight = other.scrollbarBorderRight;
 		scrollbarBorderTop = other.scrollbarBorderTop;
@@ -61,19 +66,27 @@ namespace SnackerEngine
 		mouseOffsetFromScrollBar = 0.0f; 
 		firstVisibleElement = other.firstVisibleElement;
 		lastVisibleElement = other.lastVisibleElement;
+		shrinkHeightToChildren = other.shrinkHeightToChildren;
+		rightBorderWhenScrollbarVisible = other.rightBorderWhenScrollbarVisible;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(GuiVerticalScrollingListLayout&& other) noexcept
 		: GuiVerticalListLayout(std::move(other)), currentVerticalHeight(other.currentVerticalHeight), currentVerticalOffset(other.currentVerticalOffset),
-		scrollSpeed(other.scrollSpeed), drawScrollBar(other.drawScrollBar), visiblePercentage(other.visiblePercentage),
+		scrollSpeed(other.scrollSpeed), visiblePercentage(other.visiblePercentage),
 		offsetPercentage(other.offsetPercentage), scrollbarBackgroundColor(other.scrollbarBackgroundColor),
-		scrollbarColor(other.scrollbarColor), modelMatrixScrollbar(other.modelMatrixScrollbar), 
-		modelMatrixScrollbarBackground(other.modelMatrixScrollbarBackground),
+		scrollbarColor(other.scrollbarColor), scrollbarBackground(std::move(other.scrollbarBackground)),
+		scrollbar(std::move(other.scrollbar)), scrollbarRoundedCorners(std::move(other.scrollbarRoundedCorners)),
 		scrollbarWidth(other.scrollbarWidth), 
 		scrollbarBorderRight(other.scrollbarBorderRight), scrollbarBorderTop(other.scrollbarBorderTop),
 		scrollbarBorderBottom(other.scrollbarBorderBottom), mouseOffsetFromScrollBar(0.0f),
-		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement) {}
+		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement),
+		shrinkHeightToChildren(std::move(other.shrinkHeightToChildren)),
+		rightBorderWhenScrollbarVisible(std::move(other.rightBorderWhenScrollbarVisible))
+	{
+		other.scrollbar = nullptr;
+		other.scrollbarBackground = nullptr;
+	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout& GuiVerticalScrollingListLayout::operator=(GuiVerticalScrollingListLayout&& other) noexcept
 	{
@@ -81,13 +94,13 @@ namespace SnackerEngine
 		currentVerticalHeight = other.currentVerticalHeight;
 		currentVerticalOffset = other.currentVerticalOffset;
 		scrollSpeed = other.scrollSpeed;
-		drawScrollBar = other.drawScrollBar;
 		visiblePercentage = other.visiblePercentage;
 		offsetPercentage = other.offsetPercentage;
 		scrollbarBackgroundColor = other.scrollbarBackgroundColor;
 		scrollbarColor = other.scrollbarColor;
-		modelMatrixScrollbar = other.modelMatrixScrollbar;
-		modelMatrixScrollbarBackground = other.modelMatrixScrollbarBackground;
+		scrollbarRoundedCorners = std::move(other.scrollbarRoundedCorners);
+		scrollbarBackground = std::move(other.scrollbarBackground);
+		scrollbar = std::move(other.scrollbar);
 		scrollbarWidth = other.scrollbarWidth;
 		scrollbarBorderRight = other.scrollbarBorderRight;
 		scrollbarBorderTop = other.scrollbarBorderTop;
@@ -95,6 +108,10 @@ namespace SnackerEngine
 		mouseOffsetFromScrollBar = 0.0f;
 		firstVisibleElement = other.firstVisibleElement;
 		lastVisibleElement = other.lastVisibleElement;
+		shrinkHeightToChildren = std::move(other.shrinkHeightToChildren);
+		rightBorderWhenScrollbarVisible = std::move(other.rightBorderWhenScrollbarVisible);
+		other.scrollbar = nullptr;
+		other.scrollbarBackground = nullptr;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -111,7 +128,7 @@ namespace SnackerEngine
 	{
 		if (this->scrollbarBorderRight != scrollbarBorderRight) {
 			this->scrollbarBorderRight = scrollbarBorderRight;
-			computeScrollbarModelMatrices();
+			computeScrollbarPositionAndSize();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -119,7 +136,7 @@ namespace SnackerEngine
 	{
 		if (this->scrollbarBorderTop != scrollbarBorderTop) {
 			this->scrollbarBorderTop = scrollbarBorderTop;
-			computeScrollbarModelMatrices();
+			computeScrollbarPositionAndSize();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -127,7 +144,7 @@ namespace SnackerEngine
 	{
 		if (this->scrollbarBorderBottom != scrollbarBorderBottom) {
 			this->scrollbarBorderBottom = scrollbarBorderBottom;
-			computeScrollbarModelMatrices();
+			computeScrollbarPositionAndSize();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -229,7 +246,17 @@ namespace SnackerEngine
 			visiblePercentage = 1.0f;
 			offsetPercentage = 0.0f;
 			currentVerticalOffset = 0;
-			drawScrollBar = false;
+			if (scrollbarBackground && scrollbar) {
+				// We need to do a more involved sign off procedure since computeScrollBar() can be called while
+				// enforcing layouts
+				scrollbarBackground->signOffAtNextUpdate();
+				scrollbar->signOffAtNextUpdate();
+				getGuiManager()->moveElement(std::move(*scrollbarBackground.get()));
+				getGuiManager()->moveElement(std::move(*scrollbar.get()));
+				scrollbarBackground = nullptr;
+				scrollbar = nullptr;
+				registerEnforceLayoutDown();
+			}
 			firstVisibleElement = 0;
 			lastVisibleElement = static_cast<int>(getChildren().size()) - 1;
 		}
@@ -237,19 +264,28 @@ namespace SnackerEngine
 			visiblePercentage = float(getHeight()) / float(currentVerticalHeight);
 			offsetPercentage = std::max(0.0f, std::min(offsetPercentage, float(currentVerticalHeight - getHeight()) / float(currentVerticalHeight)));
 			currentVerticalOffset = static_cast<int>(std::roundf(offsetPercentage * static_cast<float>(currentVerticalHeight)));
-			drawScrollBar = true;
-			computeScrollbarModelMatrices();
+			if (!scrollbar && !scrollbarBackground) {
+				// Create scrollbar
+				scrollbarBackground = std::make_unique<GuiPanel>(Vec2i(), Vec2i(), ResizeMode::RESIZE_RANGE, scrollbarBackgroundColor, GuiPanel::defaultBorderColor, scrollbarRoundedCorners);
+				registerElementAsChild(*scrollbarBackground);
+				scrollbar = std::make_unique<GuiPanel>(Vec2i(), Vec2i(), ResizeMode::RESIZE_RANGE, scrollbarColor, GuiPanel::defaultBorderColor, scrollbarRoundedCorners);
+				registerElementAsChild(*scrollbar);
+				registerEnforceLayoutDown();
+			}
+			computeScrollbarPositionAndSize();
 			computeFirstAndLastVisibleElements();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiVerticalScrollingListLayout::computeScrollbarModelMatrices()
+	void GuiVerticalScrollingListLayout::computeScrollbarPositionAndSize()
 	{
-		float scrollbarPositionX = static_cast<float>(getWidth() - scrollbarBorderRight - scrollbarWidth);
-		float scrollbarBackgroundPositionY = -static_cast<float>(getHeight()) + static_cast<float>(scrollbarBorderBottom);
-		float scrollbarBackgroundHeight = std::max(0.0f, static_cast<float>(getHeight() - static_cast<int>(scrollbarBorderTop) - static_cast<int>(scrollbarBorderBottom)));
-		modelMatrixScrollbarBackground = Mat4f::TranslateAndScale(Vec2f(scrollbarPositionX, scrollbarBackgroundPositionY), Vec2f(static_cast<float>(scrollbarWidth), scrollbarBackgroundHeight));
-		modelMatrixScrollbar = Mat4f::TranslateAndScale(Vec2f(scrollbarPositionX, scrollbarBackgroundPositionY + (1.0f - offsetPercentage) * scrollbarBackgroundHeight - visiblePercentage * scrollbarBackgroundHeight), Vec2f(static_cast<float>(scrollbarWidth), visiblePercentage * scrollbarBackgroundHeight));
+		if (!scrollbar || !scrollbarBackground) return;
+		int scrollbarPositionX = getWidth() - scrollbarBorderRight - scrollbarWidth;
+		int scrollbarBackgroundPositionY = scrollbarBorderBottom;
+		int scrollbarBackgroundHeight = std::max(0, getHeight() - static_cast<int>(scrollbarBorderTop) - static_cast<int>(scrollbarBorderBottom));
+		scrollbarBackground->setPositionAndSize(Vec2i(scrollbarPositionX, scrollbarBackgroundPositionY), Vec2i(scrollbarWidth, scrollbarBackgroundHeight));
+		scrollbar->setPositionAndSize(Vec2i(scrollbarPositionX, scrollbarBackgroundPositionY + offsetPercentage * static_cast<float>(scrollbarBackgroundHeight)),
+			Vec2i(scrollbarWidth, std::floor(visiblePercentage * static_cast<float>(scrollbarBackgroundHeight))));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalScrollingListLayout::computeFirstAndLastVisibleElements()
@@ -290,17 +326,9 @@ namespace SnackerEngine
 			if (child) drawElement(children[i], worldPosition + child->getPosition() - Vec2i(0, static_cast<int>(currentVerticalOffset)));
 		}
 		// Draw scrollBar
-		if (drawScrollBar) {
-			const Shader& scrollbarShader = getPanelShader();
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			scrollbarShader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(scrollbarShader);
-			scrollbarShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixScrollbarBackground);
-			scrollbarShader.setUniform<Color4f>("u_color", scrollbarBackgroundColor);
-			Renderer::draw(guiManager->getModelSquare());
-			scrollbarShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixScrollbar);
-			scrollbarShader.setUniform<Color4f>("u_color", scrollbarColor);
-			Renderer::draw(guiManager->getModelSquare());
+		if (scrollbarBackground && scrollbar) {
+			drawElement(scrollbarBackground->getGuiID(), worldPosition + scrollbarBackground->getPosition());
+			drawElement(scrollbar->getGuiID(), worldPosition + scrollbar->getPosition());
 		}
 		if (getClipChildren()) popClippingBox();
 	}
@@ -314,7 +342,13 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalScrollingListLayout::enforceLayout()
 	{
-		GuiVerticalLayout::enforceLayout();
+		if (scrollbarBackground && scrollbar && rightBorderWhenScrollbarVisible >= 0) {
+			unsigned normalRightBorder = getHorizontalBorderRight();
+			setHorizontalBorderRightInternal(rightBorderWhenScrollbarVisible);
+			GuiVerticalLayout::enforceLayout();
+			setHorizontalBorderRightInternal(normalRightBorder);
+		}
+		else GuiVerticalLayout::enforceLayout();
 		// Go through all children, positioning them and resizing them to their preferredHeights/minHeights!
 		int currentYOffset = getVerticalBorder();
 		const auto& children = getChildren();
@@ -350,7 +384,7 @@ namespace SnackerEngine
 	{
 		if (offset.x >= 0 && offset.x <= getWidth() &&
 			offset.y >= 0 && offset.y <= getHeight()) {
-			if (drawScrollBar) {
+			if (scrollbarBackground && scrollbar) {
 				// Check if we are colliding with the scroll bar
 				Vec2i size = getSize();
 				int scrollBarBackgroundHeight = size.y - static_cast<int>(scrollbarBorderTop + scrollbarBorderBottom);

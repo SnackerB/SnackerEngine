@@ -42,6 +42,8 @@ namespace SnackerEngine
 		GuiImageSizeHintMode guiImageSizeHintMode = GuiImageSizeHintMode::ARBITRARY;
 		/// Internal bool used for computing size hints when guiImageSizeHintMode is set to DYNAMIC
 		bool tryForLargestWidth = false;
+		/// Helper function for copmputing size hints
+		void computeSizeHints();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_IMAGE";

@@ -47,6 +47,80 @@ namespace SnackerEngine
 		return GuiImage::GuiImageSizeHintMode::ARBITRARY;
 	}
 
+	void GuiImage::computeSizeHints()
+	{
+		switch (guiImageSizeHintMode)
+		{
+		case SnackerEngine::GuiImage::GuiImageSizeHintMode::ARBITRARY:
+			break;
+		case SnackerEngine::GuiImage::GuiImageSizeHintMode::COMPUTE_PREFERRED_HEIGHT_FROM_WIDTH:
+		{
+			const Vec2i& size = getSize();
+			Vec2i textureSize = texture.getSize();
+			if (textureSize.x == 0) return;
+			double factor = static_cast<double>(textureSize.y) / static_cast<double>(textureSize.x);
+			setPreferredHeight(std::ceil(factor * static_cast<double>(size.x)));
+			break;
+		}
+		case SnackerEngine::GuiImage::GuiImageSizeHintMode::COMPUTE_PREFERRED_WIDTH_FROM_HEIGHT:
+		{
+			const Vec2i& size = getSize();
+			Vec2i textureSize = texture.getSize();
+			if (textureSize.y == 0) return;
+			double factor = static_cast<double>(textureSize.x) / static_cast<double>(textureSize.y);
+			setPreferredWidth(std::ceil(factor * static_cast<double>(size.y)));
+			break;
+		}
+		case SnackerEngine::GuiImage::GuiImageSizeHintMode::DYNAMIC:
+		{
+			const Vec2i& size = getSize();
+			const Vec2i& preferredSize = getPreferredSize();
+			Vec2i textureSize = texture.getSize();
+			if (preferredSize.x == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+				if (size.x == 0) return;
+				double preferredHeightFactor = static_cast<double>(textureSize.y) / static_cast<double>(textureSize.x);
+				int preferredHeight = std::ceil(preferredHeightFactor * static_cast<double>(size.x));
+				if (preferredHeight > size.y) {
+					if (preferredSize.y == size.y) setPreferredSize(Vec2i(size.x - 1, SIZE_HINT_AS_LARGE_AS_POSSIBLE));
+					else {
+						double preferredWidthFactor = static_cast<double>(textureSize.x) / static_cast<double>(textureSize.y);
+						int preferredWidth = std::ceil(preferredWidthFactor * static_cast<double>(size.y));
+						if (preferredWidth == 0) preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+						setPreferredSize(Vec2i(preferredWidth, SIZE_HINT_AS_LARGE_AS_POSSIBLE));
+					}
+				}
+				else {
+					setPreferredSize(Vec2i(SIZE_HINT_AS_LARGE_AS_POSSIBLE, preferredHeight));
+				}
+			}
+			else if (preferredSize.y == SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+				if (size.y == 0) return;
+				double preferredWidthFactor = static_cast<double>(textureSize.x) / static_cast<double>(textureSize.y);
+				int preferredWidth = std::ceil(preferredWidthFactor * static_cast<double>(size.y));
+				if (preferredWidth > size.x) {
+					if (preferredSize.x == size.x) setPreferredSize(Vec2i(SIZE_HINT_AS_LARGE_AS_POSSIBLE, size.y - 1));
+					else {
+						double preferredHeightFactor = static_cast<double>(textureSize.y) / static_cast<double>(textureSize.x);
+						int preferredHeight = std::ceil(preferredHeightFactor * static_cast<double>(size.x));
+						if (preferredHeight == 0) preferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+						setPreferredSize(Vec2i(SIZE_HINT_AS_LARGE_AS_POSSIBLE, preferredHeight));
+					}
+				}
+				else {
+					setPreferredSize(Vec2i(preferredWidth, SIZE_HINT_AS_LARGE_AS_POSSIBLE));
+				}
+			}
+			else {
+				if (texture.getSize().x > texture.getSize().y) setPreferredWidth(-2);
+				else setPreferredHeight(-2);
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
 	GuiImage::GuiImage(Texture texture, GuiImageMode imageMode, GuiImageSizeHintMode sizeHintMode)
 		: texture(texture), guiImageMode(guiImageMode), guiImageSizeHintMode(sizeHintMode)
 	{
@@ -123,6 +197,7 @@ namespace SnackerEngine
 			modelMatrixImage = Mat4f::TranslateAndScale(
 				Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
 				Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+			break;
 		}
 		case SnackerEngine::GuiImage::GuiImageMode::FIT_IMAGE_TO_SIZE:
 		{
@@ -146,80 +221,8 @@ namespace SnackerEngine
 				Vec3f(static_cast<float>(size.x) / 2.0f - static_cast<float>(textureSize.x) / 2.0f, -std::min(std::ceil(static_cast<float>(size.y) / 2.0f) + std::ceil(static_cast<float>(textureSize.y) / 2.0f), static_cast<float>(size.y)), 0.0f),
 				Vec3f(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y), 0.0f));
 			// Set size hints
-			switch (guiImageSizeHintMode)
-			{
-			case SnackerEngine::GuiImage::GuiImageSizeHintMode::ARBITRARY:
-				break;
-			case SnackerEngine::GuiImage::GuiImageSizeHintMode::COMPUTE_PREFERRED_HEIGHT_FROM_WIDTH:
-			{
-				const Vec2i& size = getSize();
-				Vec2i textureSize = texture.getSize();
-				if (textureSize.x == 0) return;
-				double factor = static_cast<double>(textureSize.y) / static_cast<double>(textureSize.x);
-				setPreferredHeight(std::ceil(factor * static_cast<double>(size.x)));
-				break; 
-			}
-			case SnackerEngine::GuiImage::GuiImageSizeHintMode::COMPUTE_PREFERRED_WIDTH_FROM_HEIGHT:
-			{
-				const Vec2i& size = getSize();
-				Vec2i textureSize = texture.getSize();
-				if (textureSize.y == 0) return;
-				double factor = static_cast<double>(textureSize.x) / static_cast<double>(textureSize.y);
-				setPreferredWidth(std::ceil(factor * static_cast<double>(size.y)));
-				break;
-			}
-			case SnackerEngine::GuiImage::GuiImageSizeHintMode::DYNAMIC:
-			{
-				const Vec2i& size = getSize();
-				Vec2i textureSize = texture.getSize();
-				if (textureSize.x == 0 || textureSize.y == 0) return;
-				if (tryForLargestWidth) {
-					// We are currently trying to get the image to be as large as possible along the x direction
-					// Start by checking if the image size is now bottlenecked by the y direction.
-					double preferredHeightFactor = static_cast<double>(textureSize.y) / static_cast<double>(textureSize.x);
-					int preferredHeight = std::ceil(preferredHeightFactor * static_cast<double>(size.x));
-					if (preferredHeight > size.y) {
-						// We are bottlenecked by the y direction. We therefore need to switch to get the image to
-						// be as large as possible along the y direction!
-						tryForLargestWidth = false;
-						double preferredWidthFactor = static_cast<double>(textureSize.x) / static_cast<double>(textureSize.y);
-						int preferredWidth = std::ceil(preferredWidthFactor * static_cast<double>(size.y));
-						setPreferredWidth(preferredWidth);
-						setPreferredHeight(-2);
-						registerEnforceLayoutUp();
-					}
-					else {
-						// We are still bottlenecked by the x direction
-						setPreferredWidth(-2);
-						setPreferredHeight(preferredHeight);
-					}
-				}
-				else {
-					// We are currently trying to get the image to be as large as possible along the y direction
-					// Start by checking if the image size is now bottlenecked by the x direction.
-					double preferredWidthFactor = static_cast<double>(textureSize.x) / static_cast<double>(textureSize.y);
-					int preferredWidth = std::ceil(preferredWidthFactor * static_cast<double>(size.y));
-					if (preferredWidth > size.x) {
-						// We are bottlenecked by the x direction. We therefore need to switch to get the image to
-						// be as large as possible along the x direction!
-						tryForLargestWidth = true;
-						double preferredHeightFactor = static_cast<double>(textureSize.y) / static_cast<double>(textureSize.x);
-						int preferredHeight = std::ceil(preferredHeightFactor * static_cast<double>(size.x));
-						setPreferredWidth(-2);
-						setPreferredHeight(preferredHeight);
-						registerEnforceLayoutUp();
-					}
-					else {
-						// We are still bottlenecked by the x direction
-						setPreferredWidth(preferredWidth);
-						setPreferredHeight(-2);
-					}
-				}
-				break;
-			}
-			default:
-				break;
-			}
+			computeSizeHints();
+			break;
 		}
 		default:
 			break;

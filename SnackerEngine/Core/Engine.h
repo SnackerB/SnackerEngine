@@ -76,16 +76,16 @@ namespace SnackerEngine
 		/// Checks if the given file exists relative to any of the known resource folder
 		/// paths. If it does, the full path is returned (relative to the executable). If it does not, 
 		/// an empty optional is returned instead
-		static std::optional<std::string> getFullPath(const std::string& path);
+		static std::optional<std::string> getFullPath(std::string_view path);
 		/// Returns the default resource path (the first of the known resource paths)
 		static const std::string& getDefaultResourcePath();
 		/// Loads a file relative to the resource path. Returns an empty optional if anything fails
-		static std::optional<Buffer> loadFileRelativeToResourcePath(const std::string& path);
+		static std::optional<Buffer> loadFileRelativeToResourcePath(std::string_view path);
 		/// Checks if the given file exists relative to the resource path.
-		static bool doesFileExistsRelativeToResourcePath(const std::string& path);
+		static bool doesFileExistsRelativeToResourcePath(std::string_view path);
 		/// Loads and parses a JSON file relative to the resource path. Returns an
 		/// empty optional if anything fails
-		static std::optional<nlohmann::json> loadJSONRelativeToResourcePath(const std::string& path);
+		static std::optional<nlohmann::json> loadJSONRelativeToResourcePath(std::string_view path);
 		/// Saves JSON into a file relative to the resource path. Returns true on success
 		static bool saveJSONRelativeToResourcePath(const nlohmann::json& json, const std::string& path);
 		/// Deleted destructor: this is a static class!

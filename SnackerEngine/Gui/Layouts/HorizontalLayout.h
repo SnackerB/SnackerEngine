@@ -23,8 +23,9 @@ namespace SnackerEngine
 		AlignmentVertical defaultAlignmentVertical = AlignmentVertical::TOP;
 		/// Vector storing the alignments of all children
 		std::vector<AlignmentVertical> alignmentsVertical{};
-		/// border between the top/bottom and the children
-		unsigned verticalBorder = 0;
+		/// borders between the top/bottom and the children
+		unsigned verticalBorderTop = 0;
+		unsigned verticalBorderBottom = 0;
 		/// If this is set to true, the layouts minHeight and preferredHeight are set according
 		/// to child elements
 		bool shrinkHeightToChildren = false;
@@ -59,7 +60,9 @@ namespace SnackerEngine
 		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
 		/// Setters
 		void setHorizontalLayoutMode(HorizontalLayoutMode horizontalLayoutMode) { if (this->horizontalLayoutMode != horizontalLayoutMode) { this->horizontalLayoutMode = horizontalLayoutMode; registerEnforceLayoutDown(); } }
-		void setVerticalBorder(unsigned verticalBorder) { if (this->verticalBorder != verticalBorder) { this->verticalBorder = verticalBorder; registerEnforceLayoutDown(); } }
+		void setVerticalBorder(unsigned verticalBorder) { setVerticalBorderTop(verticalBorder); setVerticalBorderBottom(verticalBorder); }
+		void setVerticalBorderTop(unsigned verticalBorderTop) { if (this->verticalBorderTop != verticalBorderTop) { this->verticalBorderTop = verticalBorderTop; registerEnforceLayoutDown(); } }
+		void setVerticalBorderBottom(unsigned verticalBorderBottom) { if (this->verticalBorderBottom != verticalBorderBottom) { this->verticalBorderBottom = verticalBorderBottom; registerEnforceLayoutDown(); } }
 		void setShrinkHeightToChildren(bool shrinkHeightToChildren);
 		/// Sets the default alignment
 		void setDefaultAlignmentVertical(AlignmentVertical defaultAlignmentVertical) { this->defaultAlignmentVertical = defaultAlignmentVertical; }
@@ -67,7 +70,8 @@ namespace SnackerEngine
 		void setAlignmentVertical(GuiID childID, AlignmentVertical alignmentVertical);
 		/// Getters
 		HorizontalLayoutMode getMode() const { return horizontalLayoutMode; }
-		unsigned getVerticalBorder() const { return verticalBorder; }
+		unsigned getVerticalBorderTop() const { return verticalBorderTop; }
+		unsigned getVerticalBorderBottom() const { return verticalBorderBottom; }
 		bool isShrinkHeightToChildren() const { return shrinkHeightToChildren; }
 		AlignmentVertical getDefaultAlignmentVertical() const { return defaultAlignmentVertical; }
 		std::optional<AlignmentVertical> getAlignmentVertical(GuiID childID);
@@ -75,6 +79,8 @@ namespace SnackerEngine
 		// Animatables
 		//==============================================================================================
 		std::unique_ptr<GuiElementAnimatable> animateVerticalBorder(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateVerticalBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateVerticalBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	protected:
 		/// Removes the given child from this GuiElement object
 		virtual std::optional<unsigned> removeChild(GuiID guiElement) override;

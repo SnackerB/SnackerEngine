@@ -34,9 +34,9 @@ namespace SnackerEngine
 	{
 		switch (alignmentHorizontal)
 		{
-		case SnackerEngine::AlignmentHorizontal::LEFT: return horizontalBorder;
-		case SnackerEngine::AlignmentHorizontal::CENTER: return (getWidth() - childWidth) / 2;
-		case SnackerEngine::AlignmentHorizontal::RIGHT: return getWidth() - childWidth - horizontalBorder;
+		case SnackerEngine::AlignmentHorizontal::LEFT: return horizontalBorderLeft;
+		case SnackerEngine::AlignmentHorizontal::CENTER: return (getWidth() + static_cast<int>(horizontalBorderLeft) - static_cast<int>(horizontalBorderRight) - childWidth) / 2;
+		case SnackerEngine::AlignmentHorizontal::RIGHT: return getWidth() - childWidth - horizontalBorderRight;
 		default: return 0;
 		}
 	}
@@ -64,7 +64,7 @@ namespace SnackerEngine
 			GuiElement* child = getElement(childID);
 			if (child) {
 				// Set minWidth to largest minWidth (+ vertical borders)
-				minWidth = std::max(minWidth, child->getMinWidth() + 2 * static_cast<int>(horizontalBorder));
+				minWidth = std::max(minWidth, child->getMinWidth() + static_cast<int>(horizontalBorderLeft) + static_cast<int>(horizontalBorderRight));
 				// The layouts preferred width is equal to the largest preferredWidth of its children. 
 				// If any child has preferredWidth of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
 				// set the layouts preferredWidth to SIZE_HINT_AS_LARGE_AS_POSSIBLE
@@ -86,7 +86,7 @@ namespace SnackerEngine
 		}
 		setMinWidth(minWidth);
 		if (preferredWidth.has_value()) {
-			setPreferredWidth(preferredWidth.value() + 2 * horizontalBorder);
+			setPreferredWidth(preferredWidth.value() + horizontalBorderLeft + horizontalBorderRight);
 		}
 		else {
 			setPreferredWidth(SIZE_HINT_ARBITRARY);
@@ -98,14 +98,21 @@ namespace SnackerEngine
 	{
 		parseJsonOrReadFromData(verticalLayoutMode, "verticalLayoutMode", json, data, parameterNames);
 		parseJsonOrReadFromData(defaultAlignmentHorizontal, "defaultAlignmentHorizontal", json, data, parameterNames);
-		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data, parameterNames);
+		auto horizontalBorder = parseJsonOrReadFromData<unsigned>("horizontalBorder", json, data, parameterNames);
+		if (horizontalBorder.has_value()) {
+			this->horizontalBorderLeft = horizontalBorder.value();
+			this->horizontalBorderRight = horizontalBorder.value();
+		}
+		parseJsonOrReadFromData(horizontalBorderLeft, "horizontalBorderLeft", json, data, parameterNames);
+		parseJsonOrReadFromData(horizontalBorderRight, "horizontalBorderRight", json, data, parameterNames);
 		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout::GuiVerticalLayout(const GuiVerticalLayout& other) noexcept
 		: GuiLayout(other), verticalLayoutMode(other.verticalLayoutMode),
 		defaultAlignmentHorizontal(other.defaultAlignmentHorizontal),
-		alignmentsHorizontal{}, horizontalBorder(other.horizontalBorder),
+		alignmentsHorizontal{}, horizontalBorderLeft(other.horizontalBorderLeft),
+		horizontalBorderRight(other.horizontalBorderRight),
 		shrinkWidthToChildren{ other.shrinkWidthToChildren } {}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout& GuiVerticalLayout::operator=(const GuiVerticalLayout& other) noexcept
@@ -114,7 +121,8 @@ namespace SnackerEngine
 		verticalLayoutMode = other.verticalLayoutMode;
 		defaultAlignmentHorizontal = other.defaultAlignmentHorizontal;
 		alignmentsHorizontal.clear();
-		horizontalBorder = other.horizontalBorder;
+		horizontalBorderLeft = other.horizontalBorderLeft;
+		horizontalBorderRight = other.horizontalBorderRight;
 		shrinkWidthToChildren = other.shrinkWidthToChildren;
 		return *this;
 	}
@@ -123,7 +131,8 @@ namespace SnackerEngine
 		: GuiLayout(std::move(other)), verticalLayoutMode(other.verticalLayoutMode), 
 		defaultAlignmentHorizontal(other.defaultAlignmentHorizontal),
 		alignmentsHorizontal(std::move(other.alignmentsHorizontal)), 
-		horizontalBorder(other.horizontalBorder),
+		horizontalBorderLeft(std::move(other.horizontalBorderLeft)),
+		horizontalBorderRight(std::move(other.horizontalBorderRight)),
 		shrinkWidthToChildren{ other.shrinkWidthToChildren } {}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout& GuiVerticalLayout::operator=(GuiVerticalLayout&& other) noexcept
@@ -132,7 +141,8 @@ namespace SnackerEngine
 		verticalLayoutMode = other.verticalLayoutMode;
 		defaultAlignmentHorizontal = other.defaultAlignmentHorizontal;
 		alignmentsHorizontal = std::move(other.alignmentsHorizontal);
-		horizontalBorder = other.horizontalBorder;
+		horizontalBorderLeft = std::move(other.horizontalBorderLeft);
+		horizontalBorderRight = std::move(other.horizontalBorderRight);
 		shrinkWidthToChildren = other.shrinkWidthToChildren;
 		return *this;
 	}
@@ -179,6 +189,14 @@ namespace SnackerEngine
 		};
 		return std::make_unique<GuiVerticalLayoutHorizontalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalLayout::animateHorizontalBorderLeft(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		return std::unique_ptr<GuiElementAnimatable>();
+	}
+	std::unique_ptr<GuiElementAnimatable> GuiVerticalLayout::animateHorizontalBorderRight(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		return std::unique_ptr<GuiElementAnimatable>();
+	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiVerticalLayout::removeChild(GuiID guiElement)
 	{
@@ -199,8 +217,8 @@ namespace SnackerEngine
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;
 				int childWidth = child->getPreferredWidth();
-				if (childWidth < 0) childWidth = child->getMaxWidth() >= 0 ? child->getMaxWidth() : getWidth() - 2 * static_cast<int>(horizontalBorder);
-				childWidth = std::min(childWidth, getWidth() - 2 * static_cast<int>(horizontalBorder));
+				if (childWidth < 0) childWidth = child->getMaxWidth() >= 0 ? child->getMaxWidth() : getWidth() - static_cast<int>(horizontalBorderLeft) - static_cast<int>(horizontalBorderRight);
+				childWidth = std::min(childWidth, getWidth() - static_cast<int>(horizontalBorderLeft) - static_cast<int>(horizontalBorderRight));
 				childWidth = child->clampToMinMaxWidth(childWidth);
 				child->setWidth(childWidth);
 				child->setPositionX(computeChildPositionX(child->getWidth(), alignmentsHorizontal[i]));
@@ -212,7 +230,7 @@ namespace SnackerEngine
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;
-				child->setWidth(child->clampToMinMaxWidth(getWidth() - 2 * static_cast<int>(horizontalBorder)));
+				child->setWidth(child->clampToMinMaxWidth(getWidth() - static_cast<int>(horizontalBorderLeft) - static_cast<int>(horizontalBorderRight)));
 				child->setPositionX(computeChildPositionX(child->getWidth(), alignmentsHorizontal[i]));
 			}
 			break;
@@ -232,8 +250,8 @@ namespace SnackerEngine
 					else if (preferredWidth > largestPreferredWidth) largestPreferredWidth = preferredWidth;
 				}
 			}
-			largestPreferredWidth = std::min(largestPreferredWidth, getWidth() - 2 * static_cast<int>(horizontalBorder));
-			if (largestPreferredWidth == SIZE_HINT_ARBITRARY) largestPreferredWidth = getWidth() - 2 * static_cast<int>(horizontalBorder);
+			largestPreferredWidth = std::min(largestPreferredWidth, getWidth() - static_cast<int>(horizontalBorderLeft) - static_cast<int>(horizontalBorderRight));
+			if (largestPreferredWidth == SIZE_HINT_ARBITRARY) largestPreferredWidth = getWidth() - static_cast<int>(horizontalBorderLeft) - static_cast<int>(horizontalBorderRight);
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;

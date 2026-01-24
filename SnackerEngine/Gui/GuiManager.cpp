@@ -14,6 +14,7 @@
 #include "Gui/Layouts/VerticalWeightedLayout.h"
 #include "Gui/GuiElements/GuiButton.h"
 #include "Gui/GuiElements/GuiSlider.h"
+#include "Gui/GuiElements/GuiSliderBox.h"
 #include "Gui/Layouts/VerticalListLayout.h"
 #include "Gui\Layouts\HorizontalListLayout.h"
 #include "Gui/Layouts/VerticalScrollingListLayout.h"
@@ -24,10 +25,11 @@
 #include "Gui\GuiElements\GuiTextVariable.h"
 #include "Gui\GuiElements\GuiEditVariable.h"
 #include "Gui\GuiElements\VectorElements\GuiEditVariableVec.h"
-#include "Gui\GuiElements\VectorElements\GuiSliderVec.h"
+#include "Gui\GuiElements\VectorElements\GuiSliderBoxVec.h"
 #include "Gui\GuiElements\GuiSelectionBox.h"
 #include "Gui\GuiElements\GuiClickableTextBox.h"
 #include "Gui\GuiElements\GuiScaleButton.h"
+#include "Gui\Layouts\GuiWrapperLayout.h"
 
 namespace SnackerEngine
 {
@@ -193,31 +195,36 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::enforceLayouts()
 	{
-		/// First go from bottom to top and enforce all layouts
-		for (auto rit = enforceLayoutQueueUp.rbegin(); rit != enforceLayoutQueueUp.rend(); ++rit)
-		{
-			for (const GuiID& guiID : rit->second)
+		for (std::size_t tries = 0; tries < 5; tries++) {
+			if (enforceLayoutQueueUp.empty() && enforceLayoutQueueDown.empty()) break;
+			/// First go from bottom to top and enforce all layouts
+			std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueUpTemp = std::move(enforceLayoutQueueUp);
+			enforceLayoutQueueUp = std::map<unsigned int, std::set<GuiID>>();
+			for (auto rit = enforceLayoutQueueUpTemp.rbegin(); rit != enforceLayoutQueueUpTemp.rend(); ++rit)
 			{
-				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
-					GuiID parentID = registeredGuiElements[guiID]->parentID;
-					if (parentID < registeredGuiElements.size() && parentID >= 0 && registeredGuiElements[parentID]) {
-						registeredGuiElements[parentID]->enforceLayout();
+				for (const GuiID& guiID : rit->second)
+				{
+					if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
+						GuiID parentID = registeredGuiElements[guiID]->parentID;
+						if (parentID < registeredGuiElements.size() && parentID >= 0 && registeredGuiElements[parentID]) {
+							registeredGuiElements[parentID]->enforceLayout();
+						}
+					}
+				}
+			}
+			/// Now go from the top down and enforce all layouts
+			std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueDownTemp = std::move(enforceLayoutQueueDown);
+			enforceLayoutQueueDown = std::map<unsigned int, std::set<GuiID>>();
+			for (const auto& it : enforceLayoutQueueDownTemp)
+			{
+				for (const GuiID& guiID : it.second)
+				{
+					if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
+						registeredGuiElements[guiID]->enforceLayout();
 					}
 				}
 			}
 		}
-		enforceLayoutQueueUp.clear();
-		/// Now go from the top down and enforce all layouts
-		for (const auto& it : enforceLayoutQueueDown)
-		{
-			for (const GuiID& guiID : it.second)
-			{
-				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
-					registeredGuiElements[guiID]->enforceLayout();
-				}
-			}
-		}
-		enforceLayoutQueueDown.clear();
 		// Callback mouseMotion, because we could collide with moved elements!
 		callbackMouseMotion(currentMousePosition);
 	}
@@ -699,10 +706,10 @@ namespace SnackerEngine
 		registerGuiElementType<GuiGridLayout>();
 		registerGuiElementType<GuiVerticalLayout>();
 		registerGuiElementType<GuiButton>();
-		registerGuiElementType<GuiSliderFloat>("_FLOAT");
-		registerGuiElementType<GuiSliderDouble>("_DOUBLE");
-		registerGuiElementType<GuiSliderInt>("_INT");
-		registerGuiElementType<GuiSliderUnsignedInt>("_UNSIGNED_INT");
+		registerGuiElementType<GuiSliderBoxFloat>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxDouble>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxInt>("_INT");
+		registerGuiElementType<GuiSliderBoxUnsignedInt>("_UNSIGNED_INT");
 		registerGuiElementType<GuiVerticalListLayout>();
 		registerGuiElementType<GuiVerticalScrollingListLayout>();
 		registerGuiElementType<GuiWindow>();
@@ -735,18 +742,19 @@ namespace SnackerEngine
 		registerGuiElementType<GuiEditVariableVec4f>("_FLOAT");
 		registerGuiElementType<GuiEditVariableVec4d>("_DOUBLE");
 		registerGuiElementType<GuiEditVariableVec4i>("_INT");
-		registerGuiElementType<GuiSliderVec2f>("_FLOAT");
-		registerGuiElementType<GuiSliderVec2d>("_DOUBLE");
-		registerGuiElementType<GuiSliderVec2i>("_INT");
-		registerGuiElementType<GuiSliderVec3f>("_FLOAT");
-		registerGuiElementType<GuiSliderVec3d>("_DOUBLE");
-		registerGuiElementType<GuiSliderVec3i>("_INT");
-		registerGuiElementType<GuiSliderVec4f>("_FLOAT");
-		registerGuiElementType<GuiSliderVec4d>("_DOUBLE");
-		registerGuiElementType<GuiSliderVec4i>("_INT");
+		registerGuiElementType<GuiSliderBoxVec2f>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxVec2d>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxVec2i>("_INT");
+		registerGuiElementType<GuiSliderBoxVec3f>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxVec3d>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxVec3i>("_INT");
+		registerGuiElementType<GuiSliderBoxVec4f>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxVec4d>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxVec4i>("_INT");
 		registerGuiElementType<GuiSelectionBox>();
 		registerGuiElementType<GuiClickableTextBox>();
 		registerGuiElementType<GuiScaleButton>();
+		registerGuiElementType<GuiWrapperLayout>();
 		// Initialize static default font
 		GuiElement::defaultFont = Font("fonts/Arial.ttf");
 		// Initialize static default background shader
@@ -1190,10 +1198,10 @@ namespace SnackerEngine
 		GuiCheckBox::defaultCheckBoxSize = std::max(1, static_cast<int>(scale * 50));
 		GuiEditBox::defaultCursorWidth = static_cast<float>(scale * 0.05f);
 		GuiVerticalScrollingListLayout::defaultScrollBarWidth = std::max(1, static_cast<int>(scale * 23));
-		GuiSliderFloat::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
-		GuiSliderDouble::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
-		GuiSliderInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
-		GuiSliderUnsignedInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxFloat::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxDouble::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxUnsignedInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::removeElement(GuiID guiID)

@@ -225,6 +225,9 @@
     <ClCompile Include="Gui\Text\FontData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Gui\Layouts\GuiWrapperLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Engine.h">
@@ -341,7 +344,7 @@
     <ClInclude Include="Gui\GuiElements\VectorElements\GuiEditVariableVec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Gui\GuiElements\VectorElements\GuiSliderVec.h">
+    <ClInclude Include="Gui\GuiElements\VectorElements\GuiSliderBoxVec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gui\GuiElements\VectorElements\GuiVariableVec.h">
@@ -471,6 +474,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gui\Text\FontData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\Layouts\GuiWrapperLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiElements\GuiSliderBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
