@@ -40,7 +40,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiPositioningLayout(Mode mode = Mode::CENTER);
 		/// Constructor from JSON
-		GuiPositioningLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiPositioningLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		// Copy constructor and assignment operator
 		GuiPositioningLayout(const GuiPositioningLayout& other) = default;
 		GuiPositioningLayout& operator=(const GuiPositioningLayout& other) = default;

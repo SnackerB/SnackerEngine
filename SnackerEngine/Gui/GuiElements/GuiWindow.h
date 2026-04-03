@@ -42,7 +42,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiWindow(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& name = "");
 		/// Constructor from JSON
-		GuiWindow(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiWindow(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiWindow() = default;
 		/// Copy constructor and assignment operator

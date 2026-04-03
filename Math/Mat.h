@@ -63,6 +63,7 @@ namespace SnackerEngine
 		static Mat4<T> TranslateAndScale(const Vec3<T>& offset, const T& scale);
 		static Mat4<T> Scale(const Vec3<T>& scale);
 		static Mat4<T> TranslateAndScale(const Vec3<T>& offset, const Vec3<T>& scale);
+		static Mat4<T> TranslateScaleAndRotateZ(const Vec3<T>& offset, const Vec3<T>& scale, const T& angle);
 		/// Rotation matrix for rotation around x-axis
 		static Mat4<T> RotateX(const T& angle);
 		/// Rotation matrix for rotation around x-axis
@@ -351,6 +352,17 @@ namespace SnackerEngine
 			T(0), T(0), T(1), T(0),
 			T(0), T(0), T(0), T(1)
 			};
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline Mat4<T> Mat4<T>::TranslateScaleAndRotateZ(const Vec3<T>& offset, const Vec3<T>& scale, const T& angle)
+	{
+		return Mat4<T>{
+			T(scale.x*cos(angle)), T(-scale.y*sin(angle)), T(0), offset.x,
+			T(scale.x*sin(angle)), T(scale.y*cos(angle)), T(0), offset.y,
+			T(0), T(0), T(scale.z), offset.z,
+			T(0), T(0), T(0), T(1),
+		};
 	}
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>

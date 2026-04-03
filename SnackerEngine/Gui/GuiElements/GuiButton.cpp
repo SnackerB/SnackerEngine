@@ -35,10 +35,10 @@ namespace SnackerEngine
 	GuiButton::GuiButton(const std::string& text)
 		: GuiButton(Vec2i(), Vec2i(), text) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiButton::GuiButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiTextBox(json, data, parameterNames)
+	GuiButton::GuiButton(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiTextBox(json, parameterNameSet)
 	{
-		std::optional<Color4f> backgroundColor = parseJsonOrReadFromData<Color4f>("backgroundColor", json, data, parameterNames);
+		std::optional<Color4f> backgroundColor = parseJson<Color4f>("backgroundColor", json, parameterNameSet);
 		if (backgroundColor.has_value()) {
 			setDefaultColor(backgroundColor.value());
 			setHoverColor(backgroundColor.value());
@@ -46,26 +46,26 @@ namespace SnackerEngine
 			setPressedHoverColor(backgroundColor.value());
 			setLockedColor(backgroundColor.value());
 		}
-		parseJsonOrReadFromData(defaultColor, "defaultColor", json, data, parameterNames);
-		parseJsonOrReadFromData(hoverColor, "hoverColor", json, data, parameterNames);
-		parseJsonOrReadFromData(pressedColor, "pressedColor", json, data, parameterNames);
-		parseJsonOrReadFromData(pressedHoverColor, "pressedHoverColor", json, data, parameterNames);
-		parseJsonOrReadFromData(lockedColor, "lockedColor", json, data, parameterNames);
+		parseJson(defaultColor, "defaultColor", json, parameterNameSet);
+		parseJson(hoverColor, "hoverColor", json, parameterNameSet);
+		parseJson(pressedColor, "pressedColor", json, parameterNameSet);
+		parseJson(pressedHoverColor, "pressedHoverColor", json, parameterNameSet);
+		parseJson(lockedColor, "lockedColor", json, parameterNameSet);
 
-		std::optional<Color4f> borderColor = parseJsonOrReadFromData<Color4f>("borderColor", json, data, parameterNames);
+		std::optional<Color4f> borderColor = parseJson<Color4f>("borderColor", json, parameterNameSet);
 		if (borderColor.has_value()) {
 			setDefaultBorderColor(borderColor.value());
 			setHoverBorderColor(borderColor.value());
 			setPressedBorderColor(borderColor.value());
 			setPressedHoverBorderColor(borderColor.value());
 		}
-		parseJsonOrReadFromData(defaultBorderColor, "defaultBorderColor", json, data, parameterNames);
-		parseJsonOrReadFromData(hoverBorderColor, "hoverBorderColor", json, data, parameterNames);
-		parseJsonOrReadFromData(pressedBorderColor, "pressedBorderColor", json, data, parameterNames);
-		parseJsonOrReadFromData(pressedHoverBorderColor, "pressedHoverBorderColor", json, data, parameterNames);
-		parseJsonOrReadFromData(lockedBorderColor, "lockedBorderColor", json, data, parameterNames);
+		parseJson(defaultBorderColor, "defaultBorderColor", json, parameterNameSet);
+		parseJson(hoverBorderColor, "hoverBorderColor", json, parameterNameSet);
+		parseJson(pressedBorderColor, "pressedBorderColor", json, parameterNameSet);
+		parseJson(pressedHoverBorderColor, "pressedHoverBorderColor", json, parameterNameSet);
+		parseJson(lockedBorderColor, "lockedBorderColor", json, parameterNameSet);
 
-		parseJsonOrReadFromData(locked, "locked", json, data, parameterNames);
+		parseJson(locked, "locked", json, parameterNameSet);
 		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
 		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
 	}

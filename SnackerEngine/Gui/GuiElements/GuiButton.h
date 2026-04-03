@@ -51,7 +51,7 @@ namespace SnackerEngine
 		GuiButton(const Vec2i& position = Vec2i{}, const Vec2i& size = Vec2i{}, const std::string& text = "");
 		GuiButton(const std::string& label);
 		/// Constructor from JSON
-		GuiButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiButton(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiButton();
 		/// Copy constructor and assignment operator

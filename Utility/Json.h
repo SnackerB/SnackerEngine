@@ -5,7 +5,8 @@
 #include <typeinfo>
 #include <optional>
 #include <fstream>
-#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 namespace SnackerEngine
 {
@@ -33,63 +34,63 @@ namespace SnackerEngine
 	// Gives a JSON representation, that will be successfully parsed when calling parseJSON.
 	template<typename T> nlohmann::json toJson(const T& value);
 	//--------------------------------------------------------------------------------------------------
-	/// Returns an instance of the given type, parsed from the JSON or read from the data (if json has
-	/// a string "name" as value, data["name"] is returned). If nothing could be parsed, an empty
+	/// Returns an instance of the given type, parsed from the JSON. If nothing could be parsed, an empty
 	/// optional will be returned.
-	template<typename T> std::optional<T> parseJsonOrReadFromData(const nlohmann::json& json, const nlohmann::json* data = nullptr)
+	template<typename T> std::optional<T> parseJson(const nlohmann::json& json)
 	{
 		if (isOfType(json, JsonTag<T>{})) return parseJSON(json, JsonTag<T>{});
-		if (json.is_string() && data && data->contains(json) && isOfType((*data)[json], JsonTag<T>{})) return parseJSON((*data)[json], JsonTag<T>{});
 		return {};
 	}
 	//--------------------------------------------------------------------------------------------------
-	/// Parses a value from the given JSON file or reads it from the data (if json has
-	/// a string "name" as value, data["name"] is read) and stores it in the variable "value". 
+	/// Parses a value from the given JSON file and stores it in the variable "value". 
 	/// If nothing could be parsed, the variable is not changed. Returns true on success.
-	template<typename T> bool parseJsonOrReadFromData(T& value, const nlohmann::json& json, const nlohmann::json* data = nullptr)
+	template<typename T> bool parseJson(T& value, const nlohmann::json& json)
 	{
-		if (isOfType(json, JsonTag<T>{})) value = parseJSON(json, JsonTag<T>{});
-		else if (json.is_string() && data && data->contains(json) && isOfType((*data)[json], JsonTag<T>{})) value = parseJSON((*data)[json], JsonTag<T>{});
-		else return false;
-		return true;
+		if (isOfType(json, JsonTag<T>{})) {
+			value = parseJSON(json, JsonTag<T>{});
+			return true;
+		}
+		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	/// Parses a value from the given JSON file or reads it from the data (if json has
-	/// a string "name" as value, data["name"] is read) and stores it in the variable "value". 
+	/// Struct for keeping track of parameterNames, such that we can print a warning if not all parameters were parsed!
+	struct ParameterNameSet {
+		std::unordered_set<std::string> parameterNames;
+		std::unordered_map<std::string, ParameterNameSet> nestedParameterNameSets;
+		ParameterNameSet* getNestedParameterNameSet(const std::string& name) {
+			auto it = nestedParameterNameSets.find(name);
+			return it == nestedParameterNameSets.end() ? nullptr : &(it->second);
+		}
+	};
+	//--------------------------------------------------------------------------------------------------
+	/// Parses a value from the given JSON file and stores it in the variable "value". 
 	/// If nothing could be parsed, the variable is not changed. Additionally, if a set of parameter names
 	/// is given and a item of the given name was found, it is erased off the set (this can be used for keeping track
 	/// if all values in the file were read!). Returns true on success
-	template<typename T> bool parseJsonOrReadFromData(T& value, const std::string& attributeName, const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
+	template<typename T> bool parseJson(T& value, const std::string& attributeName, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
 	{
 		if (json.contains(attributeName)) {
 			const nlohmann::json& attributeJson = json[attributeName];
 			if (isOfType(attributeJson, JsonTag<T>{})) value = parseJSON(attributeJson, JsonTag<T>{});
-			else if (attributeJson.is_string() && data && data->contains(attributeJson) && isOfType((*data)[attributeJson], JsonTag<T>{})) value = parseJSON((*data)[attributeJson], JsonTag<T>{});
 			else return false;
-			if (parameterNames) parameterNames->erase(attributeName);
+			if (parameterNameSet) parameterNameSet->parameterNames.erase(attributeName);
 		}
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	/// Parses a value from the given JSON file or reads it from the data (if json has
-	/// a string "name" as value, data["name"] is read) and returns it as an optional.
+	/// Parses a value from the given JSON file and returns it as an optional.
 	/// If nothing could be parsed, the variable is not changed. Additionally, if a set of parameter names
 	/// is given and a item of the given name was found, it is erased off the set (this can be used for keeping track
 	/// if all values in the file were read!)
-	template<typename T> std::optional<T> parseJsonOrReadFromData(const std::string& attributeName, const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
+	template<typename T> std::optional<T> parseJson(const std::string& attributeName, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
 	{
 		if (json.contains(attributeName)) {
 			const nlohmann::json& attributeJson = json[attributeName];
 			if (isOfType(attributeJson, JsonTag<T>{})) {
-				if (parameterNames) parameterNames->erase(attributeName);
+				if (parameterNameSet) parameterNameSet->parameterNames.erase(attributeName);
 				return std::make_optional<T>(parseJSON(attributeJson, JsonTag<T>{}));
 			}
-			else if (attributeJson.is_string() && data && data->contains(attributeJson) && isOfType((*data)[attributeJson], JsonTag<T>{})) {
-				if (parameterNames) parameterNames->erase(attributeName);
-				return std::make_optional<T>(parseJSON((*data)[attributeJson], JsonTag<T>{}));
-			}
 			else return {};
-			if (parameterNames) parameterNames->erase(attributeName);
 		}
 		return {};
 	}

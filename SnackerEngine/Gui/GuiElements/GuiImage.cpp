@@ -131,13 +131,14 @@ namespace SnackerEngine
 		onSizeChange();
 	}
 
-	GuiImage::GuiImage(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiPanel(json, data, parameterNames)
+	GuiImage::GuiImage(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiPanel(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(texture, "texture", json, data, parameterNames);
-		parseJsonOrReadFromData(imageShader, "imageShader", json, data, parameterNames);
-		parseJsonOrReadFromData(guiImageMode, "guiImageMode", json, data, parameterNames);
-		parseJsonOrReadFromData(guiImageSizeHintMode, "guiImageSizeHintMode", json, data, parameterNames);
+		parseJson(texture, "texture", json, parameterNameSet);
+		parseJson(imageShader, "imageShader", json, parameterNameSet);
+		parseJson(guiImageMode, "guiImageMode", json, parameterNameSet);
+		parseJson(guiImageSizeHintMode, "guiImageSizeHintMode", json, parameterNameSet);
+		parseJson(rotationAngle, "rotationAngle", json, parameterNameSet);
 		if (guiImageSizeHintMode == GuiImageSizeHintMode::DYNAMIC) {
 			if (texture.getSize().x > texture.getSize().y) tryForLargestWidth = true;
 			else tryForLargestWidth = false;
@@ -167,13 +168,21 @@ namespace SnackerEngine
 		}
 	}
 
+	void GuiImage::setRotationAngle(double rotationAngle)
+	{
+		if (this->rotationAngle != rotationAngle) {
+			this->rotationAngle = rotationAngle;
+			onSizeChange();
+		}
+	}
+
 	void GuiImage::draw(const Vec2i& worldPosition)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;;
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		// Draw background
-		GuiPanel::draw(worldPosition);
+		if (rotationAngle == 0.0f) GuiPanel::draw(worldPosition); // TODO: Currently we draw noe background if the image is rotated. Fix this in the future by also drawing a rotated background!
 		// Draw image
 		imageShader.bind();
 		guiManager->setUniformViewAndProjectionMatrices(imageShader);
@@ -185,6 +194,8 @@ namespace SnackerEngine
 	void GuiImage::onSizeChange()
 	{
 		GuiPanel::onSizeChange();
+		Vec2f translateVector{};
+		Vec2f scaleVector{};
 		switch (guiImageMode)
 		{
 		case SnackerEngine::GuiImage::GuiImageMode::RESIZE_TO_IMAGE_SIZE:
@@ -192,34 +203,28 @@ namespace SnackerEngine
 			setMinSize(texture.getSize());
 			setMaxSize(texture.getSize());
 			setPreferredSize(texture.getSize());
-			const Vec2i& position = getPosition();
-			const Vec2i& size = getSize();
-			modelMatrixImage = Mat4f::TranslateAndScale(
-				Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
-				Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+			scaleVector = static_cast<Vec2f>(getSize());
+			translateVector = Vec2f(0.0f, -scaleVector.y);
 			break;
 		}
 		case SnackerEngine::GuiImage::GuiImageMode::FIT_IMAGE_TO_SIZE:
 		{
-			const Vec2i& position = getPosition();
 			const Vec2i& size = getSize();
-			Vec2i textureSize = texture.getSize();
+			scaleVector = texture.getSize();
 			// Make texture as large as possible in x direction
-			float factor = static_cast<float>(size.x) / static_cast<float>(textureSize.x);
-			textureSize.y = static_cast<int>(textureSize.y * factor);
-			textureSize.x = static_cast<int>(textureSize.x * factor);
+			float factor = static_cast<float>(size.x) / static_cast<float>(scaleVector.x);
+			scaleVector.y = scaleVector.y * factor;
+			scaleVector.x = scaleVector.x * factor;
 			// Make texture fit in y direction
-			if (textureSize.y > size.y) {
-				factor = static_cast<float>(size.y) / static_cast<float>(textureSize.y);
-				textureSize.x = static_cast<int>(textureSize.x * factor);
-				textureSize.y = size.y;
+			if (scaleVector.y > size.y) {
+				factor = static_cast<float>(size.y) / static_cast<float>(scaleVector.y);
+				scaleVector.x = scaleVector.x * factor;
+				scaleVector.y = static_cast<float>(size.y);
 			}
 			// Clip
-			textureSize.x = std::min(size.x, textureSize.x);
-			textureSize.y = std::min(size.y, textureSize.y);
-			modelMatrixImage = Mat4f::TranslateAndScale(
-				Vec3f(static_cast<float>(size.x) / 2.0f - static_cast<float>(textureSize.x) / 2.0f, -std::min(std::ceil(static_cast<float>(size.y) / 2.0f) + std::ceil(static_cast<float>(textureSize.y) / 2.0f), static_cast<float>(size.y)), 0.0f),
-				Vec3f(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y), 0.0f));
+			scaleVector.x = std::min(static_cast<float>(size.x), scaleVector.x);
+			scaleVector.y = std::min(static_cast<float>(size.y), scaleVector.y);
+			translateVector = Vec2f(static_cast<float>(size.x) / 2.0f - scaleVector.x / 2.0f, -std::min(std::ceil(static_cast<float>(size.y) / 2.0f) + std::ceil(scaleVector.y / 2.0f), static_cast<float>(size.y)));
 			// Set size hints
 			computeSizeHints();
 			break;
@@ -227,6 +232,27 @@ namespace SnackerEngine
 		default:
 			break;
 		}
+		modelMatrixImage = Mat4f::TranslateAndScale(Vec3f(translateVector), Vec3f(scaleVector));
+		if (rotationAngle != 0.0) {
+			// To rotate correctly, first center, then rotate, then move back (anchor is top left corner)
+			modelMatrixImage =
+				Mat4f::Translate(Vec3f(scaleVector.x / 2.0f, -scaleVector.y / 2.0f, 0.0f)) *
+				Mat4f::RotateZ(rotationAngle) *
+				Mat4f::Translate(Vec3f(-scaleVector.x / 2.0f, scaleVector.y / 2.0f, 0.0f)) *
+				modelMatrixImage;
+		}
+	}
+
+	std::unique_ptr<GuiElementAnimatable> GuiImage::animateRotationAngle(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiImageRotationAngleAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiImage*>(element)->setRotationAngle(currentVal); };
+		public:
+			GuiImageRotationAngleAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiImageRotationAngleAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 
 }

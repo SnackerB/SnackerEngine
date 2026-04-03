@@ -69,7 +69,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiHorizontalListLayout();
 		/// Constructor from JSON.
-		GuiHorizontalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiHorizontalListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiHorizontalListLayout();
 		/// Copy constructor and assignment operator

@@ -63,12 +63,13 @@ namespace SnackerEngine
 		std::unique_ptr<DynamicText> dynamicText = nullptr;
 		/// The scale factor of the text, used internally for some textBoxModes
 		double scaleFactor = 1.0;
-		/// Helper function that computes the the text position
+		/// Helper function that computes the the text position. The resulting vector points from the upper left corner
+		/// of the textBox to the left baseline of the text.
 		Vec2f computeTextPosition();
 		/// Helper function that draws the text
 		void drawText(const Vec2i& worldPosition, std::optional<Color4f> textColor = std::nullopt);
 		/// Helper function that draws the text, transforming it by the given transform matrix
-		void drawText(const Vec2i& worldPosition, const Mat4f& transformMatrix, std::optional<Color4f> textColor = std::nullopt);
+		void drawText(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale, std::optional<Color4f> textColor = std::nullopt);
 		/// Helper function that recomputes the text and corresponding model matrices.
 		/// This function should be called when the text needs to be recomputed, eg.
 		/// when the font or fontSize changes.
@@ -76,6 +77,12 @@ namespace SnackerEngine
 		void recomputeText();
 		/// Helper function that should get called when the element is registered
 		void onRegister(std::unique_ptr<DynamicText>&& dynamicText);
+		/// Returns dynamicText()->getBottom in pixels, scaled by scaleFactor.
+		double getScaledBottom();
+		/// Returns dynamicText()->getTop in pixels, scaled by scaleFactor.
+		double getScaledTop();
+		// Returns (dynamicText()->getTop() + dynamicText()->getBottom)/2 in pixels, scaled by scaleFactor.
+		double getScaledTextVerticalMidpoint();
 	private:
 		/// Material, containing font, textColor and backgroundColor.
 		/// MaterialData is of type SimpleTextMaterialData
@@ -83,6 +90,8 @@ namespace SnackerEngine
 		/// Text color
 		Color4f textColor = defaultTextColor;
 		/// Model matrices of the text
+		Mat4f scaleMatrixText = {};
+		Mat4f translateMatrixText = {};
 		Mat4f modelMatrixText = {};
 		/// Text scale mode
 		TextScaleMode textScaleMode = TextScaleMode::DONT_SCALE;
@@ -143,7 +152,7 @@ namespace SnackerEngine
 		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, double lineHeightMultiplier = 1.0, const Color4f& backgroundColor = defaultBackgroundColor);
 		GuiTextBox(const std::string& text);
 		/// Constructor from JSON
-		GuiTextBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiTextBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiTextBox() {}
 		/// Copy constructor and assignment operator
@@ -172,8 +181,11 @@ namespace SnackerEngine
 		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		const Font& getFont() const { return font; }
 		int getTextWidth() const;
+		int getTextWidthWithBorders() const;
 		int getTextHeight() const;
+		int getTextHeightWithBorders() const;
 		Vec2i getTextSize() const { return Vec2i(getTextWidth(), getTextHeight()); }
+		Vec2i getTextSizeWithBorders() const { return Vec2i(getTextWidthWithBorders(), getTextHeightWithBorders()); }
 		/// Setters
 		void setTextColor(const Color4f& textColor);
 		void setTextScaleMode(TextScaleMode textScaleMode);
@@ -214,12 +226,18 @@ namespace SnackerEngine
 		/// Function that draws the panel relative to its parent element, but also transforms according
 		/// to the given transform matrix. This function can be called by child elements.
 		/// Does not draw children.
-		void draw(const Vec2i& worldPosition, const Mat4f& transformMatrix);
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale);
 		/// Function that draws the panel relative to its parent element, but also transforms according
 		/// to the given transform matrix. This function can be called by child elements.
 		/// Does not draw children. Clipping box for drawing text is modified by the offset and the
 		/// clipping box is of the given size.
-		void draw(const Vec2i& worldPosition, const Mat4f& transformMatrix, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize);
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize);
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. The text is transformed via the textTransformMatrix. 
+		/// This function can be called by child elements.
+		/// Does not draw children. Clipping box for drawing text is modified by the offset and the
+		/// clipping box is of the given size.
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale, const Vec2f& translateText, const Vec2f& scaleText, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space

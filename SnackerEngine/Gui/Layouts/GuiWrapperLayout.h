@@ -20,7 +20,7 @@ namespace SnackerEngine
 		GuiWrapperLayout(int border);
 		GuiWrapperLayout(int leftBorder, int rightBorder, int topBorder, int bottomBorder);
 		/// Constructor from JSON
-		GuiWrapperLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiWrapperLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		// Copy constructor and assignment operator
 		GuiWrapperLayout(const GuiWrapperLayout& other) = default;
 		GuiWrapperLayout& operator=(const GuiWrapperLayout& other) = default;

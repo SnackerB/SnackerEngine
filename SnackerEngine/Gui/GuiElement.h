@@ -51,7 +51,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE);
 		/// Constructor from JSON
-		GuiElement(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiElement();
 		/// Copy constructor and assignment operator
@@ -63,7 +63,7 @@ namespace SnackerEngine
 		/// Adds a child to this guiElement. Returns true on success
 		virtual bool registerChild(GuiElement& guiElement);
 		/// Adds a child to this guiElement, with options given in JSON
-		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Deletes all children of this guiElement
 		void deleteChildren();
 		/// Returns true if this GuiElement object is managed by a guiManager

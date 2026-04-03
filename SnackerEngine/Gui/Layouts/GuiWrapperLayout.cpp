@@ -11,20 +11,20 @@ namespace SnackerEngine
 	{
 	}
 
-	GuiWrapperLayout::GuiWrapperLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiLayout(json, data, parameterNames)
+	GuiWrapperLayout::GuiWrapperLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiLayout(json, parameterNameSet)
 	{
-		auto border = parseJsonOrReadFromData<int>("border", json, data, parameterNames);
+		auto border = parseJson<int>("border", json, parameterNameSet);
 		if (border.has_value()) {
 			leftBorder = border.value();
 			rightBorder = border.value();
 			topBorder = border.value();
 			bottomBorder = border.value();
 		}
-		parseJsonOrReadFromData(leftBorder, "leftBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(rightBorder, "rightBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(topBorder, "topBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(bottomBorder, "bottomBorder", json, data, parameterNames);
+		parseJson(leftBorder, "leftBorder", json, parameterNameSet);
+		parseJson(rightBorder, "rightBorder", json, parameterNameSet);
+		parseJson(topBorder, "topBorder", json, parameterNameSet);
+		parseJson(bottomBorder, "bottomBorder", json, parameterNameSet);
 	}
 
 	void GuiWrapperLayout::setBorder(int border)

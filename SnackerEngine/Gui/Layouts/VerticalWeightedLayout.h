@@ -47,7 +47,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiVerticalWeightedLayout() = default;
 		/// Constructor from JSON
-		GuiVerticalWeightedLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiVerticalWeightedLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiVerticalWeightedLayout() {};
 		/// Copy constructor and assignment operator
@@ -61,7 +61,7 @@ namespace SnackerEngine
 		/// Registers a child, using weight = 1.0.
 		virtual bool registerChild(GuiElement& guiElement) override;
 		/// Adds a child to this guiElement, with options given in JSON
-		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
+		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr) override;
 		/// Getters
 		double getTotalWeight() const { return totalWeight; }
 		std::optional<double> getWeight(GuiID childID) const;

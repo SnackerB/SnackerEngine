@@ -53,36 +53,36 @@ namespace SnackerEngine
 		updateButtonColor();
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiCheckBox::GuiCheckBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiScaleButton::GuiScaleButton(json, data, parameterNames)
+	GuiCheckBox::GuiCheckBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiScaleButton::GuiScaleButton(json, parameterNameSet)
 	{
 		bool temp = false;
-		parseJsonOrReadFromData(temp, "checked", json, data, parameterNames);
+		parseJson(temp, "checked", json, parameterNameSet);
 		checked.set(temp);
-		parseJsonOrReadFromData(colorDefaultTrue, "colorDefaultTrue", json, data, parameterNames);
-		parseJsonOrReadFromData(colorHoverTrue, "colorHoverTrue", json, data, parameterNames);
-		parseJsonOrReadFromData(colorPressedTrue, "colorPressedTrue", json, data, parameterNames);
-		parseJsonOrReadFromData(colorHoverPressedTrue, "colorHoverPressedTrue", json, data, parameterNames);
-		parseJsonOrReadFromData(colorDefaultFalse, "colorDefaultFalse", json, data, parameterNames);
-		parseJsonOrReadFromData(colorHoverFalse, "colorHoverFalse", json, data, parameterNames);
-		parseJsonOrReadFromData(colorPressedFalse, "colorPressedFalse", json, data, parameterNames);
-		parseJsonOrReadFromData(colorHoverPressedFalse, "colorHoverPressedFalse", json, data, parameterNames);
-		parseJsonOrReadFromData(checkMarkColor, "checkMarkColor", json, data, parameterNames);
-		parseJsonOrReadFromData(checkMarkTexture, "checkMarkTexture", json, data, parameterNames);
-		parseJsonOrReadFromData(checkMarkShader, "checkMarkShader", json, data, parameterNames);
-		parseJsonOrReadFromData(drawCheckMark, "drawCheckMark", json, data, parameterNames);
-		parseJsonOrReadFromData(checkMarkSize, "checkMarkSize", json, data, parameterNames);
+		parseJson(colorDefaultTrue, "colorDefaultTrue", json, parameterNameSet);
+		parseJson(colorHoverTrue, "colorHoverTrue", json, parameterNameSet);
+		parseJson(colorPressedTrue, "colorPressedTrue", json, parameterNameSet);
+		parseJson(colorHoverPressedTrue, "colorHoverPressedTrue", json, parameterNameSet);
+		parseJson(colorDefaultFalse, "colorDefaultFalse", json, parameterNameSet);
+		parseJson(colorHoverFalse, "colorHoverFalse", json, parameterNameSet);
+		parseJson(colorPressedFalse, "colorPressedFalse", json, parameterNameSet);
+		parseJson(colorHoverPressedFalse, "colorHoverPressedFalse", json, parameterNameSet);
+		parseJson(checkMarkColor, "checkMarkColor", json, parameterNameSet);
+		parseJson(checkMarkTexture, "checkMarkTexture", json, parameterNameSet);
+		parseJson(checkMarkShader, "checkMarkShader", json, parameterNameSet);
+		parseJson(drawCheckMark, "drawCheckMark", json, parameterNameSet);
+		parseJson(checkMarkSize, "checkMarkSize", json, parameterNameSet);
 		int size = defaultCheckBoxSize;
-		parseJsonOrReadFromData(size, "size", json, data, parameterNames);
+		parseJson(size, "size", json, parameterNameSet);
 		setSize(Vec2i(size));
 		setPreferredSize(Vec2i(size));
 		setMinSize(Vec2i(size));
 		setMaxSize(Vec2i(size));
-		auto preferredSize = parseJsonOrReadFromData<int>("preferredSize", json, data, parameterNames);
+		auto preferredSize = parseJson<int>("preferredSize", json, parameterNameSet);
 		if (preferredSize.has_value()) setPreferredSize(Vec2i(preferredSize.value()));
-		auto minSize = parseJsonOrReadFromData<int>("minSize", json, data, parameterNames);
+		auto minSize = parseJson<int>("minSize", json, parameterNameSet);
 		if (minSize.has_value()) setMinSize(Vec2i(minSize.value()));
-		auto maxSize = parseJsonOrReadFromData<int>("maxSize", json, data, parameterNames);
+		auto maxSize = parseJson<int>("maxSize", json, parameterNameSet);
 		if (maxSize.has_value()) setMaxSize(Vec2i(maxSize.value()));
 		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::ARBITRARY);
 		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::ARBITRARY);
@@ -181,7 +181,7 @@ namespace SnackerEngine
 				Vec3f(static_cast<float>(getWidth() / 2 - trueCheckMarkSize / 2), static_cast<float>(-trueCheckMarkSize / 2 - getHeight() / 2), 0.0f),
 				Vec3f(static_cast<float>(trueCheckMarkSize), static_cast<float>(trueCheckMarkSize), 0.0f));
 			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			checkMarkShader.setUniform<Mat4f>("u_model", translationMatrix * getTransformMatrix() * modelMatrix);
+			checkMarkShader.setUniform<Mat4f>("u_model", translationMatrix * Mat4f::Translate(getTranslateBackground()) * modelMatrix * Mat4f::Scale(getScaleBackground()));
 			checkMarkShader.setUniform<Color4f>("u_color", checkMarkColor);
 			checkMarkShader.setUniform<float>("u_pxRange", 4.0);
 			checkMarkShader.setUniform<int>("u_msdf", 0);

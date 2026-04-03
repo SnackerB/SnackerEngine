@@ -38,7 +38,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiTextVariable(const T& value = T{}, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal);
 		/// Constructor from JSON
-		GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiTextVariable(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiTextVariable() {};
 		/// Copy constructor and assignment operator
@@ -78,11 +78,11 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiTextVariable<T>::GuiTextVariable(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiTextBox(json, data, parameterNames)
+	inline GuiTextVariable<T>::GuiTextVariable(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiTextBox(json, parameterNameSet)
 	{
 		T temp{};
-		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
+		parseJson(temp, "value", json, parameterNameSet);
 		value.set(temp);
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_SIZE);

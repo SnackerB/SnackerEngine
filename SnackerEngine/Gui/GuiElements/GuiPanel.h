@@ -30,7 +30,7 @@ namespace SnackerEngine
 		const Mat4f& getModelMatrix() { return modelMatrix; };
 		/// Draws the background without drawing children. This is used by some derived layouts.
 		void drawBackground(const Vec2i& worldPosition);
-		void drawBackground(const Vec2i& worldPosition, const Mat4f& transformMatrix);
+		void drawBackground(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale);
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_PANEL";
@@ -42,7 +42,7 @@ namespace SnackerEngine
 			const Color4f& borderColor = defaultBorderColor,
 			float roundedCorners = 0.0f, float borderThickness = 0.0f);
 		/// Constructor from JSON. 
-		GuiPanel(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiPanel(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiPanel() {};
 		/// Copy constructor and assignment operator
@@ -72,9 +72,9 @@ namespace SnackerEngine
 		float getBorderThickness() const { return borderThickness; }
 	protected:
 		/// Function that draws the panel relative to its parent element, but also transforms according
-		/// to the given transform matrix. This function can be called by child elements.
+		/// to the given translation and scale vectors. This function can be called by child elements.
 		/// Does not draw children.
-		void draw(const Vec2i& worldPosition, const Mat4f& transformMatrix);
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space

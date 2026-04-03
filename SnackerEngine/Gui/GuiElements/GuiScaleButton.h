@@ -13,8 +13,22 @@ namespace SnackerEngine
 		float hoverButtonScale = 1.1f;
 		float pressedButtonScale = 1.0f;
 		float pressedHoverButtonScale = 0.9f;
-		/// Transform matrix used to rescale the button when drawing
-		Mat4f transformMatrix{};
+		/// ButtonScaleMode decides how the scaling takes place
+	public:
+		enum ButtonScaleMode {
+			SCALE_PROPORTIONAL,	// Button is scaled proportionally to size. buttonScale is the multiplicative factor.
+								// Note that buttons with a big difference between size and height might look weird if scaled
+								// this way.
+			SCALE_PIXELS, // Button is scaled up by the same number of pixels at all sides. buttonScale is the amount of pixels.
+						  // Note that the text still needs to be scaled proportionally.
+		};
+	private:
+		ButtonScaleMode buttonScaleMode{ ButtonScaleMode::SCALE_PROPORTIONAL };
+		/// Translate and scale vectors for the background and text
+		Vec2f translateBackground{};
+		Vec2f scaleBackground{};
+		Vec2f translateText{};
+		Vec2f scaleText{};
 		Vec2i clippingBoxOffset{};
 		Vec2i clippingBoxSize{};
 		/// Sets the current button scale and recomputes transform matrix
@@ -47,7 +61,7 @@ namespace SnackerEngine
 		GuiScaleButton(const Vec2i& position = Vec2i{}, const Vec2i& size = Vec2i{}, const std::string& label = "");
 		GuiScaleButton(const std::string& label);
 		/// Constructor from JSON
-		GuiScaleButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiScaleButton(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiScaleButton() {}
 		/// Setters
@@ -57,6 +71,8 @@ namespace SnackerEngine
 		void setScaleAnimationDuration(double scaleAnimationDuration) { this->scaleAnimationDuration = scaleAnimationDuration; }
 		void setAnimationFunctionIncreaseScale(AnimationFunction::AnimationFunction animationFunctionIncreaseScale) { this->animationFunctionIncreaseScale = animationFunctionIncreaseScale; }
 		void setAnimationFunctionDecreaseScale(AnimationFunction::AnimationFunction animationFunctionDecreaseScale) { this->animationFunctionDecreaseScale = animationFunctionDecreaseScale; }
+		void setIsBeingPressed(bool isBeingPressed);
+		void setButtonScaleMode(ButtonScaleMode buttonScaleMode);
 		/// Getters
 		virtual float getHoverButtonScale() const { return hoverButtonScale; }
 		virtual float getPressedButtonScale() const { return pressedButtonScale; }
@@ -64,6 +80,7 @@ namespace SnackerEngine
 		double getScaleAnimationDuration() const { return scaleAnimationDuration; }
 		const AnimationFunction::AnimationFunction& getAnimationFunctionIncreaseScale() { return animationFunctionIncreaseScale; }
 		const AnimationFunction::AnimationFunction& getAnimationFunctionDecreaseScale() { return animationFunctionDecreaseScale; }
+		ButtonScaleMode getButtonScaleMode() const { return buttonScaleMode; }
 	protected:
 		/// This function is called when the size changes. Can eg. be. be used to
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
@@ -84,8 +101,11 @@ namespace SnackerEngine
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseLeave(const Vec2d& position) override;
 		// Make scale transforms accessible for derived classes
-		const Mat4f& getTransformMatrix() { return transformMatrix; }
 		const Vec2i& getClippingBoxOffset() { return clippingBoxOffset; }
 		const Vec2i& getClippingBoxSize() { return clippingBoxSize; }
+		const Vec2f& getTranslateBackground() { return translateBackground; }
+		const Vec2f& getScaleBackground() { return scaleBackground; }
+		const Vec2f& getTranslateText() { return translateText; }
+		const Vec2f& getScaleText() { return scaleText; }
 	};	
 }

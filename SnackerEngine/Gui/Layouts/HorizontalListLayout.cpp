@@ -147,16 +147,15 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::GuiHorizontalListLayout()
 		: GuiHorizontalLayout() {}
-	//--------------------------------------------------------------------------------------------------
-	GuiHorizontalListLayout::GuiHorizontalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiHorizontalLayout(json, data, parameterNames)
+	GuiHorizontalListLayout::GuiHorizontalListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiHorizontalLayout(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
-		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(groupName, "horizontalLayoutGroupName", json, data, parameterNames);
-		parseJsonOrReadFromData(outerHorizontalBorder, "outerHorizontalBorder", json, data, parameterNames);
+		parseJson(alignmentHorizontal, "alignmentHorizontal", json, parameterNameSet);
+		parseJson(horizontalBorder, "horizontalBorder", json, parameterNameSet);
+		parseJson(groupName, "horizontalLayoutGroupName", json, parameterNameSet);
+		parseJson(outerHorizontalBorder, "outerHorizontalBorder", json, parameterNameSet);
 		if (!json.contains("outerHorizontalBorder")) outerHorizontalBorder = horizontalBorder;
-		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
+		parseJson(shrinkWidthToChildren, "shrinkWidthToChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalListLayout::~GuiHorizontalListLayout()

@@ -4,15 +4,92 @@
 
 namespace SnackerEngine
 {
+	//--------------------------------------------------------------------------------------------------
+	/// Helper functions for parsing JSON
+	template<> bool isOfType(const nlohmann::json& json, JsonTag<GuiScaleButton::ButtonScaleMode> tag)
+	{
+		if (!json.is_string()) {
+			warningLogger << LOGGER::BEGIN << "GuiScaleButton option \"ButtonScaleMode\" has to be given as string." << LOGGER::ENDL;
+			return false;
+		}
+		if (json == "SCALE_PROPORTIONAL" ||
+			json == "SCALE_PIXELS") return true;
+		warningLogger << LOGGER::BEGIN << "\"" << json << "\" is not a valid ButtonScaleMode." << LOGGER::ENDL;
+		return false;
+	}
+	template<> GuiScaleButton::ButtonScaleMode parseJSON(const nlohmann::json& json, JsonTag<GuiScaleButton::ButtonScaleMode> tag)
+	{
+		if (json == "SCALE_PROPORTIONAL") return GuiScaleButton::ButtonScaleMode::SCALE_PROPORTIONAL;
+		if (json == "SCALE_PIXELS") return GuiScaleButton::ButtonScaleMode::SCALE_PIXELS;
+		return GuiScaleButton::ButtonScaleMode::SCALE_PROPORTIONAL;
+	}
+	template<> std::string to_string(const GuiScaleButton::ButtonScaleMode& buttonScaleMode)
+	{
+		switch (buttonScaleMode)
+		{
+		case GuiScaleButton::ButtonScaleMode::SCALE_PROPORTIONAL: return "SCALE_PROPORTIONAL";
+		case GuiScaleButton::ButtonScaleMode::SCALE_PIXELS: return "SCALE_PIXELS";
+		default: return "SCALE_PROPORTIONAL";
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiScaleButton::computeTransformMatrixAndClippingBox()
 	{
-		Vec2f offset = Vec2f(-static_cast<float>(getWidth()) * (currentButtonScale - 1.0f) / 2.0f,
-			static_cast<float>(getHeight()) * (currentButtonScale - 1.0f) / 2.0f);
-		clippingBoxOffset = Vec2i(static_cast<int>(std::round(offset.x)), static_cast<int>(std::round(-offset.y)));
-		clippingBoxSize = Vec2i(static_cast<int>(std::round(static_cast<float>(getWidth()) * currentButtonScale)), static_cast<int>(std::round(static_cast<float>(getHeight()) * currentButtonScale)));
-		transformMatrix = Mat4f::TranslateAndScale(
-			Vec3f(offset.x, offset.y, 0),
-			Vec3f(currentButtonScale));
+		double textScaleFactor = 1.0f;
+		switch (buttonScaleMode) {
+		case ButtonScaleMode::SCALE_PROPORTIONAL: {
+			textScaleFactor = currentButtonScale;
+			translateBackground = Vec2f(-static_cast<float>(getWidth()) * (currentButtonScale - 1.0f) / 2.0f,
+				-static_cast<float>(getHeight()) * (currentButtonScale - 1.0f) / 2.0f);
+			scaleBackground = Vec2f(currentButtonScale, currentButtonScale);
+			clippingBoxOffset = Vec2i(static_cast<int>(std::round(translateBackground.x)), static_cast<int>(std::round(translateBackground.y)));
+			clippingBoxSize = Vec2i(static_cast<int>(std::round(static_cast<float>(getWidth()) * currentButtonScale)), static_cast<int>(std::round(static_cast<float>(getHeight()) * currentButtonScale)));
+			break;
+		}
+		case ButtonScaleMode::SCALE_PIXELS:
+		{
+			float currentButtonScale = static_cast<float>(this->currentButtonScale);
+			translateBackground = Vec2f(-currentButtonScale, -currentButtonScale);
+			clippingBoxOffset = Vec2i(static_cast<int>(std::round(translateBackground.x)), static_cast<int>(std::round(translateBackground.y)));
+			clippingBoxSize = getSize() + Vec2i(static_cast<int>(std::round(2*currentButtonScale)));
+			double widthScale = (static_cast<double>(getWidth()) + 2.0 * static_cast<double>(currentButtonScale)) / static_cast<double>(getWidth());
+			double heightScale = (static_cast<double>(getHeight()) + 2.0 * static_cast<double>(currentButtonScale)) / static_cast<double>(getHeight());
+			scaleBackground = Vec2f(static_cast<float>(widthScale), static_cast<float>(heightScale));
+			textScaleFactor = std::min(widthScale, heightScale);
+			//infoLogger << LOGGER::BEGIN <<
+			//	"widthScale: " << widthScale <<
+			//	", heightScale: " << heightScale <<
+			//	", textScaleFactor: " << textScaleFactor << LOGGER::ENDL;
+			//switch (getAlignmentHorizontal()) {
+			//case AlignmentHorizontal::LEFT: translateText.x = translateBackground.x; break;
+			//case AlignmentHorizontal::CENTER: translateText.x = -getTextWidth() * (textScaleFactor - 1.0) / 2.0; break;
+			//case AlignmentHorizontal::RIGHT: translateText.x = translateBackground.x - getTextWidth() * (textScaleFactor - 1.0); break;
+			//}
+			//switch (getAlignmentVertical()) {
+			//case AlignmentVertical::TOP: translateText.y = translateBackground.y; break;
+			//case AlignmentVertical::CENTER: translateText.y = getScaledTextVerticalMidpoint() * (textScaleFactor - 1.0) / 2.0; break;
+			//case AlignmentVertical::BOTTOM: translateText.y = -translateBackground.y; break;
+			//}
+			//scaleText = Vec2f(textScaleFactor, textScaleFactor);
+			//infoLogger << LOGGER::BEGIN <<
+			//	"offset: " << translateBackground <<
+			//	", textOffset: " << translateText << LOGGER::ENDL;
+			//break;
+		}
+		}
+		
+
+		switch (getAlignmentHorizontal()) {
+		case AlignmentHorizontal::LEFT: translateText.x = translateBackground.x; break;
+		case AlignmentHorizontal::CENTER: translateText.x = -getTextWidth() * (textScaleFactor - 1.0f) / 2.0f; break;
+		case AlignmentHorizontal::RIGHT: translateText.x = -translateBackground.x - getTextWidth() * (textScaleFactor - 1.0); break;
+		}
+		switch (getAlignmentVertical()) {
+		case AlignmentVertical::TOP: translateText.y = static_cast<float>(getTextHeight() + getScaledBottom()) * (textScaleFactor - 1.0f); break;
+		case AlignmentVertical::CENTER: translateText.y = -getScaledTextVerticalMidpoint() * (textScaleFactor - 1.0f); break;
+		case AlignmentVertical::BOTTOM: translateText.y = translateBackground.y - getScaledBottom() * (textScaleFactor - 1.0f); break;
+		}
+		scaleText = Vec2f(textScaleFactor, textScaleFactor);
 	}
 
 	void GuiScaleButton::setCurrentButtonScale(float currentButtonScale)
@@ -44,15 +121,16 @@ namespace SnackerEngine
 		computeTransformMatrixAndClippingBox();
 	}
 
-	GuiScaleButton::GuiScaleButton(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiButton(json, data, parameterNames)
+	GuiScaleButton::GuiScaleButton(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiButton(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(hoverButtonScale, "hoverButtonScale", json, data, parameterNames);
-		parseJsonOrReadFromData(pressedButtonScale, "pressedButtonScale", json, data, parameterNames);
-		parseJsonOrReadFromData(pressedHoverButtonScale, "pressedHoverButtonScale", json, data, parameterNames);
-		parseJsonOrReadFromData(scaleAnimationDuration, "scaleAnimationDuration", json, data, parameterNames);
-		parseJsonOrReadFromData(animationFunctionIncreaseScale, "animationFunctionIncreaseScale", json, data, parameterNames);
-		parseJsonOrReadFromData(animationFunctionDecreaseScale, "animationFunctionDecreaseScale", json, data, parameterNames);
+		parseJson(buttonScaleMode, "buttonScaleMode", json, parameterNameSet);
+		parseJson(hoverButtonScale, "hoverButtonScale", json, parameterNameSet);
+		parseJson(pressedButtonScale, "pressedButtonScale", json, parameterNameSet);
+		parseJson(pressedHoverButtonScale, "pressedHoverButtonScale", json, parameterNameSet);
+		parseJson(scaleAnimationDuration, "scaleAnimationDuration", json, parameterNameSet);
+		parseJson(animationFunctionIncreaseScale, "animationFunctionIncreaseScale", json, parameterNameSet);
+		parseJson(animationFunctionDecreaseScale, "animationFunctionDecreaseScale", json, parameterNameSet);
 		computeTransformMatrixAndClippingBox();
 	}
 
@@ -83,6 +161,29 @@ namespace SnackerEngine
 		}
 	}
 
+	void GuiScaleButton::setIsBeingPressed(bool isBeingPressed)
+	{
+		this->isBeingPressed = isBeingPressed;
+		if (isBeingHovered) {
+			setBackgroundColor(getPressedColor());
+			setBorderColor(getPressedBorderColor());
+			animateButtonScale(pressedButtonScale);
+		}
+		else {
+			setBackgroundColor(getpressedHoverColor());
+			setBorderColor(getpressedHoverBorderColor());
+			animateButtonScale(pressedHoverButtonScale);
+		}
+	}
+
+	void GuiScaleButton::setButtonScaleMode(ButtonScaleMode buttonScaleMode)
+	{
+		if (this->buttonScaleMode != buttonScaleMode) {
+			this->buttonScaleMode = buttonScaleMode;
+			computeTransformMatrixAndClippingBox();
+		}
+	}
+
 	void GuiScaleButton::onSizeChange()
 	{
 		GuiButton::onSizeChange();
@@ -91,7 +192,19 @@ namespace SnackerEngine
 
 	void GuiScaleButton::draw(const Vec2i& worldPosition)
 	{
-		GuiButton::draw(worldPosition, transformMatrix, clippingBoxOffset, clippingBoxSize);
+		switch (buttonScaleMode) {
+		case ButtonScaleMode::SCALE_PROPORTIONAL: 
+		{
+			//GuiButton::draw(worldPosition, translateBackground, scaleBackground, clippingBoxOffset, clippingBoxSize);
+			GuiButton::draw(worldPosition, translateBackground, scaleBackground, translateText, scaleText, clippingBoxOffset, clippingBoxSize);
+			break;
+		}
+		case ButtonScaleMode::SCALE_PIXELS: 
+		{
+			GuiButton::draw(worldPosition, translateBackground, scaleBackground, translateText, scaleText, clippingBoxOffset, clippingBoxSize);
+			break;
+		}
+		}
 	}
 
 	void GuiScaleButton::callbackMouseButton(const int& button, const int& action, const int& mods)
@@ -109,7 +222,10 @@ namespace SnackerEngine
 			{
 				setBackgroundColor(getDefaultColor());
 				setBorderColor(getDefaultBorderColor());
-				animateButtonScale(1.0f);
+				switch (buttonScaleMode) {
+				case SCALE_PROPORTIONAL: animateButtonScale(1.0f); break;
+				case SCALE_PIXELS: animateButtonScale(0.0f); break;
+				}
 			}
 			isBeingPressed = false;
 			signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
@@ -157,7 +273,10 @@ namespace SnackerEngine
 			else {
 				setBackgroundColor(getDefaultColor());
 				setBorderColor(getDefaultBorderColor());
-				animateButtonScale(1.0f);
+				switch (buttonScaleMode) {
+				case SCALE_PROPORTIONAL: animateButtonScale(1.0f); break;
+				case SCALE_PIXELS: animateButtonScale(0.0f); break;
+				}
 			}
 		}
 	}

@@ -65,7 +65,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiVerticalListLayout(const Color4f& backgroundColor = Color4f(0.0f, 0.0f, 0.0f, 0.0f));
 		/// Constructor from JSON.
-		GuiVerticalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiVerticalListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiVerticalListLayout();
 		/// Copy constructor and assignment operator

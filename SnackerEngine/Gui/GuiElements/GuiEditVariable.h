@@ -44,7 +44,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiEditVariable(const T& value, const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal);
 		/// Constructor from JSON
-		GuiEditVariable(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiEditVariable(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiEditVariable() {};
 		/// Copy constructor and assignment operator
@@ -110,11 +110,11 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiEditVariable<T>::GuiEditVariable(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiEditBox(json, data, parameterNames)
+	inline GuiEditVariable<T>::GuiEditVariable(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiEditBox(json, parameterNameSet)
 	{
 		T temp{};
-		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
+		parseJson(temp, "value", json, parameterNameSet);
 		value.set(temp);
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);

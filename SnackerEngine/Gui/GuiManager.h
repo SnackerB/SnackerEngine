@@ -162,43 +162,43 @@ namespace SnackerEngine
 	
 	private:
 		/// Map containing the different registered GuiElements that can be parsed from JSON
-		using parseFunction = std::unique_ptr<GuiElement>(*)(const nlohmann::json&, const nlohmann::json*, std::set<std::string>*);
+		using parseFunction = std::unique_ptr<GuiElement>(*)(const nlohmann::json&, ParameterNameSet*);
 		static std::unordered_map<std::string, parseFunction> elementParsingMap;
 		/// If this is set to true, the guiManager checks the JSON file for unused parameters and prints
 		/// a warning if any are found.
 		bool checkForUnusedParameters = true;
 		/// Helper function that takes a json class and creates a set of parameter names.
-		/// This does not look recursively in classes included in the json file
-		static std::set<std::string> extractParameterNames(const nlohmann::json& json);
+		/// Also looks recursively in classes included in the json file
+		static ParameterNameSet extractParameterNames(const nlohmann::json& json);
 		/// Helper function that prints warnings for all parameter names left in the set
-		static void printWarningsForUnusedParameterNames(const std::set<std::string>& parameterNames);
-		/// Loads a single GuiElement from the given json and data files. Returns nullptr if
+		static void printWarningsForUnusedParameterNames(const ParameterNameSet& parameterNameSet, const std::string& prefix="");
+		/// Loads a single GuiElement from the given json file. Returns nullptr if
 		/// anything goes wrong. No children are parsed. The element is not registered in the GuiManager.
 		/// Erases all parsed parameters from the given parameterNames set.
-		std::unique_ptr<GuiElement> loadGuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
-		/// Loads a single GuiElement from the given json and data files and registers it as a child
+		std::unique_ptr<GuiElement> loadGuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet);
+		/// Loads a single GuiElement from the given json file and registers it as a child
 		/// of the given element. Child element is stored by the GuiManager. Also loads and registers
 		/// all children of the childElement recursively
-		bool loadGuiElementAndRegisterAsChild(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement);
-		/// Loads all GuiElements from the given json and data files. Returns an empty vector if
+		bool loadGuiElementAndRegisterAsChild(const nlohmann::json& json, GuiElement& parentElement);
+		/// Loads all GuiElements from the given json file. Returns an empty vector if
 		/// no elements could be parsed. No children are parsed. The elements are not registered in the GuiManager.
 		/// Also loads and registers all children of the child elements recursively.
-		bool loadGuiAndRegisterAsChildren(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement);
-		/// Loads the GUI from the given json and data files and loads it into the
+		bool loadGuiAndRegisterAsChildren(const nlohmann::json& json, GuiElement& parentElement);
+		/// Loads the GUI from the given json file and loads it into the
 		/// guiManager. Returns true on success.
 	public:
-		/// Loads a single GuiElement from the given json and data files. Returns nullptr if
+		/// Loads a single GuiElement from the given json file. Returns nullptr if
 		/// anything goes wrong. No children are parsed. The element is not registered in the GuiManager.
-		std::unique_ptr<GuiElement> loadGuiElement(const nlohmann::json& json, const nlohmann::json* data);
-		/// Loads all GuiElements from the given json and data files. Returns an empty vector if
+		std::unique_ptr<GuiElement> loadGuiElement(const nlohmann::json& json);
+		/// Loads all GuiElements from the given json file. Returns an empty vector if
 		/// no elements could be parsed. No children are parsed. The elements are not registered in the GuiManager.
-		std::vector<std::unique_ptr<GuiElement>> loadGui(const nlohmann::json& json, const nlohmann::json* data);
-		/// Loads the GUI from the given json and data files and loads it into the
+		std::vector<std::unique_ptr<GuiElement>> loadGui(const nlohmann::json& json);
+		/// Loads the GUI from the given json file and loads it into the
 		/// guiManager. Returns true on success.
-		bool loadAndRegisterJSON(const nlohmann::json& json, const nlohmann::json* data);
-		/// Loads the GUI from the given json and data files and registers it as children
+		bool loadAndRegisterJSON(const nlohmann::json& json);
+		/// Loads the GUI from the given file and registers it as children
 		/// of the given parent element in the guiManager. Returns true on success.
-		bool loadAndRegisterAsChildJSON(const nlohmann::json& json, const nlohmann::json* data, GuiID parent);
+		bool loadAndRegisterAsChildJSON(const nlohmann::json& json, GuiID parent);
 		/// Registers the given GuiElementType in the parser logic, such that
 		/// GuiElements of this type can be parsed from JSON.
 		template<typename GuiElementType>
@@ -270,7 +270,7 @@ namespace SnackerEngine
 		void leaveGroup(GuiID guiID, GuiGroupID groupID);
 	public:
 		/// Returns the current number of groups
-		int getGroupCount() { return registeredGuiGroupsCount; }
+		int getGroupCount() const { return registeredGuiGroupsCount; }
 
 		//==============================================================================================
 		// Helper functions
@@ -358,7 +358,7 @@ namespace SnackerEngine
 		/// Clears all elements. Elements that are owned by the GuiManager are deleted!
 		void clear();
 		/// Sets the view and projection matrix uniform of the given shader
-		void setUniformViewAndProjectionMatrices(const Shader& shader);
+		void setUniformViewAndProjectionMatrices(const Shader& shader) const;
 		/// Returns the view matrix
 		const Mat4f& getViewMatrix() const;
 		/// Returns the projection matrix
@@ -400,9 +400,9 @@ namespace SnackerEngine
 	};
 
 	template<typename GuiElementType>
-	inline std::unique_ptr<GuiElement> parseGuiElementJSON(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	inline std::unique_ptr<GuiElement> parseGuiElementJSON(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
-		std::unique_ptr<GuiElement> result = std::make_unique<GuiElementType>(json, data, parameterNames);
+		std::unique_ptr<GuiElement> result = std::make_unique<GuiElementType>(json, parameterNameSet);
 		return result;
 	}
 

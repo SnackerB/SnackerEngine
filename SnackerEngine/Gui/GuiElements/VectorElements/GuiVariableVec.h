@@ -68,7 +68,7 @@ namespace SnackerEngine
 		/// Helper function that updates the value
 		void updateValue();
 		/// Helper function that parses JSON after the components vector has been set by parent element
-		void parseJSON(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		void parseJSON(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "ERROR";
@@ -77,7 +77,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiVariableVec(const VecT& value = VecT{});
 		/// Constructor from JSON
-		GuiVariableVec(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiVariableVec(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Copy constructor and assignment operator
 		GuiVariableVec(const GuiVariableVec& other) noexcept;
 		GuiVariableVec& operator=(const GuiVariableVec& other) noexcept;
@@ -177,42 +177,42 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, std::size_t N>
-	inline void GuiVariableVec<T, VecT, N>::parseJSON(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	inline void GuiVariableVec<T, VecT, N>::parseJSON(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
 		// JSON parsing for GuiPanel
-		std::optional<Color4f> backgroundColor = parseJsonOrReadFromData<Color4f>("backgroundColor", json, data, parameterNames);
+		std::optional<Color4f> backgroundColor = parseJson<Color4f>("backgroundColor", json, parameterNameSet);
 		if (backgroundColor.has_value()) setBackgroundColor(backgroundColor.value());
 		// JSON parsing for GuiTextBox
-		std::optional<Color4f> textColor = parseJsonOrReadFromData<Color4f>("textColor", json, data, parameterNames);
+		std::optional<Color4f> textColor = parseJson<Color4f>("textColor", json, parameterNameSet);
 		if (textColor.has_value()) setTextColor(textColor.value());
-		std::optional<GuiTextBox::TextScaleMode> textScaleMode = parseJsonOrReadFromData<GuiTextBox::TextScaleMode>("textScaleMode", json, data, parameterNames);
+		std::optional<GuiTextBox::TextScaleMode> textScaleMode = parseJson<GuiTextBox::TextScaleMode>("textScaleMode", json, parameterNameSet);
 		if (textScaleMode.has_value()) setTextScaleMode(textScaleMode.value());
-		std::optional<GuiTextBox::SizeHintMode> sizeHintModeMinSize = parseJsonOrReadFromData<GuiTextBox::SizeHintMode>("sizeHintModeMinSize", json, data, parameterNames);
+		std::optional<GuiTextBox::SizeHintMode> sizeHintModeMinSize = parseJson<GuiTextBox::SizeHintMode>("sizeHintModeMinSize", json, parameterNameSet);
 		if (sizeHintModeMinSize.has_value()) setSizeHintModeMinSize(sizeHintModeMinSize.value());
-		std::optional<GuiTextBox::SizeHintMode> sizeHintModeMaxSize = parseJsonOrReadFromData<GuiTextBox::SizeHintMode>("sizeHintModeMaxSize", json, data, parameterNames);
+		std::optional<GuiTextBox::SizeHintMode> sizeHintModeMaxSize = parseJson<GuiTextBox::SizeHintMode>("sizeHintModeMaxSize", json, parameterNameSet);
 		if (sizeHintModeMaxSize.has_value()) setSizeHintModeMaxSize(sizeHintModeMaxSize.value());
-		std::optional<GuiTextBox::SizeHintMode> sizeHintModePreferredSize = parseJsonOrReadFromData<GuiTextBox::SizeHintMode>("sizeHintModePreferredSize", json, data, parameterNames);
+		std::optional<GuiTextBox::SizeHintMode> sizeHintModePreferredSize = parseJson<GuiTextBox::SizeHintMode>("sizeHintModePreferredSize", json, parameterNameSet);
 		if (sizeHintModePreferredSize.has_value()) setSizeHintModePreferredSize(sizeHintModePreferredSize.value());
-		std::optional<int> border = parseJsonOrReadFromData<int>("border", json, data, parameterNames);
+		std::optional<int> border = parseJson<int>("border", json, parameterNameSet);
 		if (border.has_value()) setBorder(border.value());
-		std::optional<double> fontSize = parseJsonOrReadFromData<double>("fontSize", json, data, parameterNames);
+		std::optional<double> fontSize = parseJson<double>("fontSize", json, parameterNameSet);
 		if (fontSize.has_value()) setFontSize(fontSize.value());
-		std::optional<unsigned> recomputeTries = parseJsonOrReadFromData<unsigned>("recomputeTries", json, data, parameterNames);
+		std::optional<unsigned> recomputeTries = parseJson<unsigned>("recomputeTries", json, parameterNameSet);
 		if (recomputeTries.has_value()) setRecomputeTries(recomputeTries.value());
-		std::optional<bool> doRecomputeOnSizeChange = parseJsonOrReadFromData<bool>("doRecomputeOnSizeChange", json, data, parameterNames);
+		std::optional<bool> doRecomputeOnSizeChange = parseJson<bool>("doRecomputeOnSizeChange", json, parameterNameSet);
 		if (doRecomputeOnSizeChange.has_value()) setDoRecomputeOnSizeChange(doRecomputeOnSizeChange.value());
-		std::optional<std::string> text = parseJsonOrReadFromData<std::string>("text", json, data, parameterNames);
+		std::optional<std::string> text = parseJson<std::string>("text", json, parameterNameSet);
 		if (text.has_value()) setText(text.value());
-		std::optional<StaticText::ParseMode> parseMode = parseJsonOrReadFromData<StaticText::ParseMode>("parseMode", json, data, parameterNames);
+		std::optional<StaticText::ParseMode> parseMode = parseJson<StaticText::ParseMode>("parseMode", json, parameterNameSet);
 		if (parseMode.has_value()) setParseMode(parseMode.value());
-		std::optional<AlignmentHorizontal> alignmentHorizontal = parseJsonOrReadFromData<AlignmentHorizontal>("alignmentHorizontal", json, data, parameterNames);
+		std::optional<AlignmentHorizontal> alignmentHorizontal = parseJson<AlignmentHorizontal>("alignmentHorizontal", json, parameterNameSet);
 		if (alignmentHorizontal.has_value()) setAlignmentHorizontal(alignmentHorizontal.value());
-		std::optional<AlignmentVertical> alignmentVertical = parseJsonOrReadFromData<AlignmentVertical>("alignmentVertical", json, data, parameterNames);
+		std::optional<AlignmentVertical> alignmentVertical = parseJson<AlignmentVertical>("alignmentVertical", json, parameterNameSet);
 		if (alignmentVertical.has_value()) setAlignmentVertical(alignmentVertical.value());
-		std::optional<Font> font = parseJsonOrReadFromData<Font>("font", json, data, parameterNames);
+		std::optional<Font> font = parseJson<Font>("font", json, parameterNameSet);
 		if (font.has_value()) setFont(font.value());
 		// JSON parsing for the value
-		std::optional<VecT> value = parseJsonOrReadFromData<VecT>("value", json, data, parameterNames);
+		std::optional<VecT> value = parseJson<VecT>("value", json, parameterNameSet);
 		if (value.has_value()) setValue(value.value());
 		else setValue(this->value);
 	}
@@ -230,12 +230,11 @@ namespace SnackerEngine
 		for (std::size_t i = 0; i < N; ++i) componentVariableHandles.push_back(GuiVariableVecComponentVariableHandle(this, value.get(i)));
 		updateChildElements();
 	}
-	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, std::size_t N>
-	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiHorizontalWeightedLayout(json, data, parameterNames)
+	inline GuiVariableVec<T, VecT, N>::GuiVariableVec(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiHorizontalWeightedLayout(json, parameterNameSet)
 	{
-		std::optional<VecT> value = parseJsonOrReadFromData<VecT>("value", json, data, parameterNames);
+		std::optional<VecT> value = parseJson<VecT>("value", json, parameterNameSet);
 		if (value.has_value()) static_cast<VariableHandle<VecT>&>(this->value).set(value.value());
 		if (!json.contains("outerHorizontalBorder")) setOuterHorizontalBorder(0);
 		if (!json.contains("horizontalBorder")) setHorizontalBorder(defaultHorizontalBorder);

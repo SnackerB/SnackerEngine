@@ -20,7 +20,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiSliderBoxVec(const VecT& minValue = VecT{}, const VecT& maxValue = VecT{}, const VecT& value = VecT{});
 		/// Constructor from JSON
-		GuiSliderBoxVec(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiSliderBoxVec(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 	public:
 		/// Getters
 		int getSliderButtonWidth() const { return static_cast<std::unique_ptr<GuiSliderBox<T>>>(this->components[0])->getSliderButtonWidth(); }
@@ -88,18 +88,18 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, std::size_t N>
-	inline GuiSliderBoxVec<T, VecT, N>::GuiSliderBoxVec(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiVariableVec<T, VecT, N>(json, data, parameterNames)
+	inline GuiSliderBoxVec<T, VecT, N>::GuiSliderBoxVec(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiVariableVec<T, VecT, N>(json, parameterNameSet)
 	{
 		setupComponents();
-		this->parseJSON(json, data, parameterNames);
-		std::optional<int> sliderButtonWidth = parseJsonOrReadFromData<int>("sliderButtonWidth", json, data, parameterNames);
+		this->parseJSON(json, parameterNameSet);
+		std::optional<int> sliderButtonWidth = parseJson<int>("sliderButtonWidth", json, parameterNameSet);
 		if (sliderButtonWidth.has_value()) setSliderButtonWidth(sliderButtonWidth.value());
-		std::optional<Color4f> sliderButtonColor = parseJsonOrReadFromData<Color4f>("sliderButtonColor", json, data, parameterNames);
+		std::optional<Color4f> sliderButtonColor = parseJson<Color4f>("sliderButtonColor", json, parameterNameSet);
 		if (sliderButtonWidth.has_value()) setSliderButtonColor(sliderButtonColor.value());
-		std::optional<VecT> minValue = parseJsonOrReadFromData<VecT>("minValue", json, data, parameterNames);
+		std::optional<VecT> minValue = parseJson<VecT>("minValue", json, parameterNameSet);
 		if (minValue.has_value()) setMinValue(minValue.value());
-		std::optional<VecT> maxValue = parseJsonOrReadFromData<VecT>("maxValue", json, data, parameterNames);
+		std::optional<VecT> maxValue = parseJson<VecT>("maxValue", json, parameterNameSet);
 		if (maxValue.has_value()) setMaxValue(maxValue.value());
 		if (!json.contains("SizeHintModePreferredSize")) this->setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
 		if (!json.contains("preferredSize") && !json.contains("preferredWidth")) this->setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
@@ -116,8 +116,8 @@ namespace SnackerEngine
 		GuiSliderBoxVec2(const Vec2<T>& minValue = Vec2<T>{}, const Vec2<T>& maxValue = Vec2<T>{}, const Vec2<T>& value = Vec2<T>{})
 			: GuiSliderBoxVec<T, Vec2<T>, 2>(minValue, maxValue, value) {}
 		/// Constructor from JSON
-		GuiSliderBoxVec2(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
-			: GuiSliderBoxVec<T, Vec2<T>, 2>(json, data, parameterNames) {}
+		GuiSliderBoxVec2(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiSliderBoxVec<T, Vec2<T>, 2>(json, parameterNameSet) {}
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -131,8 +131,8 @@ namespace SnackerEngine
 		GuiSliderBoxVec3(const Vec3<T>& minValue = Vec3<T>{}, const Vec3<T>& maxValue = Vec3<T>{}, const Vec3<T>& value = Vec3<T>{})
 			: GuiSliderBoxVec<T, Vec3<T>, 3>(minValue, maxValue, value) {}
 		/// Constructor from JSON
-		GuiSliderBoxVec3(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
-			: GuiSliderBoxVec<T, Vec3<T>, 3>(json, data, parameterNames) {}
+		GuiSliderBoxVec3(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiSliderBoxVec<T, Vec3<T>, 3>(json, parameterNameSet) {}
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -146,8 +146,8 @@ namespace SnackerEngine
 		GuiSliderBoxVec4(const Vec4<T>& minValue = Vec4<T>{}, const Vec4<T>& maxValue = Vec4<T>{}, const Vec4<T>& value = Vec4<T>{})
 			: GuiSliderBoxVec<T, Vec4<T>, 4>(minValue, maxValue, value) {}
 		/// Constructor from JSON
-		GuiSliderBoxVec4(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
-			: GuiSliderBoxVec<T, Vec4<T>, 4>(json, data, parameterNames) {}
+		GuiSliderBoxVec4(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiSliderBoxVec<T, Vec4<T>, 4>(json, parameterNameSet) {}
 	};
 	//--------------------------------------------------------------------------------------------------
 	using GuiSliderBoxVec2f = GuiSliderBoxVec2<float>;

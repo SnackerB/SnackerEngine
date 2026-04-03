@@ -12,8 +12,8 @@ namespace SnackerEngine
 		GuiLayout()
 			: GuiPanel(Vec2i(), Vec2i(), ResizeMode::SAME_AS_PARENT, Color4f(0.0f, 0.0f, 0.0f, 0.0f)) {}
 		/// Constructor from JSON
-		GuiLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-			: GuiPanel(json, data, parameterNames)
+		GuiLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiPanel(json, parameterNameSet)
 		{
 			if (!json.contains("resizeMode") && !json.contains("position")
 				&& !json.contains("positionX") && !json.contains("positionY")

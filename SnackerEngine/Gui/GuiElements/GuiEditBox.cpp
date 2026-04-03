@@ -174,15 +174,15 @@ namespace SnackerEngine
 	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, double lineHeightMultiplier, const Color4f& backgroundColor)
 		: GuiTextBox(position, size, text, font, fontSize, lineHeightMultiplier, backgroundColor) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiTextBox(json, data, parameterNames)
+	GuiEditBox::GuiEditBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiTextBox(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(selectionBoxColor, "selectionBoxColor", json, data, parameterNames);
-		parseJsonOrReadFromData(cursorWidth, "cursorWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(repositionTextToFitCursor, "repositionTextToFitCursor", json, data, parameterNames);
-		parseJsonOrReadFromData(placeholderText, "placeholderText", json, data, parameterNames);
-		parseJsonOrReadFromData(placeholderTextColor, "placeholderTextColor", json, data, parameterNames);
-		std::optional<double> cursorBlinkTime = parseJsonOrReadFromData<double>("cursorBlinkTime", json, data, parameterNames);
+		parseJson(selectionBoxColor, "selectionBoxColor", json, parameterNameSet);
+		parseJson(cursorWidth, "cursorWidth", json, parameterNameSet);
+		parseJson(repositionTextToFitCursor, "repositionTextToFitCursor", json, parameterNameSet);
+		parseJson(placeholderText, "placeholderText", json, parameterNameSet);
+		parseJson(placeholderTextColor, "placeholderTextColor", json, parameterNameSet);
+		std::optional<double> cursorBlinkTime = parseJson<double>("cursorBlinkTime", json, parameterNameSet);
 		if (cursorBlinkTime.has_value()) cursorBlinkingTimer.setTimeStep(cursorBlinkTime.value());
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
 	}

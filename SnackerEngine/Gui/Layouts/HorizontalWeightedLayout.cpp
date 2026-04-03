@@ -66,15 +66,15 @@ namespace SnackerEngine
 		setPreferredWidth(totalPreferredWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiHorizontalWeightedLayout::GuiHorizontalWeightedLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiHorizontalLayout(json, data, parameterNames)
+	GuiHorizontalWeightedLayout::GuiHorizontalWeightedLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiHorizontalLayout(json, parameterNameSet)
 	{
 		if (!json.contains("horizontalLayoutMode")) setHorizontalLayoutMode(HorizontalLayoutMode::CHILD_HEIGHT_TO_LAYOUT_HEIGHT);
-		parseJsonOrReadFromData(horizontalBorder, "horizontalBorder", json, data);
-		parseJsonOrReadFromData(outerHorizontalBorder, "outerHorizontalBorder", json, data);
-		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
-		parseJsonOrReadFromData(resizeAreaWidth, "resizeAreaWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(allowMoveBorders, "allowMoveBorders", json, data, parameterNames);
+		parseJson(horizontalBorder, "horizontalBorder", json, parameterNameSet);
+		parseJson(outerHorizontalBorder, "outerHorizontalBorder", json, parameterNameSet);
+		parseJson(alignmentHorizontal, "alignmentHorizontal", json, parameterNameSet);
+		parseJson(resizeAreaWidth, "resizeAreaWidth", json, parameterNameSet);
+		parseJson(allowMoveBorders, "allowMoveBorders", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	bool GuiHorizontalWeightedLayout::registerChild(GuiElement& guiElement, double weight)
@@ -91,11 +91,11 @@ namespace SnackerEngine
 		return registerChild(guiElement, 1.0);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiHorizontalWeightedLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiHorizontalWeightedLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
-		if (GuiHorizontalLayout::registerChild(guiElement, json, data, parameterNames)) {
+		if (GuiHorizontalLayout::registerChild(guiElement, json, parameterNameSet)) {
 			double weight = 1.0;
-			parseJsonOrReadFromData(weight, "weight", json, data, parameterNames);
+			parseJson(weight, "weight", json, parameterNameSet);
 			onRegisterChild(weight);
 			return true;
 		}

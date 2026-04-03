@@ -43,7 +43,7 @@ namespace SnackerEngine
 		GuiHorizontalLayout(HorizontalLayoutMode horizontalLayoutMode = HorizontalLayoutMode::CHILD_HEIGHT_RANGE)
 			: horizontalLayoutMode(horizontalLayoutMode) {}
 		/// Constructor from JSON
-		GuiHorizontalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiHorizontalLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiHorizontalLayout() {};
 		/// Copy constructor and assignment operator
@@ -57,7 +57,7 @@ namespace SnackerEngine
 		/// Registers a child, using the default alignment
 		virtual bool registerChild(GuiElement& guiElement) override;
 		/// Adds a child to this guiElement, with options given in JSON
-		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
+		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr) override;
 		/// Setters
 		void setHorizontalLayoutMode(HorizontalLayoutMode horizontalLayoutMode) { if (this->horizontalLayoutMode != horizontalLayoutMode) { this->horizontalLayoutMode = horizontalLayoutMode; registerEnforceLayoutDown(); } }
 		void setVerticalBorder(unsigned verticalBorder) { setVerticalBorderTop(verticalBorder); setVerticalBorderBottom(verticalBorder); }

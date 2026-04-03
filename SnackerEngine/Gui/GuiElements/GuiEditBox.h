@@ -77,7 +77,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiEditBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, double lineHeightMultiplier = 1.0, const Color4f& backgroundColor = defaultBackgroundColor);
 		/// Constructor from JSON
-		GuiEditBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiEditBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiEditBox() {};
 		/// Copy constructor and assignment operator

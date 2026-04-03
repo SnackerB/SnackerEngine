@@ -65,7 +65,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiVerticalScrollingListLayout(Color4f backgroundColor = defaultBackgroundColor, Color4f scrollbarColor = defaultScrollbarColor, Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor);
 		/// Constructor from JSON.
-		GuiVerticalScrollingListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiVerticalScrollingListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiVerticalScrollingListLayout() {};
 		/// Copy constructor and assignment operator

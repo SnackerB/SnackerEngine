@@ -324,16 +324,16 @@ namespace SnackerEngine
 	GuiGridLayout::GuiGridLayout(unsigned totalColumns, unsigned totalRows, Mode mode, unsigned border, unsigned outerBorder)
 		: GuiLayout(), totalColumns(totalColumns), totalRows(totalRows), mode(mode), border(border), outerBorder(outerBorder) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiGridLayout::GuiGridLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiLayout(json, data, parameterNames)
+	GuiGridLayout::GuiGridLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiLayout(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(totalColumns, "totalColumns", json, data, parameterNames);
-		parseJsonOrReadFromData(totalRows, "totalRows", json, data, parameterNames);
-		parseJsonOrReadFromData(border, "border", json, data, parameterNames);
-		parseJsonOrReadFromData(outerBorder, "outerBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(mode, "mode", json, data, parameterNames);
-		parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
-		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
+		parseJson(totalColumns, "totalColumns", json, parameterNameSet);
+		parseJson(totalRows, "totalRows", json, parameterNameSet);
+		parseJson(border, "border", json, parameterNameSet);
+		parseJson(outerBorder, "outerBorder", json, parameterNameSet);
+		parseJson(mode, "mode", json, parameterNameSet);
+		parseJson(alignmentHorizontal, "alignmentHorizontal", json, parameterNameSet);
+		parseJson(alignmentVertical, "alignmentVertical", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiGridLayout::GuiGridLayout(const GuiGridLayout& other) noexcept
@@ -396,12 +396,12 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiGridLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiGridLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
 		unsigned row = 0;
 		unsigned column = 0;
-		parseJsonOrReadFromData(row, "row", json, data, parameterNames);
-		parseJsonOrReadFromData(column, "column", json, data, parameterNames);
+		parseJson(row, "row", json, parameterNameSet);
+		parseJson(column, "column", json, parameterNameSet);
 		return registerChild(guiElement, row, column);
 	}
 	//--------------------------------------------------------------------------------------------------

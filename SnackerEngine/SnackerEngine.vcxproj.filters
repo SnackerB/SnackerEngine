@@ -138,15 +138,6 @@
     <ClCompile Include="Gui\GuiElements\GuiWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Gui\GuiEventHandles\GuiEventHandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Gui\GuiEventHandles\GuiHandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Gui\GuiEventHandles\GuiVectorEventHandle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Gui\Layouts\GridLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -226,6 +217,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Gui\Layouts\GuiWrapperLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui\GuiElements\GuiVectorGraphicImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -380,21 +374,6 @@
     <ClInclude Include="Gui\GuiElements\GuiWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Gui\GuiEventHandles\GuiEventHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Gui\GuiEventHandles\GuiHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Gui\GuiEventHandles\GuiVariableHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Gui\GuiEventHandles\GuiVectorEventHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Gui\GuiEventHandles\GuiVectorVariableHandle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Gui\Layouts\GridLayout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -480,6 +459,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gui\GuiElements\GuiSliderBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui\GuiElements\GuiVectorGraphicImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

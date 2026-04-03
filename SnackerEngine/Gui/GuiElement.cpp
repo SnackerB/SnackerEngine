@@ -33,27 +33,27 @@ namespace SnackerEngine
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	GuiElement::GuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 		: GuiElement()
 	{
-		parseJsonOrReadFromData(name, "name", json, data, parameterNames);
-		parseJsonOrReadFromData(position.x, "positionX", json, data, parameterNames);
-		parseJsonOrReadFromData(position.y, "positionY", json, data, parameterNames);
-		parseJsonOrReadFromData(position, "position", json, data, parameterNames);
-		parseJsonOrReadFromData(size.x, "width", json, data, parameterNames);
-		parseJsonOrReadFromData(size.y, "height", json, data, parameterNames);
-		parseJsonOrReadFromData(size, "size", json, data, parameterNames);
-		parseJsonOrReadFromData(resizeMode, "resizeMode", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.minSize.x, "minWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.minSize.y, "minHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.minSize, "minSize", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.maxSize.x, "maxWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.maxSize.y, "maxHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.maxSize, "maxSize", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.preferredSize.x, "preferredWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.preferredSize.y, "preferredHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.preferredSize, "preferredSize", json, data, parameterNames);
-		parseJsonOrReadFromData(clipChildren, "clipChildren", json, data, parameterNames);
+		parseJson(name, "name", json, parameterNameSet);
+		parseJson(position.x, "positionX", json, parameterNameSet);
+		parseJson(position.y, "positionY", json, parameterNameSet);
+		parseJson(position, "position", json, parameterNameSet);
+		parseJson(size.x, "width", json, parameterNameSet);
+		parseJson(size.y, "height", json, parameterNameSet);
+		parseJson(size, "size", json, parameterNameSet);
+		parseJson(resizeMode, "resizeMode", json, parameterNameSet);
+		parseJson(sizeHints.minSize.x, "minWidth", json, parameterNameSet);
+		parseJson(sizeHints.minSize.y, "minHeight", json, parameterNameSet);
+		parseJson(sizeHints.minSize, "minSize", json, parameterNameSet);
+		parseJson(sizeHints.maxSize.x, "maxWidth", json, parameterNameSet);
+		parseJson(sizeHints.maxSize.y, "maxHeight", json, parameterNameSet);
+		parseJson(sizeHints.maxSize, "maxSize", json, parameterNameSet);
+		parseJson(sizeHints.preferredSize.x, "preferredWidth", json, parameterNameSet);
+		parseJson(sizeHints.preferredSize.y, "preferredHeight", json, parameterNameSet);
+		parseJson(sizeHints.preferredSize, "preferredSize", json, parameterNameSet);
+		parseJson(clipChildren, "clipChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::~GuiElement()
@@ -142,7 +142,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiElement::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiElement::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
 		return GuiElement::registerChild(guiElement);
 	}

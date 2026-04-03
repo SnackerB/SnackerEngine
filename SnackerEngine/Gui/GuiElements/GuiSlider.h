@@ -2,17 +2,27 @@
 
 #include "Gui\GuiElements\GuiPanel.h"
 #include "Gui\GuiElements\GuiScaleButton.h"
+#include "Utility\Keys.h"
+
+#ifdef min
+#undef min
+#endif // min
+
+#ifdef max
+#undef max
+#endif // max
 
 namespace SnackerEngine
 {
 
 	template<typename T>
-	class GuiSlider : public GuiPanel
+	class GuiSlider : public GuiElement
 	{
 	public:
 		/// Static default Attributes
 		static Vec2i defaultSliderButtonSize;
 		static Color4f defaultSliderButtonColor;
+		static int defaultBackgroundHeight;
 		static Color4f defaultBackgroundColor;
 	private:
 		class GuiSliderVariableHandle : public VariableHandle<T>
@@ -32,7 +42,61 @@ namespace SnackerEngine
 		GuiSliderVariableHandle value{ this };
 		T minValue{};
 		T maxValue{};
-		GuiScaleButton sliderButton{};
+		/// Special GuiPanel subclass that notifies the parent slider when it is clicked
+		friend class SliderBackgroundPanel;
+		class SliderBackgroundPanel : public GuiPanel {
+		private:
+			friend class GuiSlider;
+			GuiSlider* parentElement;
+		protected:
+			void onRegister() override
+			{
+				signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+			}
+			void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override
+			{
+				if (button == MOUSE_BUTTON_LEFT && action == ACTION_PRESS) parentElement->notifyLeftMouseButtonPressOnSliderBackground();
+			}
+		public:
+			SliderBackgroundPanel(GuiSlider* parentElement)
+				: GuiPanel(), parentElement(parentElement) {}
+			SliderBackgroundPanel(GuiSlider* parentElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+				: GuiPanel(json, parameterNameSet), parentElement(parentElement) {}
+			SliderBackgroundPanel(const SliderBackgroundPanel& other) = delete;
+			SliderBackgroundPanel(SliderBackgroundPanel&& other) = default;
+			SliderBackgroundPanel& operator=(const SliderBackgroundPanel& other) {
+				GuiPanel::operator=(other);
+				return *this;
+			}
+			SliderBackgroundPanel& operator=(SliderBackgroundPanel&& other) = default;
+		};
+		SliderBackgroundPanel sliderBackground{ this };
+		// Special GuiScaleButton subclass that notifies the parent slider when it is clicked
+		friend class SliderScaleButton;
+		class SliderScaleButton : public GuiScaleButton {
+		private:
+			friend class GuiSlider;
+			GuiSlider* parentElement;
+		protected:
+			void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override
+			{
+				GuiScaleButton::callbackMouseButtonOnElement(button, action, mods);
+				if (button == MOUSE_BUTTON_LEFT && action == ACTION_PRESS) parentElement->notifyLeftMouseButtonPressOnSliderButton();
+			}
+		public:
+			SliderScaleButton(GuiSlider* parentElement)
+				: GuiScaleButton(), parentElement(parentElement) {}
+			SliderScaleButton(GuiSlider* parentElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+				: GuiScaleButton(json, parameterNameSet), parentElement(parentElement) {}
+			SliderScaleButton(const SliderScaleButton& other) = delete;
+			SliderScaleButton(SliderScaleButton&& other) = default;
+			SliderScaleButton& operator=(const SliderScaleButton& other) {
+				GuiScaleButton::operator=(other);
+				return *this;
+			}
+			SliderScaleButton& operator=(SliderScaleButton&& other) = default;
+		};
+		SliderScaleButton sliderButton{ this };
 		/// mouse offset when the moving of the slider button started
 		int mouseOffset{};
 	public:
@@ -43,7 +107,7 @@ namespace SnackerEngine
 		GuiSlider(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i());
 		GuiSlider(const T& minValue, const T& maxValue, const T& value);
 		/// Constructor from JSON.
-		GuiSlider(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiSlider(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiSlider() {};
 		/// Copy constructor and assignment operator
@@ -83,10 +147,16 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
+		/// Computes and sets the position and size of the background from the elements size.
+		void computeBackgroundPositionAndSize();
 		/// Computes and sets the position of the slider button from the value
 		void computeSliderButtonPositionFromValue();
 		/// Computes the value according to the slider position and updates the  variable handle
 		void computeValueFromSliderButtonPosition();
+		/// This function is called by the child sliderBackground element when it is clicked
+		void notifyLeftMouseButtonPressOnSliderBackground();
+		/// This function is called by the child sliderButton element when it is slicked
+		void notifyLeftMouseButtonPressOnSliderButton();
 
 		//==============================================================================================
 		// Collisions
@@ -105,22 +175,24 @@ namespace SnackerEngine
 		/// Callback function for mouse motion. Parameter the same as in Scene.h
 		/// position:	position relative to this elements top left corner
 		virtual void callbackMouseMotion(const Vec2d& position) override;
-		/// Callback function for mouse button input on this GuiElement object. Parameters the same as in Scene.h
-		virtual void callbackMouseButtonOnElement(const int& button, const int& action, const int& mods) override;
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline Vec2i GuiSlider<T>::defaultSliderButtonSize = Vec2i(20, 20);
+	inline Vec2i GuiSlider<T>::defaultSliderButtonSize = Vec2i(30, 30);
 	template<typename T>
-	inline Color4f GuiSlider<T>::defaultSliderButtonColor = Color4f(1.0f, 0.0f, 0.0f, 0.5f);
+	inline int GuiSlider<T>::defaultBackgroundHeight(10);
 	template<typename T>
-	inline Color4f GuiSlider<T>::defaultBackgroundColor = Color4f(0.0f, 1.0f);
+	inline Color4f GuiSlider<T>::defaultSliderButtonColor = Color4f(1.0f, 0.0f, 0.0f, 1.0f);
+	template<typename T>
+	inline Color4f GuiSlider<T>::defaultBackgroundColor = Color4f(1.0f, 1.0f, 1.0f, 1.0f);
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const Vec2i& position, const Vec2i& size)
-		: GuiPanel(position, size), sliderButton(Vec2i(), defaultSliderButtonSize, "")
+		: GuiElement(position, size)
 	{
-		setBackgroundColor(defaultBackgroundColor);
+		sliderBackground.setBackgroundColor(defaultBackgroundColor);
+		sliderBackground.setHeight(defaultBackgroundHeight);
+		sliderButton.setSize(defaultSliderButtonSize);
 		sliderButton.setDefaultColor(defaultSliderButtonColor);
 		sliderButton.setHoverColor(defaultSliderButtonColor);
 		sliderButton.setPressedHoverColor(defaultSliderButtonColor);
@@ -131,67 +203,88 @@ namespace SnackerEngine
 	inline GuiSlider<T>::GuiSlider(const T& minValue, const T& maxValue, const T& value)
 		: GuiSlider(Vec2i(), Vec2i()), minValue(minValue), maxValue(maxValue)
 	{
+		sliderBackground.setBackgroundColor(defaultBackgroundColor);
+		sliderBackground.setHeight(defaultBackgroundHeight);
+		sliderButton.setSize(defaultSliderButtonSize);
+		sliderButton.setDefaultColor(defaultSliderButtonColor);
+		sliderButton.setHoverColor(defaultSliderButtonColor);
+		sliderButton.setPressedHoverColor(defaultSliderButtonColor);
+		sliderButton.setPressedColor(defaultSliderButtonColor);
 		this->value.set(value);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiSlider<T>::GuiSlider(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiPanel(json, data, parameterNames)
+	inline GuiSlider<T>::GuiSlider(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiElement(json, parameterNameSet)
 	{
-		if (json.contains("sliderButtonOptions") && json["sliderButtonOptions"].is_object()) {
-			sliderButton = GuiScaleButton(json["sliderButtonOptions"], data, nullptr);
-			parameterNames->erase("sliderButtonOptions"); // TODO: Can we make this recursive, s.t. we also check if everything is read from sliderButtonOptions? This would help in debugging GUI applications.
+		sliderBackground.setBackgroundColor(defaultBackgroundColor);
+		sliderBackground.setHeight(defaultBackgroundHeight);
+		sliderButton.setSize(defaultSliderButtonSize);
+		sliderButton.setDefaultColor(defaultSliderButtonColor);
+		sliderButton.setHoverColor(defaultSliderButtonColor);
+		sliderButton.setPressedHoverColor(defaultSliderButtonColor);
+		sliderButton.setPressedColor(defaultSliderButtonColor);
+		if (json.contains("sliderBackgroundOptions") && json["sliderBackgroundOptions"].is_object()) {
+			sliderBackground = SliderBackgroundPanel(this, json["sliderBackgroundOptions"], parameterNameSet->getNestedParameterNameSet("sliderBackgroundOptions"));
 		}
+		if (json.contains("sliderButtonOptions") && json["sliderButtonOptions"].is_object()) {
+			sliderButton = SliderScaleButton(this, json["sliderButtonOptions"], parameterNameSet->getNestedParameterNameSet("sliderButtonOptions"));
+		}
+		parseJson(minValue, "minValue", json, parameterNameSet);
+		parseJson(maxValue, "maxValue", json, parameterNameSet);
 		T temp{};
-		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
+		parseJson(temp, "value", json, parameterNameSet);
 		value.set(temp);
-		parseJsonOrReadFromData(minValue, "minValue", json, data, parameterNames);
-		parseJsonOrReadFromData(maxValue, "maxValue", json, data, parameterNames);
 		computeSliderButtonPositionFromValue();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(const GuiSlider& other) noexcept
-		: GuiPanel(other), value(this), minValue(other.minValue), maxValue(other.maxValue),
-		sliderButton(other.sliderButton), mouseOffset(0)
+		: GuiElement(other), value(this), minValue(other.minValue), maxValue(other.maxValue), mouseOffset(0)
 	{
 		value.set(other.value);
-		sliderButton.setPosition(Vec2i());
+		sliderBackground = other.sliderBackground;
+		sliderButton = other.sliderButton;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>& GuiSlider<T>::operator=(const GuiSlider& other) noexcept
 	{
-		// TODO: Remove from callback functions
-		GuiPanel::operator=(other);
+		GuiElement::operator=(other);
 		value = GuiSliderVariableHandle(this);
 		value.set(other.value);
 		minValue = other.minValue;
 		maxValue = other.maxValue;
+		sliderBackground = other.sliderBackground;
+		sliderBackground.parentElement = this;
 		sliderButton = other.sliderButton;
-		sliderButton.setPosition(Vec2i());
+		sliderButton.parentElement = this;
 		mouseOffset = 0;
-		// TODO: Register new slider button and compute its position
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>::GuiSlider(GuiSlider&& other) noexcept
-		: GuiPanel(std::move(other)), value(std::move(other.value)), minValue(std::move(other.minValue)),
-		maxValue(std::move(other.maxValue)), sliderButton(std::move(other.sliderButton)),
-		mouseOffset(std::move(other.mouseOffset))
+		: GuiElement(std::move(other)), value(std::move(other.value)), minValue(std::move(other.minValue)),
+		maxValue(std::move(other.maxValue)), sliderBackground(std::move(other.sliderBackground)), 
+		sliderButton(std::move(other.sliderButton)), mouseOffset(std::move(other.mouseOffset))
 	{
 		value.parentElement(this);
+		sliderBackground.parentElement = this;
+		sliderButton.parentElement = this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiSlider<T>& GuiSlider<T>::operator=(GuiSlider&& other) noexcept
 	{
-		GuiPanel::operator=(std::move(other));
+		GuiElement::operator=(std::move(other));
 		value = std::move(other.value);
 		value.parentElement = this;
 		minValue = std::move(other.minValue);
 		maxValue = std::move(other.maxValue);
+		sliderBackground = std::move(other.sliderBackground);
+		sliderBackground.parentElement = this;
 		sliderButton = std::move(other.sliderButton);
+		sliderButton.parentElement = this;
 		mouseOffset = std::move(other.mouseOffset);
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -209,24 +302,38 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiSlider<T>::draw(const Vec2i& worldPosition)
 	{
-		GuiPanel::draw(worldPosition);
-		// No clipping boxes, because the sliderButton may be larger than the background panel
-		drawElement(sliderButton.getGuiID(), worldPosition + sliderButton.getPosition());
+		if (!getGuiManager()) return;
+		if (getClipChildren()) pushClippingBox(worldPosition);
+		sliderBackground.draw(worldPosition + sliderBackground.getPosition());
+		if (getClipChildren()) popClippingBox();
+		// We need to draw the button without a cplipping box, since it is a scale button and get larger than the element.
+		sliderButton.draw(worldPosition + sliderButton.getPosition());
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiSlider<T>::onRegister()
 	{
-		GuiPanel::onRegister();
-		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+		GuiElement::onRegister();
 		computeSliderButtonPositionFromValue();
+		registerChild(sliderBackground);
+		registerChild(sliderButton);
+		onSizeChange();
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiSlider<T>::onSizeChange()
 	{
-		GuiPanel::onSizeChange();
+		GuiElement::onSizeChange();
+		computeBackgroundPositionAndSize();
 		computeSliderButtonPositionFromValue();
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::computeBackgroundPositionAndSize()
+	{
+		sliderBackground.setPositionAndSize(
+			Vec2i(sliderButton.getWidth() / 2, (getHeight() - sliderBackground.getHeight()) / 2),
+			Vec2i(getWidth() - sliderButton.getWidth(), sliderBackground.getHeight()));
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -234,7 +341,8 @@ namespace SnackerEngine
 	{
 		T temp = std::max(minValue, std::min(maxValue, value.get()));
 		double percentage = static_cast<double>(temp - minValue) / (static_cast<double>(maxValue - minValue));
-		sliderButton.setPositionX(std::max(0, static_cast<int>(std::lround(static_cast<double>(getWidth() - sliderButton.getWidth()) * percentage))));
+		sliderButton.setPositionX(static_cast<double>(getWidth() - sliderButton.getWidth()) * percentage);
+		sliderButton.setPositionY((getHeight() - sliderButton.getHeight()) / 2);
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -249,24 +357,58 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
+	inline void GuiSlider<T>::notifyLeftMouseButtonPressOnSliderBackground()
+	{
+		// Bring sliderButton to the clicked position and switch mode s.t. the user can further move the button.
+		mouseOffset = getMouseOffsetX();
+		double percentage = static_cast<double>(mouseOffset - sliderButton.getWidth() / 2) / static_cast<double>(getWidth() - sliderButton.getWidth());
+		T newValue = static_cast<T>(minValue + static_cast<double>(maxValue - minValue) * percentage);
+		setValue(newValue);
+		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_MOTION);
+		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
+		mouseOffset = mouseOffset - sliderButton.getPositionX();
+		sliderButton.setIsBeingPressed(true);
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiSlider<T>::notifyLeftMouseButtonPressOnSliderButton()
+	{
+		// TODO
+		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_MOTION);
+		signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON);
+		mouseOffset = getMouseOffsetX() - sliderButton.getPositionX();
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
 	inline GuiSlider<T>::IsCollidingResult GuiSlider<T>::isColliding(const Vec2i& offset) const
 	{
-		return IsCollidingResult();
+		return IsCollidingResult::COLLIDE_CHILD;
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiSlider<T>::callbackMouseButton(const int& button, const int& action, const int& mods)
 	{
+		if (button == MOUSE_BUTTON_LEFT && action == ACTION_RELEASE) {
+			signOffEvent(CallbackType::MOUSE_MOTION);
+			signOffEvent(CallbackType::MOUSE_BUTTON);
+			computeValueFromSliderButtonPosition();
+			computeSliderButtonPositionFromValue();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline void GuiSlider<T>::callbackMouseMotion(const Vec2d& position)
 	{
+		int newSliderButtonPositionX = getMouseOffsetX() - mouseOffset;
+		if (newSliderButtonPositionX > getWidth() - sliderButton.getWidth()) newSliderButtonPositionX = getWidth() - sliderButton.getWidth();
+		if (newSliderButtonPositionX < 0) newSliderButtonPositionX = 0;
+		sliderButton.setPositionX(newSliderButtonPositionX);
+		computeValueFromSliderButtonPosition();
 	}
 	//--------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline void GuiSlider<T>::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)
-	{
-	}
+	using GuiSliderFloat = GuiSlider<float>;
+	using GuiSliderDouble = GuiSlider<double>;
+	using GuiSliderInt = GuiSlider<int>;
+	using GuiSliderUnsignedInt = GuiSlider<unsigned>;
 	//--------------------------------------------------------------------------------------------------
 }

@@ -142,15 +142,15 @@ namespace SnackerEngine
 		setBackgroundColor(backgroundColor);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiVerticalListLayout::GuiVerticalListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiVerticalLayout(json, data, parameterNames)
+	GuiVerticalListLayout::GuiVerticalListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiVerticalLayout(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
-		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(groupName, "verticalLayoutGroupName", json, data, parameterNames);
-		parseJsonOrReadFromData(outerVerticalBorder, "outerVerticalBorder", json, data, parameterNames);
+		parseJson(alignmentVertical, "alignmentVertical", json, parameterNameSet);
+		parseJson(verticalBorder, "verticalBorder", json, parameterNameSet);
+		parseJson(groupName, "verticalLayoutGroupName", json, parameterNameSet);
+		parseJson(outerVerticalBorder, "outerVerticalBorder", json, parameterNameSet);
 		if (!json.contains("outerVerticalBorder")) outerVerticalBorder = verticalBorder;
-		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
+		parseJson(shrinkHeightToChildren, "shrinkHeightToChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalListLayout::~GuiVerticalListLayout()

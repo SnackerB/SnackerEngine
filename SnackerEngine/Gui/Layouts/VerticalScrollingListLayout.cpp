@@ -18,19 +18,19 @@ namespace SnackerEngine
 	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(Color4f backgroundColor, Color4f scrollbarColor, Color4f scrollbarBackgroundColor)
 		: GuiVerticalListLayout(backgroundColor), scrollbarColor(scrollbarColor), scrollbarBackgroundColor(scrollbarBackgroundColor) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiVerticalListLayout(json, data, parameterNames)
+	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiVerticalListLayout(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(scrollSpeed, "scrollSpeed", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarBackgroundColor, "scrollbarBackgroundColor", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarColor, "scrollbarColor", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarRoundedCorners, "scrollbarRoundedCorners", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarWidth, "scrollbarWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarBorderRight, "scrollbarBorderRight", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarBorderTop, "scrollbarBorderTop", json, data, parameterNames);
-		parseJsonOrReadFromData(scrollbarBorderBottom, "scrollbarBorderBottom", json, data, parameterNames);
-		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
-		parseJsonOrReadFromData(rightBorderWhenScrollbarVisible, "rightBorderWhenScrollbarVisible", json, data, parameterNames);
+		parseJson(scrollSpeed, "scrollSpeed", json, parameterNameSet);
+		parseJson(scrollbarBackgroundColor, "scrollbarBackgroundColor", json, parameterNameSet);
+		parseJson(scrollbarColor, "scrollbarColor", json, parameterNameSet);
+		parseJson(scrollbarRoundedCorners, "scrollbarRoundedCorners", json, parameterNameSet);
+		parseJson(scrollbarWidth, "scrollbarWidth", json, parameterNameSet);
+		parseJson(scrollbarBorderRight, "scrollbarBorderRight", json, parameterNameSet);
+		parseJson(scrollbarBorderTop, "scrollbarBorderTop", json, parameterNameSet);
+		parseJson(scrollbarBorderBottom, "scrollbarBorderBottom", json, parameterNameSet);
+		parseJson(shrinkHeightToChildren, "shrinkHeightToChildren", json, parameterNameSet);
+		parseJson(rightBorderWhenScrollbarVisible, "rightBorderWhenScrollbarVisible", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(const GuiVerticalScrollingListLayout& other) noexcept

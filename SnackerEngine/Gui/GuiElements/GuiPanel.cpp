@@ -12,33 +12,33 @@ namespace SnackerEngine
 	GuiPanel::GuiPanel(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor,
 		const Color4f& borderColor, float roundedCorners, float borderThickness)
 		: GuiElement(position, size, resizeMode), backgroundColor{ backgroundColor },
-		borderColor{ borderColor }, roundedCorners { roundedCorners }, borderThickness{ borderThickness }
+		borderColor{ borderColor }, roundedCorners{ roundedCorners }, borderThickness{ borderThickness }
 	{
 		selectShader();
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiElement(json, data, parameterNames)
+	GuiPanel::GuiPanel(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiElement(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(backgroundColor, "backgroundColor", json, data, parameterNames);
-		parseJsonOrReadFromData(borderColor, "borderColor", json, data, parameterNames);
-		std::optional<Vec4f> roundedCornersVecf = parseJsonOrReadFromData<Vec4f>("roundedCorners", json, data, parameterNames);
+		parseJson(backgroundColor, "backgroundColor", json, parameterNameSet);
+		parseJson(borderColor, "borderColor", json, parameterNameSet);
+		std::optional<Vec4f> roundedCornersVecf = parseJson<Vec4f>("roundedCorners", json, parameterNameSet);
 		if (roundedCornersVecf.has_value()) roundedCorners = roundedCornersVecf.value();
-		std::optional<Vec4i> roundedCornersVeci = parseJsonOrReadFromData<Vec4i>("roundedCorners", json, data, parameterNames);
+		std::optional<Vec4i> roundedCornersVeci = parseJson<Vec4i>("roundedCorners", json, parameterNameSet);
 		if (roundedCornersVeci.has_value()) roundedCorners = static_cast<Vec4f>(roundedCornersVeci.value());
-		std::optional<float> roundedCornersFloat = parseJsonOrReadFromData<float>("roundedCorners", json, data, parameterNames);
+		std::optional<float> roundedCornersFloat = parseJson<float>("roundedCorners", json, parameterNameSet);
 		if (roundedCornersFloat.has_value()) roundedCorners = Vec4f(roundedCornersFloat.value());
-		parseJsonOrReadFromData(roundedCorners[0], "roundedCornersTopLeft", json, data, parameterNames);
-		parseJsonOrReadFromData(roundedCorners[1], "roundedCornersTopRight", json, data, parameterNames);
-		parseJsonOrReadFromData(roundedCorners[2], "roundedCornersBottomRight", json, data, parameterNames);
-		parseJsonOrReadFromData(roundedCorners[3], "roundedCornersBottomLeft", json, data, parameterNames);
-		parseJsonOrReadFromData(borderThickness, "borderThickness", json, data, parameterNames);
+		parseJson(roundedCorners[0], "roundedCornersTopLeft", json, parameterNameSet);
+		parseJson(roundedCorners[1], "roundedCornersTopRight", json, parameterNameSet);
+		parseJson(roundedCorners[2], "roundedCornersBottomRight", json, parameterNameSet);
+		parseJson(roundedCorners[3], "roundedCornersBottomLeft", json, parameterNameSet);
+		parseJson(borderThickness, "borderThickness", json, parameterNameSet);
 		selectShader();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiPanel::GuiPanel(const GuiPanel& other) noexcept
 		: GuiElement(other), backgroundColor(other.backgroundColor), borderColor(other.borderColor),
-		modelMatrix(other.modelMatrix), shader(other.shader), 
+		modelMatrix(other.modelMatrix), shader(other.shader),
 		roundedCorners(other.roundedCorners), borderThickness(other.borderThickness)
 	{
 	}
@@ -56,9 +56,9 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiPanel::GuiPanel(GuiPanel&& other) noexcept
-		: GuiElement(std::move(other)), backgroundColor(std::move(other.backgroundColor)), 
-		borderColor(std::move(other.borderColor)), modelMatrix(std::move(other.modelMatrix)), 
-		shader(std::move(other.shader)), roundedCorners(std::move(other.roundedCorners)), 
+		: GuiElement(std::move(other)), backgroundColor(std::move(other.backgroundColor)),
+		borderColor(std::move(other.borderColor)), modelMatrix(std::move(other.modelMatrix)),
+		shader(std::move(other.shader)), roundedCorners(std::move(other.roundedCorners)),
 		borderThickness(std::move(other.borderThickness))
 	{
 	}
@@ -127,9 +127,9 @@ namespace SnackerEngine
 		selectShader();
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::draw(const Vec2i& worldPosition, const Mat4f& transformMatrix)
+	void GuiPanel::draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale)
 	{
-		drawBackground(worldPosition, transformMatrix);
+		drawBackground(worldPosition, translate, scale);
 		GuiElement::draw(worldPosition);
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -163,12 +163,12 @@ namespace SnackerEngine
 			const Vec2i& size = getSize();
 			if (offset.x < roundedCorners[0] && offset.y < roundedCorners[0]) {
 				// Top left
-				if ((offset - Vec2i(roundedCorners[0], roundedCorners[0])).squaredMagnitude() > roundedCorners[0] * roundedCorners[0]) 
+				if ((offset - Vec2i(roundedCorners[0], roundedCorners[0])).squaredMagnitude() > roundedCorners[0] * roundedCorners[0])
 					return IsCollidingResult::NOT_COLLIDING;
 			}
 			if (result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT && offset.x > size.x - roundedCorners[1] && offset.y < roundedCorners[1]) {
 				// Top right
-				if ((offset- Vec2i(size.x - roundedCorners[1], roundedCorners[1])).squaredMagnitude() > roundedCorners[1] * roundedCorners[1])
+				if ((offset - Vec2i(size.x - roundedCorners[1], roundedCorners[1])).squaredMagnitude() > roundedCorners[1] * roundedCorners[1])
 					return IsCollidingResult::NOT_COLLIDING;
 			}
 			if (result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT && offset.x > size.x - roundedCorners[2] && offset.y > size.y - roundedCorners[2]) {
@@ -345,7 +345,7 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::drawBackground(const Vec2i& worldPosition, const Mat4f& transformMatrix)
+	void GuiPanel::drawBackground(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale)
 	{
 		GuiManager* const& guiManager = getGuiManager();
 		if (!guiManager) return;
@@ -354,7 +354,7 @@ namespace SnackerEngine
 			shader.bind();
 			guiManager->setUniformViewAndProjectionMatrices(shader);
 			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			shader.setUniform<Mat4f>("u_model", translationMatrix * transformMatrix * modelMatrix);
+			shader.setUniform<Mat4f>("u_model", translationMatrix * Mat4f::Translate(Vec3f(translate.x, translate.y, 0.0f)) * modelMatrix * Mat4f::Scale(Vec3f(scale.x, scale.y, 0.0f)));
 			shader.setUniform<Color4f>("u_color", backgroundColor);
 			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
 				shader.setUniform<Vec2f>("u_size", getSize());

@@ -205,7 +205,7 @@ namespace SnackerEngine
 			Mat4f modelMatrix = Mat4f::TranslateAndScale(
 				Vec3f(static_cast<float>(getWidth() - trueDropDownSymbolSize.x - getRightBorder()), static_cast<float>(-trueDropDownSymbolSize.y/2-getHeight()/2), 0.0f),
 				Vec3f(static_cast<float>(trueDropDownSymbolSize.x), static_cast<float>(trueDropDownSymbolSize.y), 0.0f));
-			dropDownSymbolShader.setUniform<Mat4f>("u_model", translationMatrix * getTransformMatrix() * modelMatrix);
+			dropDownSymbolShader.setUniform<Mat4f>("u_model", translationMatrix * Mat4f::Translate(getTranslateBackground()) * modelMatrix * Mat4f::Scale(getScaleBackground()));
 			if (optionListLayout && optionListLayout->isValid()) {
 				dropDownSymbolShader.setUniform<Color4f>("u_color", dropDownSymbolColorOpen);
 				dropDownSymbolTextureOpen.bind();
@@ -285,48 +285,48 @@ namespace SnackerEngine
 		setSizeHintModeMaxSize(SizeHintMode::ARBITRARY);
 	}
 
-	GuiSelectionBox::GuiSelectionBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiScaleButton(json, data, parameterNames)
+	GuiSelectionBox::GuiSelectionBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiScaleButton(json, parameterNameSet)
 	{
 		if (json.contains("options") && json["options"].is_array()) {
 			for (const auto& option : json["options"]) {
 				if (option.is_string()) options.push_back(option);
 			}
-			if (parameterNames) parameterNames->erase("options");
+			if (parameterNameSet) parameterNameSet->parameterNames.erase("options");
 		}
 		std::size_t selectedOptionIndexTemp = 0;
-		parseJsonOrReadFromData(selectedOptionIndexTemp, "selectedOptionIndex", json, data, parameterNames);
+		parseJson(selectedOptionIndexTemp, "selectedOptionIndex", json, parameterNameSet);
 		selectedOptionIndex.set(selectedOptionIndexTemp);
 		if (!options.empty()) selectedOptionIndex.set(std::min(selectedOptionIndex.get(), options.size() - 1));
-		parseJsonOrReadFromData(optionButtonColor, "optionButtonColor", json, data, parameterNames);
-		parseJsonOrReadFromData(optionButtonPressedColor, "optionButtonPressedColor", json, data, parameterNames);
-		parseJsonOrReadFromData(optionButtonHoverColor, "optionButtonHoverColor", json, data, parameterNames);
-		parseJsonOrReadFromData(optionButtonPressedHoverColor, "optionButtonPressedHoverColor", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionButtonColor, "selectedOptionButtonColor", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionButtonPressedColor, "selectedOptionButtonPressedColor", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionButtonHoverColor, "selectedOptionButtonHoverColor", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionButtonPressedHoverColor, "selectedOptionButtonPressedHoverColor", json, data, parameterNames);
-		parseJsonOrReadFromData(optionButtonTextColor, "optionButtonTextColor", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionButtonTextColor, "selectedOptionButtonTextColor", json, data, parameterNames);
+		parseJson(optionButtonColor, "optionButtonColor", json, parameterNameSet);
+		parseJson(optionButtonPressedColor, "optionButtonPressedColor", json, parameterNameSet);
+		parseJson(optionButtonHoverColor, "optionButtonHoverColor", json, parameterNameSet);
+		parseJson(optionButtonPressedHoverColor, "optionButtonPressedHoverColor", json, parameterNameSet);
+		parseJson(selectedOptionButtonColor, "selectedOptionButtonColor", json, parameterNameSet);
+		parseJson(selectedOptionButtonPressedColor, "selectedOptionButtonPressedColor", json, parameterNameSet);
+		parseJson(selectedOptionButtonHoverColor, "selectedOptionButtonHoverColor", json, parameterNameSet);
+		parseJson(selectedOptionButtonPressedHoverColor, "selectedOptionButtonPressedHoverColor", json, parameterNameSet);
+		parseJson(optionButtonTextColor, "optionButtonTextColor", json, parameterNameSet);
+		parseJson(selectedOptionButtonTextColor, "selectedOptionButtonTextColor", json, parameterNameSet);
 		// TODO: Sort in the following parseJSONS
-		parseJsonOrReadFromData(roundedCorners, "roundedCorners", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionHoverButtonScale, "hoverButtonScale", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionPressedHoverButtonScale, "pressedHoverButtonScale", json, data, parameterNames);
-		parseJsonOrReadFromData(selectedOptionPressedButtonScale, "pressedButtonScale", json, data, parameterNames);
-		parseJsonOrReadFromData(dropDownSymbolColorOpen, "dropDownSymbolColorOpen", json, data, parameterNames);
-		parseJsonOrReadFromData(dropDownSymbolColorClosed, "dropDownSymbolColorClosed", json, data, parameterNames);
-		parseJsonOrReadFromData(dropDownSymbolTextureOpen, "dropDownSymbolTextureOpen", json, data, parameterNames);
-		parseJsonOrReadFromData(dropDownSymbolTextureClosed, "dropDownSymbolTextureClosed", json, data, parameterNames);
-		parseJsonOrReadFromData(dropDownSymbolShader, "dropDownSymbolShader", json, data, parameterNames);
-		parseJsonOrReadFromData(drawDropDownSymbol, "drawDropDownSymbol", json, data, parameterNames);
-		parseJsonOrReadFromData(dropDownSymbolSize, "dropDownSymbolSize", json, data, parameterNames);
+		parseJson(roundedCorners, "roundedCorners", json, parameterNameSet);
+		parseJson(selectedOptionHoverButtonScale, "hoverButtonScale", json, parameterNameSet);
+		parseJson(selectedOptionPressedHoverButtonScale, "pressedHoverButtonScale", json, parameterNameSet);
+		parseJson(selectedOptionPressedButtonScale, "pressedButtonScale", json, parameterNameSet);
+		parseJson(dropDownSymbolColorOpen, "dropDownSymbolColorOpen", json, parameterNameSet);
+		parseJson(dropDownSymbolColorClosed, "dropDownSymbolColorClosed", json, parameterNameSet);
+		parseJson(dropDownSymbolTextureOpen, "dropDownSymbolTextureOpen", json, parameterNameSet);
+		parseJson(dropDownSymbolTextureClosed, "dropDownSymbolTextureClosed", json, parameterNameSet);
+		parseJson(dropDownSymbolShader, "dropDownSymbolShader", json, parameterNameSet);
+		parseJson(drawDropDownSymbol, "drawDropDownSymbol", json, parameterNameSet);
+		parseJson(dropDownSymbolSize, "dropDownSymbolSize", json, parameterNameSet);
 		if (!json.contains("sizeHintModeMinSize")) setSizeHintModeMinSize(SizeHintMode::SET_TO_TEXT_SIZE);
 		if (!json.contains("sizeHintModePreferredSize")) setSizeHintModePreferredSize(SizeHintMode::ARBITRARY);
 		if (!json.contains("sizeHintModeMaxSize")) setSizeHintModeMaxSize(SizeHintMode::ARBITRARY);
-		parseJsonOrReadFromData(dividerThickness, "dividerThickness", json, data, parameterNames);
-		parseJsonOrReadFromData(dividerRoundedCorners, "dividerRoundedCorners", json, data, parameterNames);
-		parseJsonOrReadFromData(dividerWidthPercentage, "dividerWidthPercentage", json, data, parameterNames);
-		parseJsonOrReadFromData(dividerColor, "dividerColor", json, data, parameterNames);
+		parseJson(dividerThickness, "dividerThickness", json, parameterNameSet);
+		parseJson(dividerRoundedCorners, "dividerRoundedCorners", json, parameterNameSet);
+		parseJson(dividerWidthPercentage, "dividerWidthPercentage", json, parameterNameSet);
+		parseJson(dividerColor, "dividerColor", json, parameterNameSet);
 	}
 
 	GuiSelectionBox::~GuiSelectionBox()

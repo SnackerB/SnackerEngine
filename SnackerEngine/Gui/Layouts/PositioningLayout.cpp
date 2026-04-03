@@ -41,23 +41,23 @@ namespace SnackerEngine
 		return GuiPositioningLayout::Mode::CENTER;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout::GuiPositioningLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiLayout(json, data, parameterNames), mode(Mode::CENTER)
+	GuiPositioningLayout::GuiPositioningLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiLayout(json, parameterNameSet), mode(Mode::CENTER)
 	{
-		parseJsonOrReadFromData(mode, "mode", json, data, parameterNames);
-		auto border = parseJsonOrReadFromData<int>("border", json, data, parameterNames);
+		parseJson(mode, "mode", json, parameterNameSet);
+		auto border = parseJson<int>("border", json, parameterNameSet);
 		if (border.has_value()) {
 			leftBorder = border.value();
 			rightBorder = border.value();
 			topBorder = border.value();
 			bottomBorder = border.value();
 		}
-		parseJsonOrReadFromData(leftBorder, "leftBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(rightBorder, "rightBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(topBorder, "topBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(bottomBorder, "bottomBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
-		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
+		parseJson(leftBorder, "leftBorder", json, parameterNameSet);
+		parseJson(rightBorder, "rightBorder", json, parameterNameSet);
+		parseJson(topBorder, "topBorder", json, parameterNameSet);
+		parseJson(bottomBorder, "bottomBorder", json, parameterNameSet);
+		parseJson(shrinkWidthToChildren, "shrinkWidthToChildren", json, parameterNameSet);
+		parseJson(shrinkHeightToChildren, "shrinkHeightToChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPositioningLayout::setLeftBorder(int leftBorder)

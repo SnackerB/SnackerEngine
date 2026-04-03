@@ -19,9 +19,8 @@ namespace SnackerEngine
 		: GuiClickableTextBox(Vec2i(0, 0), Vec2i(0, 0), label)
 	{
 	}
-	//--------------------------------------------------------------------------------------------------
-	GuiClickableTextBox::GuiClickableTextBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiTextBox(json, data, parameterNames), observableTextBoxClicked{}
+	GuiClickableTextBox::GuiClickableTextBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiTextBox(json, parameterNameSet), observableTextBoxClicked{}
 	{
 	}
 	//--------------------------------------------------------------------------------------------------

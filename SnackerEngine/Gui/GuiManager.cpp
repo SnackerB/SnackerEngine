@@ -30,6 +30,7 @@
 #include "Gui\GuiElements\GuiClickableTextBox.h"
 #include "Gui\GuiElements\GuiScaleButton.h"
 #include "Gui\Layouts\GuiWrapperLayout.h"
+#include "Gui\GuiElements\GuiVectorGraphicImage.h"
 
 namespace SnackerEngine
 {
@@ -710,6 +711,10 @@ namespace SnackerEngine
 		registerGuiElementType<GuiSliderBoxDouble>("_DOUBLE");
 		registerGuiElementType<GuiSliderBoxInt>("_INT");
 		registerGuiElementType<GuiSliderBoxUnsignedInt>("_UNSIGNED_INT");
+		registerGuiElementType<GuiSliderFloat>("_FLOAT");
+		registerGuiElementType<GuiSliderDouble>("_DOUBLE");
+		registerGuiElementType<GuiSliderInt>("_INT");
+		registerGuiElementType<GuiSliderUnsignedInt>("_UNSIGNED_INT");
 		registerGuiElementType<GuiVerticalListLayout>();
 		registerGuiElementType<GuiVerticalScrollingListLayout>();
 		registerGuiElementType<GuiWindow>();
@@ -755,6 +760,7 @@ namespace SnackerEngine
 		registerGuiElementType<GuiClickableTextBox>();
 		registerGuiElementType<GuiScaleButton>();
 		registerGuiElementType<GuiWrapperLayout>();
+		registerGuiElementType<GuiVectorGraphicImage>();
 		// Initialize static default font
 		GuiElement::defaultFont = Font("fonts/Arial.ttf");
 		// Initialize static default background shader
@@ -773,6 +779,8 @@ namespace SnackerEngine
 		if (resultDropDownSymbolOpen.second) GuiSelectionBox::defaultDropdownSymbolTextureOpen = resultDropDownSymbolOpen.first;
 		/// Initialize static default dropdown symbol shader
 		GuiSelectionBox::defaultDropdownSymbolShader = Shader("shaders/gui/msdfShader.shader");
+		/// Default shader for displaying vector graphics is the msdf shader
+		GuiVectorGraphicImage::defaultVectorGraphicImageShader = Shader("shaders/gui/msdfShader.shader");
 		/// Compute default parameters based on GuiScale
 		double guiScale = Engine::getDPI().y / 250.0;
 		recomputeDefaultGuiElementValues(guiScale);
@@ -789,6 +797,7 @@ namespace SnackerEngine
 		GuiSelectionBox::defaultDropdownSymbolTextureClosed = Texture();
 		GuiSelectionBox::defaultDropdownSymbolTextureOpen = Texture();
 		GuiSelectionBox::defaultDropdownSymbolShader = Shader();
+		GuiVectorGraphicImage::defaultVectorGraphicImageShader = Shader();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiManager(const unsigned int& startingSize)
@@ -925,7 +934,7 @@ namespace SnackerEngine
 		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader)
+	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader) const
 	{
 		shader.setUniform<Mat4f>("u_view", viewMatrix);
 		shader.setUniform<Mat4f>("u_projection", projectionMatrix);
@@ -1011,23 +1020,30 @@ namespace SnackerEngine
 		doClipping = true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::set<std::string> GuiManager::extractParameterNames(const nlohmann::json& json)
+	ParameterNameSet GuiManager::extractParameterNames(const nlohmann::json& json)
 	{
-		std::set<std::string> result;
-		for (const auto& item : json.items()) {
-			result.insert(item.key());
+		ParameterNameSet result;
+		if (!json.is_object()) return result;
+		for (const auto& [key, value] : json.items()) {
+			if (value.is_object()) {
+				result.nestedParameterNameSets.emplace(key, extractParameterNames(value));
+			}
+			else result.parameterNames.insert(key);
 		}
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::printWarningsForUnusedParameterNames(const std::set<std::string>& parameterNames)
+	void GuiManager::printWarningsForUnusedParameterNames(const ParameterNameSet& parameterNameSet, const std::string& prefix)
 	{
-		for (const std::string& name : parameterNames) {
-			warningLogger << LOGGER::BEGIN << "Unused option \"" << name << "\"" << LOGGER::ENDL;
+		for (const std::string& name : parameterNameSet.parameterNames) {
+			warningLogger << LOGGER::BEGIN << "Unused option \"" << prefix + name << "\"" << LOGGER::ENDL;
+		}
+		for (const auto& it : parameterNameSet.nestedParameterNameSets) {
+			printWarningsForUnusedParameterNames(it.second, prefix + it.first + "/");
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
 		if (!json.is_object()) {
 			warningLogger << LOGGER::BEGIN << "Error while parsing JSON file: expected type object, but was " << json.type_name() << LOGGER::ENDL;
@@ -1046,99 +1062,27 @@ namespace SnackerEngine
 			warningLogger << LOGGER::BEGIN << "Tried to parse GuiElement with unknown typeID: " << json["typeID"] << LOGGER::ENDL;
 			return nullptr;
 		}
-		if (parameterNames) parameterNames->erase("typeID");
-		return std::move(it->second(json, data, parameterNames));
+		if (parameterNameSet) parameterNameSet->parameterNames.erase("typeID");
+		return std::move(it->second(json, parameterNameSet));
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadGuiElementAndRegisterAsChild(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement)
-	{
-		std::set<std::string> parameterNames;
-		if (checkForUnusedParameters) parameterNames = extractParameterNames(json);
-		std::unique_ptr<GuiElement> element = loadGuiElement(json, data, &parameterNames);
-		if (!element) return false;
-		if (json.contains("layoutOptions")) {
-			if (json["layoutOptions"].is_object()) {
-				if (checkForUnusedParameters) {
-					std::set<std::string> layoutParameterNames = extractParameterNames(json["layoutOptions"]);
-					parentElement.registerChild(*element, json["layoutOptions"], data, &layoutParameterNames);
-					printWarningsForUnusedParameterNames(layoutParameterNames);
-				}
-				else {
-					parentElement.registerChild(*element, json["layoutOptions"], data);
-				}
-			}
-			else {
-				warningLogger << LOGGER::BEGIN << "\"layoutOptions\" field must be an object containing the layout options, but was of type"
-					<< json["layoutOptions"].type_name() << LOGGER::ENDL;
-				parentElement.registerChild(*element);
-			}
-			if (checkForUnusedParameters) parameterNames.erase("layoutOptions");
-		}
-		else {
-			parentElement.registerChild(*element);
-		}
-		// Parse potential children
-		bool result = true;
-		if (json.contains("children")) {
-			result = loadGuiAndRegisterAsChildren(json["children"], data, *element);
-			if (checkForUnusedParameters) parameterNames.erase("children");
-		}
-		// Check if this element has a name
-		if (json.contains("name")) {
-			if (json["name"].is_string()) {
-				auto it = namedElements.find("name");
-				if (it != namedElements.end()) {
-					warningLogger << LOGGER::BEGIN << "An element with name \"" << json["name"] << "\" was already registered." << LOGGER::ENDL;
-				}
-				else {
-					element->name = json["name"];
-					namedElements.insert({ element->name, element->guiID });
-				}
-			}
-			else {
-				warningLogger << LOGGER::BEGIN << "field \"name\" must be of type string!" << LOGGER::ENDL;
-			}
-			if (checkForUnusedParameters) parameterNames.erase("name");
-		}
-		// Move element to GuiManager
-		moveElementPtr(std::move(element));
-		if (checkForUnusedParameters) printWarningsForUnusedParameterNames(parameterNames);
-		return result;
-	}
-	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadGuiAndRegisterAsChildren(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement)
-	{
-		if (json.is_object()) return loadGuiElementAndRegisterAsChild(json, data, parentElement);
-		if (json.is_array()) {
-			bool result = true;
-			for (const nlohmann::json& child : json) {
-				result &= loadGuiElementAndRegisterAsChild(child, data, parentElement);
-			}
-			return result;
-		}
-		else {
-			warningLogger << LOGGER::BEGIN << "field \"children\" of a GuiElement must be either a GuiElement or an array of GuiElements." << LOGGER::ENDL;
-			return false;
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json, const nlohmann::json* data)
+	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json)
 	{
 		if (checkForUnusedParameters) {
-			std::set<std::string> parameterNames = extractParameterNames(json);
-			std::unique_ptr<GuiElement> element = std::move(loadGuiElement(json, data, &parameterNames));
-			printWarningsForUnusedParameterNames(parameterNames);
+			ParameterNameSet parameterNameSet = extractParameterNames(json);
+			std::unique_ptr<GuiElement> element = std::move(loadGuiElement(json, &parameterNameSet));
+			printWarningsForUnusedParameterNames(parameterNameSet);
 			return std::move(element);
 		}
 		else {
-			return std::move(loadGuiElement(json, data, nullptr));
+			return std::move(loadGuiElement(json, nullptr));
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::vector<std::unique_ptr<GuiElement>> GuiManager::loadGui(const nlohmann::json& json, const nlohmann::json* data)
+	std::vector<std::unique_ptr<GuiElement>> GuiManager::loadGui(const nlohmann::json& json)
 	{
 		if (json.is_object()) {
-			std::unique_ptr<GuiElement> guiElement = std::move(loadGuiElement(json, data));
+			std::unique_ptr<GuiElement> guiElement = std::move(loadGuiElement(json));
 			if (guiElement == nullptr) return std::move(std::vector<std::unique_ptr<GuiElement>>());
 			else {
 				std::vector<std::unique_ptr<GuiElement>> result;
@@ -1150,7 +1094,7 @@ namespace SnackerEngine
 			std::vector<std::unique_ptr<GuiElement>> result;
 			for (const auto& element : json) {
 				if (element.is_object()) {
-					std::unique_ptr<GuiElement> guiElement = loadGuiElement(json, data);
+					std::unique_ptr<GuiElement> guiElement = loadGuiElement(json);
 					if (guiElement == nullptr) {
 						warningLogger << LOGGER::BEGIN << "Failed to parse one of the GuiElements in the array." << LOGGER::ENDL;
 					}
@@ -1170,19 +1114,91 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadAndRegisterJSON(const nlohmann::json& json, const nlohmann::json* data)
+	bool GuiManager::loadAndRegisterJSON(const nlohmann::json& json)
 	{
-		return loadAndRegisterAsChildJSON(json, data, parentElement);
+		return loadAndRegisterAsChildJSON(json, parentElement);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadAndRegisterAsChildJSON(const nlohmann::json& json, const nlohmann::json* data, GuiID parent)
+	bool GuiManager::loadAndRegisterAsChildJSON(const nlohmann::json& json, GuiID parent)
 	{
 		GuiElement* parentElement = getGuiElement(parent);
 		if (!parentElement) {
 			warningLogger << LOGGER::BEGIN << "Tried to register GUI as child of parentElement which does not exist." << LOGGER::ENDL;
 			return false;
 		}
-		return loadGuiAndRegisterAsChildren(json, data, *parentElement);
+		return loadGuiAndRegisterAsChildren(json, *parentElement);
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::loadGuiElementAndRegisterAsChild(const nlohmann::json& json, GuiElement& parentElement)
+	{
+		ParameterNameSet parameterNameSet{};
+		if (checkForUnusedParameters) ParameterNameSet parameterNameSet = extractParameterNames(json);
+		std::unique_ptr<GuiElement> element = loadGuiElement(json, &parameterNameSet);
+		if (!element) return false;
+		if (json.contains("layoutOptions")) {
+			if (json["layoutOptions"].is_object()) {
+				if (checkForUnusedParameters) {
+					ParameterNameSet layoutParameterNames = extractParameterNames(json["layoutOptions"]);
+					parentElement.registerChild(*element, json["layoutOptions"], &layoutParameterNames);
+					printWarningsForUnusedParameterNames(layoutParameterNames);
+				}
+				else {
+					parentElement.registerChild(*element, json["layoutOptions"]);
+				}
+			}
+			else {
+				warningLogger << LOGGER::BEGIN << "\"layoutOptions\" field must be an object containing the layout options, but was of type"
+					<< json["layoutOptions"].type_name() << LOGGER::ENDL;
+				parentElement.registerChild(*element);
+			}
+			if (checkForUnusedParameters) parameterNameSet.parameterNames.erase("layoutOptions");
+		}
+		else {
+			parentElement.registerChild(*element);
+		}
+		// Parse potential children
+		bool result = true;
+		if (json.contains("children")) {
+			result = loadGuiAndRegisterAsChildren(json["children"], *element);
+			if (checkForUnusedParameters) parameterNameSet.parameterNames.erase("children");
+		}
+		// Check if this element has a name
+		if (json.contains("name")) {
+			if (json["name"].is_string()) {
+				auto it = namedElements.find("name");
+				if (it != namedElements.end()) {
+					warningLogger << LOGGER::BEGIN << "An element with name \"" << json["name"] << "\" was already registered." << LOGGER::ENDL;
+				}
+				else {
+					element->name = json["name"];
+					namedElements.insert({ element->name, element->guiID });
+				}
+			}
+			else {
+				warningLogger << LOGGER::BEGIN << "field \"name\" must be of type string!" << LOGGER::ENDL;
+			}
+			if (checkForUnusedParameters) parameterNameSet.parameterNames.erase("name");
+		}
+		// Move element to GuiManager
+		moveElementPtr(std::move(element));
+		if (checkForUnusedParameters) printWarningsForUnusedParameterNames(parameterNameSet);
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::loadGuiAndRegisterAsChildren(const nlohmann::json& json, GuiElement& parentElement)
+	{
+		if (json.is_object()) return loadGuiElementAndRegisterAsChild(json, parentElement);
+		if (json.is_array()) {
+			bool result = true;
+			for (const nlohmann::json& child : json) {
+				result &= loadGuiElementAndRegisterAsChild(child, parentElement);
+			}
+			return result;
+		}
+		else {
+			warningLogger << LOGGER::BEGIN << "field \"children\" of a GuiElement must be either a GuiElement or an array of GuiElements." << LOGGER::ENDL;
+			return false;
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::recomputeDefaultGuiElementValues(double scale)

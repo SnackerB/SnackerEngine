@@ -93,19 +93,19 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiVerticalLayout::GuiVerticalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiLayout(json, data, parameterNames)
+	GuiVerticalLayout::GuiVerticalLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiLayout(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(verticalLayoutMode, "verticalLayoutMode", json, data, parameterNames);
-		parseJsonOrReadFromData(defaultAlignmentHorizontal, "defaultAlignmentHorizontal", json, data, parameterNames);
-		auto horizontalBorder = parseJsonOrReadFromData<unsigned>("horizontalBorder", json, data, parameterNames);
+		parseJson(verticalLayoutMode, "verticalLayoutMode", json, parameterNameSet);
+		parseJson(defaultAlignmentHorizontal, "defaultAlignmentHorizontal", json, parameterNameSet);
+		auto horizontalBorder = parseJson<unsigned>("horizontalBorder", json, parameterNameSet);
 		if (horizontalBorder.has_value()) {
 			this->horizontalBorderLeft = horizontalBorder.value();
 			this->horizontalBorderRight = horizontalBorder.value();
 		}
-		parseJsonOrReadFromData(horizontalBorderLeft, "horizontalBorderLeft", json, data, parameterNames);
-		parseJsonOrReadFromData(horizontalBorderRight, "horizontalBorderRight", json, data, parameterNames);
-		parseJsonOrReadFromData(shrinkWidthToChildren, "shrinkWidthToChildren", json, data, parameterNames);
+		parseJson(horizontalBorderLeft, "horizontalBorderLeft", json, parameterNameSet);
+		parseJson(horizontalBorderRight, "horizontalBorderRight", json, parameterNameSet);
+		parseJson(shrinkWidthToChildren, "shrinkWidthToChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalLayout::GuiVerticalLayout(const GuiVerticalLayout& other) noexcept
@@ -161,11 +161,11 @@ namespace SnackerEngine
 		return registerChild(guiElement, defaultAlignmentHorizontal);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiVerticalLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiVerticalLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
-		if (GuiLayout::registerChild(guiElement, json, data, parameterNames)) {
+		if (GuiLayout::registerChild(guiElement, json, parameterNameSet)) {
 			AlignmentHorizontal alignmentHorizontal = defaultAlignmentHorizontal;
-			parseJsonOrReadFromData(alignmentHorizontal, "alignmentHorizontal", json, data, parameterNames);
+			parseJson(alignmentHorizontal, "alignmentHorizontal", json, parameterNameSet);
 			onRegisterChild(alignmentHorizontal);
 			return true;
 		}

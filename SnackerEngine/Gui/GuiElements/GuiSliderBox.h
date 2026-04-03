@@ -74,7 +74,7 @@ namespace SnackerEngine
 		GuiSliderBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i());
 		GuiSliderBox(const T& minValue, const T& maxValue, const T& value);
 		/// Constructor from JSON.
-		GuiSliderBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiSliderBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiSliderBox() {};
 		/// Copy constructor and assignment operator
@@ -206,17 +206,17 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline GuiSliderBox<T>::GuiSliderBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiTextBox(json, data, parameterNames)
+	inline GuiSliderBox<T>::GuiSliderBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiTextBox(json, parameterNameSet)
 	{
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
-		parseJsonOrReadFromData(sliderButtonWidth, "sliderButtonWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sliderButtonColor, "sliderButtonColor", json, data, parameterNames);
+		parseJson(sliderButtonWidth, "sliderButtonWidth", json, parameterNameSet);
+		parseJson(sliderButtonColor, "sliderButtonColor", json, parameterNameSet);
 		T temp{};
-		parseJsonOrReadFromData(temp, "value", json, data, parameterNames);
+		parseJson(temp, "value", json, parameterNameSet);
 		value.set(temp);
-		parseJsonOrReadFromData(minValue, "minValue", json, data, parameterNames);
-		parseJsonOrReadFromData(maxValue, "maxValue", json, data, parameterNames);
+		parseJson(minValue, "minValue", json, parameterNameSet);
+		parseJson(maxValue, "maxValue", json, parameterNameSet);
 		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
 		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);

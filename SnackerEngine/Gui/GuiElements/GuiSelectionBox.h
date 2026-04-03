@@ -153,7 +153,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiSelectionBox(const std::vector<std::string>& options = {});
 		/// Constructor from JSON
-		GuiSelectionBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiSelectionBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiSelectionBox();
 		/// Copy constructor and assignment operator

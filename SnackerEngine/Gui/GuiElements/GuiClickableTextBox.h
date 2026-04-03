@@ -22,7 +22,7 @@ namespace SnackerEngine
 		GuiClickableTextBox(const Vec2i& position = Vec2i{}, const Vec2i& size = Vec2i{}, const std::string& text = "");
 		GuiClickableTextBox(const std::string& label);
 		/// Constructor from JSON
-		GuiClickableTextBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiClickableTextBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiClickableTextBox();
 		/// Copy constructor and assignment operator
