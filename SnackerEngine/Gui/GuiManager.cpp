@@ -1132,7 +1132,7 @@ namespace SnackerEngine
 	bool GuiManager::loadGuiElementAndRegisterAsChild(const nlohmann::json& json, GuiElement& parentElement)
 	{
 		ParameterNameSet parameterNameSet{};
-		if (checkForUnusedParameters) ParameterNameSet parameterNameSet = extractParameterNames(json);
+		if (checkForUnusedParameters) parameterNameSet = extractParameterNames(json);
 		std::unique_ptr<GuiElement> element = loadGuiElement(json, &parameterNameSet);
 		if (!element) return false;
 		if (json.contains("layoutOptions")) {

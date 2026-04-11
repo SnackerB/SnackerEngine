@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utility/Json.h"
+#include <set>
 
 namespace SnackerEngine
 {
@@ -11,14 +12,16 @@ namespace SnackerEngine
 
 	/// Looks through the json file and tries to replace all string values of the form $STRING$ with values that are stored
 	/// with the key $STRING$ in the lookup sources. If multiple of the lookup sources contain STRING, the first 
-	/// found value is used.
-	void preprocessJsonReplacePlaceholders(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources);
+	/// found value is used. If logUnreadPlaceholders == True, a set of all placeholders that were not found is returned,
+	/// which can be used to e.g. print warnings.
+	std::set<std::string> preprocessJsonReplacePlaceholders(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources, bool logUnreadPlaceholders = true);
 
 	/// Looks through the json file to locate json objects containing the key-value-pair "objectTemplate" : "$STRING$".
 	/// If found, all lookup sources are scanned for the key "STRING", having a json object as its value. All elements
 	/// from this object are then imported into the original object from the input file. If the input file already contains
 	/// a key for a given imported key, the original key is used instead ("overriding" the template). If multiple of the 
-	/// lookup sources contain $STRING$, the first found is used.
-	void preprocessJsonImportObjectTemplates(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources);
+	/// lookup sources contain $STRING$, the first found is used. If logUnreadTemplates == True, a set of all templates that 
+	/// were not found is returned, which can be used to e.g. print warnings.
+	std::set<std::string> preprocessJsonImportObjectTemplates(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources, bool logUnreadTemplates = true);
 
 }

@@ -1,4 +1,5 @@
 #include "JsonPreprocessing.h"
+#include "SnackerEngine\Core\Log.h"
 
 namespace SnackerEngine 
 {
@@ -14,10 +15,14 @@ namespace SnackerEngine
 		}
 	}
 
-	void preprocessJsonReplacePlaceholders(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources)
+	std::set<std::string> preprocessJsonReplacePlaceholders(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources, bool logUnreadPlaceholders)
 	{
+		std::set<std::string> unreadPlaceholders{};
 		if (input.is_array()) {
-			for (auto& item : input) preprocessJsonReplacePlaceholders(item, lookupSources);
+			for (auto& item : input) {
+				std::set<std::string> tempUnreadPlaceholders = preprocessJsonReplacePlaceholders(item, lookupSources, logUnreadPlaceholders);
+				if (logUnreadPlaceholders) unreadPlaceholders.merge(tempUnreadPlaceholders);
+			}
 		}
 		else if (input.is_object()) {
 			for (auto& [key, value] : input.items()) {
@@ -25,18 +30,22 @@ namespace SnackerEngine
 					const std::string& placeholder = value.get_ref<const std::string&>();
 					if (placeholder.starts_with('$') && placeholder.ends_with('$') && placeholder.size() > 2) {
 						auto lookupKey = placeholder.substr(1, placeholder.size() - 2);
+						bool foundPlaceholder = false;
 						for (const auto& ref : lookupSources) {
 							const nlohmann::json& lookupSource = ref.get();
 							if (lookupSource.is_object() && lookupSource.contains(lookupKey)) {
 								value = lookupSource.at(lookupKey);
+								foundPlaceholder = true;
 								break;
 							}
 						}
+						if (!foundPlaceholder && logUnreadPlaceholders) unreadPlaceholders.insert(lookupKey);
 					}
 				}
 				else preprocessJsonReplacePlaceholders(value, lookupSources);
 			}
 		}
+		return unreadPlaceholders;
 	}
 
 	// Helper function that merges templateJson into input recursively. This does not overwrite keys that are alreay present in input.
@@ -57,8 +66,9 @@ namespace SnackerEngine
 		}
 	}
 
-	void preprocessJsonImportObjectTemplates(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources)
+	std::set<std::string> preprocessJsonImportObjectTemplates(nlohmann::json& input, const std::vector<std::reference_wrapper<const nlohmann::json>>& lookupSources, bool logUnreadTemplates)
 	{
+		std::set<std::string> unreadTemplates{};
 		if (input.is_array()) {
 			for (auto& item : input) preprocessJsonImportObjectTemplates(item, lookupSources);
 		}
@@ -69,6 +79,7 @@ namespace SnackerEngine
 					const std::string& placeholder = value.get_ref<const std::string&>();
 					if (placeholder.starts_with('$') && placeholder.ends_with('$') && placeholder.size() > 2) {
 						auto templateName = placeholder.substr(1, placeholder.size() - 2);
+						bool foundTemplate = false;
 						for (const auto& ref : lookupSources) {
 							const nlohmann::json& lookupSource = ref.get();
 							if (lookupSource.is_object() && lookupSource.contains(templateName)) {
@@ -78,14 +89,19 @@ namespace SnackerEngine
 									deepRecursiveMerge(input, templateObject);
 									// Delete the "objectTemplate" name
 									input.erase("objectTemplate");
+									foundTemplate = true;
+									break;
 								}	
-								break;
 							}
+						}
+						if (!foundTemplate && logUnreadTemplates) {
+							unreadTemplates.insert(std::string(templateName));
 						}
 					}
 				}
 			}
 			for (auto& item : input) preprocessJsonImportObjectTemplates(item, lookupSources);
 		}
+		return unreadTemplates;
 	}
 }

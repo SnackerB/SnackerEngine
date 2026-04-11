@@ -182,7 +182,7 @@ namespace SnackerEngine
 		if (!guiManager) return;;
 		Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
 		// Draw background
-		if (rotationAngle == 0.0f) GuiPanel::draw(worldPosition); // TODO: Currently we draw noe background if the image is rotated. Fix this in the future by also drawing a rotated background!
+		if (rotationAngle == 0.0f) GuiPanel::draw(worldPosition); // TODO: Currently we draw no background if the image is rotated. Fix this in the future by also drawing a rotated background!
 		// Draw image
 		imageShader.bind();
 		guiManager->setUniformViewAndProjectionMatrices(imageShader);
