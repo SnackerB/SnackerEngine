@@ -1,8 +1,10 @@
 #include "Formatting.h"
 
 #include <string>
-#include <vector>
 #include <cstdint>
+#include <charconv>
+
+#include <iostream>
 
 namespace SnackerEngine
 {
@@ -58,79 +60,61 @@ namespace SnackerEngine
 	template<>
 	std::optional<float> from_string(std::string_view string_view)
 	{
-		try
-		{
-			return std::stof(string_view.data());
-		}
-		catch (const std::exception&)
-		{
-			return {};
-		}
+		float value{};
+		std::from_chars_result result = std::from_chars(string_view.data(), string_view.data() + string_view.size(), value);
+		if (result.ec != std::errc{} || result.ptr != string_view.data() + string_view.size())
+			return std::nullopt;
+		return value;
 	}
 
 	template<>
 	std::optional<double> from_string(std::string_view string_view)
 	{
-		try
-		{
-			return std::stod(string_view.data());
-		}
-		catch (const std::exception&)
-		{
-			return {};
-		}
+		double value{};
+		std::from_chars_result result = std::from_chars(string_view.data(), string_view.data() + string_view.size(), value);
+		if (result.ec != std::errc{} || result.ptr != string_view.data() + string_view.size())
+			return std::nullopt;
+		return value;
 	}
 
 	template<>
 	std::optional<int> from_string(std::string_view string_view)
 	{
-		try
-		{
-			return std::stoi(string_view.data());
-		}
-		catch (const std::exception&)
-		{
-			return {};
-		}
+		int value{};
+		std::from_chars_result result = std::from_chars(string_view.data(), string_view.data() + string_view.size(), value);
+		if (result.ec != std::errc{} || result.ptr != string_view.data() + string_view.size())
+			return std::nullopt;
+		return value;
 	}
 
 	template<>
 	std::optional<long long int> from_string(std::string_view string_view)
 	{
-		try
-		{
-			return std::stoll(string_view.data());
-		}
-		catch (const std::exception&)
-		{
-			return {};
-		}
+		long long int value{};
+		std::from_chars_result result = std::from_chars(string_view.data(), string_view.data() + string_view.size(), value);
+		if (result.ec != std::errc{} || result.ptr != string_view.data() + string_view.size())
+			return std::nullopt;
+		return value;
 	}
 
 	template<>
 	std::optional<unsigned int> from_string(std::string_view string_view)
 	{
-		try
-		{
-			return static_cast<unsigned>(std::stoul(string_view.data()));
-		}
-		catch (const std::exception&)
-		{
-			return {};
-		}
+		unsigned int value{};
+		std::from_chars_result result = std::from_chars(string_view.data(), string_view.data() + string_view.size(), value);
+		if (result.ec != std::errc{} || result.ptr != string_view.data() + string_view.size())
+			return std::nullopt;
+		return value;
 	}
 
 	template <>
 	std::optional<std::size_t> from_string(std::string_view string_view)
 	{
-		try
-		{
-			return static_cast<std::size_t>(std::stoul(string_view.data()));
-		}
-		catch (const std::exception&)
-		{
-			return {};
-		}
+		std::size_t value{};
+		std::from_chars_result result = std::from_chars(string_view.data(), string_view.data() + string_view.size(), value);
+		if (result.ec != std::errc{} || result.ptr != string_view.data() + string_view.size())
+			return std::nullopt;
+		return value;
 	}
 
 	char digitToChar(int digit) {

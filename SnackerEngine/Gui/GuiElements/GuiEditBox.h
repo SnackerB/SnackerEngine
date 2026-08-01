@@ -55,6 +55,8 @@ namespace SnackerEngine
 		std::string placeholderText = "";
 		/// Color of the placeholder text
 		Color4f placeholderTextColor = defaultPlaceholderTextColor;
+		/// Whether to deselect the text box after enter was pressed (only available in single line mode)
+		bool deselectWhenEnterWasPressed = true;
 		/// Helper functions for computing textOffsrt and cursorOffset
 		void computeTextOffsetAndCursorOffset(); // Full recompute
 		void computeTextOffsetAndCursorOffsetKeepTextOffset(); // Try to keep textOffset

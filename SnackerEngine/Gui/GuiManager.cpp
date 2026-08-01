@@ -196,7 +196,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::enforceLayouts()
 	{
-		for (std::size_t tries = 0; tries < 5; tries++) {
+		for (std::size_t tries = 0; tries < 10; tries++) {
 			if (enforceLayoutQueueUp.empty() && enforceLayoutQueueDown.empty()) break;
 			/// First go from bottom to top and enforce all layouts
 			std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueUpTemp = std::move(enforceLayoutQueueUp);
@@ -1138,9 +1138,10 @@ namespace SnackerEngine
 		if (json.contains("layoutOptions")) {
 			if (json["layoutOptions"].is_object()) {
 				if (checkForUnusedParameters) {
-					ParameterNameSet layoutParameterNames = extractParameterNames(json["layoutOptions"]);
-					parentElement.registerChild(*element, json["layoutOptions"], &layoutParameterNames);
-					printWarningsForUnusedParameterNames(layoutParameterNames);
+					ParameterNameSet* layoutParameterNames = nullptr;
+					auto it = parameterNameSet.nestedParameterNameSets.find("layoutOptions");
+					if (it != parameterNameSet.nestedParameterNameSets.end()) layoutParameterNames = &(it->second);
+					parentElement.registerChild(*element, json["layoutOptions"], layoutParameterNames);
 				}
 				else {
 					parentElement.registerChild(*element, json["layoutOptions"]);

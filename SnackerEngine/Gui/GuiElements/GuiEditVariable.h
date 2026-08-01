@@ -27,6 +27,9 @@ namespace SnackerEngine
 		};
 		/// Handle to the current value
 		GuiEditVariableVariableHandle value{ this };
+		/// Minimum and maximum value
+		std::optional<T> minValue = std::nullopt;
+		std::optional<T> maxValue = std::nullopt;
 		/// The formatter used to format the text
 		std::unique_ptr<Formatter<T>> formatter = nullptr;
 		/// Helper function that updates the text
@@ -55,10 +58,14 @@ namespace SnackerEngine
 		GuiEditVariable& operator=(GuiEditVariable&& other) noexcept;
 		/// Getters
 		const T& getValue() const { return value; }
+		const std::optional<T>& getMinValue() const { return minValue; }
+		const std::optional<T>& getMaxValue() const { return maxValue; }
 		const std::unique_ptr<Formatter<T>>& getFormatter() const { return formatter; }
 		VariableHandle<T>& getVariableHandle() { return value; }
 		/// Setters
 		void setValue(const T& value);
+		void setMinValue(const std::optional<T>& minValue);
+		void setMaxValue(const std::optional<T>& maxValue);
 		void setFormatter(std::unique_ptr<Formatter<T>>&& formatter) { this->formatter = std::move(formatter); }
 		//==============================================================================================
 		// Animatables
@@ -79,11 +86,11 @@ namespace SnackerEngine
 	{
 		if (formatter) {
 			std::optional<T> result = formatter->from_string(getText());
-			if (result.has_value()) value.set(result.value());
+			if (result.has_value()) setValue(result.value());
 		}
 		else {
 			std::optional<T> result = from_string<T>(getText());
-			if (result.has_value()) value.set(result.value());
+			if (result.has_value()) setValue(result.value());
 		}
 		updateText();
 	}
@@ -113,9 +120,15 @@ namespace SnackerEngine
 	inline GuiEditVariable<T>::GuiEditVariable(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 		: GuiEditBox(json, parameterNameSet)
 	{
+		std::optional<T> minValue = parseJson<T>("minValue", json, parameterNameSet);
+		this->minValue = minValue;
+		if (minValue.has_value() && this->value.get() < minValue.value()) this->value.set(minValue.value());
+		std::optional<T> maxValue = parseJson<T>("maxValue", json, parameterNameSet);
+		this->maxValue = maxValue;
+		if (maxValue.has_value() && this->value.get() > maxValue.value()) this->value.set(maxValue.value());
 		T temp{};
 		parseJson(temp, "value", json, parameterNameSet);
-		value.set(temp);
+		setValue(temp);
 		if (!json.contains("parseMode")) setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		if (!json.contains("alignmentHorizontal")) setAlignmentHorizontal(AlignmentHorizontal::CENTER);
 		if (!json.contains("alignmentVertical")) setAlignmentVertical(AlignmentVertical::CENTER);
@@ -124,7 +137,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(const GuiEditVariable& other) noexcept
-		: GuiEditBox(other), value(other.value),
+		: GuiEditBox(other), value(other.value), minValue(other.minValue), maxValue(other.maxValue),
 		formatter(other.formatter ? std::make_unique(*other.formatter) : nullptr) {}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -132,6 +145,8 @@ namespace SnackerEngine
 	{
 		GuiEditBox::operator=(other);
 		value = other.value;
+		minValue = other.minValue;
+		maxValue = other.maxValue;
 		formatter = other.formatter ? std::make_unique(*other.formatter) : nullptr;
 		return *this;
 	}
@@ -139,7 +154,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline GuiEditVariable<T>::GuiEditVariable(GuiEditVariable&& other) noexcept
 		: GuiEditBox(std::move(other)), value(std::move(other.value)),
-		formatter(std::move(other.formatter))
+		minValue(std::move(other.minValue)), maxValue(std::move(other.maxValue)), formatter(std::move(other.formatter))
 	{
 		value.parentElement = this;
 	}
@@ -149,6 +164,8 @@ namespace SnackerEngine
 	{
 		GuiEditBox::operator=(std::move(other));
 		value = std::move(other.value);
+		minValue = std::move(other.minValue);
+		maxValue = std::move(other.maxValue);
 		value.parentElement = this;
 		formatter = std::move(other.formatter);
 		return *this;
@@ -157,9 +174,33 @@ namespace SnackerEngine
 	template<typename T>
 	inline void GuiEditVariable<T>::setValue(const T& value)
 	{
-		if (this->value != value) {
-			this->value.set(value);
+		if (this->value.get() != value) {
+			if (minValue.has_value() && value < minValue.value()) this->value.set(minValue.value());
+			else if (maxValue.has_value() && value > maxValue.value()) this->value.set(maxValue.value());
+			else this->value.set(value);
 			updateText();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiEditVariable<T>::setMinValue(const std::optional<T>& minValue)
+	{
+		if (this->minValue != minValue) {
+			this->minValue = minValue;
+			if (minValue.has_value() && this->value < minValue.value()) {
+				setValue(minValue.value());
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	template<typename T>
+	inline void GuiEditVariable<T>::setMaxValue(const std::optional<T>& maxValue)
+	{
+		if (this->maxValue != maxValue) {
+			this->maxValue = maxValue;
+			if (maxValue.has_value() && this->value > maxValue.value()) {
+				setValue(maxValue.value());
+			}
 		}
 	}
 	//--------------------------------------------------------------------------------------------------

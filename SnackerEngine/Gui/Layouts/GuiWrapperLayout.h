@@ -16,9 +16,6 @@ namespace SnackerEngine
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_WRAPPER_LAYOUT";
 		virtual std::string_view getTypeName() const override { return typeName; }
-		/// Default constructor
-		GuiWrapperLayout(int border);
-		GuiWrapperLayout(int leftBorder, int rightBorder, int topBorder, int bottomBorder);
 		/// Constructor from JSON
 		GuiWrapperLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		// Copy constructor and assignment operator

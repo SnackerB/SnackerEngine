@@ -281,7 +281,7 @@ namespace SnackerEngine
 	{
 		if (!scrollbar || !scrollbarBackground) return;
 		int scrollbarPositionX = getWidth() - scrollbarBorderRight - scrollbarWidth;
-		int scrollbarBackgroundPositionY = scrollbarBorderBottom;
+		int scrollbarBackgroundPositionY = scrollbarBorderTop;
 		int scrollbarBackgroundHeight = std::max(0, getHeight() - static_cast<int>(scrollbarBorderTop) - static_cast<int>(scrollbarBorderBottom));
 		scrollbarBackground->setPositionAndSize(Vec2i(scrollbarPositionX, scrollbarBackgroundPositionY), Vec2i(scrollbarWidth, scrollbarBackgroundHeight));
 		scrollbar->setPositionAndSize(Vec2i(scrollbarPositionX, scrollbarBackgroundPositionY + offsetPercentage * static_cast<float>(scrollbarBackgroundHeight)),
@@ -350,7 +350,7 @@ namespace SnackerEngine
 		}
 		else GuiVerticalLayout::enforceLayout();
 		// Go through all children, positioning them and resizing them to their preferredHeights/minHeights!
-		int currentYOffset = getVerticalBorder();
+		int currentYOffset = getOuterVerticalBorder();
 		const auto& children = getChildren();
 		for (GuiID childID : children) {
 			GuiElement* child = getElement(childID);

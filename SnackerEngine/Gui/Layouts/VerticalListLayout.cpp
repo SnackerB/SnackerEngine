@@ -129,7 +129,7 @@ namespace SnackerEngine
 				}
 			}
 		}
-		int totalBorders = 2 * outerVerticalBorder + static_cast<int>((getChildren().size() - 1)) * verticalBorder;
+		int totalBorders = 2 * outerVerticalBorder + static_cast<int>((getChildren().size()) - 1) * verticalBorder;
 		totalMinHeight += totalBorders;
 		if (totalPreferredHeight >= 0) totalPreferredHeight += totalBorders;
 		setMinHeight(totalMinHeight);

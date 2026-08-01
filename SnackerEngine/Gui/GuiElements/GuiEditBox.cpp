@@ -182,6 +182,7 @@ namespace SnackerEngine
 		parseJson(repositionTextToFitCursor, "repositionTextToFitCursor", json, parameterNameSet);
 		parseJson(placeholderText, "placeholderText", json, parameterNameSet);
 		parseJson(placeholderTextColor, "placeholderTextColor", json, parameterNameSet);
+		parseJson(deselectWhenEnterWasPressed, "deselectWhenEnterWasPressed", json, parameterNameSet);
 		std::optional<double> cursorBlinkTime = parseJson<double>("cursorBlinkTime", json, parameterNameSet);
 		if (cursorBlinkTime.has_value()) cursorBlinkingTimer.setTimeStep(cursorBlinkTime.value());
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
@@ -192,7 +193,8 @@ namespace SnackerEngine
 		active(false), cursorIsVisible(false),
 		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor{}, modelMatricesSelectionBoxes{},
 		eventTextWasEdited{}, eventEnterWasPressed{}, displayPlaceholderText{ false },
-		placeholderText(other.placeholderText), placeholderTextColor(other.placeholderTextColor) {}
+		placeholderText(other.placeholderText), placeholderTextColor(other.placeholderTextColor),
+		deselectWhenEnterWasPressed(other.deselectWhenEnterWasPressed) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox& GuiEditBox::operator=(const GuiEditBox& other) noexcept
 	{
@@ -210,6 +212,7 @@ namespace SnackerEngine
 		displayPlaceholderText = false;
 		placeholderText = other.placeholderText;
 		placeholderTextColor = other.placeholderTextColor;
+		deselectWhenEnterWasPressed = other.deselectWhenEnterWasPressed;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -237,12 +240,25 @@ namespace SnackerEngine
 	void GuiEditBox::setText(const std::string& text)
 	{
 		if (text.empty()) {
-			displayPlaceholderText = true;
-			GuiTextBox::setText(placeholderText);
+			if (active) {
+				displayPlaceholderText = false;
+				GuiTextBox::setText("");
+			}
+			else {
+				displayPlaceholderText = true;
+				GuiTextBox::setText(placeholderText);
+			}
 		}
 		else {
 			displayPlaceholderText = false;
 			GuiTextBox::setText(text);
+		}
+		if (active) {
+			computeTextOffsetAndCursorOffset();
+			computeModelMatrixCursor();
+			computeModelMatricesSelectionBoxes();
+			cursorBlinkingTimer.reset();
+			cursorIsVisible = true;
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -457,16 +473,18 @@ namespace SnackerEngine
 			else if (key == KEY_ENTER) {
 				if (dynamicText->getParseMode() == StaticText::ParseMode::SINGLE_LINE) {
 					// Special single line-mode
-					active = false;
-					cursorIsVisible = false;
-					signOffEvent(CallbackType::CHARACTER_INPUT);
-					signOffEvent(CallbackType::KEYBOARD);
-					signOffEvent(CallbackType::UPDATE);
-					signOffEvent(CallbackType::MOUSE_BUTTON);
-					signOffEvent(CallbackType::MOUSE_MOTION);
+					eventEnterWasPressed.trigger();
+					if (deselectWhenEnterWasPressed) {
+						active = false;
+						cursorIsVisible = false;
+						signOffEvent(CallbackType::CHARACTER_INPUT);
+						signOffEvent(CallbackType::KEYBOARD);
+						signOffEvent(CallbackType::UPDATE);
+						signOffEvent(CallbackType::MOUSE_BUTTON);
+						signOffEvent(CallbackType::MOUSE_MOTION);
+					}
 					OnTextEdit();
 					computeTextOffsetAndCursorOffset();
-					eventEnterWasPressed.trigger();
 					// Kill selection
 					static_cast<EditableText&>(*dynamicText).setSelectionIndexToCursor();
 				}

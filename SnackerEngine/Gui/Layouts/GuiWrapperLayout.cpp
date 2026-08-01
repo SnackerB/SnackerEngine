@@ -3,14 +3,6 @@
 namespace SnackerEngine
 {
 
-	SnackerEngine::GuiWrapperLayout::GuiWrapperLayout(int border)
-	{
-	}
-
-	SnackerEngine::GuiWrapperLayout::GuiWrapperLayout(int leftBorder, int rightBorder, int topBorder, int bottomBorder)
-	{
-	}
-
 	GuiWrapperLayout::GuiWrapperLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 		: GuiLayout(json, parameterNameSet)
 	{
