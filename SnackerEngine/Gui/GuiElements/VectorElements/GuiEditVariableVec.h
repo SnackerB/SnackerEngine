@@ -20,7 +20,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiEditVariableVec(const VecT& value = VecT{});
 		/// Constructor from JSON
-		GuiEditVariableVec(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiEditVariableVec(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 	public:
 		/// Getters
 		const Color4f& getSelectionBoxColor() const { return static_cast<std::unique_ptr<GuiEditBox>>(this->components[0])->getSelectionBoxColor(); }
@@ -58,11 +58,11 @@ namespace SnackerEngine
 	}
 	//--------------------------------------------------------------------------------------------------
 	template<typename T, typename VecT, unsigned N>
-	inline GuiEditVariableVec<T, VecT, N>::GuiEditVariableVec(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiVariableVec<T, VecT, N>(json, data, parameterNames)
+	inline GuiEditVariableVec<T, VecT, N>::GuiEditVariableVec(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiVariableVec<T, VecT, N>(json, parameterNameSet)
 	{
 		setupComponents();
-		GuiEditVariableVec<T, VecT, N>::parseJSON(json, data, parameterNames);
+		GuiEditVariableVec<T, VecT, N>::parseJSON(json, parameterNameSet);
 		if (!json.contains("SizeHintModePreferredSize")) this->setSizeHintModePreferredSize(GuiTextBox::SizeHintMode::SET_TO_TEXT_HEIGHT);
 		if (!json.contains("preferredSize") && !json.contains("preferredWidth")) this->setPreferredWidth(SIZE_HINT_AS_LARGE_AS_POSSIBLE);
 	}
@@ -78,8 +78,8 @@ namespace SnackerEngine
 		GuiEditVariableVec2(const Vec2<T>& value = Vec2<T>{})
 			: GuiEditVariableVec<T, Vec2<T>, 2>(value) {}
 		/// Constructor from JSON
-		GuiEditVariableVec2(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
-			: GuiEditVariableVec<T, Vec2<T>, 2>(json, data, parameterNames) {}
+		GuiEditVariableVec2(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiEditVariableVec<T, Vec2<T>, 2>(json, parameterNameSet) {}
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -93,8 +93,8 @@ namespace SnackerEngine
 		GuiEditVariableVec3(const Vec3<T>& value = Vec3<T>{})
 			: GuiEditVariableVec<T, Vec3<T>, 3>(value) {}
 		/// Constructor from JSON
-		GuiEditVariableVec3(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
-			: GuiEditVariableVec<T, Vec3<T>, 3>(json, data, parameterNames) {}
+		GuiEditVariableVec3(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiEditVariableVec<T, Vec3<T>, 3>(json, parameterNameSet) {}
 	};
 	//--------------------------------------------------------------------------------------------------
 	template<typename T>
@@ -108,8 +108,8 @@ namespace SnackerEngine
 		GuiEditVariableVec4(const Vec4<T>& value = Vec4<T>{})
 			: GuiEditVariableVec<T, Vec4<T>, 4>(value) {}
 		/// Constructor from JSON
-		GuiEditVariableVec4(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr)
-			: GuiEditVariableVec<T, Vec4<T>, 4>(json, data, parameterNames) {}
+		GuiEditVariableVec4(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr)
+			: GuiEditVariableVec<T, Vec4<T>, 4>(json, parameterNameSet) {}
 	};
 	//--------------------------------------------------------------------------------------------------
 	using GuiEditVariableVec2f = GuiEditVariableVec2<float>;

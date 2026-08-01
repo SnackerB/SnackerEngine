@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -204,16 +204,16 @@
     <ClCompile Include="Gui\GuiElements\GuiEditBox.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiImage.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiPanel.cpp" />
+    <ClCompile Include="Gui\GuiElements\GuiScaleButton.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiSelectionBox.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiTextBox.cpp" />
+    <ClCompile Include="Gui\GuiElements\GuiVectorGraphicImage.cpp" />
     <ClCompile Include="Gui\GuiElements\GuiWindow.cpp" />
     <ClCompile Include="Gui\GuiElements\VectorElements\GuiVariableVec.cpp" />
-    <ClCompile Include="Gui\GuiEventHandles\GuiEventHandle.cpp" />
-    <ClCompile Include="Gui\GuiEventHandles\GuiHandle.cpp" />
-    <ClCompile Include="Gui\GuiEventHandles\GuiVectorEventHandle.cpp" />
     <ClCompile Include="Gui\GuiLayout.cpp" />
     <ClCompile Include="Gui\GuiManager.cpp" />
     <ClCompile Include="Gui\Layouts\GridLayout.cpp" />
+    <ClCompile Include="Gui\Layouts\GuiWrapperLayout.cpp" />
     <ClCompile Include="Gui\Layouts\HorizontalLayout.cpp" />
     <ClCompile Include="Gui\Layouts\HorizontalListLayout.cpp" />
     <ClCompile Include="Gui\Layouts\HorizontalWeightedLayout.cpp" />
@@ -224,6 +224,7 @@
     <ClCompile Include="Gui\Layouts\VerticalWeightedLayout.cpp" />
     <ClCompile Include="Gui\SizeHints.cpp" />
     <ClCompile Include="Gui\Text\Font.cpp" />
+    <ClCompile Include="Gui\Text\FontData.cpp" />
     <ClCompile Include="Gui\Text\Glyph.cpp" />
     <ClCompile Include="Gui\Text\Text.cpp" />
     <ClCompile Include="Gui\Text\TextMaterial.cpp" />
@@ -279,23 +280,22 @@
     <ClInclude Include="Gui\GuiElements\GuiEditVariable.h" />
     <ClInclude Include="Gui\GuiElements\GuiImage.h" />
     <ClInclude Include="Gui\GuiElements\GuiPanel.h" />
+    <ClInclude Include="Gui\GuiElements\GuiScaleButton.h" />
     <ClInclude Include="Gui\GuiElements\GuiSelectionBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiSlider.h" />
+    <ClInclude Include="Gui\GuiElements\GuiSliderBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiTextBox.h" />
     <ClInclude Include="Gui\GuiElements\GuiTextVariable.h" />
+    <ClInclude Include="Gui\GuiElements\GuiVectorGraphicImage.h" />
     <ClInclude Include="Gui\GuiElements\GuiWindow.h" />
     <ClInclude Include="Gui\GuiElements\VectorElements\GuiEditVariableVec.h" />
-    <ClInclude Include="Gui\GuiElements\VectorElements\GuiSliderVec.h" />
+    <ClInclude Include="Gui\GuiElements\VectorElements\GuiSliderBoxVec.h" />
     <ClInclude Include="Gui\GuiElements\VectorElements\GuiVariableVec.h" />
-    <ClInclude Include="Gui\GuiEventHandles\GuiEventHandle.h" />
-    <ClInclude Include="Gui\GuiEventHandles\GuiHandle.h" />
-    <ClInclude Include="Gui\GuiEventHandles\GuiVariableHandle.h" />
-    <ClInclude Include="Gui\GuiEventHandles\GuiVectorEventHandle.h" />
-    <ClInclude Include="Gui\GuiEventHandles\GuiVectorVariableHandle.h" />
     <ClInclude Include="Gui\GuiID.h" />
     <ClInclude Include="Gui\GuiLayout.h" />
     <ClInclude Include="Gui\GuiManager.h" />
     <ClInclude Include="Gui\Layouts\GridLayout.h" />
+    <ClInclude Include="Gui\Layouts\GuiWrapperLayout.h" />
     <ClInclude Include="Gui\Layouts\HorizontalLayout.h" />
     <ClInclude Include="Gui\Layouts\HorizontalListLayout.h" />
     <ClInclude Include="Gui\Layouts\HorizontalWeightedLayout.h" />
@@ -306,6 +306,7 @@
     <ClInclude Include="Gui\Layouts\VerticalWeightedLayout.h" />
     <ClInclude Include="Gui\SizeHints.h" />
     <ClInclude Include="Gui\Text\Font.h" />
+    <ClInclude Include="Gui\Text\FontData.h" />
     <ClInclude Include="Gui\Text\Glyph.h" />
     <ClInclude Include="Gui\Text\Text.h" />
     <ClInclude Include="Gui\Text\TextMaterial.h" />

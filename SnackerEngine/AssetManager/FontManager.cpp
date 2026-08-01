@@ -7,6 +7,7 @@
 #include "Core/Engine.h"
 #include "Gui/Text/Unicode.h"
 #include "Core\Assert.h"
+#include "Gui\Text\FontData.h"
 
 #include <fstream>
 #include <msdfgen.h>
@@ -20,15 +21,9 @@
 
 namespace SnackerEngine
 {
-    //======================================================================================================
-    // FontData implementation
-    //======================================================================================================
-    FontManager::FontData::~FontData() { }
-    //------------------------------------------------------------------------------------------------------
-    void FontManager::FontData::bind(const unsigned int& slot)
-    {
-        msdfTexture.bind(slot);
-    }
+    /// Vector that stores all FontData structs. FontIDs are indices into this vector
+    static std::vector<FontData> fontDataArray{};
+    
     //======================================================================================================
     // Helper functions for loading and updating fonts
     //======================================================================================================
@@ -88,6 +83,10 @@ namespace SnackerEngine
         {
             // Resize vector and add new available shaderID slots accordingly. For now: double size everytime this happens and send warning!
             fontDataArray.resize(static_cast<std::size_t>(maxFonts) * 2 + 1);
+            fontHandles.resize(static_cast<std::size_t>(maxFonts) * 2 + 1, nullptr);
+            for (unsigned int i = 0; i < loadedFontsCount; ++i) {
+                fontDataArray[i].fontGeometry.glyphs = &fontDataArray[i].glyphs;
+            }
             for (FontID id = maxFonts + 1; id <= 2 * maxFonts; ++id)
             {
                 availableFontIDs.push(id);
@@ -130,8 +129,9 @@ namespace SnackerEngine
         fontDataArray[fontID].msdfTexture = Texture();
         // Success! We can set the font to valid!
         fontDataArray[fontID].valid = true;
+        if (loadFontsPersistently) fontDataArray[fontID].persistent = true;
         return true;
-        }
+    }
     //------------------------------------------------------------------------------------------------------
     void FontManager::loadDefaultCharset(const FontID& fontID)
     {
@@ -158,6 +158,7 @@ namespace SnackerEngine
     {
         // Load the glyph
         msdf_atlas::GlyphGeometry glyph;
+        if (!fontHandles[fontID]) return false;
         if (!glyph.load(fontHandles[fontID], fontDataArray[fontID].fontGeometry.getGeometryScale(), codepoint)) {
             return false;
         }
@@ -230,6 +231,7 @@ namespace SnackerEngine
     //------------------------------------------------------------------------------------------------------
     bool FontManager::loadFontDataFromFile(const std::string& path, const FontID& fontID)
     {
+        infoLogger << LOGGER::BEGIN << "Trying to load font at " << path << LOGGER::ENDL;
         auto& fontData = fontDataArray[fontID];
         std::optional<std::string> fullPath = Engine::getFullPath(path);
         if (!fullPath.has_value()) return false;
@@ -277,15 +279,15 @@ namespace SnackerEngine
         // Load texture
         auto result = Texture::Load2D(path+".png");
         fontData.msdfTexture = result.first;
+        infoLogger << LOGGER::BEGIN << "Successfully loaded font at " << path << LOGGER::ENDL;
         return result.second;
     }
     //------------------------------------------------------------------------------------------------------
     bool FontManager::saveFontDataInFile(const FontID& fontID, const std::string& path)
     {
         auto& fontData = fontDataArray[fontID];
-        std::optional<std::string> fullPath = Engine::getFullPath(path);
-        if (!fullPath.has_value()) return false;
-        bool success = msdf_atlas::exportJSON(&fontData.fontGeometry, 1, 1, fontData.pixelRange, fontData.msdfTexture.getSize().x, fontData.msdfTexture.getSize().y, msdf_atlas::ImageType::MSDF, msdf_atlas::YDirection::TOP_DOWN, fullPath.value().c_str(), true);
+        std::string fullPath = Engine::getDefaultResourcePath() + path;
+        bool success = msdf_atlas::exportJSON(&fontData.fontGeometry, 1, 1, fontData.pixelRange, fontData.msdfTexture.getSize().x, fontData.msdfTexture.getSize().y, msdf_atlas::ImageType::MSDF, msdf_atlas::YDirection::TOP_DOWN, fullPath.c_str(), true);
         if (!success) return false;
         success = fontData.msdfTexture.saveInFile(path+".png", true);
         return success;
@@ -307,6 +309,8 @@ namespace SnackerEngine
         if (!freetypeHandle) {
             errorLogger << LOGGER::BEGIN << "Could'nt initialize freetype" << LOGGER::ENDL;
         }
+        loadedFontsCount = 0;
+        loadFontsPersistently = false;
     }
     //------------------------------------------------------------------------------------------------------
     void FontManager::increaseReferenceCount(const Font& font)
@@ -422,7 +426,7 @@ namespace SnackerEngine
             msdfgen::deinitializeFreetype(freetypeHandle);
     }
     //------------------------------------------------------------------------------------------------------
-    const FontManager::FontData& FontManager::getFontData(const Font& font)
+    const FontData& FontManager::getFontData(const Font& font)
     {
         return fontDataArray[font.fontID];
     }

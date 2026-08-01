@@ -72,7 +72,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiGridLayout(unsigned totalColumns = 1, unsigned totalRows = 1, Mode mode = Mode::SPLIT_CELLS_EQUALLY, unsigned border = 0, unsigned outerBorder = 0); // NOTE: All parameters must have default values!
 		/// Constructor from JSON
-		GuiGridLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiGridLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiGridLayout() {};
 		/// Copy constructor and assignment operator
@@ -86,7 +86,7 @@ namespace SnackerEngine
 		/// Adds a child to this guiElement. Returns true on success
 		bool registerChild(GuiElement& guiElement, unsigned row, unsigned column);
 		/// Adds a child to this guiElement, with options given in JSON
-		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames) override;
+		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr) override;
 		/// Getters
 		unsigned getTotalColumns() const { return totalColumns; }
 		unsigned getTotalRows() const { return totalRows; }

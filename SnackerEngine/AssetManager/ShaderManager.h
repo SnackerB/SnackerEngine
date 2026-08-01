@@ -18,7 +18,6 @@ namespace SnackerEngine
 		/// This struct stores all the data that is necessary to store for each shader
 		struct ShaderData
 		{
-			ShaderData() = default;
 			// ID used for binding of the shader on the GPU
 			unsigned int GPU_ID{};
 			// Number of times this shader is referenced by other objects
@@ -26,7 +25,7 @@ namespace SnackerEngine
 			// If this is set to false, this shader will get deleted if referenceCount reaches zero
 			bool persistent{};
 			// This is set to false by standard and is set to true if an actual shader is stored!
-			bool valid{};
+			bool valid = false;
 			// File path of the shader. If the shader was not loaded from a file this should be an empty string.
 			std::string path{};
 			// Destructor. Deletes the shader from the GPU if it was loaded.

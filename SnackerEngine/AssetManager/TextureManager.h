@@ -2,7 +2,6 @@
 
 #include "Graphics/Texture.h"
 #include "Graphics/textureDataBuffer.h"
-#include "Graphics/Texture.h"
 
 #include <vector>
 #include <queue>
@@ -89,11 +88,11 @@ namespace SnackerEngine
 		friend class AssetManager;
 		friend class FrameBuffer;
 		friend class FontManager;
-		friend static bool setUpTextureData(SnackerEngine::TextureManager::TextureData& textureData, int nrComponents, int width, int height, void* data, const std::string& fullPath);
-		friend static bool loadTexture2D(TextureManager::TextureData& textureData, const std::string& fullPath);
-		friend static bool loadTexture2DFromRawData(TextureManager::TextureData& textureData, const ConstantBufferView& buffer, const std::string& fullPath);
-		friend static void createTexture2D(TextureManager::TextureData& textureData, const bool& mip);
-		friend static void createTextureCubemap(TextureManager::TextureData& textureData, const bool& mip);
+		friend bool setUpTextureData(SnackerEngine::TextureManager::TextureData& textureData, int nrComponents, int width, int height, void* data, const std::string& fullPath);
+		friend bool loadTexture2D(TextureManager::TextureData& textureData, const std::string& fullPath);
+		friend bool loadTexture2DFromRawData(TextureManager::TextureData& textureData, const ConstantBufferView& buffer, const std::string& fullPath);
+		friend void createTexture2D(TextureManager::TextureData& textureData, const bool& mip);
+		friend void createTextureCubemap(TextureManager::TextureData& textureData, const bool& mip);
 		/// Initializes the textureManager
 		static void initialize(const unsigned int& startingSize);
 		/// Increases the reference count of the given texture

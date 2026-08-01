@@ -94,7 +94,7 @@ namespace SnackerEngine
 
 	template<typename T>
 	inline VectorVariableHandle<T>::VectorVariableHandle(const VectorVariableHandle<T>& other) noexcept
-		: VectirVariableHandle<T>(other.size()) {}
+		: VectorVariableHandle<T>(other.size()) {}
 
 	template<typename T>
 	inline VectorVariableHandle<T>& VectorVariableHandle<T>::operator=(const VectorVariableHandle<T>& other) noexcept

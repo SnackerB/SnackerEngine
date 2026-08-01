@@ -40,6 +40,8 @@ namespace SnackerEngine
 		static Vec2i getNativeScreenDimensions();
 		/// Returns the current window dimensions
 		static Vec2i getScreenDimensions();
+		/// Returns the current window position
+		static Vec2i getWindowPosition();
 		/// Changes the viewport
 		static void changeViewPort(const Vec2i& viewPort);
 		/// Hides the cursor

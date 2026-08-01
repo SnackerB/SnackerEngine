@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <cwctype>
 
 namespace SnackerEngine
 {
@@ -84,9 +85,23 @@ namespace SnackerEngine
 	void appendUnicodeCharacter(std::vector<char>& charsUTF8, const Unicode& codepoint);
 	//--------------------------------------------------------------------------------------------------
 	/// Returns true if the given unicode character is an alphabetic character
-	bool isAlpha(const Unicode& codepoint);
+	inline bool isAlpha(const Unicode& codepoint) 
+	{
+		if (codepoint > USHRT_MAX) return false;
+		return std::iswalpha(static_cast<wint_t>(codepoint));
+	}
 	//--------------------------------------------------------------------------------------------------
 	/// Returns true if the given unicode character is a numeric character
-	bool isNumeric(const Unicode& codepoint);
+	inline bool isNumeric(const Unicode& codepoint)
+	{
+		return std::isdigit(static_cast<int>(codepoint));
+	}
+	//--------------------------------------------------------------------------------------------------
+	/// Returns true if the given unicode character is alphanumeric
+	inline bool isAlphaNumeric(const Unicode& codepoint)
+	{
+		if (codepoint > USHRT_MAX) return false;
+		return std::iswalnum(static_cast<wint_t>(codepoint));
+	}
 	//--------------------------------------------------------------------------------------------------
 }

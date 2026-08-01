@@ -6,22 +6,40 @@ namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
 	Color4f GuiPanel::defaultBackgroundColor = Color4f(0.0f, 1.0f);
+	Color4f GuiPanel::defaultBorderColor = Color4f(1.0f, 1.0f);
 	Shader GuiPanel::defaultBackgroundShader{};
 	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor)
-		: GuiElement(position, size, resizeMode), backgroundColor(backgroundColor), modelMatrix{},
-		shader("shaders/gui/simpleAlphaColor.shader")
+	GuiPanel::GuiPanel(const Vec2i& position, const Vec2i& size, const ResizeMode& resizeMode, const Color4f& backgroundColor,
+		const Color4f& borderColor, float roundedCorners, float borderThickness)
+		: GuiElement(position, size, resizeMode), backgroundColor{ backgroundColor },
+		borderColor{ borderColor }, roundedCorners{ roundedCorners }, borderThickness{ borderThickness }
 	{
+		selectShader();
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPanel::GuiPanel(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiElement(json, data, parameterNames)
+	GuiPanel::GuiPanel(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiElement(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(backgroundColor, "backgroundColor", json, data, parameterNames);
+		parseJson(backgroundColor, "backgroundColor", json, parameterNameSet);
+		parseJson(borderColor, "borderColor", json, parameterNameSet);
+		std::optional<Vec4f> roundedCornersVecf = parseJson<Vec4f>("roundedCorners", json, parameterNameSet);
+		if (roundedCornersVecf.has_value()) roundedCorners = roundedCornersVecf.value();
+		std::optional<Vec4i> roundedCornersVeci = parseJson<Vec4i>("roundedCorners", json, parameterNameSet);
+		if (roundedCornersVeci.has_value()) roundedCorners = static_cast<Vec4f>(roundedCornersVeci.value());
+		std::optional<float> roundedCornersFloat = parseJson<float>("roundedCorners", json, parameterNameSet);
+		if (roundedCornersFloat.has_value()) roundedCorners = Vec4f(roundedCornersFloat.value());
+		parseJson(roundedCorners[0], "roundedCornersTopLeft", json, parameterNameSet);
+		parseJson(roundedCorners[1], "roundedCornersTopRight", json, parameterNameSet);
+		parseJson(roundedCorners[2], "roundedCornersBottomRight", json, parameterNameSet);
+		parseJson(roundedCorners[3], "roundedCornersBottomLeft", json, parameterNameSet);
+		parseJson(borderThickness, "borderThickness", json, parameterNameSet);
+		selectShader();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiPanel::GuiPanel(const GuiPanel& other) noexcept
-		: GuiElement(other), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader)
+		: GuiElement(other), backgroundColor(other.backgroundColor), borderColor(other.borderColor),
+		modelMatrix(other.modelMatrix), shader(other.shader),
+		roundedCorners(other.roundedCorners), borderThickness(other.borderThickness)
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -29,22 +47,31 @@ namespace SnackerEngine
 	{
 		GuiElement::operator=(other);
 		backgroundColor = other.backgroundColor;
+		borderColor = other.borderColor;
 		modelMatrix = other.modelMatrix;
 		shader = other.shader;
+		roundedCorners = other.roundedCorners;
+		borderThickness = other.borderThickness;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiPanel::GuiPanel(GuiPanel&& other) noexcept
-		: GuiElement(std::move(other)), backgroundColor(other.backgroundColor), modelMatrix(other.modelMatrix), shader(other.shader)
+		: GuiElement(std::move(other)), backgroundColor(std::move(other.backgroundColor)),
+		borderColor(std::move(other.borderColor)), modelMatrix(std::move(other.modelMatrix)),
+		shader(std::move(other.shader)), roundedCorners(std::move(other.roundedCorners)),
+		borderThickness(std::move(other.borderThickness))
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiPanel& GuiPanel::operator=(GuiPanel&& other) noexcept
 	{
 		GuiElement::operator=(std::move(other));
-		backgroundColor = other.backgroundColor;
-		modelMatrix = other.modelMatrix;
-		shader = other.shader;
+		backgroundColor = std::move(other.backgroundColor);
+		borderColor = std::move(other.borderColor);
+		modelMatrix = std::move(other.modelMatrix);
+		shader = std::move(other.shader);
+		roundedCorners = std::move(other.roundedCorners);
+		borderThickness = std::move(other.borderThickness);
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -53,37 +80,63 @@ namespace SnackerEngine
 		this->backgroundColor = backgroundColor;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiPanel::draw(const Vec2i& worldPosition, const Mat4f& scale)
+	void GuiPanel::setBorderColor(const Color4f& borderColor)
 	{
-		GuiManager* const& guiManager = getGuiManager();
-		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f)
-		{
-			shader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(shader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			shader.setUniform<Mat4f>("u_model", translationMatrix * scale * modelMatrix);
-			shader.setUniform<Color4f>("u_color", backgroundColor);
-			Renderer::draw(guiManager->getModelSquare());
-		}
+		this->borderColor = borderColor;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setRoundedCorners(float roundedCorners)
+	{
+		this->roundedCorners = Vec4f(roundedCorners);
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setRoundedCorners(const Vec4f& roundedCorners)
+	{
+		this->roundedCorners = roundedCorners;
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setRoundedCornersTopLeft(float roundedCornersTopLeft)
+	{
+		this->roundedCorners[0] = roundedCornersTopLeft;
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setRoundedCornersTopRight(float roundedCornersTopRight)
+	{
+		this->roundedCorners[1] = roundedCornersTopRight;
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setRoundedCornersBottomRight(float roundedCornersBottomRight)
+	{
+		this->roundedCorners[2] = roundedCornersBottomRight;
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setRoundedCornersBottomLeft(float roundedCornersBottomLeft)
+	{
+		this->roundedCorners[2] = roundedCornersBottomLeft;
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::setBorderThickness(float borderThickness)
+	{
+		this->borderThickness = borderThickness;
+		selectShader();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale)
+	{
+		drawBackground(worldPosition, translate, scale);
+		GuiElement::draw(worldPosition);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::draw(const Vec2i& worldPosition)
 	{
-		GuiManager* const& guiManager = getGuiManager();
-		if (!guiManager) return;
-		if (backgroundColor.alpha != 0.0f)
-		{
-			shader.bind();
-			guiManager->setUniformViewAndProjectionMatrices(shader);
-			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
-			shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
-			shader.setUniform<Color4f>("u_color", backgroundColor);
-			Renderer::draw(guiManager->getModelSquare());
-		}
-		pushClippingBox(worldPosition);
+		drawBackground(worldPosition);
 		GuiElement::draw(worldPosition);
-		popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::onRegister()
@@ -106,6 +159,29 @@ namespace SnackerEngine
 	GuiElement::IsCollidingResult GuiPanel::isColliding(const Vec2i& offset) const
 	{
 		IsCollidingResult result = GuiElement::isColliding(offset);
+		if (!roundedCorners.isZero() && result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT) {
+			const Vec2i& size = getSize();
+			if (offset.x < roundedCorners[0] && offset.y < roundedCorners[0]) {
+				// Top left
+				if ((offset - Vec2i(roundedCorners[0], roundedCorners[0])).squaredMagnitude() > roundedCorners[0] * roundedCorners[0])
+					return IsCollidingResult::NOT_COLLIDING;
+			}
+			if (result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT && offset.x > size.x - roundedCorners[1] && offset.y < roundedCorners[1]) {
+				// Top right
+				if ((offset - Vec2i(size.x - roundedCorners[1], roundedCorners[1])).squaredMagnitude() > roundedCorners[1] * roundedCorners[1])
+					return IsCollidingResult::NOT_COLLIDING;
+			}
+			if (result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT && offset.x > size.x - roundedCorners[2] && offset.y > size.y - roundedCorners[2]) {
+				// Bottom right
+				if ((offset - Vec2i(size.x - roundedCorners[2], size.y - roundedCorners[2])).squaredMagnitude() > roundedCorners[2] * roundedCorners[2])
+					return IsCollidingResult::NOT_COLLIDING;
+			}
+			if (result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT && offset.x < roundedCorners[3] && offset.y > size.y - roundedCorners[3]) {
+				// Bottom left
+				if ((offset - Vec2i(roundedCorners[3], size.y - roundedCorners[3])).squaredMagnitude() > roundedCorners[3] * roundedCorners[3])
+					return IsCollidingResult::NOT_COLLIDING;
+			}
+		}
 		if (result == IsCollidingResult::COLLIDE_IF_CHILD_DOES_NOT && getBackgroundColor().alpha == 0) return IsCollidingResult::COLLIDE_CHILD;
 		return result;
 	}
@@ -122,6 +198,118 @@ namespace SnackerEngine
 		return std::make_unique<GuiPanelBackgroundColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
 	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateBorderColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelborderColorAnimatable : public GuiElementValueAnimatable<Color4f>
+		{
+			virtual void onAnimate(const Color4f& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setBorderColor(currentVal); };
+		public:
+			GuiPanelborderColorAnimatable(GuiElement& element, const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Color4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelborderColorAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateRoundedCorners(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelRoundedCornersAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setRoundedCorners(currentVal); };
+		public:
+			GuiPanelRoundedCornersAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelRoundedCornersAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateRoundedCorners(const Vec4f& startVal, const Vec4f& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelRoundedCornersAnimatable : public GuiElementValueAnimatable<Vec4f>
+		{
+			virtual void onAnimate(const Vec4f& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setRoundedCorners(currentVal); };
+		public:
+			GuiPanelRoundedCornersAnimatable(GuiElement& element, const Vec4f& startVal, const Vec4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<Vec4f>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelRoundedCornersAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateRoundedCornersTopLeft(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelRoundedCornersTopLeftAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setRoundedCornersTopLeft(currentVal); };
+		public:
+			GuiPanelRoundedCornersTopLeftAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelRoundedCornersTopLeftAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateRoundedCornersTopRight(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelRoundedCornersTopRightAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setRoundedCornersTopRight(currentVal); };
+		public:
+			GuiPanelRoundedCornersTopRightAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelRoundedCornersTopRightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateRoundedCornersBottomRight(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelRoundedCornersBottomRightAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setRoundedCornersBottomRight(currentVal); };
+		public:
+			GuiPanelRoundedCornersBottomRightAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelRoundedCornersBottomRightAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateRoundedCornersBottomLeft(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelRoundedCornersBottomLeftAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setRoundedCornersBottomLeft(currentVal); };
+		public:
+			GuiPanelRoundedCornersBottomLeftAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelRoundedCornersBottomLeftAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	std::unique_ptr<GuiElementAnimatable> GuiPanel::animateBorderThickness(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		class GuiPanelborderThicknessAnimatable : public GuiElementValueAnimatable<float>
+		{
+			virtual void onAnimate(const float& currentVal) override { if (element) static_cast<GuiPanel*>(element)->setBorderThickness(currentVal); };
+		public:
+			GuiPanelborderThicknessAnimatable(GuiElement& element, const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear)
+				: GuiElementValueAnimatable<float>(element, startVal, stopVal, duration, animationFunction) {}
+		};
+		return std::make_unique<GuiPanelborderThicknessAnimatable>(*this, startVal, stopVal, duration, animationFunction);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::selectShader()
+	{
+		if (roundedCorners.isZero()) {
+			if (borderThickness == 0.0f) this->shader = defaultBackgroundShader;
+			else this->shader = Shader("shaders/gui/simpleAlphaColorBorders.shader");
+		}
+		else if (roundedCorners.allEqual()) {
+			if (borderThickness == 0.0f) this->shader = Shader("shaders/gui/simpleAlphaColorRoundedCorners.shader");
+			else this->shader = Shader("shaders/gui/simpleAlphaColorRoundedCornersBorders.shader");
+		}
+		else {
+			if (borderThickness == 0.0f) this->shader = Shader("shaders/gui/simpleAlphaColorDifferentRoundedCorners.shader");
+			else this->shader = Shader("shaders/gui/simpleAlphaColorDifferentRoundedCornersBorders.shader");
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiPanel::computeModelMatrix()
 	{
 		const Vec2i& position = getPosition();
@@ -129,6 +317,58 @@ namespace SnackerEngine
 		modelMatrix = Mat4f::TranslateAndScale(
 			Vec3f(0.0f, static_cast<float>(-size.y), 0.0f),
 			Vec3f(static_cast<float>(size.x), static_cast<float>(size.y), 0.0f));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::drawBackground(const Vec2i& worldPosition)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
+		{
+			shader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(shader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+			shader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrix);
+			shader.setUniform<Color4f>("u_color", backgroundColor);
+			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
+				shader.setUniform<Vec2f>("u_size", getSize());
+				if (!roundedCorners.isZero()) {
+					if (roundedCorners.allEqual()) shader.setUniform<float>("u_roundedCorners", roundedCorners[0]);
+					else shader.setUniform<Vec4f>("u_roundedCorners", roundedCorners);
+				}
+				if (borderThickness != 0.0f) {
+					shader.setUniform<float>("u_borderThickness", borderThickness);
+					shader.setUniform<Color4f>("u_borderColor", borderColor);
+				}
+			}
+			Renderer::draw(guiManager->getModelSquare());
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPanel::drawBackground(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale)
+	{
+		GuiManager* const& guiManager = getGuiManager();
+		if (!guiManager) return;
+		if (backgroundColor.alpha != 0.0f || borderColor.alpha != 0.0f)
+		{
+			shader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(shader);
+			Mat4f translationMatrix = Mat4f::Translate(Vec3f(static_cast<float>(worldPosition.x), static_cast<float>(-worldPosition.y), 0.0f));
+			shader.setUniform<Mat4f>("u_model", translationMatrix * Mat4f::Translate(Vec3f(translate.x, translate.y, 0.0f)) * modelMatrix * Mat4f::Scale(Vec3f(scale.x, scale.y, 0.0f)));
+			shader.setUniform<Color4f>("u_color", backgroundColor);
+			if (roundedCorners != 0.0f || borderThickness != 0.0f) {
+				shader.setUniform<Vec2f>("u_size", getSize());
+				if (!roundedCorners.isZero()) {
+					if (roundedCorners.allEqual()) shader.setUniform<float>("u_roundedCorners", roundedCorners[0]);
+					else shader.setUniform<Vec4f>("u_roundedCorners", roundedCorners);
+				}
+				if (borderThickness != 0.0f) {
+					shader.setUniform<float>("u_borderThickness", borderThickness);
+					shader.setUniform<Color4f>("u_borderColor", borderColor);
+				}
+			}
+			Renderer::draw(guiManager->getModelSquare());
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 }

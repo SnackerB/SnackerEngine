@@ -1,0 +1,704 @@
+#include "Core\Engine.h"
+#include "Scenes/Questions/MultipleChoiceQuestion.h"
+#include "Gui/GuiElements/GuiEditVariable.h"
+#include "Gui\GuiElements\GuiTextVariable.h"
+#include "Gui/MultipleChoiceQuestion/MultipleChoiceAnswerLayout.h"
+#include "Gui/MultipleChoiceQuestion/MultipleChoiceAnswerCreate.h"
+#include "Gui\MultipleChoiceQuestion\MultipleChoiceAnswerHost.h"
+#include "Gui\MultipleChoiceQuestion\MultipleChoiceAnswerJoin.h"
+#include "Gui\Layouts\VerticalListLayout.h"
+#include "Gui\GuiManager.h"
+#include "Gui\LoadingBar.h"
+#include "scenes\Utility\QuizColors.h"
+#include "Settings.h"
+#include "scenes\Utility\ScaleJson.h"
+#undef min
+
+namespace SnackerQuiz
+{
+
+	static std::optional<MultipleChoiceQuestion::State> stringToState(const std::string& string)
+	{
+		if (string == "PRE_QUESTION_BANNER") return MultipleChoiceQuestion::State::PRE_QUESTION_BANNER;
+		else if (string == "QUESTION") return MultipleChoiceQuestion::State::QUESTION;
+		else if (string == "DISPLAY_SOLUTION") return MultipleChoiceQuestion::State::DISPLAY_SOLUTION;
+		else return std::nullopt;
+	}
+
+	static std::string stateToString(MultipleChoiceQuestion::State state)
+	{
+		switch (state)
+		{
+		case SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER: return "PRE_QUESTION_BANNER";
+		case SnackerQuiz::MultipleChoiceQuestion::State::QUESTION: return "QUESTION";
+		case SnackerQuiz::MultipleChoiceQuestion::State::DISPLAY_SOLUTION: return "DISPLAY_SOLUTION";
+		default: return "PRE_QUESTION_BANNER";
+		}
+
+	}
+
+	void MultipleChoiceQuestion::constructCurrentState()
+	{
+		currentState = nlohmann::json::object();
+		currentState["questionType"] = MultipleChoiceQuestion::typeName;
+		// State, Questions and answers are always stored in the state
+		currentState["state"] = stateToString(state);
+		currentState["question"] = question;
+		currentState["answers"] = nlohmann::json::array();
+		for (const auto& answer : answers) currentState["answers"].push_back(answer.text);
+		switch (state)
+		{
+		case SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER:
+		{
+			currentState["giveMorePointsForQuickerAnswer"] = giveMorePointsForFasterAnswer.get();
+			currentState["answerTime"] = answerTime;
+			currentState["currentTime"] = currentTime;
+			currentState["timerHasStarted"] = timerHasStarted;
+			currentState["timeUntilQuestionStart"] = timeUntilQuestionStart;
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::QUESTION:
+		{
+			currentState["answerTime"] = answerTime;
+			currentState["currentTime"] = currentTime;
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::DISPLAY_SOLUTION:
+		{
+			currentState["correctAnswers"] = nlohmann::json::array();
+			for (std::size_t i = 0; i < answers.size(); ++i) {
+				if (answers[i].correct) currentState["correctAnswers"].push_back(i);
+			}
+			currentState["lockedInAnswers"] = nlohmann::json::array();
+			for (const auto& lockedInAnswer : lockedInAnswers) {
+				currentState["lockedInAnswers"].push_back(nlohmann::json::object());
+				currentState["lockedInAnswers"].back()["name"] = lockedInAnswer.first;
+				currentState["lockedInAnswers"].back()["answerIndex"] = lockedInAnswer.second;
+			}
+			break;
+		}
+		default:
+			break;
+		}
+		currentState["clientCount"] = clientCount;
+		currentState["lockedInClientCount"] = lockedInClientCount;
+	}
+
+	void MultipleChoiceQuestion::updateJoin(const double& dt)
+	{
+		switch (state)
+		{
+		case SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER:
+		{
+			if (timerHasStarted) {
+				currentTime = std::min(timeUntilQuestionStart, currentTime + dt);
+			}
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::QUESTION:
+		{
+			currentTime = std::min(answerTime, currentTime + dt);
+			timeToAnswerHandle.set(static_cast<unsigned int>(std::floor(max(answerTime - currentTime, 0.0))));
+			if (lockedInAnswer == SIZE_MAX && answerEventHandles.isActive()) {
+				for (std::size_t i = 0; i < answerEventHandles.size(); ++i) {
+					if (answerEventHandles[i].isActive()) {
+						lockedInAnswer = i;
+						nlohmann::json stateUpdate;
+						stateUpdate["command"] = "lockInAnswer";
+						stateUpdate["answerIndex"] = i;
+						sendStateUpdateToServer(stateUpdate);
+						if (lockedInAnswer < answerElementsJoin.size()) {
+							answerElementsJoin[lockedInAnswer].setLockedIn(true);
+							for (auto& answer : answerElementsJoin) answer.lock();
+						}
+						break;
+					}
+				}
+			}
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::DISPLAY_SOLUTION:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	void MultipleChoiceQuestion::updateHost(const double& dt)
+	{
+		switch (state)
+		{
+		case SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER:
+		{
+			if (timerHasStarted) {
+				currentTime += dt;
+				currentState["currentTime"] = currentTime;
+				if (currentTime >= timeUntilQuestionStart) {
+					nlohmann::json stateUpdate;
+					stateUpdate["command"] = "startQuestion";
+					sendStateUpdateToAllClients(stateUpdate, SnackerEngine::RequestStatusCode::POST);
+					state = State::QUESTION;
+					currentTime = 0.0;
+					constructCurrentState();
+					reconstructCurrentQuestionGui();
+				}
+			}
+			else if (stateUpdateEventHandle.isActive() || getClientList()->empty()) {
+				stateUpdateEventHandle.reset();
+				nlohmann::json stateUpdate;
+				stateUpdate["command"] = "startTimer";
+				sendStateUpdateToAllClients(stateUpdate, SnackerEngine::RequestStatusCode::POST);
+				timerHasStarted = true;
+				auto loadingBar = getGuiManager().getGuiElement<GuiLoadingBar>("loadingBar");
+				if (loadingBar) getGuiManager().signUpAnimatable(loadingBar->animatePercentage(0.0, 1.0, timeUntilQuestionStart, SnackerEngine::AnimationFunction::linear));
+			}
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::QUESTION:
+		{
+			currentTime += dt;
+			currentState["currentTime"] = currentTime;
+			timeToAnswerHandle.set(static_cast<unsigned int>(std::floor(max(answerTime - currentTime, 0.0))));
+			if (currentTime >= answerTime || lockedInAnswers.size() >= getClientList()->size()) {
+				nlohmann::json stateUpdate;
+				stateUpdate["command"] = "displaySolution";
+				stateUpdate["correctAnswers"] = nlohmann::json::array();
+				for (std::size_t i = 0; i < answers.size(); ++i) {
+					if (answers[i].correct) stateUpdate["correctAnswers"].push_back(i);
+				}
+				stateUpdate["lockedInAnswers"] = nlohmann::json::array();
+				for (const auto& lockedInAnswer : lockedInAnswers) {
+					stateUpdate["lockedInAnswers"].push_back(nlohmann::json::object());
+					stateUpdate["lockedInAnswers"].back()["name"] = lockedInAnswer.first;
+					stateUpdate["lockedInAnswers"].back()["answerIndex"] = lockedInAnswer.second;
+				}
+				sendStateUpdateToAllClients(stateUpdate, SnackerEngine::RequestStatusCode::POST);
+				state = State::DISPLAY_SOLUTION;
+				constructCurrentState();
+				reconstructCurrentQuestionGui();
+			}
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::DISPLAY_SOLUTION:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	void MultipleChoiceQuestion::updateCreate(const double& dt)
+	{
+		if (answerCountHandle.isActive()) {
+			unsigned oldAnswerCount = static_cast<unsigned int>(answers.size());
+			if (answerCountHandle.get() > maxNumberOfAnswers) answerCountHandle.set(maxNumberOfAnswers);
+			answers.resize(answerCountHandle.get());
+			for (unsigned i = oldAnswerCount; i < answers.size(); ++i) {
+				answers[i].text = "answer " + std::to_string(i + 1);
+			}
+			answerEventHandles.resize(answers.size());
+			answerCheckBoxHandles.resize(answers.size());
+			if (answers.size() > answerElementsCreate.size()) {
+				auto answerLayout = getGuiManager().getGuiElement<GuiMultipleChoiceAnswerLayout>("answerLayout");
+				if (answerLayout) {
+					for (std::size_t i = answerElementsCreate.size(); i < answers.size(); ++i) {
+						GuiMultipleChoiceAnswerCreate answer = answerTemplateCreate;
+						answerLayout->registerChild(answer);
+						answer.setText(answers[i].text);
+						answer.subscribeEventTextWasEdited(answerEventHandles[i]);
+						answer.setCheckBoxBoolHandle(answerCheckBoxHandles[i]);
+						answerElementsCreate.emplace_back(std::move(answer));
+					}
+				}
+			}
+			else {
+				answerElementsCreate.resize(answers.size());
+			}
+			answerCountHandle.reset();
+		}
+		if (questionEditBoxEventHandle.isActive()) {
+			auto questionEditBox = getGuiManager().getGuiElement<SnackerEngine::GuiEditBox>("questionEditBox");
+			if (questionEditBox) question = questionEditBox->getText();
+			questionEditBoxEventHandle.reset();
+		}
+		if (answerEventHandles.isActive()) {
+			for (unsigned i = 0; i < answerEventHandles.size(); ++i) {
+				if (answerEventHandles[i].isActive())
+					answers[i].text = answerElementsCreate[i].getText();
+			}
+			answerEventHandles.reset();
+		}
+		if (answerCheckBoxHandles.isActive()) {
+			for (unsigned i = 0; i < answerCheckBoxHandles.size(); ++i) {
+				if (answerCheckBoxHandles[i].isActive())
+					answers[i].correct = answerCheckBoxHandles[i].get();
+			}
+			answerCheckBoxHandles.reset();
+		}
+		if (timeToAnswerHandle.isActive()) {
+			timeToAnswerHandle.reset();
+			answerTime = timeToAnswerHandle.get();
+		}
+		if (correctAnswerRewardHandle.isActive()) {
+			correctAnswerRewardHandle.reset();
+			correctAnswerReward = correctAnswerRewardHandle.get();
+		}
+		if (wrongAnswerPunishmentHandle.isActive()) {
+			wrongAnswerPunishmentHandle.reset();
+			wrongAnswerPunishment = wrongAnswerPunishmentHandle.get();
+		}
+	}
+
+	void MultipleChoiceQuestion::updatePlay(const double& dt)
+	{
+		// TODO
+	}
+
+	void MultipleChoiceQuestion::setPreQuestionBannerAttributes()
+	{
+		auto answerTimeTextVariable = getGuiManager().getGuiElement<SnackerEngine::GuiTextVariable<unsigned int>>("answerTimeTextVariable");
+		if (answerTimeTextVariable) answerTimeTextVariable->setValue(static_cast<unsigned int>(answerTime));
+		if (giveMorePointsForFasterAnswer.get()) {
+			auto modifierList = getGuiManager().getGuiElement<SnackerEngine::GuiVerticalListLayout>("modifierList");
+			if (modifierList) {
+				auto modifierTextBoxJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/modifierTextBox.json");
+				if (modifierTextBoxJson.has_value()) {
+					auto data = loadAndScaleJson("gui/guiStyle.json");
+					SnackerEngine::GuiTextBox modifierTextBox(modifierTextBoxJson.value(), data.has_value() ? &data.value() : nullptr);
+					modifierTextBox.setText("More points for quicker answer!");
+					modifierList->registerChild(modifierTextBox);
+					getGuiManager().moveElement(std::move(modifierTextBox));
+				}
+			}
+		}
+		if (timerHasStarted) {
+			auto loadingBar = getGuiManager().getGuiElement<GuiLoadingBar>("loadingBar");
+			if (loadingBar) getGuiManager().signUpAnimatable(loadingBar->animatePercentage(currentTime / timeUntilQuestionStart, 1.0, timeUntilQuestionStart - currentTime, SnackerEngine::AnimationFunction::linear));
+		}
+	}
+
+	void MultipleChoiceQuestion::setLockedInAnswersText(bool animate)
+
+	{
+		auto textBox = getGuiManager().getGuiElement<SnackerEngine::GuiTextBox>("lockedInAnswersText");
+		if (textBox) {
+			std::string text = SnackerEngine::to_string(lockedInClientCount) + " / " + SnackerEngine::to_string(clientCount);
+			textBox->setText(text);
+			if (animate) {
+				double time = 0.2;
+				double scale = 1.2;
+				double fontSize = 20.0;
+				getGuiManager().signUpAnimatable(textBox->animateFontSize(fontSize, fontSize * scale, time, SnackerEngine::AnimationFunction::easeInOutSine));
+				getGuiManager().signUpAnimatable(std::make_unique<SnackerEngine::GuiElementDelayAnimatable>(textBox->animateFontSize(fontSize * scale, fontSize, time), time));
+			}
+		}
+		else {
+			SnackerEngine::warningLogger << SnackerEngine::LOGGER::BEGIN 
+				<< "Couldn't find an element with name \"lockedInAnswersText\" in \"MultipleChoiceQuestion/joinHostPlayQuestionPanel.json\"" 
+				<< SnackerEngine::LOGGER::ENDL;
+		}
+	}
+
+	MultipleChoiceQuestion::MultipleChoiceQuestion()
+		: QuizQuestion(), question{ "question" }, answers{}, state{ State::PRE_QUESTION_BANNER },
+		giveMorePointsForFasterAnswer{ false }, timerHasStarted{ false}, answerTime { 20.0 }, timeUntilQuestionStart{ GlobalSettings::preQuestionLoadingBarTimer },
+		currentTime{ 0.0 }, lockedInAnswers{}, correctAnswerReward{ 1000 }, wrongAnswerPunishment{ 0 },
+		hasLockedInAnswer {}, lockedInAnswer{ SIZE_MAX }, answerElementsCreate{},
+		answerCountHandle{}, timeToAnswerHandle{ 20 },
+		questionEditBoxEventHandle{}, answerCheckBoxHandles{}, answerTemplateCreate{},
+		answerEventHandles{}, stateUpdateEventHandle{}
+	{
+		answers.push_back({ "answer 1", false });
+		answers.push_back({ "answer 2", false });
+		answers.push_back({ "answer 3", false });
+		answers.push_back({ "answer 4", false });
+	}
+
+	MultipleChoiceQuestion::MultipleChoiceQuestion(const nlohmann::json& json, const nlohmann::json* data)
+		: QuizQuestion(json), question{ "" }, answers{}, state{ State::PRE_QUESTION_BANNER },
+		giveMorePointsForFasterAnswer{ false }, timerHasStarted{ false }, answerTime{ 20.0 }, timeUntilQuestionStart{ GlobalSettings::preQuestionLoadingBarTimer },
+		currentTime{ 0.0 }, lockedInAnswers{}, hasLockedInAnswer{}, correctAnswerReward{ 1000 }, wrongAnswerPunishment{ 0 },
+		clientCount{ 0 }, lockedInClientCount{ 0 },
+		lockedInAnswer{ SIZE_MAX }, answerElementsCreate{},
+		answerCountHandle{}, timeToAnswerHandle{ 20 },
+		questionEditBoxEventHandle{}, answerCheckBoxHandles{}, answerTemplateCreate{},
+		answerEventHandles{}, stateUpdateEventHandle{}
+	{
+		SnackerEngine::parseJsonOrReadFromData(question, "question", json, data);
+		if (json.contains("answers") && json["answers"].is_array()) {
+			randomizeAnswerColors();
+			for (const auto& answer : json["answers"]) {
+				if (answer.is_object()) {
+					MultipleChoiceAnswer newAnswer;
+					SnackerEngine::parseJsonOrReadFromData(newAnswer.text, "text", answer);
+					SnackerEngine::parseJsonOrReadFromData(newAnswer.correct, "correct", answer);
+					newAnswer.color = getNextAnswerColor();
+					answers.push_back(newAnswer);
+				}
+				else if (answer.is_string()) {
+					answers.push_back({ answer, false });
+					answers.back().color = getNextAnswerColor();
+				}
+			}
+		}
+		if (json.contains("correctAnswers") && json["correctAnswers"].is_array()) {
+			for (const auto& correctAnswerIndex : json["correctAnswers"]) {
+				if (correctAnswerIndex.is_number_integer() && correctAnswerIndex >= 0 && correctAnswerIndex < answers.size()) {
+					answers[correctAnswerIndex].correct = true;
+				}
+			}
+		}
+		if (json.contains("lockedInAnswers") && json["lockedInAnswers"].is_array()) {
+			for (const auto& lockedInAnswer : json["lockedInAnswers"]) {
+				if (lockedInAnswer.contains("name") && lockedInAnswer["name"].is_string() &&
+					lockedInAnswer.contains("answerIndex") && lockedInAnswer["answerIndex"].is_number_integer() &&
+					lockedInAnswer["answerIndex"] >= 0 && lockedInAnswer["answerIndex"] < answers.size())
+					lockedInAnswers.push_back(std::make_pair<>(static_cast<std::string>(lockedInAnswer["name"]), static_cast<std::size_t>(lockedInAnswer["answerIndex"])));
+			}
+		}
+		if (json.contains("state") && json["state"].is_string()) {
+			std::optional<State> state = stringToState(json["state"]);
+			if (state.has_value()) this->state = state.value();
+		}
+		bool tempBool = false;
+		SnackerEngine::parseJsonOrReadFromData(tempBool, "giveMorePointsForQuickerAnswer", json);
+		giveMorePointsForFasterAnswer.set(tempBool);
+		SnackerEngine::parseJsonOrReadFromData(timerHasStarted, "timerHasStarted", json);
+		SnackerEngine::parseJsonOrReadFromData(answerTime, "answerTime", json);
+		SnackerEngine::parseJsonOrReadFromData(timeUntilQuestionStart, "timeUntilQuestionStart", json);
+		SnackerEngine::parseJsonOrReadFromData(currentTime, "currentTime", json);
+		SnackerEngine::parseJsonOrReadFromData(correctAnswerReward, "correctAnswerReward", json);
+		SnackerEngine::parseJsonOrReadFromData(wrongAnswerPunishment, "wrongAnswerPunishment", json);
+		SnackerEngine::parseJsonOrReadFromData(clientCount, "clientCount", json);
+		SnackerEngine::parseJsonOrReadFromData(lockedInClientCount, "lockedInClientCount", json);
+	}
+
+	void MultipleChoiceQuestion::saveQuestion(nlohmann::json& json) const
+	{
+		json["questionType"] = MultipleChoiceQuestion::typeName;
+		json["question"] = question;
+		json["answers"] = nlohmann::json::array(); 
+		for (const auto& answer : answers) {
+			json["answers"].push_back(nlohmann::json::object());
+			json["answers"].back()["text"] = answer.text;
+			json["answers"].back()["correct"] = answer.correct;
+		}
+		json["giveMorePointsForQuickerAnswer"] = giveMorePointsForFasterAnswer.get();
+		json["answerTime"] = answerTime;
+		json["timeUntilQuestionStart"] = timeUntilQuestionStart;
+		json["correctAnswerReward"] = correctAnswerReward;
+		json["wrongAnswerPunishment"] = wrongAnswerPunishment;
+	}
+	
+	void MultipleChoiceQuestion::loadGuiJoin(SnackerEngine::GuiElement& questionPanel)
+	{
+		auto data = loadAndScaleJson("gui/guiStyle.json");
+		if (state == SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER) {
+			auto joinPreQuestionBanner = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/preQuestionBanner.json");
+			if (joinPreQuestionBanner.has_value()) getGuiManager().loadAndRegisterAsChildJSON(joinPreQuestionBanner.value(), data.has_value() ? &data.value() : nullptr, questionPanel.getGuiID());
+			// Set attributes
+			setPreQuestionBannerAttributes();
+		}
+		else {
+			auto questionPanelJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/joinHostPlayQuestionPanel.json");
+			if (questionPanelJson.has_value()) getGuiManager().loadAndRegisterAsChildJSON(questionPanelJson.value(), data.has_value() ? &data.value() : nullptr, questionPanel.getGuiID());
+			// Set question text
+			auto questionTextBox = getGuiManager().getGuiElement<SnackerEngine::GuiTextBox>("questionTextBox");
+			if (questionTextBox) questionTextBox->setText(question);
+			// Place answers
+			auto answerLayout = getGuiManager().getGuiElement<GuiMultipleChoiceAnswerLayout>("answerLayout");
+			auto joinAnswerButtonJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/joinPlayAnswerButton.json");
+			answerEventHandles.clear();
+			answerCheckBoxHandles.clear();
+			answerElementsCreate.clear();
+			if (answerLayout && joinAnswerButtonJson.has_value()) {
+				GuiMultipleChoiceAnswerJoin answerTemplateJoin(joinAnswerButtonJson.value(), data.has_value() ? &data.value() : nullptr, nullptr);
+				answerElementsJoin.clear();
+				for (unsigned int i = 0; i < answers.size(); ++i) {
+					answerElementsJoin.push_back(GuiMultipleChoiceAnswerJoin(answerTemplateJoin));
+					answerLayout->registerChild(answerElementsJoin.back());
+					answerElementsJoin.back().setText(answers[i].text);
+					answerElementsJoin.back().subscribeToEventButtonPress(answerEventHandles.createNewEventHandle());
+					answerElementsJoin.back().setAnswerColor(answers[i].color);
+					if (state == State::DISPLAY_SOLUTION) {
+						if (answers[i].correct) answerElementsJoin.back().setColorToCorrect();
+						else answerElementsJoin.back().setColorToWrong();
+						answerElementsJoin.back().lock();
+					}
+				}
+				if (lockedInAnswer < answerElementsJoin.size()) {
+					answerElementsJoin[lockedInAnswer].setLockedIn(true);
+					for (auto& answer : answerElementsJoin) answer.lock();
+				}
+			}
+			// Set answerTime
+			auto textVariableTime = getGuiManager().getGuiElement<SnackerEngine::GuiTextVariableUnsignedInt>("answerTimeTextVariable");
+			if (textVariableTime) textVariableTime->getVariableHandle().connect(timeToAnswerHandle);
+			timeToAnswerHandle.set(static_cast<unsigned int>(max(0.0, std::floor(answerTime - currentTime))));
+			// Set text for amount of lockedInAnswers
+			setLockedInAnswersText(false);
+		}
+	}
+	
+	void MultipleChoiceQuestion::loadGuiHost(SnackerEngine::GuiElement& questionPanel)
+	{
+		auto data = loadAndScaleJson("gui/guiStyle.json");
+		if (state == SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER) {
+			auto hostPreQuestionBanner = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/preQuestionBanner.json");
+			if (hostPreQuestionBanner.has_value()) getGuiManager().loadAndRegisterAsChildJSON(hostPreQuestionBanner.value(), data.has_value() ? &data.value() : nullptr, questionPanel.getGuiID());
+			// Set attributes
+			setPreQuestionBannerAttributes();
+		}
+		else {
+			auto questionPanelJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/joinHostPlayQuestionPanel.json");
+			if (questionPanelJson.has_value()) getGuiManager().loadAndRegisterAsChildJSON(questionPanelJson.value(), data.has_value() ? &data.value() : nullptr, questionPanel.getGuiID());
+			// Set question text
+			auto questionTextBox = getGuiManager().getGuiElement<SnackerEngine::GuiTextBox>("questionTextBox");
+			if (questionTextBox) questionTextBox->setText(question);
+			// Place answers
+			auto answerLayout = getGuiManager().getGuiElement<GuiMultipleChoiceAnswerLayout>("answerLayout");
+			auto hostAnswerBoxJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/hostAnswerBox.json");
+			answerEventHandles.clear();
+			answerCheckBoxHandles.clear();
+			answerElementsCreate.clear();
+			if (answerLayout && hostAnswerBoxJson.has_value()) {
+				GuiMultipleChoiceAnswerHost answerTemplateHost(hostAnswerBoxJson.value(), data.has_value() ? &data.value() : nullptr, nullptr);
+				for (unsigned int i = 0; i < answers.size(); ++i) {
+					GuiMultipleChoiceAnswerHost answer = answerTemplateHost;
+					answerLayout->registerChild(answer);
+					answer.setText(answers[i].text);
+					answer.setAnswerColor(answers[i].color);
+					if (state == State::DISPLAY_SOLUTION) {
+						if (answers[i].correct) answer.setColorToCorrect();
+						else answer.setColorToWrong();
+					}
+					getGuiManager().moveElement(std::move(answer));
+				}
+			}
+			// Set answerTime
+			auto textVariableTime = getGuiManager().getGuiElement<SnackerEngine::GuiTextVariable<unsigned int>>("answerTimeTextVariable");
+			if (textVariableTime) textVariableTime->getVariableHandle().connect(timeToAnswerHandle);
+			timeToAnswerHandle.set(static_cast<unsigned int>(max(0.0, std::floor(answerTime - currentTime))));
+			// Set text for amount of lockedInAnswers
+			setLockedInAnswersText(false);
+		}
+	}
+	
+	void MultipleChoiceQuestion::loadGuiCreate(SnackerEngine::GuiElement& questionPanel, SnackerEngine::GuiElement& sideBar)
+	{
+		// Load question panel
+		auto questionPanelJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/createQuestionPanel.json");
+		auto data = loadAndScaleJson("gui/guiStyle.json");
+		if (questionPanelJson.has_value()) getGuiManager().loadAndRegisterAsChildJSON(questionPanelJson.value(), data.has_value() ? &data.value() : nullptr, questionPanel.getGuiID());
+		// Set questionEditBox eventHandle
+		auto questionEditBox = getGuiManager().getGuiElement<SnackerEngine::GuiEditBox>("questionEditBox");
+		if (questionEditBox) {
+			questionEditBox->setText(question);
+			questionEditBox->subscribeEventTextWasEdited(questionEditBoxEventHandle);
+		}
+		// Place answers
+		auto answerLayout = getGuiManager().getGuiElement<GuiMultipleChoiceAnswerLayout>("answerLayout");
+		auto createAnswerBoxJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/createAnswerBox.json");
+		answerEventHandles.clear();
+		answerCheckBoxHandles.clear();
+		answerElementsCreate.clear();
+		if (answerLayout && createAnswerBoxJson.has_value()) {
+			answerTemplateCreate = GuiMultipleChoiceAnswerCreate(createAnswerBoxJson.value(), data.has_value() ? &data.value() : nullptr, nullptr);
+			for (unsigned int i = 0; i < answers.size(); ++i) {
+				GuiMultipleChoiceAnswerCreate answer = answerTemplateCreate;
+				answerLayout->registerChild(answer);
+				answer.setText(answers[i].text);
+				answer.subscribeEventTextWasEdited(answerEventHandles.createNewEventHandle());
+				answer.setCheckBoxBoolHandle(answerCheckBoxHandles.createNewVariableHandle());
+				answerCheckBoxHandles.back() = answers[i].correct;
+				answerElementsCreate.emplace_back(std::move(answer));
+			}
+		}
+		// Load sidebar
+		auto sideBarJson = loadAndScaleJson("gui/questions/MultipleChoiceQuestion/createSideBar.json");
+		if (sideBarJson.has_value() && data.has_value()) getGuiManager().loadAndRegisterAsChildJSON(sideBarJson.value(), &data.value(), sideBar.getGuiID());
+		// Set answerCount variableHandle
+		auto answerCountEditBox = getGuiManager().getGuiElement<SnackerEngine::GuiEditVariableUnsignedInt>("answerCountEditBox");
+		if (answerCountEditBox) answerCountEditBox->getVariableHandle().connect(answerCountHandle);
+		answerCountHandle.set(static_cast<unsigned int>(answers.size()));
+		// Set timeToAnswer variable handle
+		auto timeToAnswerEditBox = getGuiManager().getGuiElement<SnackerEngine::GuiEditVariableUnsignedInt>("timeToAnswerEditBox");
+		if (timeToAnswerEditBox) timeToAnswerEditBox->getVariableHandle().connect(timeToAnswerHandle);
+		timeToAnswerHandle.set(static_cast<unsigned int>(max(0.0, answerTime)));
+		// Set correctAnswerReward variable handle
+		auto correctAnswerRewardEditVariable = getGuiManager().getGuiElement<SnackerEngine::GuiEditVariableInt>("correctAnswerRewardEditVariable");
+		if (correctAnswerRewardEditVariable) correctAnswerRewardEditVariable->getVariableHandle().connect(correctAnswerRewardHandle);
+		correctAnswerRewardHandle.set(correctAnswerReward);
+		// Set wrongAnswerPunishment variable handle
+		auto wrongAnswerPunishmentEditVariable = getGuiManager().getGuiElement<SnackerEngine::GuiEditVariableInt>("wrongAnswerPunishmentEditVariable");
+		if (wrongAnswerPunishmentEditVariable) wrongAnswerPunishmentEditVariable->getVariableHandle().connect(wrongAnswerPunishmentHandle);
+		wrongAnswerPunishmentHandle.set(wrongAnswerPunishment);
+		// Set morePointsForFasterAnswer variable handle
+		auto morePointsForFasterAnswerCheckBox = getGuiManager().getGuiElement<SnackerEngine::GuiCheckBox>("morePointsForFasterAnswerCheckBox");
+		if (morePointsForFasterAnswerCheckBox) morePointsForFasterAnswerCheckBox->getVariableHandle().connect(giveMorePointsForFasterAnswer);
+		wrongAnswerPunishmentHandle.set(wrongAnswerPunishment);
+	}
+	
+	void MultipleChoiceQuestion::loadGuiPlay(SnackerEngine::GuiElement& questionPanel)
+	{
+		// TODO
+	}
+
+	void MultipleChoiceQuestion::update(const double& dt)
+	{
+		switch (getQuizMode())
+		{
+		case QuizScene::QuizMode::JOIN: updateJoin(dt); break;
+		case QuizScene::QuizMode::HOST: updateHost(dt); break;
+		case QuizScene::QuizMode::CREATE: updateCreate(dt); break;
+		case QuizScene::QuizMode::PLAY: updatePlay(dt); break;
+		default:
+			break;
+		}
+	}
+
+	void MultipleChoiceQuestion::onClientListChange() 
+	{
+		if (getClientList()->size() != clientCount) {
+			clientCount = static_cast<unsigned int>(getClientList()->size());
+			currentState["clientCount"] = clientCount;
+			if (state == SnackerQuiz::MultipleChoiceQuestion::State::QUESTION || state == SnackerQuiz::MultipleChoiceQuestion::State::DISPLAY_SOLUTION) {
+				setLockedInAnswersText(false);
+				nlohmann::json stateUpdate = nlohmann::json::object();
+				stateUpdate["clientCount"] = clientCount;
+				sendStateUpdateToAllClients(stateUpdate, SnackerEngine::RequestStatusCode::POST);
+			}
+		}
+	}
+
+	bool MultipleChoiceQuestion::processStateUpdateFromClient(const SnackerEngine::SERPRequest& request, const Client& client, const nlohmann::json& stateUpdate)
+	{
+		if (state == State::QUESTION && stateUpdate.contains("command") && stateUpdate["command"].is_string() &&
+			stateUpdate["command"] == "lockInAnswer" && stateUpdate.contains("answerIndex") && stateUpdate["answerIndex"].is_number_integer()) {
+			if (stateUpdate["answerIndex"] >= 0 && stateUpdate["answerIndex"] < answers.size()) {
+				// Check if this client has already locked in an answer
+				if (hasLockedInAnswer.find(request.getHeader().source) != hasLockedInAnswer.end()) {
+					sendResponse(SnackerEngine::SERPResponse(request, SnackerEngine::ResponseStatusCode::FORBIDDEN, SnackerEngine::Buffer("Client has already locked in an answer!")));
+					return false;
+				}
+				hasLockedInAnswer.insert(request.getHeader().source);
+				lockedInAnswers.push_back(std::make_pair<>(client.getName(), static_cast<std::size_t>(stateUpdate["answerIndex"])));
+				sendResponse(SnackerEngine::SERPResponse(request, SnackerEngine::ResponseStatusCode::OK));
+				// Give points to the client
+				if (answers[static_cast<std::size_t>(stateUpdate["answerIndex"])].correct) {
+					if (giveMorePointsForFasterAnswer.get()) {
+						addPoints(request.getHeader().source,
+							static_cast<int>(std::round(static_cast<double>(correctAnswerReward) * static_cast<double>(answerTime - currentTime) / static_cast<double>(answerTime))));
+					}
+					else {
+						addPoints(request.getHeader().source, correctAnswerReward);
+					}
+				}
+				else if (wrongAnswerPunishment != 0) {
+					addPoints(request.getHeader().source, wrongAnswerPunishment);
+				}
+				// Update the number of locked in clients
+				lockedInClientCount++;
+				currentState["lockedInClientCount"] = lockedInClientCount;
+				setLockedInAnswersText(true);
+				nlohmann::json stateUpdate = nlohmann::json::object();
+				stateUpdate["lockedInClientCount"] = lockedInClientCount;
+				sendStateUpdateToAllClients(stateUpdate, SnackerEngine::RequestStatusCode::POST);
+				return true;
+			}
+			else {
+				sendResponse(SnackerEngine::SERPResponse(request, SnackerEngine::ResponseStatusCode::BAD_REQUEST, SnackerEngine::Buffer("answerIndex out of bounds!")));
+				return false;
+			}
+		}
+		return false;
+	}
+
+	bool MultipleChoiceQuestion::processStateUpdateFromServer(const SnackerEngine::SERPRequest& request, const nlohmann::json& stateUpdate)
+	{
+		switch (state)
+		{
+		case SnackerQuiz::MultipleChoiceQuestion::State::PRE_QUESTION_BANNER:
+		{
+			if (stateUpdate.contains("command") && stateUpdate["command"].is_string()) {
+				if (stateUpdate["command"] == "startTimer") {
+					timerHasStarted = true;
+					currentTime = 0.0;
+					sendResponse(SnackerEngine::SERPResponse(request, SnackerEngine::ResponseStatusCode::OK));
+					auto loadingBar = getGuiManager().getGuiElement<GuiLoadingBar>("loadingBar");
+					if (loadingBar) getGuiManager().signUpAnimatable(loadingBar->animatePercentage(0.0, 1.0, timeUntilQuestionStart, SnackerEngine::AnimationFunction::linear));
+					return true;
+				}
+				else if (stateUpdate["command"] == "startQuestion") {
+					state = State::QUESTION;
+					currentTime = 0.0;
+					this->lockedInAnswer = SIZE_MAX;
+					sendResponse(SnackerEngine::SERPResponse(request, SnackerEngine::ResponseStatusCode::OK));
+					reconstructCurrentQuestionGui();
+					return true;
+				}
+			}
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::QUESTION:
+		{
+			if (stateUpdate.contains("command") && stateUpdate["command"].is_string() && stateUpdate["command"] == "displaySolution") {
+				state = State::DISPLAY_SOLUTION;
+				if (stateUpdate.contains("correctAnswers") && stateUpdate["correctAnswers"].is_array()) {
+					for (const auto& correctAnswerIndex : stateUpdate["correctAnswers"]) {
+						if (correctAnswerIndex.is_number_integer() && correctAnswerIndex >= 0 && correctAnswerIndex < answers.size()) {
+							answers[correctAnswerIndex].correct = true;
+						}
+					}
+				}
+				if (stateUpdate.contains("lockedInAnswers") && stateUpdate["lockedInAnswers"].is_array()) {
+					for (const auto& lockedInAnswer : stateUpdate["lockedInAnswers"]) {
+						if (lockedInAnswer.contains("name") && lockedInAnswer["name"].is_string() &&
+							lockedInAnswer.contains("answerIndex") && lockedInAnswer["answerIndex"].is_number_integer() &&
+							lockedInAnswer["answerIndex"] >= 0 && lockedInAnswer["answerIndex"] < answers.size())
+							lockedInAnswers.push_back(std::make_pair<>(static_cast<std::string>(lockedInAnswer["name"]), static_cast<std::size_t>(lockedInAnswer["answerIndex"])));
+					}
+				}
+				sendResponse(SnackerEngine::SERPResponse(request, SnackerEngine::ResponseStatusCode::OK));
+				reconstructCurrentQuestionGui();
+				return true;
+			}
+			break;
+		}
+		case SnackerQuiz::MultipleChoiceQuestion::State::DISPLAY_SOLUTION:
+			break;
+		default:
+			break;
+		}
+		if (stateUpdate.contains("clientCount") && stateUpdate["clientCount"].is_number_integer()) {
+			if (clientCount != stateUpdate["clientCount"]) {
+				clientCount = stateUpdate["clientCount"];
+				if (state == State::QUESTION || state == State::DISPLAY_SOLUTION) setLockedInAnswersText(false);
+			}
+		}
+		if (stateUpdate.contains("lockedInClientCount") && stateUpdate["lockedInClientCount"].is_number_integer()) {
+			if (lockedInClientCount != stateUpdate["lockedInClientCount"]) {
+				lockedInClientCount = stateUpdate["lockedInClientCount"];
+				if (state == State::QUESTION || state == State::DISPLAY_SOLUTION) setLockedInAnswersText(true);
+			}
+		}
+		return false;
+	}
+
+	void MultipleChoiceQuestion::initialize()
+	{
+		if (getQuizMode() == QuizScene::QuizMode::HOST) {
+			clientCount = static_cast<unsigned int>(getClientList()->size());
+			lockedInClientCount = 0;
+			constructCurrentState();
+			if (state == State::PRE_QUESTION_BANNER) {
+				auto result = sendStateUpdateToAllClients(currentState, SnackerEngine::RequestStatusCode::PUT);
+				if (result.has_value()) stateUpdateEventHandle = result.value();
+			}
+		}
+		QuizQuestion::initialize();
+	}
+}

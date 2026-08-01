@@ -92,6 +92,63 @@ namespace SnackerEngine
 		return Vec4d(int(json[0]), int(json[1]), int(json[2]), int(json[3]));
 	}
 	//------------------------------------------------------------------------------------------------------
+	template<> nlohmann::json toJson(const Vec2i& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y);
+		return result;
+	}
+	template<> nlohmann::json toJson(const Vec3i& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y); result.push_back(value.z);
+		return result;
+	}
+	template<> nlohmann::json toJson(const Vec4i& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y); result.push_back(value.z); result.push_back(value.w);
+		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> nlohmann::json toJson(const Vec2f& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y);
+		return result;
+	}
+	template<> nlohmann::json toJson(const Vec3f& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y); result.push_back(value.z);
+		return result;
+	}
+	template<> nlohmann::json toJson(const Vec4f& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y); result.push_back(value.z); result.push_back(value.w);
+		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
+	template<> nlohmann::json toJson(const Vec2d& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y);
+		return result;
+	}
+	template<> nlohmann::json toJson(const Vec3d& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y); result.push_back(value.z);
+		return result;
+	}
+	template<> nlohmann::json toJson(const Vec4d& value)
+	{
+		nlohmann::json result = nlohmann::json::array();
+		result.push_back(value.x); result.push_back(value.y); result.push_back(value.z); result.push_back(value.w);
+		return result;
+	}
+	//------------------------------------------------------------------------------------------------------
 	template<> Vec2i interpolate(const Vec2i& a, const Vec2i& b, double percentage)
 	{
 		return Vec2i(a.x + static_cast<int>(static_cast<double>(b.x - a.x) * percentage), a.y + static_cast<int>(static_cast<double>(b.y - a.y) * percentage));

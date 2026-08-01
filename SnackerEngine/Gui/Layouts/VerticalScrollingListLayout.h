@@ -28,8 +28,6 @@ namespace SnackerEngine
 		int currentVerticalOffset = 0;
 		/// Speed when scrolling
 		float scrollSpeed = defaultScrollSpeed;
-		/// Boolean that controls wether the scrollbar is drawn
-		bool drawScrollBar = false;
 		/// Percentage the visible scection holds of the total list
 		float visiblePercentage = 1.0f;
 		/// Percentage the offset holds of the total list
@@ -37,9 +35,11 @@ namespace SnackerEngine
 		/// Colors for the scrollbar
 		Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor;
 		Color4f scrollbarColor = defaultScrollbarColor;
-		/// model matrix for the scrollbar and its background
-		Mat4f modelMatrixScrollbar{};
-		Mat4f modelMatrixScrollbarBackground{};
+		/// Additional attributes for drawing the scrollbar
+		float scrollbarRoundedCorners = 0.0f;
+		/// GuiElements for the scrollbar and its background
+		std::unique_ptr<GuiPanel> scrollbarBackground = nullptr;
+		std::unique_ptr<GuiPanel> scrollbar = nullptr;
 		/// The width of the scrollbar
 		unsigned scrollbarWidth = defaultScrollBarWidth;
 		/// Offset from the top, bottom and right border to the scroll bar
@@ -55,6 +55,9 @@ namespace SnackerEngine
 		/// If this is set to true, the layouts minHeight and preferredHeight are set according
 		/// to child elements
 		bool shrinkHeightToChildren = false;
+		/// Alternative right border of the layout when the scrollbar is visible. If this is set to -1,
+		/// The right border doesn't change when the scrollbar is visible / not visible.
+		int rightBorderWhenScrollbarVisible = -1;
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_SCROLLING_LIST_LAYOUT";
@@ -62,7 +65,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiVerticalScrollingListLayout(Color4f backgroundColor = defaultBackgroundColor, Color4f scrollbarColor = defaultScrollbarColor, Color4f scrollbarBackgroundColor = defaultScrollbarBackgroundColor);
 		/// Constructor from JSON.
-		GuiVerticalScrollingListLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames);
+		GuiVerticalScrollingListLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiVerticalScrollingListLayout() {};
 		/// Copy constructor and assignment operator
@@ -102,8 +105,8 @@ namespace SnackerEngine
 	protected:
 		/// Computes the percentages and wether the scrollbar should be visible
 		void computeScrollBar();
-		/// Computes the scrollbarModelMatrix and scrollbarBackgroundModelMatrix
-		void computeScrollbarModelMatrices();
+		/// Computes and sets the position and size of the scrollbar and its background
+		void computeScrollbarPositionAndSize();
 		/// Computes the firstVisibleElement and lastVisibleElement member variables
 		void computeFirstAndLastVisibleElements();
 		/// Draws this GuiElement object relative to its parent element. Will also recursively

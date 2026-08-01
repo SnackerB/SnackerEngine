@@ -66,15 +66,15 @@ namespace SnackerEngine
 		setPreferredHeight(totalPreferredHeight);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiVerticalWeightedLayout::GuiVerticalWeightedLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiVerticalLayout(json, data, parameterNames)
+	GuiVerticalWeightedLayout::GuiVerticalWeightedLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiVerticalLayout(json, parameterNameSet)
 	{
 		if (!json.contains("verticalLayoutMode")) setVerticalLayoutMode(VerticalLayoutMode::CHILD_WIDTH_TO_LAYOUT_WIDTH);
-		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(outerVerticalBorder, "outerVerticalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
-		parseJsonOrReadFromData(resizeAreaHeight, "resizeAreaHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(allowMoveBorders, "allowMoveBorders", json, data, parameterNames);
+		parseJson(verticalBorder, "verticalBorder", json, parameterNameSet);
+		parseJson(outerVerticalBorder, "outerVerticalBorder", json, parameterNameSet);
+		parseJson(alignmentVertical, "alignmentVertical", json, parameterNameSet);
+		parseJson(resizeAreaHeight, "resizeAreaHeight", json, parameterNameSet);
+		parseJson(allowMoveBorders, "allowMoveBorders", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	bool GuiVerticalWeightedLayout::registerChild(GuiElement& guiElement, double weight)
@@ -91,11 +91,11 @@ namespace SnackerEngine
 		return registerChild(guiElement, 1.0);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiVerticalWeightedLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiVerticalWeightedLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
-		if (GuiVerticalLayout::registerChild(guiElement, json, data, parameterNames)) {
+		if (GuiVerticalLayout::registerChild(guiElement, json, parameterNameSet)) {
 			double weight = 1.0;
-			parseJsonOrReadFromData(weight, "weight", json, data, parameterNames);
+			parseJson(weight, "weight", json, parameterNameSet);
 			onRegisterChild(weight);
 			return true;
 		}

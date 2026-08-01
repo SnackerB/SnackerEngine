@@ -34,9 +34,9 @@ namespace SnackerEngine
 	{
 		switch (alignmentVertical)
 		{
-		case SnackerEngine::AlignmentVertical::TOP: return verticalBorder;
-		case SnackerEngine::AlignmentVertical::CENTER: return (getHeight() - childHeight) / 2;
-		case SnackerEngine::AlignmentVertical::BOTTOM: return getHeight() - childHeight - verticalBorder;
+		case SnackerEngine::AlignmentVertical::TOP: return verticalBorderTop;
+		case SnackerEngine::AlignmentVertical::CENTER: return ((getHeight() + static_cast<int>(verticalBorderTop) - -static_cast<int>(verticalBorderBottom)) - childHeight) / 2;
+		case SnackerEngine::AlignmentVertical::BOTTOM: return getHeight() - childHeight - verticalBorderBottom;
 		default: return 0;
 		}
 	}
@@ -48,14 +48,14 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalLayout::computeHeightHintsFromChildren()
 	{
-		if (getResizeMode() == ResizeMode::SAME_AS_PARENT) return;
+		if (getResizeMode() == ResizeMode::SAME_AS_PARENT || !shrinkHeightToChildren) return;
 		int minHeight = 0;
 		std::optional<int> preferredHeight = std::nullopt;
 		for (auto childID : getChildren()) {
 			GuiElement* child = getElement(childID);
 			if (child) {
 				// Set minHeight to largest minHeight (+ vertical borders)
-				minHeight = std::max(minHeight, child->getMinHeight() + 2 * static_cast<int>(verticalBorder));
+				minHeight = std::max(minHeight, child->getMinHeight() + static_cast<int>(verticalBorderTop) + static_cast<int>(verticalBorderBottom));
 				// The layouts preferred height is equal to the largest preferredHeight of its children. 
 				// If any child has preferredHeight of SIZE_HINT_AS_LARGE_AS_POSSIBLE,
 				// set the layouts preferredHeight to SIZE_HINT_AS_LARGE_AS_POSSIBLE
@@ -76,29 +76,33 @@ namespace SnackerEngine
 			}
 		}
 		setMinHeight(minHeight);
-		if (shrinkHeightToChildren) {
-			if (preferredHeight.has_value()) {
-				setPreferredHeight(preferredHeight.value() + 2 * verticalBorder);
-			}
-			else {
-				setPreferredHeight(SIZE_HINT_ARBITRARY);
-			}
+		if (preferredHeight.has_value()) {
+			setPreferredHeight(preferredHeight.value() + verticalBorderTop + verticalBorderBottom);
+		}
+		else {
+			setPreferredHeight(SIZE_HINT_ARBITRARY);
 		}
 	}	
 	//--------------------------------------------------------------------------------------------------
-	GuiHorizontalLayout::GuiHorizontalLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiLayout(json, data, parameterNames)
+	GuiHorizontalLayout::GuiHorizontalLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiLayout(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(horizontalLayoutMode, "horizontalLayoutMode", json, data, parameterNames);
-		parseJsonOrReadFromData(defaultAlignmentVertical, "defaultAlignmentVertical", json, data, parameterNames);
-		parseJsonOrReadFromData(verticalBorder, "verticalBorder", json, data, parameterNames);
-		parseJsonOrReadFromData(shrinkHeightToChildren, "shrinkHeightToChildren", json, data, parameterNames);
+		parseJson(horizontalLayoutMode, "horizontalLayoutMode", json, parameterNameSet);
+		parseJson(defaultAlignmentVertical, "defaultAlignmentVertical", json, parameterNameSet);
+		auto verticalBorder = parseJson<unsigned>("verticalBorder", json, parameterNameSet);
+		if (verticalBorder.has_value()) {
+			this->verticalBorderTop = verticalBorder.value();
+			this->verticalBorderBottom = verticalBorder.value();
+		}
+		parseJson(verticalBorderTop, "verticalBorderTop", json, parameterNameSet);
+		parseJson(verticalBorderBottom, "verticalBorderBottom", json, parameterNameSet);
+		parseJson(shrinkHeightToChildren, "shrinkHeightToChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalLayout::GuiHorizontalLayout(const GuiHorizontalLayout& other) noexcept
 		: GuiLayout(other), horizontalLayoutMode(other.horizontalLayoutMode),
 		defaultAlignmentVertical(other.defaultAlignmentVertical), alignmentsVertical{},
-		verticalBorder(other.verticalBorder),
+		verticalBorderTop(other.verticalBorderTop), verticalBorderBottom(other.verticalBorderBottom),
 		shrinkHeightToChildren{ other.shrinkHeightToChildren } {}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalLayout& GuiHorizontalLayout::operator=(const GuiHorizontalLayout& other) noexcept
@@ -107,7 +111,8 @@ namespace SnackerEngine
 		horizontalLayoutMode = other.horizontalLayoutMode;
 		defaultAlignmentVertical = other.defaultAlignmentVertical;
 		alignmentsVertical.clear();
-		verticalBorder = other.verticalBorder;
+		verticalBorderTop = other.verticalBorderTop;
+		verticalBorderBottom = other.verticalBorderBottom;
 		shrinkHeightToChildren = other.shrinkHeightToChildren;
 		return *this;
 	}
@@ -115,7 +120,8 @@ namespace SnackerEngine
 	GuiHorizontalLayout::GuiHorizontalLayout(GuiHorizontalLayout&& other) noexcept
 		: GuiLayout(std::move(other)), horizontalLayoutMode(other.horizontalLayoutMode), 
 		defaultAlignmentVertical(other.defaultAlignmentVertical),
-		alignmentsVertical(std::move(other.alignmentsVertical)), verticalBorder(other.verticalBorder),
+		alignmentsVertical(std::move(other.alignmentsVertical)), verticalBorderTop(std::move(other.verticalBorderTop)),
+		verticalBorderBottom(std::move(other.verticalBorderBottom)),
 		shrinkHeightToChildren{ other.shrinkHeightToChildren } {}
 	//--------------------------------------------------------------------------------------------------
 	GuiHorizontalLayout& GuiHorizontalLayout::operator=(GuiHorizontalLayout&& other) noexcept
@@ -124,7 +130,8 @@ namespace SnackerEngine
 		horizontalLayoutMode = other.horizontalLayoutMode;
 		defaultAlignmentVertical = other.defaultAlignmentVertical;
 		alignmentsVertical = std::move(other.alignmentsVertical);
-		verticalBorder = other.verticalBorder;
+		verticalBorderTop = other.verticalBorderTop;
+		verticalBorderBottom = other.verticalBorderBottom;
 		shrinkHeightToChildren = other.shrinkHeightToChildren;
 		return *this;
 	}
@@ -152,11 +159,11 @@ namespace SnackerEngine
 		return registerChild(guiElement, defaultAlignmentVertical);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiHorizontalLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiHorizontalLayout::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
-		if (GuiLayout::registerChild(guiElement, json, data, parameterNames)) {
+		if (GuiLayout::registerChild(guiElement, json, parameterNameSet)) {
 			AlignmentVertical alignmentVertical = defaultAlignmentVertical;
-			parseJsonOrReadFromData(alignmentVertical, "alignmentVertical", json, data, parameterNames);
+			parseJson(alignmentVertical, "alignmentVertical", json, parameterNameSet);
 			onRegisterChild(alignmentVertical);
 			return true;
 		}
@@ -180,6 +187,14 @@ namespace SnackerEngine
 		};
 		return std::make_unique<GuiGuiHorizontalLayoutVerticalBorderAnimatable>(*this, startVal, stopVal, duration, animationFunction);
 	}
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalLayout::animateVerticalBorderTop(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		return std::unique_ptr<GuiElementAnimatable>();
+	}
+	std::unique_ptr<GuiElementAnimatable> GuiHorizontalLayout::animateVerticalBorderBottom(const unsigned& startVal, const unsigned& stopVal, double duration, std::function<double(double)> animationFunction)
+	{
+		return std::unique_ptr<GuiElementAnimatable>();
+	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiHorizontalLayout::removeChild(GuiID guiElement)
 	{
@@ -200,8 +215,8 @@ namespace SnackerEngine
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;
 				int childHeight = child->getPreferredHeight();
-				if (childHeight < 0) childHeight = child->getMaxHeight() >= 0 ? child->getMaxHeight() : getHeight() - 2 * static_cast<int>(verticalBorder);
-				childHeight = std::min(childHeight, getHeight() - 2 * static_cast<int>(verticalBorder));
+				if (childHeight < 0) childHeight = child->getMaxHeight() >= 0 ? child->getMaxHeight() : getHeight() - static_cast<int>(verticalBorderTop) - static_cast<int>(verticalBorderBottom);
+				childHeight = std::min(childHeight, getHeight() - static_cast<int>(verticalBorderTop) - static_cast<int>(verticalBorderBottom));
 				childHeight = child->clampToMinMaxHeight(childHeight);
 				child->setHeight(childHeight);
 				child->setPositionY(computeChildPositionY(child->getHeight(), alignmentsVertical[i]));
@@ -213,7 +228,7 @@ namespace SnackerEngine
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;
-				child->setHeight(child->clampToMinMaxHeight(getHeight() - 2 * static_cast<int>(verticalBorder)));
+				child->setHeight(child->clampToMinMaxHeight(getHeight() - static_cast<int>(verticalBorderTop) - static_cast<int>(verticalBorderBottom)));
 				child->setPositionY(computeChildPositionY(child->getHeight(), alignmentsVertical[i]));
 			}
 			break;
@@ -233,8 +248,8 @@ namespace SnackerEngine
 					else if (preferredHeight > largestPreferredHeight) largestPreferredHeight = preferredHeight;
 				}
 			}
-			largestPreferredHeight = std::min(largestPreferredHeight, getHeight() - 2 * static_cast<int>(verticalBorder));
-			if (largestPreferredHeight == SIZE_HINT_ARBITRARY) largestPreferredHeight = getHeight() - 2 * static_cast<int>(verticalBorder);
+			largestPreferredHeight = std::min(largestPreferredHeight, getHeight() - static_cast<int>(verticalBorderTop) - static_cast<int>(verticalBorderBottom));
+			if (largestPreferredHeight == SIZE_HINT_ARBITRARY) largestPreferredHeight = getHeight() - static_cast<int>(verticalBorderTop) - static_cast<int>(verticalBorderBottom);
 			for (unsigned i = 0; i < children.size(); ++i) {
 				GuiElement* child = getElement(children[i]);
 				if (!child) continue;

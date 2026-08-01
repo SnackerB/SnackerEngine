@@ -29,26 +29,26 @@ namespace SnackerEngine
 		topBar.setBackgroundColor(defaultTopBarBackgroundColor);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiWindow::GuiWindow(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiPanel(json, data, parameterNames)
+	GuiWindow::GuiWindow(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiPanel(json, parameterNameSet)
 	{
 		topBar = GuiTextBox(Vec2i(), Vec2i(), "");
 		topBar.setParseMode(StaticText::ParseMode::SINGLE_LINE);
 		topBar.setBackgroundColor(defaultTopBarBackgroundColor);
-		parseJsonOrReadFromData(resizeButtonSize, "resizeButtonSize", json, data, parameterNames);
-		std::optional<int> topBarHeight = parseJsonOrReadFromData<int>("topBarHeight", json, data, parameterNames);
+		parseJson(resizeButtonSize, "resizeButtonSize", json, parameterNameSet);
+		std::optional<int> topBarHeight = parseJson<int>("topBarHeight", json, parameterNameSet);
 		if (topBarHeight.has_value()) topBar.setHeight(topBarHeight.value());
-		std::optional<double> fontSize = parseJsonOrReadFromData<double>("fontSize", json, data, parameterNames);
+		std::optional<double> fontSize = parseJson<double>("fontSize", json, parameterNameSet);
 		if (fontSize.has_value()) topBar.setFontSize(fontSize.value());
-		std::optional<Font> font = parseJsonOrReadFromData<Font>("font", json, data, parameterNames);
+		std::optional<Font> font = parseJson<Font>("font", json, parameterNameSet);
 		if (font.has_value()) topBar.setFont(font.value());
-		std::optional<std::string> name = parseJsonOrReadFromData<std::string>("name", json, data, parameterNames);
+		std::optional<std::string> name = parseJson<std::string>("name", json, parameterNameSet);
 		if (name.has_value()) topBar.setText(name.value());
-		std::optional<Color4f> topBarColor = parseJsonOrReadFromData<Color4f>("topBarColor", json, data, parameterNames);
+		std::optional<Color4f> topBarColor = parseJson<Color4f>("topBarColor", json, parameterNameSet);
 		if (topBarColor.has_value()) topBar.setBackgroundColor(topBarColor.value());
-		std::optional<Color4f> textColor = parseJsonOrReadFromData<Color4f>("textColor", json, data, parameterNames);
+		std::optional<Color4f> textColor = parseJson<Color4f>("textColor", json, parameterNameSet);
 		if (textColor.has_value()) topBar.setTextColor(textColor.value());
-		parseJsonOrReadFromData(resizeButtonColor, "resizeButtonColor", json, data, parameterNames);
+		parseJson(resizeButtonColor, "resizeButtonColor", json, parameterNameSet);
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
 	}
 	//--------------------------------------------------------------------------------------------------

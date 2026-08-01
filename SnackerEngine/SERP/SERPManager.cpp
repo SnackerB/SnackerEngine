@@ -308,11 +308,12 @@ namespace SnackerEngine
 
 	void SERPManager::runSenderThread()
 	{
-		while (connected) {
+		if (senderThreadIsRunning.test_and_set()) return;
+		while (connected.test()) {
 			std::unique_lock<std::mutex> lock(messagesToBeSentMutex);
 			senderThreadConditionVariable.wait(lock);
 			// Check if we are still connected
-			if (!connected) return;
+			if (!connected.test()) return;
 			// We have the lock and can process the first element in the messagesToBeSent queue.
 			std::shared_ptr<SnackerEngine::SERPMessage> message = nullptr;
 			if (!messagesToBeSent.empty()) {
@@ -340,7 +341,7 @@ namespace SnackerEngine
 					}
 				}
 				// If we are disconnected, stop the thread
-				if (!connected) return;
+				if (!connected.test()) return;
 				// If the queue was empty, leave the loop
 				if (!message) break;
 				// Else just keep sending messages
@@ -348,33 +349,35 @@ namespace SnackerEngine
 			}
 			while (endpointSERP.hasUnsentMessages()) endpointSERP.updateSend();
 		}
+		senderThreadIsRunning.clear();
 	}
 
 	void SERPManager::runReceiverThread()
 	{
+		if (receiverThreadIsRunning.test_and_set()) return;
 		// Create poll file descriptor for listening to received messages
 		pollfd incomingMesageFD(endpointSERP.getTCPEndpoint().getSocket().sock, POLLRDNORM, NULL);
-		while (connected) {
+		while (connected.test()) {
 			// Listen for message
 			int result = WSAPoll(&incomingMesageFD, 1, pollFdTimeout);
 			if (result == SOCKET_ERROR) {
 				// Disconnect and end thread
-				connected = false;
+				connected.clear();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLNVAL) {
 				// Disconnect and end thread
-				connected = false;
+				connected.clear();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLERR) {
 				// Disconnect and end thread
-				connected = false;
+				connected.clear();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLHUP) {
 				// Disconnect and end thread
-				connected = false;
+				connected.clear();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLRDNORM) {
@@ -388,19 +391,20 @@ namespace SnackerEngine
 				}
 			}
 		}
+		receiverThreadIsRunning.clear();
 	}
 
 	SERPManager::SERPManager()
-		: endpointSERP{}, connected{ false }, serpID{ unsigned int(0) }, incomingRequests{}, incomingRequestsMutex{},
-		incomingResponses{}, incomingResponsesMutex{}, sentRequests {}, sentResponses{}, sentResponsesMutex{}, 
-		messagesToBeSent{}, messagesToBeSentMutex{}, sentResponsesTimeout{ 10.0 }, senderThread{}, receiverThread{},
-		pollFdTimeout{ 500 }, serpIDResponse{ std::nullopt }, logMessages{ false }
+		: endpointSERP{}, connected{}, senderThreadIsRunning{}, receiverThreadIsRunning{}, serpID{unsigned int(0)}, 
+		incomingRequests{}, incomingRequestsMutex{}, incomingResponses{}, incomingResponsesMutex{}, sentRequests {}, 
+		sentResponses{}, sentResponsesMutex{}, messagesToBeSent{}, messagesToBeSentMutex{}, sentResponsesTimeout{ 10.0 }, 
+		senderThread{}, receiverThread{}, pollFdTimeout{ 500 }, serpIDResponse{ std::nullopt }, logMessages{ false }
 	{
 	}
 
 	SERPManager::~SERPManager()
 	{
-		if (connected) {
+		if (connected.test()) {
 			warningLogger << LOGGER::BEGIN << "Please call disconnect() before calling the constructor of SERPManager()." << LOGGER::ENDL;
 			disconnect();
 		}
@@ -413,10 +417,15 @@ namespace SnackerEngine
 
 	SERPManager::ConnectResult SERPManager::connectToSERPServer()
 	{
-		if (!connected) {
+		if (!connected.test()) {
+			if (senderThreadIsRunning.test() || receiverThreadIsRunning.test()) {
+				return { ConnectResult::Result::PENDING, "" };
+			}
+			if (senderThread.joinable()) senderThread.join();
+			if (receiverThread.joinable()) receiverThread.join();
 			auto result = endpointSERP.connectToSERPServer();
 			if (result.result == SnackerEngine::ConnectResult::Result::SUCCESS) {
-				connected = true;
+				connected.test_and_set();
 				// Start sender and receiver thread!
 				senderThread = std::thread(&SERPManager::runSenderThread, this);
 				receiverThread = std::thread(&SERPManager::runReceiverThread, this);
@@ -584,7 +593,7 @@ namespace SnackerEngine
 
 	void SERPManager::update(double dt)
 	{
-		if (!connected) return;
+		if (!connected.test()) return;
 		// Update all sentRequest objects
 		updateSentRequests(dt);
 		// Update all sentResponse objects
@@ -596,7 +605,7 @@ namespace SnackerEngine
 
 	void SERPManager::disconnect()
 	{
-		connected = false;
+		connected.clear();
 		senderThreadConditionVariable.notify_one();
 		for (const auto& it : sentRequests) {
 			for (const auto& it2 : it.second.pendingResponses) {

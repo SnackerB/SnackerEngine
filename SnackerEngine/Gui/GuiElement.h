@@ -51,7 +51,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiElement(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const ResizeMode& resizeMode = ResizeMode::RESIZE_RANGE);
 		/// Constructor from JSON
-		GuiElement(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiElement();
 		/// Copy constructor and assignment operator
@@ -63,7 +63,7 @@ namespace SnackerEngine
 		/// Adds a child to this guiElement. Returns true on success
 		virtual bool registerChild(GuiElement& guiElement);
 		/// Adds a child to this guiElement, with options given in JSON
-		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Deletes all children of this guiElement
 		void deleteChildren();
 		/// Returns true if this GuiElement object is managed by a guiManager
@@ -104,6 +104,7 @@ namespace SnackerEngine
 		void setPreferredWidth(const int& preferredWidth);
 		void setPreferredHeight(const int& preferredHeight);
 		void setResizeMode(ResizeMode resizeMode) { this->resizeMode = resizeMode; }
+		void setClipChildren(bool clipCildren) { this->clipChildren = clipChildren; }
 		/// Getters
 		const std::string& getName() const { return name; }
 		GuiID getGuiID() const { return guiID; }
@@ -125,11 +126,12 @@ namespace SnackerEngine
 		const Vec2i& getMaxSize() const { return sizeHints.maxSize; }
 		const int& getMaxWidth() const { return sizeHints.maxSize.x; }
 		const int& getMaxHeight() const { return sizeHints.maxSize.y; }
-		const Vec2i& getPreferredSize() const { return sizeHints.preferredSize; }
-		const int& getPreferredWidth() const { return sizeHints.preferredSize.x; }
-		const int& getPreferredHeight() const { return sizeHints.preferredSize.y; }
+		Vec2i getPreferredSize() const;
+		int getPreferredWidth() const;
+		int getPreferredHeight() const;
 		const GuiSizeHints& getSizeHints() const { return sizeHints; }
 		const std::vector<GuiID>& getChildren() const { return children; }
+		bool getClipChildren() const { return clipChildren; }
 		/// Returns mouseOffset from this GuiElement
 		const Vec2i getMouseOffset() const;
 		int getMouseOffsetX() const;
@@ -165,6 +167,8 @@ namespace SnackerEngine
 		/// one and is drawn first. If bringToForeground() is called on a GuiElement, it and all of 
 		/// its parent elements are brought to the back of the importance vector.
 		std::vector<GuiID> sortedChildren{};
+		/// Wether or not one should clip children when drawing this guiElement
+		bool clipChildren = true;
 		/// Tells this GuiElement object that the guiManager was deleted.
 		virtual void signOff();
 		/// Friend classes
@@ -227,6 +231,10 @@ namespace SnackerEngine
 	protected:
 		/// Draws a child
 		void drawElement(GuiID element, Vec2i worldPosition);
+		/// This function can be used to tell the GuiManager that this element wants their parent element to enforce its
+		/// layouts. This is usually automatically called when an element changes its size hints. However, in some circumstances
+		/// this needs to be called explicitly, see GuiImage for an example.
+		void registerEnforceLayoutUp();
 		/// Using these setters a guiElement can change the position and size of child elements.
 		/// This will trigger them to enforce layouts on themselves and their children respectively.
 		/// This will of course also call onSizeChange() and/or onPositionChange() on the child element affected.
@@ -329,6 +337,9 @@ namespace SnackerEngine
 		void pushClippingBox(const Vec4i& clippingBox);
 		/// Computes a clipping box from the worldPosition and pushes it to the stack
 		void pushClippingBox(const Vec2i& worldPosition);
+		/// Computes a clipping box from the worldPosition, given a custom offset and size,
+		/// and pushes it to the stack
+		void pushClippingBox(const Vec2i& worldPosition, const Vec2i& offset, const Vec2i& size);
 		/// pops a clipping box from the stack
 		void popClippingBox();
 

@@ -4,6 +4,7 @@
 #include "Gui/Text/Text.h"
 #include "Graphics/Material.h"
 #include "Graphics/Color.h"
+#include "Utility\Alignment.h"
 
 namespace SnackerEngine
 {
@@ -17,7 +18,8 @@ namespace SnackerEngine
 			DONT_SCALE,			/// Text is not scaled
 			SCALE_UP,			/// Text is scaled up to try to fit the box better.
 			/// Works best in SINGLE_LINE parse mode
-			SCALE_DOWN,			/// Text is scaled down to try to fit the box better.
+			SCALE_DOWN,				/// Text is scaled down to try to fit the box better.
+			SCALE_DOWN_HORIZONTAL,	/// Text is scaled down to try to fit the box better, but is only scaled based on width
 			/// Works best in SINGLE_LINE parse mode
 			SCALE_UP_DOWN,		/// Text is scaled up or down to try to fit the box better.
 			/// Works best in SINGLE_LINE parse mode
@@ -61,12 +63,13 @@ namespace SnackerEngine
 		std::unique_ptr<DynamicText> dynamicText = nullptr;
 		/// The scale factor of the text, used internally for some textBoxModes
 		double scaleFactor = 1.0;
-		/// Helper function that computes the the text position
+		/// Helper function that computes the the text position. The resulting vector points from the upper left corner
+		/// of the textBox to the left baseline of the text.
 		Vec2f computeTextPosition();
 		/// Helper function that draws the text
-		void drawText(const Vec2i& worldPosition);
-		/// Helper function that draws the text, scaling it by the given scale matrix
-		void drawText(const Vec2i& worldPosition, const Mat4f& scale);
+		void drawText(const Vec2i& worldPosition, std::optional<Color4f> textColor = std::nullopt);
+		/// Helper function that draws the text, transforming it by the given transform matrix
+		void drawText(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale, std::optional<Color4f> textColor = std::nullopt);
 		/// Helper function that recomputes the text and corresponding model matrices.
 		/// This function should be called when the text needs to be recomputed, eg.
 		/// when the font or fontSize changes.
@@ -74,6 +77,12 @@ namespace SnackerEngine
 		void recomputeText();
 		/// Helper function that should get called when the element is registered
 		void onRegister(std::unique_ptr<DynamicText>&& dynamicText);
+		/// Returns dynamicText()->getBottom in pixels, scaled by scaleFactor.
+		double getScaledBottom();
+		/// Returns dynamicText()->getTop in pixels, scaled by scaleFactor.
+		double getScaledTop();
+		// Returns (dynamicText()->getTop() + dynamicText()->getBottom)/2 in pixels, scaled by scaleFactor.
+		double getScaledTextVerticalMidpoint();
 	private:
 		/// Material, containing font, textColor and backgroundColor.
 		/// MaterialData is of type SimpleTextMaterialData
@@ -81,15 +90,22 @@ namespace SnackerEngine
 		/// Text color
 		Color4f textColor = defaultTextColor;
 		/// Model matrices of the text
+		Mat4f scaleMatrixText = {};
+		Mat4f translateMatrixText = {};
 		Mat4f modelMatrixText = {};
 		/// Text scale mode
 		TextScaleMode textScaleMode = TextScaleMode::DONT_SCALE;
 		/// Size hint modes
 		SizeHintModes sizeHintModes = defaultSizeHintModes;
 		/// border between the box and the text in pixels
-		int border = GuiElement::defaultBorderSmall;
-		/// The normal font size of the text (without any rescaling)
+		int leftBorder = GuiElement::defaultBorderSmall;
+		int rightBorder = GuiElement::defaultBorderSmall;
+		int topBorder = GuiElement::defaultBorderSmall;
+		int bottomBorder = GuiElement::defaultBorderSmall;
+		/// The normal font size of the text (without any rescaling), in pt.
 		double fontSize = GuiElement::defaultFontSizeNormal;
+		/// Line height multiplier for changing the default lineHeight of the font
+		double lineHeightMultiplier = 1.0;
 		/// The number of tries that are being made to resize the text when the textBoxMode is set to 
 		/// FORCE_SIZE_RECOMPUTE_SCALE_DOWN or FORCE_SIZE_RECOMPUTE_SCALE
 		unsigned int recomputeTries = defaultRecomputeTries;
@@ -104,7 +120,8 @@ namespace SnackerEngine
 		/// The parse mode
 		StaticText::ParseMode parseMode = StaticText::ParseMode::SINGLE_LINE;
 		/// The text alignment
-		StaticText::Alignment alignment = StaticText::Alignment::LEFT;
+		AlignmentHorizontal alignmentHorizontal = AlignmentHorizontal::LEFT;
+		AlignmentVertical alignmentVertical = AlignmentVertical::CENTER;
 		/// The font of the text
 		Font font = GuiElement::defaultFont;
 		/// Helper function that Computes the modelMatrix of the text and the background box.
@@ -113,17 +130,18 @@ namespace SnackerEngine
 		/// Helper function that should be called on size change. Only recomputes the text
 		/// if it is absolutely necessary, saving computation time!
 		void recomputeTextOnSizeChange();
+		/// Helper function that constructs the text material
+		static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor);
+	protected:
 		/// Helper functions computing the correct values for the size hint height variables, ie.
 		/// minheight, maxheight and preferredHeight.
-		void comouteWidthHints();
+		virtual void computeWidthHints();
 		/// Helper function computing the correct values for the size hint width variables, ie.
 		/// minWidth, maxWidth and preferredWidth. This function should only be called if the text,
 		/// font, fontsize, ord border changes. The width hint is computed as if the parse mode was set
 		/// to single_line.
-		void computeHeightHints();
-		/// Helper function that constructs the text material
-		static Material constructTextMaterial(const Font& font, const Color4f& textColor, const Color4f& backgroundColor);
-	protected:
+		virtual void computeHeightHints();
+		void computeSizeHints() { computeWidthHints(); computeHeightHints(); }
 		/// Sets the internal text variable. Can be used by derived GuiElements
 		void setTextInternal(const std::string& text) { this->text = text; };
 	public:
@@ -131,10 +149,10 @@ namespace SnackerEngine
 		static constexpr std::string_view typeName = "GUI_TEXT_BOX";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, const Color4f& backgroundColor = defaultBackgroundColor);
+		GuiTextBox(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& text = "", const Font& font = defaultFont, const double& fontSize = defaultFontSizeNormal, double lineHeightMultiplier = 1.0, const Color4f& backgroundColor = defaultBackgroundColor);
 		GuiTextBox(const std::string& text);
 		/// Constructor from JSON
-		GuiTextBox(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiTextBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiTextBox() {}
 		/// Copy constructor and assignment operator
@@ -144,18 +162,30 @@ namespace SnackerEngine
 		GuiTextBox(GuiTextBox&& other) noexcept = default;
 		GuiTextBox& operator=(GuiTextBox&& other) noexcept = default;
 		/// Getters
-		Vec2i getTextSize() const;
 		const Color4f& getTextColor() const { return textColor; }
 		TextScaleMode getTextScaleMode() const { return textScaleMode; }
 		const SizeHintModes& getSizeHintModes() const { return sizeHintModes; }
-		const int getBorder() const { return border; }
+		int getLeftBorder() const { return leftBorder; }
+		int getRightBorder() const { return rightBorder; }
+		int getTopBorder() const { return topBorder; }
+		int getBottomBorder() const { return bottomBorder; }
+		int getMaxBorder() const;
 		double getFontSize() const { return fontSize; }
+		double getLineHeightMultiplier() const { return lineHeightMultiplier; }
+		double getLineHeight() const;
 		int getRecomputeTries() const { return recomputeTries; }
 		bool isDoRecomputeOnSizeChange() const { return doRecomputeOnSizeChange; }
-		const std::string& getText() const { return text; }
+		virtual std::string_view getText() const { return text; }
 		StaticText::ParseMode getParseMode() const { return parseMode; }
-		StaticText::Alignment getAlignment() const { return alignment; }
+		AlignmentHorizontal getAlignmentHorizontal() const { return alignmentHorizontal; }
+		AlignmentVertical getAlignmentVertical() const { return alignmentVertical; }
 		const Font& getFont() const { return font; }
+		int getTextWidth() const;
+		int getTextWidthWithBorders() const;
+		int getTextHeight() const;
+		int getTextHeightWithBorders() const;
+		Vec2i getTextSize() const { return Vec2i(getTextWidth(), getTextHeight()); }
+		Vec2i getTextSizeWithBorders() const { return Vec2i(getTextWidthWithBorders(), getTextHeightWithBorders()); }
 		/// Setters
 		void setTextColor(const Color4f& textColor);
 		void setTextScaleMode(TextScaleMode textScaleMode);
@@ -163,13 +193,19 @@ namespace SnackerEngine
 		void setSizeHintModeMaxSize(const SizeHintMode& sizeHintModeMaxSize);
 		void setSizeHintModePreferredSize(const SizeHintMode& sizeHintModePreferredSize);
 		void setSizeHintModes(const SizeHintModes& sizeHintModes);
+		void setLeftBorder(const int& leftBorder);
+		void setRightBorder(const int& rightBorder);
+		void setTopBorder(const int& topBorder);
+		void setBottomBorder(const int& bottomBorder);
 		void setBorder(const int& border);
 		void setFontSize(const double& fontSize);
+		void setLineHeightMultiplier(double lineHeightMultiplier);
 		void setRecomputeTries(int recomputeTries);
 		void setDoRecomputeOnSizeChange(const bool& doRecomputeOnSizeChange);
-		void setText(const std::string& text);
+		virtual void setText(const std::string& text);
 		void setParseMode(const StaticText::ParseMode& parseMode);
-		void setAlignment(const StaticText::Alignment& alignment);
+		void setAlignmentHorizontal(AlignmentHorizontal alignmentHorizontal);
+		void setAlignmentVertical(AlignmentVertical alignmentVertical);
 		void setFont(const Font& font);
 		void setBackgroundColor(const Color4f& backgroundColor) override;
 
@@ -179,10 +215,29 @@ namespace SnackerEngine
 
 		std::unique_ptr<GuiElementAnimatable> animateTextColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateLeftBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateRightBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateTopBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		std::unique_ptr<GuiElementAnimatable> animateBottomBorder(const int& startVal, const int& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateFontSize(const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 		std::unique_ptr<GuiElementAnimatable> animateBackgroundColor(const Color4f& startVal, const Color4f& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear) override;
 
 	protected:
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. This function can be called by child elements.
+		/// Does not draw children.
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale);
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. This function can be called by child elements.
+		/// Does not draw children. Clipping box for drawing text is modified by the offset and the
+		/// clipping box is of the given size.
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize);
+		/// Function that draws the panel relative to its parent element, but also transforms according
+		/// to the given transform matrix. The text is transformed via the textTransformMatrix. 
+		/// This function can be called by child elements.
+		/// Does not draw children. Clipping box for drawing text is modified by the offset and the
+		/// clipping box is of the given size.
+		void draw(const Vec2i& worldPosition, const Vec2f& translate, const Vec2f& scale, const Vec2f& translateText, const Vec2f& scaleText, const Vec2i& clippingBoxOffset, const Vec2i& clippingBoxSize);
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
 		/// worldPosition:		position of the upper left corner of the guiElement in world space

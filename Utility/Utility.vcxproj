@@ -171,6 +171,7 @@
     <ClCompile Include="Handles\EventHandle.cpp" />
     <ClCompile Include="Handles\VectorEventHandle.cpp" />
     <ClCompile Include="Json.cpp" />
+    <ClCompile Include="JsonPreprocessing.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
@@ -189,6 +190,7 @@
     <ClInclude Include="Handles\VectorEventHandle.h" />
     <ClInclude Include="Handles\VectorVariableHandle.h" />
     <ClInclude Include="Json.h" />
+    <ClInclude Include="JsonPreprocessing.h" />
     <ClInclude Include="Keys.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Timer.h" />

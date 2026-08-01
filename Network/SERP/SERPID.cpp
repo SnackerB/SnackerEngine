@@ -37,13 +37,13 @@ namespace SnackerEngine
 	}
 	
 	template<>
-	std::optional<SERPID> from_string(const std::string& string)
+	std::optional<SERPID> from_string(std::string_view string_view)
 	{
-		if (string.length() != 4) return {};
-		for (const auto& c : string) {
+		if (string_view.length() != 4) return {};
+		for (const auto& c : string_view) {
 			if (!std::isdigit(c)) return {};
 		}
-		return static_cast<unsigned int>(std::stoul(string));
+		return static_cast<unsigned int>(std::stoul(string_view.data()));
 	}
 
 }

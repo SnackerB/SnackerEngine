@@ -286,7 +286,7 @@ namespace SnackerEngine
 			shaderData.GPU_ID = GPU_ID.value();
 			shaderData.referenceCount = 0;
 			shaderData.persistent = true;
-			shaderData.valid = true;
+			shaderData.valid = false;
 			shaderData.path = "";
 		}
 	}
@@ -346,9 +346,11 @@ namespace SnackerEngine
 	ShaderManager::ShaderID ShaderManager::loadShader(const std::string& path)
 	{
 		// First look if shader was already valid
-		auto it = stringToShaderID.find(path);
-		if (it != stringToShaderID.end()) {
-			return it->second;
+		if (!stringToShaderID.empty()) {
+			auto it = stringToShaderID.find(path);
+			if (it != stringToShaderID.end()) {
+				return it->second;
+			}
 		}
 		// load and compile new shader
 		auto GPU_ID = loadAndCompileShader(path);

@@ -16,27 +16,46 @@ namespace SnackerEngine
 			RESIZE_TO_IMAGE_SIZE,
 			FIT_IMAGE_TO_SIZE,
 		};
+		/// Enum that specifies how the preferredSize size hint is to be set. Note that this only takes effect
+		/// if the image mode is set to FIT_IMAGE_TO_SIZE.
+		enum class GuiImageSizeHintMode
+		{
+			ARBITRARY,								// preferredSize is not set
+			COMPUTE_PREFERRED_HEIGHT_FROM_WIDTH,	// preferred height is computed from current width on size change
+			COMPUTE_PREFERRED_WIDTH_FROM_HEIGHT,	// preferred width is computed from current height on size change
+			DYNAMIC,								// WORK IN PROGRESS, TODO: Write description
+		};
 	public:
 		/// Static default Attributes
 		static Shader defaultImageShader;
 		static Texture defaultTexture;
-	private:
+	protected:
 		/// Model matrix for the image
 		Mat4f modelMatrixImage{};
 		/// Shader for the image
 		Shader imageShader = defaultImageShader;
 		/// The texture/image that is displayed
 		Texture texture = defaultTexture;
+	private:
 		/// The image mode
 		GuiImageMode guiImageMode = GuiImageMode::FIT_IMAGE_TO_SIZE;
+		/// The size hint mode
+		GuiImageSizeHintMode guiImageSizeHintMode = GuiImageSizeHintMode::ARBITRARY;
+		/// Internal bool used for computing size hints when guiImageSizeHintMode is set to DYNAMIC
+		bool tryForLargestWidth = false;
+		/// ALlows the image to be rotated. Angle is in radians. If the image is rotated, setting preferred sizes based on the image might
+		/// not work as expected. Recommended to only rotate image when guiImageMode==RESIZE_TO_IMAGE_SIZE and guiImageSízeHintMode==ARBITRARY.
+		double rotationAngle = 0.0;
+		/// Helper function for copmputing size hints
+		void computeSizeHints();
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_IMAGE";
 		virtual std::string_view getTypeName() const override { return typeName; }
 		/// Default constructor
-		GuiImage(Texture texture = defaultTexture, GuiImageMode imageMode = GuiImageMode::FIT_IMAGE_TO_SIZE);
+		GuiImage(Texture texture = defaultTexture, GuiImageMode imageMode = GuiImageMode::FIT_IMAGE_TO_SIZE, GuiImageSizeHintMode sizeHintMode = GuiImageSizeHintMode::ARBITRARY);
 		/// Constructor from JSON
-		GuiImage(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiImage(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiImage() {};
 		/// Copy constructor and assignment operator
@@ -49,10 +68,14 @@ namespace SnackerEngine
 		const Shader& getImageShader() const { return imageShader; }
 		const Texture& getTexture() const { return texture; }
 		GuiImageMode getGuiImageMode() const { return guiImageMode; }
+		GuiImageSizeHintMode getGuiImageSizeHintMode() const { return guiImageSizeHintMode; }
+		double getRotationAngle() const { return rotationAngle; }
 		/// Setters
 		void setImageShader(const Shader& imageShader) { this->imageShader = imageShader; }
-		void setImageTexture(const Texture& texture) { this->texture = texture; onSizeChange(); }
-		void setGuiImageMode(GuiImageMode imageMode) { this->guiImageMode = guiImageMode;  }
+		void setImageTexture(const Texture& texture);
+		void setGuiImageMode(GuiImageMode guiImageMode) { this->guiImageMode = guiImageMode;  }
+		void setGuiImageSizeHintMode(GuiImageSizeHintMode guiImageSizeHintMode);
+		void setRotationAngle(double rotationAngle);
 	protected:
 		/// Draws this GuiElement object relative to its parent element. Will also recursively
 		/// draw all children of this element.
@@ -62,6 +85,13 @@ namespace SnackerEngine
 		/// compute model matrices. Not called by the constructor. Do not enforce layouts
 		/// in this function!
 		virtual void onSizeChange() override;
+
+	public:
+		//==============================================================================================
+		// Animatables
+		//==============================================================================================
+
+		virtual std::unique_ptr<GuiElementAnimatable> animateRotationAngle(const float& startVal, const float& stopVal, double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
 	};
 
 }

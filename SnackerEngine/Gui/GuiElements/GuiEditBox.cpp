@@ -10,24 +10,138 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	Color4f GuiEditBox::defaultSelectionBoxColor = Color4f(0.8f, 0.8f, 1.0f, 0.5f);
 	Color4f GuiEditBox::defaultBackgroundColor = Color4f(0.0f, 1.0f);
+	Color4f GuiEditBox::defaultPlaceholderTextColor = Color4f(0.0f, 0.5f);
 	float GuiEditBox::defaultCursorWidth{};
 	double GuiEditBox::defaultCursorBlinkingTime = 0.5;
 	GuiTextBox::SizeHintModes GuiEditBox::defaultSizeHintModes = { GuiTextBox::SizeHintMode::SET_TO_TEXT_SIZE, GuiTextBox::SizeHintMode::ARBITRARY, GuiTextBox::SizeHintMode::ARBITRARY };
 	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::computeTextOffsetAndCursorOffset()
+	{
+		if (!dynamicText) return;
+		// Compute "normal" text position (without cursor)
+		textPosition = computeTextPosition();
+		// Compute cursorOffset relative to text
+		cursorOffsetFromText = static_cast<EditableText&>(*dynamicText).getCursorPos() * static_cast<float>(scaleFactor);
+		cursorOffsetFromText.x = pointsToPixels(cursorOffsetFromText.x);
+		cursorOffsetFromText.y = pointsToPixels(cursorOffsetFromText.y);
+		// Reposition text to fit cursor in bounding box
+		textOffset = Vec2f(0.0f, 0.0f);
+		if (repositionTextToFitCursor && active) {
+			cursorPosition = textPosition + textOffset + cursorOffsetFromText;
+			if (cursorPosition.x > getWidth() - getLeftBorder()) textOffset.x = getWidth() - getLeftBorder() - cursorOffsetFromText.x - textPosition.x;
+			else {
+				float cursorWidth = pointsToPixels(static_cast<EditableText&>(*dynamicText).getCursorSize().x);
+				if (cursorPosition.x < getLeftBorder() - cursorWidth) textOffset.x = getLeftBorder() - cursorWidth - cursorOffsetFromText.x - textPosition.x;
+
+			}
+		}
+		textPosition += textOffset;
+		cursorPosition = textPosition + cursorOffsetFromText;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::computeTextOffsetAndCursorOffsetKeepTextOffset()
+	{
+		if (!dynamicText) return;
+		// If the text width is small enough that the text can fit, or if we anyways scale the text to fit, call default procedure
+		if (!repositionTextToFitCursor || !active || getTextSize().x < getWidth() - getLeftBorder() - getRightBorder()) {
+			computeTextOffsetAndCursorOffset();
+			return;
+		}
+		// Compute cursorOffset relative to text
+		cursorOffsetFromText = static_cast<EditableText&>(*dynamicText).getCursorPos() * static_cast<float>(scaleFactor);
+		cursorOffsetFromText.x = pointsToPixels(cursorOffsetFromText.x);
+		cursorOffsetFromText.y = pointsToPixels(cursorOffsetFromText.y);
+		// Reposition text to fit cursor in bounding box
+		if (repositionTextToFitCursor) {
+			cursorPosition = textPosition + cursorOffsetFromText;
+			if (cursorPosition.x > getWidth() - getLeftBorder()) {
+				textPosition = computeTextPosition();
+				textOffset.x = getWidth() - getLeftBorder() - cursorOffsetFromText.x - textPosition.x;
+				textPosition += textOffset;
+			}
+			else {
+				float cursorWidth = pointsToPixels(static_cast<EditableText&>(*dynamicText).getCursorSize().x);
+				if (cursorPosition.x < getLeftBorder() - cursorWidth) {
+					textPosition = computeTextPosition();
+					textOffset.x = getLeftBorder() - cursorWidth - cursorOffsetFromText.x - textPosition.x;
+					textPosition += textOffset;
+				}
+			}
+		}
+		cursorPosition = textPosition + cursorOffsetFromText;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::computeTextOffsetAndCursorOffsetKeepCursorOffset()
+	{
+		if (!dynamicText) return;
+		// If the text width is small enough that the text can fit, call default procedure
+		if (!repositionTextToFitCursor || !active || getTextSize().x < getWidth() - getLeftBorder() - getRightBorder()) {
+			computeTextOffsetAndCursorOffset();
+			return;
+		}
+		// Compute cursorOffset relative to text
+		cursorOffsetFromText = static_cast<EditableText&>(*dynamicText).getCursorPos() * static_cast<float>(scaleFactor);
+		cursorOffsetFromText.x = pointsToPixels(cursorOffsetFromText.x);
+		cursorOffsetFromText.y = pointsToPixels(cursorOffsetFromText.y);
+		// Reposition text to fit cursor in bounding box
+		if (repositionTextToFitCursor) {
+			textPosition = cursorPosition - cursorOffsetFromText;
+			Vec2i defaultTextPosition = computeTextPosition();
+			if (textPosition.x > defaultTextPosition.x) {
+				computeTextOffsetAndCursorOffset();
+				return;
+			}
+			if (textPosition.x + getTextSize().x < getWidth() - getLeftBorder()) {
+				textPosition.x = getWidth() - getLeftBorder() - getTextSize().x;
+				textOffset = textPosition - defaultTextPosition;
+				computeTextOffsetAndCursorOffsetKeepTextOffset();
+				return;
+			}
+			textOffset = textPosition - defaultTextPosition;
+		}
+		cursorPosition = textPosition + cursorOffsetFromText;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::computeTextOffsetAndCursorOffsetAdvanceCursor()
+	{
+		if (!dynamicText) return;
+		// If the text width is small enough that the text can fit, call default procedure
+		if (!repositionTextToFitCursor || !active || getTextSize().x < getWidth() - getLeftBorder() - getRightBorder()) {
+			computeTextOffsetAndCursorOffset();
+			return;
+		}
+		// Compute the updated cursorOffset relative to text
+		Vec2f newCursorOffsetFromText = static_cast<EditableText&>(*dynamicText).getCursorPos() * static_cast<float>(scaleFactor);
+		newCursorOffsetFromText.x = pointsToPixels(newCursorOffsetFromText.x);
+		newCursorOffsetFromText.y = pointsToPixels(newCursorOffsetFromText.y);
+		// We want to advance the cursor position by the difference!
+		if (repositionTextToFitCursor) {
+			textPosition = cursorPosition + newCursorOffsetFromText - cursorOffsetFromText*2;
+			cursorOffsetFromText = newCursorOffsetFromText;
+			cursorPosition = textPosition + cursorOffsetFromText;
+			Vec2i defaultTextPosition = computeTextPosition();
+			if (textPosition.x > defaultTextPosition.x) {
+				computeTextOffsetAndCursorOffset();
+				return;
+			}
+			if (cursorPosition.x > getWidth() - getLeftBorder()) {
+				textPosition = computeTextPosition();
+				textOffset.x = getWidth() - getLeftBorder() - cursorOffsetFromText.x - textPosition.x;
+				textPosition += textOffset;
+			}
+			else {
+				textOffset = textPosition - defaultTextPosition;
+			}
+		}
+		cursorPosition = textPosition + cursorOffsetFromText;
+	}
+	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::computeModelMatrixCursor()
 	{
-		unsigned int DPI = Engine::getDPI().y;
-		if (!dynamicText) return;
-		Vec2f cursorOffset = static_cast<EditableText&>(*dynamicText).getCursorPos() * static_cast<float>(scaleFactor);
-		cursorOffset.x = pointsToInches(cursorOffset.x);
-		cursorOffset.y = pointsToInches(cursorOffset.y);
-		cursorOffset *= static_cast<float>(DPI);
-		Vec2f cursorSize = static_cast<EditableText&>(*dynamicText).getCursorSize() * static_cast<float>(scaleFactor);
-		cursorSize.x = pointsToInches(cursorSize.x);
-		cursorSize.y = pointsToInches(cursorSize.y);
-		cursorSize *= static_cast<float>(DPI);
-		Vec2f textOffset = computeTextPosition();
-		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(textOffset.x + cursorOffset.x, textOffset.y + cursorOffset.y, 0.0f), cursorSize);
+		Vec2f cursorSize = static_cast<EditableText&>(*dynamicText).getCursorSize();
+		cursorSize.x = pointsToPixels(cursorSize.x);
+		cursorSize.y = pointsToPixels(cursorSize.y) * scaleFactor;
+		modelMatrixCursor = Mat4f::TranslateAndScale(Vec3f(cursorPosition.x, cursorPosition.y * scaleFactor, 0.0f), cursorSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::computeModelMatricesSelectionBoxes()
@@ -36,24 +150,18 @@ namespace SnackerEngine
 		modelMatricesSelectionBoxes.clear();
 		auto result = static_cast<EditableText&>(*dynamicText).getSelectionBoxes();
 		if (result.empty()) return;
-		Vec2f textPosition = computeTextPosition();
-		unsigned int DPI = Engine::getDPI().y;
 		for (const auto& selectionBox : result) {
-			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + pointsToInches(selectionBox.position) * static_cast<float>(scaleFactor) * static_cast<float>(DPI), pointsToInches(selectionBox.size) * static_cast<float>(scaleFactor) * static_cast<float>(DPI)));
+			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + Vec2f(pointsToPixels(selectionBox.position.x), pointsToPixels(selectionBox.position.y)) * static_cast<float>(scaleFactor), Vec2f(pointsToPixels(selectionBox.size.x), pointsToPixels(selectionBox.size.y)) * static_cast<float>(scaleFactor)));
+			modelMatricesSelectionBoxes.push_back(Mat4f::TranslateAndScale(textPosition + Vec2f(pointsToPixels(selectionBox.position.x), pointsToPixels(selectionBox.position.y)) * static_cast<float>(scaleFactor), Vec2f(pointsToPixels(selectionBox.size.x), pointsToPixels(selectionBox.size.y)) * static_cast<float>(scaleFactor)));
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2d GuiEditBox::getMouseOffsetToText()
 	{
-		Vec2d DPI = Engine::getDPI();
-		// Compute offset due to centering
-		Vec2f textOffset = computeTextPosition();
 		// Get mouse offset to upper left corner of element
 		Vec2d mousePos = getMouseOffset();
-		mousePos = Vec2i(-static_cast<int>(textOffset.x), -static_cast<int>(textOffset.y)) + Vec2i(static_cast<int>(mousePos.x), -static_cast<int>(mousePos.y));
-		mousePos.x /= DPI.x;
-		mousePos.y /= DPI.y;
-		mousePos /= pointsToInches(1.0);
+		mousePos = Vec2i(-static_cast<int>(textPosition.x), -static_cast<int>(textPosition.y)) + Vec2i(static_cast<int>(mousePos.x), -static_cast<int>(mousePos.y));
+		mousePos /= pointsToPixels(1.0);
 		return mousePos;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -63,32 +171,32 @@ namespace SnackerEngine
 		if (dynamicText) setText(dynamicText->getText());
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, const Color4f& backgroundColor)
-		: GuiTextBox(position, size, text, font, fontSize, backgroundColor) {}
+	GuiEditBox::GuiEditBox(const Vec2i& position, const Vec2i& size, const std::string& text, const Font& font, const double& fontSize, double lineHeightMultiplier, const Color4f& backgroundColor)
+		: GuiTextBox(position, size, text, font, fontSize, lineHeightMultiplier, backgroundColor) {}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiTextBox(json, data, parameterNames)
+	GuiEditBox::GuiEditBox(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiTextBox(json, parameterNameSet)
 	{
-		parseJsonOrReadFromData(selectionBoxColor, "selectionBoxColor", json, data, parameterNames);
-		parseJsonOrReadFromData(cursorWidth, "cursorWidth", json, data, parameterNames);
-		std::optional<double> cursorBlinkTime = parseJsonOrReadFromData<double>("cursorBlinkTime", json, data, parameterNames);
+		parseJson(selectionBoxColor, "selectionBoxColor", json, parameterNameSet);
+		parseJson(cursorWidth, "cursorWidth", json, parameterNameSet);
+		parseJson(repositionTextToFitCursor, "repositionTextToFitCursor", json, parameterNameSet);
+		parseJson(placeholderText, "placeholderText", json, parameterNameSet);
+		parseJson(placeholderTextColor, "placeholderTextColor", json, parameterNameSet);
+		std::optional<double> cursorBlinkTime = parseJson<double>("cursorBlinkTime", json, parameterNameSet);
 		if (cursorBlinkTime.has_value()) cursorBlinkingTimer.setTimeStep(cursorBlinkTime.value());
 		if (!json.contains("backgroundColor")) setBackgroundColor(defaultBackgroundColor);
-		if (!json.contains("sizeHintModeMinSize") && getTextScaleMode() != TextScaleMode::SCALE_DOWN && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN &&
-			getTextScaleMode() != TextScaleMode::RECOMPUTE_DOWN && getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMinSize(defaultSizeHintModes.sizeHintModeMinSize);
-		if (!json.contains("sizeHintModePreferredSize") && getTextScaleMode() == TextScaleMode::DONT_SCALE) setSizeHintModePreferredSize(defaultSizeHintModes.sizeHintModePreferredSize);
-		if (!json.contains("sizeHintModeMaxSize") && getTextScaleMode() != TextScaleMode::SCALE_UP && getTextScaleMode() != TextScaleMode::SCALE_UP_DOWN
-			&& getTextScaleMode() != TextScaleMode::RECOMPUTE_UP_DOWN) setSizeHintModeMaxSize(defaultSizeHintModes.sizeHintModeMaxSize);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox::GuiEditBox(const GuiEditBox& other) noexcept
 		: GuiTextBox(other), selectionBoxColor(other.selectionBoxColor), cursorWidth(other.cursorWidth), 
 		active(false), cursorIsVisible(false),
 		cursorBlinkingTimer(other.cursorBlinkingTimer), modelMatrixCursor{}, modelMatricesSelectionBoxes{},
-		eventTextWasEdited{}, eventEnterWasPressed{} {}
+		eventTextWasEdited{}, eventEnterWasPressed{}, displayPlaceholderText{ false },
+		placeholderText(other.placeholderText), placeholderTextColor(other.placeholderTextColor) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiEditBox& GuiEditBox::operator=(const GuiEditBox& other) noexcept
 	{
+		// TODO: Change all constructors and move/copy operators
 		GuiTextBox::operator=(other);
 		selectionBoxColor = other.selectionBoxColor;
 		cursorWidth = other.cursorWidth;
@@ -99,39 +207,43 @@ namespace SnackerEngine
 		modelMatricesSelectionBoxes.clear();
 		eventTextWasEdited = EventHandle::Observable();
 		eventEnterWasPressed = EventHandle::Observable();
+		displayPlaceholderText = false;
+		placeholderText = other.placeholderText;
+		placeholderTextColor = other.placeholderTextColor;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiEditBox::GuiEditBox(GuiEditBox&& other) noexcept
-		: GuiTextBox(std::move(other)), selectionBoxColor(std::move(other.selectionBoxColor)), 
-		cursorWidth(std::move(cursorWidth)), active(std::move(other.active)), 
-		cursorIsVisible(std::move(other.cursorIsVisible)),
-		cursorBlinkingTimer(std::move(other.cursorBlinkingTimer)), modelMatrixCursor(std::move(other.modelMatrixCursor)),
-		modelMatricesSelectionBoxes(std::move(other.modelMatricesSelectionBoxes)),
-		eventTextWasEdited(std::move(other.eventTextWasEdited)),
-		eventEnterWasPressed(std::move(other.eventEnterWasPressed))
+	std::string_view GuiEditBox::getText() const
 	{
-	}
-	//--------------------------------------------------------------------------------------------------
-	GuiEditBox& GuiEditBox::operator=(GuiEditBox&& other) noexcept
-	{
-		GuiTextBox::operator=(std::move(other));
-		selectionBoxColor = std::move(other.selectionBoxColor);
-		cursorWidth = std::move(other.cursorWidth);
-		active = std::move(other.active);
-		cursorIsVisible = std::move(other.cursorIsVisible);
-		cursorBlinkingTimer = std::move(other.cursorBlinkingTimer);
-		modelMatrixCursor = std::move(other.modelMatrixCursor);
-		modelMatricesSelectionBoxes = std::move(other.modelMatricesSelectionBoxes);
-		eventTextWasEdited = std::move(other.eventTextWasEdited);
-		eventEnterWasPressed = std::move(other.eventEnterWasPressed);
-		return *this;
+		if (displayPlaceholderText) return "";
+		return GuiTextBox::getText();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::setCursorWidth(float cursorWidth)
 	{
 		this->cursorWidth = cursorWidth;
 		if (dynamicText) static_cast<EditableText&>(*dynamicText).setCursorWidth(cursorWidth);
+		computeModelMatrixCursor();
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::setPlaceholderText(const std::string& placeholderText)
+	{
+		if (this->placeholderText != placeholderText) {
+			this->placeholderText = placeholderText;
+			if (displayPlaceholderText) GuiTextBox::setText(placeholderText);
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiEditBox::setText(const std::string& text)
+	{
+		if (text.empty()) {
+			displayPlaceholderText = true;
+			GuiTextBox::setText(placeholderText);
+		}
+		else {
+			displayPlaceholderText = false;
+			GuiTextBox::setText(text);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::subscribeEventTextWasEdited(EventHandle& eventHandle)
@@ -154,38 +266,48 @@ namespace SnackerEngine
 		// Draw selection boxes
 		pushClippingBox(worldPosition);
 		for (const auto& modelMatrixSelectionBox : modelMatricesSelectionBoxes) {
-			getPanelShader().bind();
-			guiManager->setUniformViewAndProjectionMatrices(getPanelShader());
-			getPanelShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixSelectionBox);
-			getPanelShader().setUniform<Color4f>("u_color", selectionBoxColor);
+			Shader tempShader = guiManager->getAlphaColorShader();
+			tempShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(tempShader);
+			tempShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixSelectionBox);
+			tempShader.setUniform<Color4f>("u_color", selectionBoxColor);
 			Renderer::draw(guiManager->getModelSquare());
 		}
 		// Draw text
-		drawText(worldPosition);
+		if (displayPlaceholderText) drawText(worldPosition + textOffset, placeholderTextColor);
+		else drawText(worldPosition + textOffset);
 		// Draw cursor
 		if (cursorIsVisible) {
-			getPanelShader().bind();
-			guiManager->setUniformViewAndProjectionMatrices(getPanelShader());
-			getPanelShader().setUniform<Mat4f>("u_model", translationMatrix * modelMatrixCursor);
-			getPanelShader().setUniform<Color4f>("u_color", getTextColor());
+			Shader tempShader = guiManager->getAlphaColorShader();
+			tempShader.bind();
+			guiManager->setUniformViewAndProjectionMatrices(tempShader);
+			tempShader.setUniform<Mat4f>("u_model", translationMatrix * modelMatrixCursor);
+			tempShader.setUniform<Color4f>("u_color", getTextColor());
 			Renderer::draw(guiManager->getModelSquare());
 		}
+		popClippingBox();
 		// Draw children
 		GuiElement::draw(worldPosition);
-		popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::onRegister()
 	{
-		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(getText(), getFont(), getFontSize(), inchesToPoints(static_cast<double>(getWidth() - 2 * getBorder()) / Engine::getDPI().y), cursorWidth, getParseMode(), getAlignment())));
+		std::string_view text = getText();
+		if (text == "") {
+			displayPlaceholderText = true;
+			text = placeholderText;
+		}
+		GuiTextBox::onRegister(std::move(std::make_unique<EditableText>(text.data(), getFont(), getFontSize(), pixelsToPoints(static_cast<double>(getWidth() - getLeftBorder() - getRightBorder())), cursorWidth, getLineHeightMultiplier(), getParseMode(), getAlignmentHorizontal())));
 		signUpEvent(CallbackType::MOUSE_BUTTON_ON_ELEMENT);
 		signUpEvent(CallbackType::MOUSE_ENTER);
 		signUpEvent(CallbackType::MOUSE_LEAVE);
+		computeTextOffsetAndCursorOffset();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiEditBox::onSizeChange()
 	{
 		GuiTextBox::onSizeChange();
+		computeTextOffsetAndCursorOffset();
 		computeModelMatrixCursor();
 		computeModelMatricesSelectionBoxes();
 	}
@@ -244,6 +366,7 @@ namespace SnackerEngine
 					signOffEvent(CallbackType::MOUSE_BUTTON);
 					signOffEvent(CallbackType::MOUSE_MOTION);
 					static_cast<EditableText&>(*dynamicText).setSelectionIndexToCursor();
+					computeTextOffsetAndCursorOffset();
 					computeModelMatricesSelectionBoxes();
 					OnTextEdit();
 				}
@@ -258,6 +381,7 @@ namespace SnackerEngine
 	{
 		Vec2d mousePos = getMouseOffsetToText();
 		static_cast<EditableText&>(*dynamicText).computeCursorPosFromMousePos(mousePos / scaleFactor, false);
+		computeTextOffsetAndCursorOffsetKeepTextOffset();
 		computeModelMatrixCursor();
 		computeModelMatricesSelectionBoxes();
 		cursorBlinkingTimer.reset();
@@ -273,12 +397,14 @@ namespace SnackerEngine
 					static_cast<EditableText&>(*dynamicText).moveCursorToLeftWordBeginning(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
+					computeTextOffsetAndCursorOffsetKeepTextOffset();
 					computeModelMatrixCursor();
 				}
 				else {
 					static_cast<EditableText&>(*dynamicText).moveCursorToLeft(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
+					computeTextOffsetAndCursorOffsetKeepTextOffset();
 					computeModelMatrixCursor();
 				}
 			}
@@ -287,12 +413,14 @@ namespace SnackerEngine
 					static_cast<EditableText&>(*dynamicText).moveCursorToRightWordEnd(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
+					computeTextOffsetAndCursorOffsetKeepTextOffset();
 					computeModelMatrixCursor();
 				}
 				else {
 					static_cast<EditableText&>(*dynamicText).moveCursorToRight(!(mods & KEY_MOD_SHIFT));
 					cursorBlinkingTimer.reset();
 					cursorIsVisible = true;
+					computeTextOffsetAndCursorOffsetKeepTextOffset();
 					computeModelMatrixCursor();
 				}
 			}
@@ -308,6 +436,7 @@ namespace SnackerEngine
 					cursorIsVisible = true;
 				}
 				recomputeText();
+				computeTextOffsetAndCursorOffsetKeepCursorOffset();
 				computeModelMatrixCursor();
 			}
 			else if (key == KEY_DELETE) {
@@ -322,6 +451,7 @@ namespace SnackerEngine
 					cursorIsVisible = true;
 				}
 				recomputeText();
+				computeTextOffsetAndCursorOffsetKeepCursorOffset();
 				computeModelMatrixCursor();
 			}
 			else if (key == KEY_ENTER) {
@@ -335,6 +465,7 @@ namespace SnackerEngine
 					signOffEvent(CallbackType::MOUSE_BUTTON);
 					signOffEvent(CallbackType::MOUSE_MOTION);
 					OnTextEdit();
+					computeTextOffsetAndCursorOffset();
 					eventEnterWasPressed.trigger();
 					// Kill selection
 					static_cast<EditableText&>(*dynamicText).setSelectionIndexToCursor();
@@ -345,6 +476,7 @@ namespace SnackerEngine
 					cursorIsVisible = true;
 				}
 				recomputeText();
+				computeTextOffsetAndCursorOffset();
 				computeModelMatrixCursor();
 			}
 			else if (key == KEY_ESCAPE) {
@@ -357,10 +489,13 @@ namespace SnackerEngine
 				signOffEvent(CallbackType::MOUSE_MOTION);
 				// Kill selection
 				static_cast<EditableText&>(*dynamicText).setSelectionIndexToCursor();
+				computeTextOffsetAndCursorOffset();
 			}
 			else if (key == KEY_C && mods & KEY_MOD_CONTROL) {
 				// Put selected text as UTF-8 encoded string into the clipboard
-				Engine::setClipboardString(static_cast<EditableText&>(*dynamicText).getSelectedText());
+				if (static_cast<EditableText&>(*dynamicText).isSelecting()) {
+					Engine::setClipboardString(static_cast<EditableText&>(*dynamicText).getSelectedText());
+				}
 			}
 			else if (key == KEY_V && mods & KEY_MOD_CONTROL) {
 				std::optional<std::string> clipboard = Engine::getClipboardString();
@@ -369,8 +504,29 @@ namespace SnackerEngine
 				cursorBlinkingTimer.reset();
 				cursorIsVisible = true;
 				recomputeText();
+				computeTextOffsetAndCursorOffset();
 				computeModelMatrixCursor();
-				computeModelMatricesSelectionBoxes();
+			}
+			else if (key == KEY_A && mods & KEY_MOD_CONTROL) {
+				// Select all
+				static_cast<EditableText&>(*dynamicText).setCursorPos(0);
+				static_cast<EditableText&>(*dynamicText).setCursorPos(static_cast<EditableText&>(*dynamicText).getNumCharacters(), false);
+				cursorBlinkingTimer.reset();
+				cursorIsVisible = true;
+				computeTextOffsetAndCursorOffset();
+				computeModelMatrixCursor();
+			}
+			else if (key == KEY_X && mods & KEY_MOD_CONTROL) {
+				// Delete selection and copy
+				if (static_cast<EditableText&>(*dynamicText).isSelecting()) {
+					Engine::setClipboardString(static_cast<EditableText&>(*dynamicText).getSelectedText());
+					static_cast<EditableText&>(*dynamicText).deleteWordAfterCursor();
+					cursorBlinkingTimer.reset();
+					cursorIsVisible = true;
+					recomputeText();
+					computeTextOffsetAndCursorOffset();
+					computeModelMatrixCursor();
+				}
 			}
 			// Compute selection boxes
 			computeModelMatricesSelectionBoxes();
@@ -385,6 +541,7 @@ namespace SnackerEngine
 			cursorBlinkingTimer.reset();
 			cursorIsVisible = true;
 			recomputeText();
+			computeTextOffsetAndCursorOffset();
 			computeModelMatrixCursor();
 			computeModelMatricesSelectionBoxes();
 		}
@@ -399,8 +556,13 @@ namespace SnackerEngine
 			signUpEvent(CallbackType::UPDATE);
 			signUpEvent(CallbackType::MOUSE_BUTTON);
 			signUpEvent(CallbackType::MOUSE_MOTION);
+			if (displayPlaceholderText) {
+				displayPlaceholderText = false;
+				GuiTextBox::setText("");
+			}
 			Vec2d mousePos = getMouseOffsetToText();
 			static_cast<EditableText&>(*dynamicText).computeCursorPosFromMousePos(mousePos / scaleFactor);
+			computeTextOffsetAndCursorOffsetKeepTextOffset();
 			computeModelMatrixCursor();
 			computeModelMatricesSelectionBoxes();
 			cursorBlinkingTimer.reset();

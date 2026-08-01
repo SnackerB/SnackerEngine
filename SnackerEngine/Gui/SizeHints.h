@@ -5,7 +5,7 @@
 namespace SnackerEngine
 {
 
-	constexpr int SIZE_HINT_ARBITRARY = -1;;
+	constexpr int SIZE_HINT_ARBITRARY = -1;
 	constexpr int SIZE_HINT_AS_LARGE_AS_POSSIBLE = -2;
 
 	struct GuiSizeHints
@@ -17,7 +17,8 @@ namespace SnackerEngine
 		/// this direction and the element can get as large as necessary
 		Vec2i maxSize = Vec2i(SIZE_HINT_ARBITRARY, SIZE_HINT_ARBITRARY);
 		/// The preferred size of this element. If a component of preferredSize is set to -1
-		/// this means that there is no preferred size along this direction!
+		/// this means that there is no preferred size along this direction. If it is set to -2
+		/// this means that the element prefers to be set as large as possible along that direction.
 		Vec2i preferredSize = Vec2i(SIZE_HINT_ARBITRARY, SIZE_HINT_ARBITRARY);
 		GuiSizeHints operator&(const GuiSizeHints& other);
 	};

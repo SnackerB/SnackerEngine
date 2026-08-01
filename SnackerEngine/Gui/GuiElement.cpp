@@ -33,26 +33,27 @@ namespace SnackerEngine
 	{
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiElement::GuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	GuiElement::GuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 		: GuiElement()
 	{
-		parseJsonOrReadFromData(name, "name", json, data, parameterNames);
-		parseJsonOrReadFromData(position.x, "positionX", json, data, parameterNames);
-		parseJsonOrReadFromData(position.y, "positionY", json, data, parameterNames);
-		parseJsonOrReadFromData(position, "position", json, data, parameterNames);
-		parseJsonOrReadFromData(size.x, "width", json, data, parameterNames);
-		parseJsonOrReadFromData(size.y, "height", json, data, parameterNames);
-		parseJsonOrReadFromData(size, "size", json, data, parameterNames);
-		parseJsonOrReadFromData(resizeMode, "resizeMode", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.minSize.x, "minWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.minSize.y, "minHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.minSize, "minSize", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.maxSize.x, "maxWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.maxSize.y, "maxHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.maxSize, "maxSize", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.preferredSize.x, "preferredWidth", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.preferredSize.y, "preferredHeight", json, data, parameterNames);
-		parseJsonOrReadFromData(sizeHints.preferredSize, "preferredSize", json, data, parameterNames);
+		parseJson(name, "name", json, parameterNameSet);
+		parseJson(position.x, "positionX", json, parameterNameSet);
+		parseJson(position.y, "positionY", json, parameterNameSet);
+		parseJson(position, "position", json, parameterNameSet);
+		parseJson(size.x, "width", json, parameterNameSet);
+		parseJson(size.y, "height", json, parameterNameSet);
+		parseJson(size, "size", json, parameterNameSet);
+		parseJson(resizeMode, "resizeMode", json, parameterNameSet);
+		parseJson(sizeHints.minSize.x, "minWidth", json, parameterNameSet);
+		parseJson(sizeHints.minSize.y, "minHeight", json, parameterNameSet);
+		parseJson(sizeHints.minSize, "minSize", json, parameterNameSet);
+		parseJson(sizeHints.maxSize.x, "maxWidth", json, parameterNameSet);
+		parseJson(sizeHints.maxSize.y, "maxHeight", json, parameterNameSet);
+		parseJson(sizeHints.maxSize, "maxSize", json, parameterNameSet);
+		parseJson(sizeHints.preferredSize.x, "preferredWidth", json, parameterNameSet);
+		parseJson(sizeHints.preferredSize.y, "preferredHeight", json, parameterNameSet);
+		parseJson(sizeHints.preferredSize, "preferredSize", json, parameterNameSet);
+		parseJson(clipChildren, "clipChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiElement::~GuiElement()
@@ -141,7 +142,7 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiElement::registerChild(GuiElement& guiElement, const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	bool GuiElement::registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
 		return GuiElement::registerChild(guiElement);
 	}
@@ -174,7 +175,7 @@ namespace SnackerEngine
 	{
 		if (this->position != position) {
 			this->position = position;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 			onPositionChange();
 		}
 	}
@@ -183,7 +184,7 @@ namespace SnackerEngine
 	{
 		if (this->position.x != positionX) {
 			this->position.x = positionX;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 			onPositionChange();
 		}
 	}
@@ -192,7 +193,7 @@ namespace SnackerEngine
 	{
 		if (this->position.y != positionY) {
 			this->position.y = positionY;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 			onPositionChange();
 		}
 	}
@@ -253,7 +254,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.minSize != minSize) {
 			sizeHints.minSize = minSize;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -261,7 +262,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.minSize.x != minWidth) {
 			sizeHints.minSize.x = minWidth;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -269,7 +270,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.minSize.y != minHeight) {
 			sizeHints.minSize.y = minHeight;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -277,7 +278,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.maxSize != maxSize) {
 			sizeHints.maxSize = maxSize;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -285,7 +286,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.maxSize.x != maxWidth) {
 			sizeHints.maxSize.x = maxWidth;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -293,7 +294,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.maxSize.y != maxHeight) {
 			sizeHints.maxSize.y = maxHeight;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -301,15 +302,15 @@ namespace SnackerEngine
 	{
 		if (sizeHints.preferredSize != preferredSize) {
 			sizeHints.preferredSize = preferredSize;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPreferredWidth(const int& preferredWidth)
 	{
 		if (sizeHints.preferredSize.x != preferredWidth) {
-			sizeHints.preferredSize.x = preferredWidth;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			sizeHints.preferredSize.x = preferredWidth; 
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -317,7 +318,7 @@ namespace SnackerEngine
 	{
 		if (sizeHints.preferredSize.y != preferredHeight) {
 			sizeHints.preferredSize.y = preferredHeight;
-			if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
+			registerEnforceLayoutUp();
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -337,6 +338,27 @@ namespace SnackerEngine
 	{
 		if (parentID > 0) return getElement(parentID)->getWorldPositionY() + position.y;
 		else return position.y;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Vec2i GuiElement::getPreferredSize() const
+	{
+		return Vec2i(getPreferredWidth(), getPreferredHeight());
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredWidth() const
+	{
+		if (sizeHints.preferredSize.x < 0) return sizeHints.preferredSize.x;
+		int result = std::max(sizeHints.preferredSize.x, sizeHints.minSize.x);
+		if (sizeHints.maxSize.x >= 0) return std::min(result, sizeHints.maxSize.x);
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
+	int GuiElement::getPreferredHeight() const
+	{
+		if (sizeHints.preferredSize.y < 0) return sizeHints.preferredSize.y;
+		int result = std::max(sizeHints.preferredSize.y, sizeHints.minSize.y);
+		if (sizeHints.maxSize.y >= 0) return std::min(result, sizeHints.maxSize.y);
+		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
 	const Vec2i GuiElement::getMouseOffset() const
@@ -376,10 +398,12 @@ namespace SnackerEngine
 	void GuiElement::draw(const Vec2i& worldPosition)
 	{
 		if (!guiManager) return;
+		if (clipChildren) pushClippingBox(worldPosition);
 		for (const auto& childID : sortedChildren) {
 			auto child = getElement(childID);
 			if (child) child->draw(worldPosition + child->getPosition());
 		}
+		if (clipChildren) popClippingBox();
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::optional<unsigned> GuiElement::removeChild(GuiID guiElement)
@@ -491,6 +515,11 @@ namespace SnackerEngine
 	{
 		GuiElement* guiElement = getElement(element);
 		if (guiElement) guiElement->draw(worldPosition);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::registerEnforceLayoutUp()
+	{
+		if (guiManager) guiManager->registerForEnforcingLayoutsUp(guiID);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::setPositionAndSizeOfChild(const GuiID& guiID, const Vec2i& position, const Vec2i& size)
@@ -671,6 +700,11 @@ namespace SnackerEngine
 	void GuiElement::pushClippingBox(const Vec2i& worldPosition)
 	{
 		pushClippingBox(Vec4i(worldPosition.x, worldPosition.y, size.x, size.y));
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiElement::pushClippingBox(const Vec2i& worldPosition, const Vec2i& offset, const Vec2i& size)
+	{
+		pushClippingBox(Vec4i(worldPosition.x+offset.x, worldPosition.y+offset.y, size.x, size.y));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiElement::popClippingBox()

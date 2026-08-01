@@ -4,48 +4,6 @@
 namespace SnackerEngine
 {
 	//--------------------------------------------------------------------------------------------------
-	void GuiPositioningLayout::computeSizeHintsFromChildren()
-	{
-		Vec2i minSize = 0;
-		std::optional<int> preferredWidth = std::nullopt;
-		std::optional<int> preferredHeight = std::nullopt;
-		for (auto childID : getChildren()) {
-			GuiElement* child = getElement(childID);
-			if (child) {
-				// Set minSize to largest minSize
-				minSize.x = std::max(minSize.x, child->getMinWidth());
-				minSize.y = std::max(minSize.y, child->getMinHeight());
-				// If all children have the same preferred width/height, this will be the layouts preferred width/height. 
-				// Otherwise, set the preferred width/height to -1 (arbitrary)
-				if (preferredWidth.has_value()) {
-					if (preferredWidth.value() != -1) {
-						int tempPreferredWidth = child->getPreferredWidth();
-						if (tempPreferredWidth != preferredWidth.value()) preferredWidth = -1;
-					}
-				}
-				else {
-					int tempPreferredWidth = child->getPreferredWidth();
-					if (tempPreferredWidth != -1) preferredWidth = tempPreferredWidth;
-				}
-				if (preferredHeight.has_value()) {
-					if (preferredHeight.value() != -1) {
-						int tempPreferredHeight = child->getPreferredHeight();
-						if (tempPreferredHeight != preferredHeight.value()) preferredHeight = -1;
-					}
-				}
-				else {
-					int tempPreferredHeight = child->getPreferredHeight();
-					if (tempPreferredHeight != -1) preferredHeight = tempPreferredHeight;
-				}
-			}
-		}
-		setMinSize(minSize);
-		if (preferredHeight.has_value()) setPreferredHeight(preferredHeight.value());
-		else setPreferredHeight(-1);
-		if (preferredWidth.has_value()) setPreferredWidth(preferredWidth.value());
-		else setPreferredWidth(-1);
-	}
-	//--------------------------------------------------------------------------------------------------
 	GuiPositioningLayout::GuiPositioningLayout(Mode mode)
 		: GuiLayout(), mode(mode) {}
 	//--------------------------------------------------------------------------------------------------
@@ -83,30 +41,55 @@ namespace SnackerEngine
 		return GuiPositioningLayout::Mode::CENTER;
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout::GuiPositioningLayout(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
-		: GuiLayout(json, data, parameterNames), mode(Mode::CENTER)
+	GuiPositioningLayout::GuiPositioningLayout(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
+		: GuiLayout(json, parameterNameSet), mode(Mode::CENTER)
 	{
-		parseJsonOrReadFromData(mode, "mode", json, data, parameterNames);
+		parseJson(mode, "mode", json, parameterNameSet);
+		auto border = parseJson<int>("border", json, parameterNameSet);
+		if (border.has_value()) {
+			leftBorder = border.value();
+			rightBorder = border.value();
+			topBorder = border.value();
+			bottomBorder = border.value();
+		}
+		parseJson(leftBorder, "leftBorder", json, parameterNameSet);
+		parseJson(rightBorder, "rightBorder", json, parameterNameSet);
+		parseJson(topBorder, "topBorder", json, parameterNameSet);
+		parseJson(bottomBorder, "bottomBorder", json, parameterNameSet);
+		parseJson(shrinkWidthToChildren, "shrinkWidthToChildren", json, parameterNameSet);
+		parseJson(shrinkHeightToChildren, "shrinkHeightToChildren", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout::GuiPositioningLayout(const GuiPositioningLayout& other) noexcept
-		: GuiLayout(other), mode(other.mode) {}
-	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout& GuiPositioningLayout::operator=(const GuiPositioningLayout& other) noexcept
+	void GuiPositioningLayout::setLeftBorder(int leftBorder)
 	{
-		GuiLayout::operator=(other);
-		mode = other.mode;
-		return *this;
+		if (this->leftBorder != leftBorder) {
+			this->leftBorder = leftBorder;
+			registerEnforceLayoutDown();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout::GuiPositioningLayout(GuiPositioningLayout&& other) noexcept
-		: GuiLayout(std::move(other)), mode(other.mode) {}
-	//--------------------------------------------------------------------------------------------------
-	GuiPositioningLayout& GuiPositioningLayout::operator=(GuiPositioningLayout&& other) noexcept
+	void GuiPositioningLayout::setRightBorder(int rightBorder)
 	{
-		GuiLayout::operator=(std::move(other));
-		mode = other.mode;
-		return *this;
+		if (this->rightBorder != rightBorder) {
+			this->rightBorder = rightBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setTopBorder(int topBorder)
+	{
+		if (this->topBorder != topBorder) {
+			this->topBorder = topBorder;
+			registerEnforceLayoutDown();
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GuiPositioningLayout::setBottomBorder(int bottomBorder)
+	{
+		if (this->bottomBorder != bottomBorder) {
+			this->bottomBorder = bottomBorder;
+			registerEnforceLayoutDown();
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiPositioningLayout::setMode(Mode mode)
@@ -127,61 +110,117 @@ namespace SnackerEngine
 			GuiElement* child = getElement(childID);
 			if (!child) continue;
 			Vec2i childSize = child->getPreferredSize();
-			if (child->getResizeMode() == ResizeMode::SAME_AS_PARENT) childSize = getSize();
-			else {
-				if (childSize.x < 0) childSize.x = getWidth();
-				if (childSize.y < 0) childSize.y = getHeight();
+			Vec2i childPosition{};
+			if (child->getResizeMode() == ResizeMode::SAME_AS_PARENT) {
+				childSize = mySize;
+				childPosition = Vec2i(0, 0);
 			}
-			if (childSize.x > getWidth()) childSize.x = getWidth();
-			if (childSize.y > getHeight()) childSize.y = getHeight();
-			childSize = child->clampToMinMaxSize(childSize);
-			// Compute position
-			Vec2i childPosition;
-			switch (mode)
-			{
-			case Mode::CENTER:
-				childPosition.x = (mySize.x - childSize.x) / 2;
-				childPosition.y = (mySize.y - childSize.y) / 2;
-				break;
-			case Mode::LEFT:
-				childPosition.x = 0;
-				childPosition.y = (mySize.y - childSize.y) / 2;
-				break;
-			case Mode::TOP_LEFT:
-				childPosition.x = 0;
-				childPosition.y = 0;
-				break;
-			case Mode::TOP:
-				childPosition.x = (mySize.x - childSize.x) / 2;
-				childPosition.y = 0;
-				break;
-			case Mode::TOP_RIGHT:
-				childPosition.x = mySize.x - childSize.x;
-				childPosition.y = 0;
-				break;
-			case Mode::RIGHT:
-				childPosition.x = mySize.x - childSize.x;
-				childPosition.y = (mySize.y - childSize.y) / 2;
-				break;
-			case Mode::BOTTOM_RIGHT:
-				childPosition.x = mySize.x - childSize.x;
-				childPosition.y = mySize.y - childSize.y;
-				break;
-			case Mode::BOTTOM:
-				childPosition.x = (mySize.x - childSize.x) / 2;
-				childPosition.y = mySize.y - childSize.y;
-				break;
-			case Mode::BOTTOM_LEFT:
-				childPosition.x = 0;
-				childPosition.y = mySize.y - childSize.y;
-				break;
-			default:
-				break;
+			else {
+				if (childSize.x < 0) childSize.x = mySize.x - leftBorder - rightBorder;
+				if (childSize.y < 0) childSize.y = mySize.y - topBorder - bottomBorder;
+				if (childSize.x > mySize.x - leftBorder - rightBorder) childSize.x = mySize.x - leftBorder - rightBorder;
+				if (childSize.y > mySize.y - topBorder - bottomBorder) childSize.y = mySize.y - topBorder - bottomBorder;
+				// Compute position
+				switch (mode)
+				{
+				case Mode::CENTER:
+					childPosition.x = (mySize.x - childSize.x) / 2;
+					childPosition.y = (mySize.y - childSize.y) / 2;
+					break;
+				case Mode::LEFT:
+					childPosition.x = leftBorder;
+					childPosition.y = (mySize.y - childSize.y) / 2;
+					break;
+				case Mode::TOP_LEFT:
+					childPosition.x = leftBorder;
+					childPosition.y = topBorder;
+					break;
+				case Mode::TOP:
+					childPosition.x = (mySize.x - childSize.x) / 2;
+					childPosition.y = topBorder;
+					break;
+				case Mode::TOP_RIGHT:
+					childPosition.x = mySize.x - childSize.x - rightBorder;
+					childPosition.y = topBorder;
+					break;
+				case Mode::RIGHT:
+					childPosition.x = mySize.x - childSize.x - rightBorder;
+					childPosition.y = (mySize.y - childSize.y) / 2;
+					break;
+				case Mode::BOTTOM_RIGHT:
+					childPosition.x = mySize.x - childSize.x - rightBorder;
+					childPosition.y = mySize.y - childSize.y - bottomBorder;
+					break;
+				case Mode::BOTTOM:
+					childPosition.x = (mySize.x - childSize.x) / 2;
+					childPosition.y = mySize.y - childSize.y - bottomBorder;
+					break;
+				case Mode::BOTTOM_LEFT:
+					childPosition.x = leftBorder;
+					childPosition.y = mySize.y - childSize.y - bottomBorder;
+					break;
+				default:
+					break;
+				}
+				childPosition.x = std::min(childPosition.x, mySize.x - rightBorder - childSize.x);
+				childPosition.x = std::max(childPosition.x, leftBorder);
+				childPosition.y = std::min(childPosition.y, mySize.y - bottomBorder - childSize.y);
+				childPosition.y = std::max(childPosition.y, topBorder);
 			}
 			// Enforce Layout
 			setPositionAndSizeOfChild(childID, childPosition, childSize);
 		}
-		computeSizeHintsFromChildren();
+		// Check if we need to modify sizeHints
+		if (shrinkWidthToChildren) {
+			// Find smallest minWidth and largest preferredWidth and maxWidth
+			int minWidth = 0;
+			int preferredWidth = SIZE_HINT_ARBITRARY;
+			int maxWidth = SIZE_HINT_ARBITRARY;
+			for (GuiID childID : children)
+			{
+				GuiElement* child = getElement(childID);
+				if (!child) continue;
+				minWidth = std::max(minWidth, child->getMinWidth());
+				if (preferredWidth != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					if (child->getPreferredWidth() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredWidth = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					else if (child->getPreferredWidth() != SIZE_HINT_ARBITRARY) preferredWidth = std::max(preferredWidth, child->getPreferredWidth());
+				}
+				if (child->getMaxWidth() >= 0) {
+					if (maxWidth == SIZE_HINT_ARBITRARY) maxWidth = child->getMaxWidth();
+					else maxWidth = std::min(maxWidth, child->getMaxWidth());
+				}
+			}
+			setMinWidth(minWidth + leftBorder + rightBorder);
+			if (preferredWidth >= 0) preferredWidth += leftBorder + rightBorder;
+			setPreferredWidth(preferredWidth);
+			if (maxWidth >= 0) maxWidth += leftBorder + rightBorder;
+			setMaxWidth(maxWidth);
+		}
+		if (shrinkHeightToChildren) {
+			// Find smallest minHeight and largest preferredHeight and maxHeight
+			int minHeight = 0;
+			int preferredHeight = SIZE_HINT_ARBITRARY;
+			int maxHeight = SIZE_HINT_ARBITRARY;
+			for (GuiID childID : children)
+			{
+				GuiElement* child = getElement(childID);
+				if (!child) continue;
+				minHeight = std::max(minHeight, child->getMinHeight());
+				if (preferredHeight != SIZE_HINT_AS_LARGE_AS_POSSIBLE) {
+					if (child->getPreferredHeight() == SIZE_HINT_AS_LARGE_AS_POSSIBLE) preferredHeight = SIZE_HINT_AS_LARGE_AS_POSSIBLE;
+					else if (child->getPreferredHeight() != SIZE_HINT_ARBITRARY) preferredHeight = std::max(preferredHeight, child->getPreferredHeight());
+				}
+				if (child->getMaxHeight() >= 0) {
+					if (maxHeight == SIZE_HINT_ARBITRARY) maxHeight = child->getMaxHeight();
+					else maxHeight = std::min(maxHeight, child->getMaxHeight());
+				}
+			}
+			setMinHeight(minHeight + topBorder + bottomBorder);
+			if (preferredHeight >= 0) preferredHeight += topBorder + bottomBorder;
+			setPreferredHeight(preferredHeight);
+			if (maxHeight >= 0) maxHeight += topBorder + bottomBorder;
+			setMaxHeight(maxHeight);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 }

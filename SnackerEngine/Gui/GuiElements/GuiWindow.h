@@ -42,7 +42,7 @@ namespace SnackerEngine
 		/// Default constructor
 		GuiWindow(const Vec2i& position = Vec2i(), const Vec2i& size = Vec2i(), const std::string& name = "");
 		/// Constructor from JSON
-		GuiWindow(const nlohmann::json& json, const nlohmann::json* data = nullptr, std::set<std::string>* parameterNames = nullptr);
+		GuiWindow(const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr);
 		/// Destructor
 		virtual ~GuiWindow() = default;
 		/// Copy constructor and assignment operator
@@ -56,7 +56,7 @@ namespace SnackerEngine
 		int getTopBarHeight() const { return topBar.getHeight(); }
 		double getFontSize() const { return topBar.getFontSize(); }
 		const Font& getFont() const { return topBar.getFont(); }
-		const std::string& getName() const { return topBar.getText(); }
+		std::string_view getName() const { return topBar.getText(); }
 		const Color4f& getTopBarColor() const { return topBar.getBackgroundColor(); }
 		const Color4f& getTopBarTextColor() const { return topBar.getTextColor(); }
 		const Color4f& getResizeButtonColor() const { return resizeButtonColor; }

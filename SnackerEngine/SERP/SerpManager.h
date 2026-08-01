@@ -90,7 +90,9 @@ namespace SnackerEngine
 		/// The SERP endpoint
 		SERPEndpoint endpointSERP;
 		/// Wether the SERP manager is connected to the SERP server
-		std::atomic<bool> connected;
+		std::atomic_flag connected{};
+		std::atomic_flag senderThreadIsRunning{};
+		std::atomic_flag receiverThreadIsRunning{};
 		/// The serpID of this SERPManager. If this is set to zero, no serpID has been broadcasted yet.
 		SERPID serpID;
 		/// Queues of incoming requests. User can register different paths that are listened to. An incoming request is

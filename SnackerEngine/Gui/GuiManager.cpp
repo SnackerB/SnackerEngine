@@ -14,6 +14,7 @@
 #include "Gui/Layouts/VerticalWeightedLayout.h"
 #include "Gui/GuiElements/GuiButton.h"
 #include "Gui/GuiElements/GuiSlider.h"
+#include "Gui/GuiElements/GuiSliderBox.h"
 #include "Gui/Layouts/VerticalListLayout.h"
 #include "Gui\Layouts\HorizontalListLayout.h"
 #include "Gui/Layouts/VerticalScrollingListLayout.h"
@@ -24,9 +25,12 @@
 #include "Gui\GuiElements\GuiTextVariable.h"
 #include "Gui\GuiElements\GuiEditVariable.h"
 #include "Gui\GuiElements\VectorElements\GuiEditVariableVec.h"
-#include "Gui\GuiElements\VectorElements\GuiSliderVec.h"
+#include "Gui\GuiElements\VectorElements\GuiSliderBoxVec.h"
 #include "Gui\GuiElements\GuiSelectionBox.h"
 #include "Gui\GuiElements\GuiClickableTextBox.h"
+#include "Gui\GuiElements\GuiScaleButton.h"
+#include "Gui\Layouts\GuiWrapperLayout.h"
+#include "Gui\GuiElements\GuiVectorGraphicImage.h"
 
 namespace SnackerEngine
 {
@@ -192,31 +196,36 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::enforceLayouts()
 	{
-		/// First go from bottom to top and enforce all layouts
-		for (auto rit = enforceLayoutQueueUp.rbegin(); rit != enforceLayoutQueueUp.rend(); ++rit)
-		{
-			for (const GuiID& guiID : rit->second)
+		for (std::size_t tries = 0; tries < 5; tries++) {
+			if (enforceLayoutQueueUp.empty() && enforceLayoutQueueDown.empty()) break;
+			/// First go from bottom to top and enforce all layouts
+			std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueUpTemp = std::move(enforceLayoutQueueUp);
+			enforceLayoutQueueUp = std::map<unsigned int, std::set<GuiID>>();
+			for (auto rit = enforceLayoutQueueUpTemp.rbegin(); rit != enforceLayoutQueueUpTemp.rend(); ++rit)
 			{
-				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
-					GuiID parentID = registeredGuiElements[guiID]->parentID;
-					if (parentID < registeredGuiElements.size() && parentID >= 0 && registeredGuiElements[parentID]) {
-						registeredGuiElements[parentID]->enforceLayout();
+				for (const GuiID& guiID : rit->second)
+				{
+					if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
+						GuiID parentID = registeredGuiElements[guiID]->parentID;
+						if (parentID < registeredGuiElements.size() && parentID >= 0 && registeredGuiElements[parentID]) {
+							registeredGuiElements[parentID]->enforceLayout();
+						}
+					}
+				}
+			}
+			/// Now go from the top down and enforce all layouts
+			std::map<unsigned int, std::set<GuiID>> enforceLayoutQueueDownTemp = std::move(enforceLayoutQueueDown);
+			enforceLayoutQueueDown = std::map<unsigned int, std::set<GuiID>>();
+			for (const auto& it : enforceLayoutQueueDownTemp)
+			{
+				for (const GuiID& guiID : it.second)
+				{
+					if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
+						registeredGuiElements[guiID]->enforceLayout();
 					}
 				}
 			}
 		}
-		enforceLayoutQueueUp.clear();
-		/// Now go from the top down and enforce all layouts
-		for (const auto& it : enforceLayoutQueueDown)
-		{
-			for (const GuiID& guiID : it.second)
-			{
-				if (guiID < registeredGuiElements.size() && guiID >= 0 && registeredGuiElements[guiID]) {
-					registeredGuiElements[guiID]->enforceLayout();
-				}
-			}
-		}
-		enforceLayoutQueueDown.clear();
 		// Callback mouseMotion, because we could collide with moved elements!
 		callbackMouseMotion(currentMousePosition);
 	}
@@ -698,6 +707,10 @@ namespace SnackerEngine
 		registerGuiElementType<GuiGridLayout>();
 		registerGuiElementType<GuiVerticalLayout>();
 		registerGuiElementType<GuiButton>();
+		registerGuiElementType<GuiSliderBoxFloat>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxDouble>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxInt>("_INT");
+		registerGuiElementType<GuiSliderBoxUnsignedInt>("_UNSIGNED_INT");
 		registerGuiElementType<GuiSliderFloat>("_FLOAT");
 		registerGuiElementType<GuiSliderDouble>("_DOUBLE");
 		registerGuiElementType<GuiSliderInt>("_INT");
@@ -734,17 +747,20 @@ namespace SnackerEngine
 		registerGuiElementType<GuiEditVariableVec4f>("_FLOAT");
 		registerGuiElementType<GuiEditVariableVec4d>("_DOUBLE");
 		registerGuiElementType<GuiEditVariableVec4i>("_INT");
-		registerGuiElementType<GuiSliderVec2f>("_FLOAT");
-		registerGuiElementType<GuiSliderVec2d>("_DOUBLE");
-		registerGuiElementType<GuiSliderVec2i>("_INT");
-		registerGuiElementType<GuiSliderVec3f>("_FLOAT");
-		registerGuiElementType<GuiSliderVec3d>("_DOUBLE");
-		registerGuiElementType<GuiSliderVec3i>("_INT");
-		registerGuiElementType<GuiSliderVec4f>("_FLOAT");
-		registerGuiElementType<GuiSliderVec4d>("_DOUBLE");
-		registerGuiElementType<GuiSliderVec4i>("_INT");
+		registerGuiElementType<GuiSliderBoxVec2f>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxVec2d>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxVec2i>("_INT");
+		registerGuiElementType<GuiSliderBoxVec3f>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxVec3d>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxVec3i>("_INT");
+		registerGuiElementType<GuiSliderBoxVec4f>("_FLOAT");
+		registerGuiElementType<GuiSliderBoxVec4d>("_DOUBLE");
+		registerGuiElementType<GuiSliderBoxVec4i>("_INT");
 		registerGuiElementType<GuiSelectionBox>();
 		registerGuiElementType<GuiClickableTextBox>();
+		registerGuiElementType<GuiScaleButton>();
+		registerGuiElementType<GuiWrapperLayout>();
+		registerGuiElementType<GuiVectorGraphicImage>();
 		// Initialize static default font
 		GuiElement::defaultFont = Font("fonts/Arial.ttf");
 		// Initialize static default background shader
@@ -752,10 +768,19 @@ namespace SnackerEngine
 		// Initialize static default image shader
 		GuiImage::defaultImageShader = Shader("shaders/gui/basicTexture.shader");
 		/// Initialize static default checkmark texture
-		auto result = Texture::Load2D("gui/textures/checkmark.png");
-		if (result.second) GuiCheckBox::defaultCheckMarkTexture = result.first;
+		auto resultCheckMark = Texture::Load2D("gui/textures/checkmark.png");
+		if (resultCheckMark.second) GuiCheckBox::defaultCheckMarkTexture = resultCheckMark.first;
 		/// Initialize static default checkmark shader
 		GuiCheckBox::defaultCheckMarkShader = Shader("shaders/gui/msdfShader.shader");
+		/// Initialize static default dropdown symbol textures
+		auto resultDropDownSymbolClosed = Texture::Load2D("gui/textures/caret_down.png");
+		if (resultDropDownSymbolClosed.second) GuiSelectionBox::defaultDropdownSymbolTextureClosed = resultDropDownSymbolClosed.first;
+		auto resultDropDownSymbolOpen = Texture::Load2D("gui/textures/caret_down.png");
+		if (resultDropDownSymbolOpen.second) GuiSelectionBox::defaultDropdownSymbolTextureOpen = resultDropDownSymbolOpen.first;
+		/// Initialize static default dropdown symbol shader
+		GuiSelectionBox::defaultDropdownSymbolShader = Shader("shaders/gui/msdfShader.shader");
+		/// Default shader for displaying vector graphics is the msdf shader
+		GuiVectorGraphicImage::defaultVectorGraphicImageShader = Shader("shaders/gui/msdfShader.shader");
 		/// Compute default parameters based on GuiScale
 		double guiScale = Engine::getDPI().y / 250.0;
 		recomputeDefaultGuiElementValues(guiScale);
@@ -769,6 +794,10 @@ namespace SnackerEngine
 		GuiImage::defaultImageShader = Shader();
 		GuiCheckBox::defaultCheckMarkShader = Shader();
 		GuiCheckBox::defaultCheckMarkTexture = Texture();
+		GuiSelectionBox::defaultDropdownSymbolTextureClosed = Texture();
+		GuiSelectionBox::defaultDropdownSymbolTextureOpen = Texture();
+		GuiSelectionBox::defaultDropdownSymbolShader = Shader();
+		GuiVectorGraphicImage::defaultVectorGraphicImageShader = Shader();
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiManager::GuiManager(const unsigned int& startingSize)
@@ -778,7 +807,7 @@ namespace SnackerEngine
 		lastMouseHoverElement(0), eventSetMouseButton{}, eventSetMouseMotion{}, eventSetKeyboard{},
 		eventSetCharacterInput{}, eventSetMouseButtonOnElement{}, eventSetMouseScrollOnElement{},
 		eventSetMouseEnter{}, eventSetMouseLeave{}, eventSetUpdate{}, eventVectorDrawOnTop{}, signOffQueue{}, squareModel{},
-		triangleModel{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, // animations{}, TODO: Uncomment
+		triangleModel{}, alphaColorShader{}, clippingBoxStack{}, doClipping(true), enforceLayoutQueueUp{}, enforceLayoutQueueDown{}, // animations{}, TODO: Uncomment
 		screenDims{}, namedElements{}, guiGroupMap{}, guiGroups{},
 		registeredGuiGroupsCount(0), availableGuiGroupIDs{}, maxGuiGroups(startingSize)
 	{
@@ -814,11 +843,6 @@ namespace SnackerEngine
 	GuiManager::~GuiManager()
 	{
 		clear();
-		signOff(parentElement);
-		ownedGuiElements.clear();
-		namedElements.clear();
-		guiGroups.clear();
-		guiGroupMap.clear();
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::registerElement(GuiElement& guiElement)
@@ -907,9 +931,10 @@ namespace SnackerEngine
 			}
 		}
 		namedElements.clear();
+		Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader)
+	void GuiManager::setUniformViewAndProjectionMatrices(const Shader& shader) const
 	{
 		shader.setUniform<Mat4f>("u_view", viewMatrix);
 		shader.setUniform<Mat4f>("u_projection", projectionMatrix);
@@ -939,6 +964,14 @@ namespace SnackerEngine
 			return triangleModel;
 		triangleModel = Model(createMeshTriangle());
 		return triangleModel;
+	}
+	//--------------------------------------------------------------------------------------------------
+	Shader GuiManager::getAlphaColorShader()
+	{
+		if (alphaColorShader.isValid())
+			return alphaColorShader;
+		alphaColorShader = Shader("shaders/gui/simpleAlphaColor.shader");
+		return alphaColorShader;
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiManager::clipSizeToMinMaxSize(const Vec2i& size, const GuiID& guiElement)
@@ -987,23 +1020,30 @@ namespace SnackerEngine
 		doClipping = true;
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::set<std::string> GuiManager::extractParameterNames(const nlohmann::json& json)
+	ParameterNameSet GuiManager::extractParameterNames(const nlohmann::json& json)
 	{
-		std::set<std::string> result;
-		for (const auto& item : json.items()) {
-			result.insert(item.key());
+		ParameterNameSet result;
+		if (!json.is_object()) return result;
+		for (const auto& [key, value] : json.items()) {
+			if (value.is_object()) {
+				result.nestedParameterNameSets.emplace(key, extractParameterNames(value));
+			}
+			else result.parameterNames.insert(key);
 		}
 		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void GuiManager::printWarningsForUnusedParameterNames(const std::set<std::string>& parameterNames)
+	void GuiManager::printWarningsForUnusedParameterNames(const ParameterNameSet& parameterNameSet, const std::string& prefix)
 	{
-		for (const std::string& name : parameterNames) {
-			warningLogger << LOGGER::BEGIN << "Unused option \"" << name << "\"" << LOGGER::ENDL;
+		for (const std::string& name : parameterNameSet.parameterNames) {
+			warningLogger << LOGGER::BEGIN << "Unused option \"" << prefix + name << "\"" << LOGGER::ENDL;
+		}
+		for (const auto& it : parameterNameSet.nestedParameterNameSets) {
+			printWarningsForUnusedParameterNames(it.second, prefix + it.first + "/");
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json, const nlohmann::json* data, std::set<std::string>* parameterNames)
+	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json, ParameterNameSet* parameterNameSet)
 	{
 		if (!json.is_object()) {
 			warningLogger << LOGGER::BEGIN << "Error while parsing JSON file: expected type object, but was " << json.type_name() << LOGGER::ENDL;
@@ -1022,99 +1062,27 @@ namespace SnackerEngine
 			warningLogger << LOGGER::BEGIN << "Tried to parse GuiElement with unknown typeID: " << json["typeID"] << LOGGER::ENDL;
 			return nullptr;
 		}
-		if (parameterNames) parameterNames->erase("typeID");
-		return std::move(it->second(json, data, parameterNames));
+		if (parameterNameSet) parameterNameSet->parameterNames.erase("typeID");
+		return std::move(it->second(json, parameterNameSet));
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadGuiElementAndRegisterAsChild(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement)
-	{
-		std::set<std::string> parameterNames;
-		if (checkForUnusedParameters) parameterNames = extractParameterNames(json);
-		std::unique_ptr<GuiElement> element = loadGuiElement(json, data, &parameterNames);
-		if (!element) return false;
-		if (json.contains("layoutOptions")) {
-			if (json["layoutOptions"].is_object()) {
-				if (checkForUnusedParameters) {
-					std::set<std::string> layoutParameterNames = extractParameterNames(json["layoutOptions"]);
-					parentElement.registerChild(*element, json["layoutOptions"], data, &layoutParameterNames);
-					printWarningsForUnusedParameterNames(layoutParameterNames);
-				}
-				else {
-					parentElement.registerChild(*element, json["layoutOptions"], data);
-				}
-			}
-			else {
-				warningLogger << LOGGER::BEGIN << "\"layoutOptions\" field must be an object containing the layout options, but was of type"
-					<< json["layoutOptions"].type_name() << LOGGER::ENDL;
-				parentElement.registerChild(*element);
-			}
-			if (checkForUnusedParameters) parameterNames.erase("layoutOptions");
-		}
-		else {
-			parentElement.registerChild(*element);
-		}
-		// Parse potential children
-		bool result = true;
-		if (json.contains("children")) {
-			result = loadGuiAndRegisterAsChildren(json["children"], data, *element);
-			if (checkForUnusedParameters) parameterNames.erase("children");
-		}
-		// Check if this element has a name
-		if (json.contains("name")) {
-			if (json["name"].is_string()) {
-				auto it = namedElements.find("name");
-				if (it != namedElements.end()) {
-					warningLogger << LOGGER::BEGIN << "An element with name \"" << json["name"] << "\" was already registered." << LOGGER::ENDL;
-				}
-				else {
-					element->name = json["name"];
-					namedElements.insert({ element->name, element->guiID });
-				}
-			}
-			else {
-				warningLogger << LOGGER::BEGIN << "field \"name\" must be of type string!" << LOGGER::ENDL;
-			}
-			if (checkForUnusedParameters) parameterNames.erase("name");
-		}
-		// Move element to GuiManager
-		moveElementPtr(std::move(element));
-		if (checkForUnusedParameters) printWarningsForUnusedParameterNames(parameterNames);
-		return result;
-	}
-	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadGuiAndRegisterAsChildren(const nlohmann::json& json, const nlohmann::json* data, GuiElement& parentElement)
-	{
-		if (json.is_object()) return loadGuiElementAndRegisterAsChild(json, data, parentElement);
-		if (json.is_array()) {
-			bool result = true;
-			for (const nlohmann::json& child : json) {
-				result &= loadGuiElementAndRegisterAsChild(child, data, parentElement);
-			}
-			return result;
-		}
-		else {
-			warningLogger << LOGGER::BEGIN << "field \"children\" of a GuiElement must be either a GuiElement or an array of GuiElements." << LOGGER::ENDL;
-			return false;
-		}
-	}
-	//--------------------------------------------------------------------------------------------------
-	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json, const nlohmann::json* data)
+	std::unique_ptr<GuiElement> GuiManager::loadGuiElement(const nlohmann::json& json)
 	{
 		if (checkForUnusedParameters) {
-			std::set<std::string> parameterNames = extractParameterNames(json);
-			std::unique_ptr<GuiElement> element = std::move(loadGuiElement(json, data, &parameterNames));
-			printWarningsForUnusedParameterNames(parameterNames);
+			ParameterNameSet parameterNameSet = extractParameterNames(json);
+			std::unique_ptr<GuiElement> element = std::move(loadGuiElement(json, &parameterNameSet));
+			printWarningsForUnusedParameterNames(parameterNameSet);
 			return std::move(element);
 		}
 		else {
-			return std::move(loadGuiElement(json, data, nullptr));
+			return std::move(loadGuiElement(json, nullptr));
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	std::vector<std::unique_ptr<GuiElement>> GuiManager::loadGui(const nlohmann::json& json, const nlohmann::json* data)
+	std::vector<std::unique_ptr<GuiElement>> GuiManager::loadGui(const nlohmann::json& json)
 	{
 		if (json.is_object()) {
-			std::unique_ptr<GuiElement> guiElement = std::move(loadGuiElement(json, data));
+			std::unique_ptr<GuiElement> guiElement = std::move(loadGuiElement(json));
 			if (guiElement == nullptr) return std::move(std::vector<std::unique_ptr<GuiElement>>());
 			else {
 				std::vector<std::unique_ptr<GuiElement>> result;
@@ -1126,7 +1094,7 @@ namespace SnackerEngine
 			std::vector<std::unique_ptr<GuiElement>> result;
 			for (const auto& element : json) {
 				if (element.is_object()) {
-					std::unique_ptr<GuiElement> guiElement = loadGuiElement(json, data);
+					std::unique_ptr<GuiElement> guiElement = loadGuiElement(json);
 					if (guiElement == nullptr) {
 						warningLogger << LOGGER::BEGIN << "Failed to parse one of the GuiElements in the array." << LOGGER::ENDL;
 					}
@@ -1146,19 +1114,91 @@ namespace SnackerEngine
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadAndRegisterJSON(const nlohmann::json& json, const nlohmann::json* data)
+	bool GuiManager::loadAndRegisterJSON(const nlohmann::json& json)
 	{
-		return loadAndRegisterAsChildJSON(json, data, parentElement);
+		return loadAndRegisterAsChildJSON(json, parentElement);
 	}
 	//--------------------------------------------------------------------------------------------------
-	bool GuiManager::loadAndRegisterAsChildJSON(const nlohmann::json& json, const nlohmann::json* data, GuiID parent)
+	bool GuiManager::loadAndRegisterAsChildJSON(const nlohmann::json& json, GuiID parent)
 	{
 		GuiElement* parentElement = getGuiElement(parent);
 		if (!parentElement) {
 			warningLogger << LOGGER::BEGIN << "Tried to register GUI as child of parentElement which does not exist." << LOGGER::ENDL;
 			return false;
 		}
-		return loadGuiAndRegisterAsChildren(json, data, *parentElement);
+		return loadGuiAndRegisterAsChildren(json, *parentElement);
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::loadGuiElementAndRegisterAsChild(const nlohmann::json& json, GuiElement& parentElement)
+	{
+		ParameterNameSet parameterNameSet{};
+		if (checkForUnusedParameters) parameterNameSet = extractParameterNames(json);
+		std::unique_ptr<GuiElement> element = loadGuiElement(json, &parameterNameSet);
+		if (!element) return false;
+		if (json.contains("layoutOptions")) {
+			if (json["layoutOptions"].is_object()) {
+				if (checkForUnusedParameters) {
+					ParameterNameSet layoutParameterNames = extractParameterNames(json["layoutOptions"]);
+					parentElement.registerChild(*element, json["layoutOptions"], &layoutParameterNames);
+					printWarningsForUnusedParameterNames(layoutParameterNames);
+				}
+				else {
+					parentElement.registerChild(*element, json["layoutOptions"]);
+				}
+			}
+			else {
+				warningLogger << LOGGER::BEGIN << "\"layoutOptions\" field must be an object containing the layout options, but was of type"
+					<< json["layoutOptions"].type_name() << LOGGER::ENDL;
+				parentElement.registerChild(*element);
+			}
+			if (checkForUnusedParameters) parameterNameSet.parameterNames.erase("layoutOptions");
+		}
+		else {
+			parentElement.registerChild(*element);
+		}
+		// Parse potential children
+		bool result = true;
+		if (json.contains("children")) {
+			result = loadGuiAndRegisterAsChildren(json["children"], *element);
+			if (checkForUnusedParameters) parameterNameSet.parameterNames.erase("children");
+		}
+		// Check if this element has a name
+		if (json.contains("name")) {
+			if (json["name"].is_string()) {
+				auto it = namedElements.find("name");
+				if (it != namedElements.end()) {
+					warningLogger << LOGGER::BEGIN << "An element with name \"" << json["name"] << "\" was already registered." << LOGGER::ENDL;
+				}
+				else {
+					element->name = json["name"];
+					namedElements.insert({ element->name, element->guiID });
+				}
+			}
+			else {
+				warningLogger << LOGGER::BEGIN << "field \"name\" must be of type string!" << LOGGER::ENDL;
+			}
+			if (checkForUnusedParameters) parameterNameSet.parameterNames.erase("name");
+		}
+		// Move element to GuiManager
+		moveElementPtr(std::move(element));
+		if (checkForUnusedParameters) printWarningsForUnusedParameterNames(parameterNameSet);
+		return result;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiManager::loadGuiAndRegisterAsChildren(const nlohmann::json& json, GuiElement& parentElement)
+	{
+		if (json.is_object()) return loadGuiElementAndRegisterAsChild(json, parentElement);
+		if (json.is_array()) {
+			bool result = true;
+			for (const nlohmann::json& child : json) {
+				result &= loadGuiElementAndRegisterAsChild(child, parentElement);
+			}
+			return result;
+		}
+		else {
+			warningLogger << LOGGER::BEGIN << "field \"children\" of a GuiElement must be either a GuiElement or an array of GuiElements." << LOGGER::ENDL;
+			return false;
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::recomputeDefaultGuiElementValues(double scale)
@@ -1172,12 +1212,12 @@ namespace SnackerEngine
 		GuiElement::defaultBorderLarge = std::max(1, static_cast<int>(scale * 15));
 		GuiElement::defaultBorderHuge = std::max(1, static_cast<int>(scale * 20));
 		GuiCheckBox::defaultCheckBoxSize = std::max(1, static_cast<int>(scale * 50));
-		GuiEditBox::defaultCursorWidth = static_cast<float>(scale * 0.1f);
+		GuiEditBox::defaultCursorWidth = static_cast<float>(scale * 0.05f);
 		GuiVerticalScrollingListLayout::defaultScrollBarWidth = std::max(1, static_cast<int>(scale * 23));
-		GuiSliderFloat::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
-		GuiSliderDouble::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
-		GuiSliderInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
-		GuiSliderUnsignedInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxFloat::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxDouble::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
+		GuiSliderBoxUnsignedInt::defaultSliderButtonWidth = std::max(1, static_cast<int>(scale * 20));
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiManager::removeElement(GuiID guiID)

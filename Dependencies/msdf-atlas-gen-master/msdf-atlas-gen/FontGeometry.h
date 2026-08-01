@@ -73,7 +73,9 @@ private:
     double geometryScale;
     msdfgen::FontMetrics metrics;
     GlyphIdentifierType preferredIdentifierType;
-    std::vector<GlyphGeometry> *glyphs;
+public:
+    std::vector<GlyphGeometry>* glyphs; // I make this public because I want to move the glyphs vector.
+private:
     size_t rangeStart, rangeEnd;
     std::map<int, size_t> glyphsByIndex;
     std::map<unicode_t, size_t> glyphsByCodepoint;

@@ -18,6 +18,8 @@ namespace SnackerEngine
 		SimpleTextMaterialData(const Shader& shader, const Font& font, const Color4f& color);
 		/// Binds this material
 		void bind() override;
+		/// virtual destructor
+		~SimpleTextMaterialData() {};
 	};
 	//------------------------------------------------------------------------------------------------------
 }
