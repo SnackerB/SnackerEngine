@@ -58,6 +58,9 @@ namespace SnackerEngine
 		/// Alternative right border of the layout when the scrollbar is visible. If this is set to -1,
 		/// The right border doesn't change when the scrollbar is visible / not visible.
 		int rightBorderWhenScrollbarVisible = -1;
+		/// Whether to prefer the scrollbar to scroll to the bottom when adding child elements such that
+		/// The visible percentage goes from 100% to <100%.
+		bool preferScrollToBottom = false;
 	public:
 		/// name of this GuiElementType for JSON parsing
 		static constexpr std::string_view typeName = "GUI_VERTICAL_SCROLLING_LIST_LAYOUT";
@@ -74,6 +77,8 @@ namespace SnackerEngine
 		/// Move constructor and assignment operator
 		GuiVerticalScrollingListLayout(GuiVerticalScrollingListLayout&& other) noexcept;
 		GuiVerticalScrollingListLayout& operator=(GuiVerticalScrollingListLayout&& other) noexcept;
+		/// Adds a child to this guiElement. Returns true on success
+		virtual bool registerChild(GuiElement& guiElement) override;
 		/// Getters
 		float getScrollSpeed() const { return scrollSpeed; }
 		float getTotalOffsetPercentage() const { return offsetPercentage / (1.0f - visiblePercentage); }

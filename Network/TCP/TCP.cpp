@@ -55,7 +55,7 @@ namespace SnackerEngine
 			addr1.sin_port == addr2.sin_port;
 	}
 
-	std::string addressToStrring(const sockaddr_in& addr)
+	std::string addressToString(const sockaddr_in& addr)
 	{
 		char ipStr[INET_ADDRSTRLEN] = {};
 		if (inet_ntop(AF_INET, &addr.sin_addr, ipStr, sizeof(ipStr)) == nullptr) {

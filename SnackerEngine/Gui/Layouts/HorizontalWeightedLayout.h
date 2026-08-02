@@ -8,8 +8,6 @@ namespace SnackerEngine
 	class GuiHorizontalWeightedLayout : public GuiHorizontalLayout
 	{
 	private:
-		/// Total weight
-		double totalWeight = 0.0;
 		/// Vector of stored weights
 		std::vector<double> weights = {};
 		/// Vector of stored width percentages
@@ -63,7 +61,7 @@ namespace SnackerEngine
 		/// Adds a child to this guiElement, with options given in JSON
 		virtual bool registerChild(GuiElement& guiElement, const nlohmann::json& json, ParameterNameSet* parameterNameSet = nullptr) override;
 		/// Getters
-		double getTotalWeight() const { return totalWeight; }
+		double getTotalWeight() const;
 		std::optional<double> getWeight(GuiID childID) const;
 		std::optional<double> getPercentage(GuiID childID) const;
 		unsigned getHorizontalBorder() const { return horizontalBorder; }

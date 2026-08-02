@@ -13,6 +13,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::computePercentagesFromWeights()
 	{
+		double totalWeight = getTotalWeight();
 		if (totalWeight != 0) {
 			for (unsigned int i = 0; i < weights.size(); ++i) {
 				percentages[i] = weights[i] / totalWeight;
@@ -22,6 +23,7 @@ namespace SnackerEngine
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::computeWeightsFromPercentages()
 	{
+		double totalWeight = getTotalWeight();
 		for (unsigned int i = 1; i < weights.size(); ++i) {
 			weights[i] = percentages[i] * totalWeight;
 		}
@@ -34,7 +36,6 @@ namespace SnackerEngine
 		// push back new weight
 		weights.push_back(weight);
 		percentages.push_back(0.0);
-		totalWeight += weight;
 		// Compute percentages from weights for all children
 		computePercentagesFromWeights();
 		registerEnforceLayoutDown();
@@ -102,6 +103,13 @@ namespace SnackerEngine
 		return false;
 	}
 	//--------------------------------------------------------------------------------------------------
+	double GuiHorizontalWeightedLayout::getTotalWeight() const
+	{
+		double totalWeight = 0.0;
+		for (double weight : weights) totalWeight += weight;
+		return totalWeight;
+	}
+	//--------------------------------------------------------------------------------------------------
 	std::optional<double> GuiHorizontalWeightedLayout::getWeight(GuiID childID) const
 	{
 		std::optional<unsigned> index = getIndexIntoChildrenVector(childID);
@@ -161,8 +169,22 @@ namespace SnackerEngine
 	void GuiHorizontalWeightedLayout::setAllowMoveBorders(bool allowMoveBorders)
 	{
 		if (isResizing) stopResizing();
-		if (!allowMoveBorders) Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
-		this->allowMoveBorders = allowMoveBorders;
+		if (this->allowMoveBorders != allowMoveBorders) {
+			this->allowMoveBorders = allowMoveBorders;
+			if (allowMoveBorders) {
+				if (allowMoveBorders) {
+					signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+					signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
+					signUpEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
+				}
+			}
+			else {
+				signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_BUTTON_ON_ELEMENT);
+				signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_ENTER);
+				signOffEvent(SnackerEngine::GuiElement::CallbackType::MOUSE_LEAVE);
+				Renderer::setCursorShape(Renderer::CursorShape::DEFAULT);
+			}
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	std::unique_ptr<GuiElementAnimatable> GuiHorizontalWeightedLayout::animateWeight(GuiID childID, const double& startVal, const double& stopVal, double duration, std::function<double(double)> animationFunction)
@@ -244,7 +266,6 @@ namespace SnackerEngine
 			// Compute weights from percentages for all children
 			computeWeightsFromPercentages();
 			// Delete child
-			totalWeight -= weights[index.value()];
 			weights.erase(weights.begin() + index.value());
 			percentages.erase(percentages.begin() + index.value());
 			// Compute percentages from weights for all children
@@ -404,8 +425,9 @@ namespace SnackerEngine
 		double totalWidth = static_cast<double>(newWidthLeft + newWidthRight);
 		percentages[resizeBorder] = static_cast<double>(newWidthLeft) / totalWidth * totalPercentage;
 		percentages[resizeBorder + 1] = static_cast<double>(newWidthRight) / totalWidth * totalPercentage;
-		weights[resizeBorder] = getTotalWeight() * percentages[resizeBorder];
-		weights[resizeBorder + 1] = getTotalWeight() * percentages[resizeBorder + 1];
+		double totalWeight = getTotalWeight();
+		weights[resizeBorder] = totalWeight * percentages[resizeBorder];
+		weights[resizeBorder + 1] = totalWeight * percentages[resizeBorder + 1];
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiHorizontalWeightedLayout::callbackMouseButtonOnElement(const int& button, const int& action, const int& mods)

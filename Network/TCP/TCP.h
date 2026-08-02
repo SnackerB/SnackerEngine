@@ -53,7 +53,7 @@ namespace SnackerEngine
 	bool compare(const sockaddr_in& addr1, const sockaddr_in& addr2);
 
 	/// Converts a sockaddr_in to a readable "IP:port" string. IPv4 only.
-	std::string addressToStrring(const sockaddr_in& addr);
+	std::string addressToString(const sockaddr_in& addr);
 
 	/// Creates a blocking TCP socket and binds it to the given port.
 	/// If port is set to zero, the system will chose the port number.

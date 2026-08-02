@@ -31,6 +31,7 @@ namespace SnackerEngine
 		parseJson(scrollbarBorderBottom, "scrollbarBorderBottom", json, parameterNameSet);
 		parseJson(shrinkHeightToChildren, "shrinkHeightToChildren", json, parameterNameSet);
 		parseJson(rightBorderWhenScrollbarVisible, "rightBorderWhenScrollbarVisible", json, parameterNameSet);
+		parseJson(preferScrollToBottom, "preferScrollToBottom", json, parameterNameSet);
 	}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout::GuiVerticalScrollingListLayout(const GuiVerticalScrollingListLayout& other) noexcept
@@ -44,7 +45,8 @@ namespace SnackerEngine
 		scrollbarBorderBottom(other.scrollbarBorderBottom), mouseOffsetFromScrollBar(0.0f),
 		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement), 
 		shrinkHeightToChildren(other.shrinkHeightToChildren),
-		rightBorderWhenScrollbarVisible(other.rightBorderWhenScrollbarVisible) {}
+		rightBorderWhenScrollbarVisible(other.rightBorderWhenScrollbarVisible),
+		preferScrollToBottom(other.preferScrollToBottom) {}
 	//--------------------------------------------------------------------------------------------------
 	GuiVerticalScrollingListLayout& GuiVerticalScrollingListLayout::operator=(const GuiVerticalScrollingListLayout& other) noexcept
 	{
@@ -68,6 +70,7 @@ namespace SnackerEngine
 		lastVisibleElement = other.lastVisibleElement;
 		shrinkHeightToChildren = other.shrinkHeightToChildren;
 		rightBorderWhenScrollbarVisible = other.rightBorderWhenScrollbarVisible;
+		preferScrollToBottom = other.preferScrollToBottom;
 		return *this;
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -82,7 +85,8 @@ namespace SnackerEngine
 		scrollbarBorderBottom(other.scrollbarBorderBottom), mouseOffsetFromScrollBar(0.0f),
 		firstVisibleElement(other.firstVisibleElement), lastVisibleElement(other.lastVisibleElement),
 		shrinkHeightToChildren(std::move(other.shrinkHeightToChildren)),
-		rightBorderWhenScrollbarVisible(std::move(other.rightBorderWhenScrollbarVisible))
+		rightBorderWhenScrollbarVisible(std::move(other.rightBorderWhenScrollbarVisible)),
+		preferScrollToBottom(std::move(other.preferScrollToBottom))
 	{
 		other.scrollbar = nullptr;
 		other.scrollbarBackground = nullptr;
@@ -110,9 +114,31 @@ namespace SnackerEngine
 		lastVisibleElement = other.lastVisibleElement;
 		shrinkHeightToChildren = std::move(other.shrinkHeightToChildren);
 		rightBorderWhenScrollbarVisible = std::move(other.rightBorderWhenScrollbarVisible);
+		preferScrollToBottom = std::move(preferScrollToBottom);
 		other.scrollbar = nullptr;
 		other.scrollbarBackground = nullptr;
 		return *this;
+	}
+	//--------------------------------------------------------------------------------------------------
+	bool GuiVerticalScrollingListLayout::registerChild(GuiElement& guiElement)
+	{
+		bool scrollToBottom = false;
+		if (preferScrollToBottom && std::abs(visiblePercentage - 1.0) < 1.e-3) scrollToBottom = true;
+		else if (std::abs(getTotalOffsetPercentage() - 1.0) < 1.e-3) scrollToBottom = true;
+		bool result = GuiVerticalListLayout::registerChild(guiElement);
+		if (scrollToBottom) {
+			// If the scrolling list is at the bottom, keep it at the bottom after adding new element!
+			offsetPercentage = 1.0;
+		}
+		else {
+			// Else, try to stay at the current vertical offset
+			int childHeight = guiElement.getPreferredHeight();
+			if (childHeight == -1) childHeight = guiElement.getMinHeight();
+			if (childHeight == -1) childHeight = 0;
+			int newVerticalHeight = currentVerticalHeight + childHeight + getVerticalBorder();
+			offsetPercentage *= static_cast<float>(currentVerticalHeight) / static_cast<float>(newVerticalHeight);
+		}
+		return result;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void GuiVerticalScrollingListLayout::setTotalOffsetPercentage(float totalOffsetPercentage)
@@ -368,7 +394,6 @@ namespace SnackerEngine
 		currentVerticalHeight = currentYOffset - getVerticalBorder() + getOuterVerticalBorder();
 		computeScrollBar();
 		if (shrinkHeightToChildren) setPreferredHeight(currentVerticalHeight);
-		if (!isShrinkWidthToChildren()) setMinWidth(scrollbarWidth);
 	}
 	//--------------------------------------------------------------------------------------------------
 	Vec2i GuiVerticalScrollingListLayout::getChildOffset(const GuiID& childID) const

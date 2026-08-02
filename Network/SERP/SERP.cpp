@@ -297,7 +297,7 @@ namespace SnackerEngine
 		// Check if multisend and parse destinations
 		if (header.getMultiSendFlag()) {
 			if (buffer.size() < header.destination * sizeof(uint16_t)) return nullptr;
-			std::unordered_set<uint16_t> destinations = std::move(parseDestinations(buffer.getBufferView(0, header.destination), header.destination));
+			std::unordered_set<uint16_t> destinations = std::move(parseDestinations(buffer.getBufferView(0, header.destination * sizeof(uint16_t)), header.destination));
 			if (destinations.size() != header.destination) return nullptr;
 			buffer = buffer.getBufferView(header.destination * sizeof(uint16_t));
 			// Return new message
