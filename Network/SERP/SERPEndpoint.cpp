@@ -46,6 +46,13 @@ namespace SnackerEngine
 					tempMessageBuffer = Buffer{};
 					tempMessageBytesLeftToParse = 0;
 				}
+				else if (tempMessageHeader.value().contentLength > maxContentLength) {
+					// We treat messages larger than the content length as a protocol violation and simply drop the remaining buffer.
+					tempMessageHeader = std::nullopt;
+					tempMessageBuffer = Buffer{};
+					tempMessageBytesLeftToParse = 0;
+					return std::make_pair<>(std::move(result), buffer.getBufferView(buffer.size()));
+				}
 				else {
 					tempMessageBuffer = Buffer(tempMessageHeader.value().contentLength);
 					tempMessageBytesLeftToParse = tempMessageHeader.value().contentLength;

@@ -9,6 +9,8 @@ namespace SnackerEngine
 
 	class SERPEndpoint
 	{
+		/// Maximum content length a message is allowed to have
+		unsigned int maxContentLength = 50 * 1000 * 1000; // 50 MB
 		/// MessageID for the next message
 		uint32_t nextMessageID = 0;
 		/// The TCP Endpoint through which messages are received and sent
@@ -52,6 +54,10 @@ namespace SnackerEngine
 		void sendMessage(SERPMessage& message);
 		/// Returns true if there are still (partly) unsent messages in the queue, in which case updateSend() should be called
 		bool hasUnsentMessages() { return !messagesToBeSent.empty(); }
+		/// Getters
+		unsigned int getMaxContentLength() const { return maxContentLength; }
+		/// Setters
+		void setMaxContentLength(unsigned int maxContentLength) { this->maxContentLength = maxContentLength; }
 		/// Performs one unblocking send call on the first message in the messagesToBeSent queue. Should be called regularly.
 		void updateSend();
 	};
