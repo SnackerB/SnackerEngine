@@ -16,6 +16,7 @@ namespace SnackerEngine
 				auto it2 = it->second.pendingResponses.find(expectedSerpID);
 				if (it2 != it->second.pendingResponses.end()) {
 					if (it2->second == other) it2->second = this;
+					else if (it2->second == nullptr) errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " and expected expectedSerpID " << expectedSerpID << " has at least one nullptr PendingResponse object." << LOGGER::ENDL;
 					else errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " and expected expectedSerpID " << expectedSerpID << " has multiple PendingResponse objects." << LOGGER::ENDL;
 				}
 			}
@@ -23,6 +24,27 @@ namespace SnackerEngine
 				errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << expectedMesageID << LOGGER::ENDL;
 			}
 		}
+	}
+
+	void SERPManager::PendingResponse::deregister()
+	{
+		if (!serpManager) return;
+		// Delete this Pending response from the sentRequests!
+		// Look for sentRequest with the messageID
+		auto it = serpManager->sentRequests.find(expectedMesageID);
+		if (it == serpManager->sentRequests.end()) {
+			errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << expectedMesageID << LOGGER::ENDL;
+			return;
+		}
+		auto it2 = it->second.pendingResponses.find(expectedSerpID);
+		if (it2 == it->second.pendingResponses.end()) return;
+		if (it2->second != this) {
+			errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " and expected expectedSerpID "
+				<< expectedSerpID << " has multiple PendingResponse objects." << LOGGER::ENDL;
+			return;
+		}
+		// Set the pendingResponse pointer in the sentRequest to nullptr.
+		it2->second = nullptr;
 	}
 	
 	SERPManager::PendingResponse::PendingResponse(PendingResponse&& other) noexcept
@@ -35,6 +57,8 @@ namespace SnackerEngine
 	
 	SERPManager::PendingResponse& SERPManager::PendingResponse::operator=(PendingResponse&& other) noexcept
 	{
+		if (this == &other) return *this;
+		deregister();
 		this->serpManager = other.serpManager;
 		this->status = other.status;
 		this->response = std::move(other.response);
@@ -47,21 +71,7 @@ namespace SnackerEngine
 	
 	SERPManager::PendingResponse::~PendingResponse()
 	{
-		if (serpManager) {
-			// Delete this Pending response from the sentRequests!
-			// Look for sentRequest with the messageID
-			auto it = serpManager->sentRequests.find(expectedMesageID);
-			if (it != serpManager->sentRequests.end()) {
-				auto it2 = it->second.pendingResponses.find(expectedSerpID);
-				if (it2 != it->second.pendingResponses.end()) {
-					if (it2->second == this) it2->second = nullptr;
-					else errorLogger << LOGGER::BEGIN << "sent request with messageID " << expectedMesageID << " and expected expectedSerpID " << expectedSerpID << " has multiple PendingResponse objects." << LOGGER::ENDL;
-				}
-			}
-			else {
-				errorLogger << LOGGER::BEGIN << "Could not find sentRequest object with messageID " << expectedMesageID << LOGGER::ENDL;
-			}
-		}
+		deregister();
 	}
 
 	double SERPManager::PendingResponse::getTimeLeftUntilTimeout() const
@@ -80,20 +90,25 @@ namespace SnackerEngine
 
 	bool SERPManager::checkIfAlreadyRespondedAndResend(const SERPRequest& request)
 	{
-		// Acquire lock
-		std::lock_guard lock(sentResponsesMutex);
-		// Look for sentResponse with the messageID
-		auto it = sentResponses.find(request.getHeader().messageID);
-		if (it != sentResponses.end()) {
-			for (auto& response : it->second) {
-				if (response.response->getHeader().destination == request.getHeader().source) {
-					// Resend the response!
-					sendResponse(*response.response);
-					return true;
+		std::shared_ptr<SERPResponse> responseToResend = nullptr;
+		{
+			// Acquire lock
+			std::lock_guard lock(sentResponsesMutex);
+			// Look for sentResponse with the messageID
+			auto it = sentResponses.find(request.getHeader().messageID);
+			if (it != sentResponses.end()) {
+				for (auto& response : it->second) {
+					if (response.response->getHeader().destination == request.getHeader().source) {
+						responseToResend = response.response;
+						break;
+					}
 				}
 			}
 		}
-		return false;
+		if (!responseToResend) return false;
+		// Resend the response. Bypass sendResponse, since the response is already in the map!
+		sendMessage(responseToResend);
+		return true;
 	}
 
 	void SERPManager::insertIntoSentResponsesMap(std::shared_ptr<SERPResponse> response)
@@ -129,10 +144,13 @@ namespace SnackerEngine
 					infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << to_string(static_cast<const SERPResponse&>(*tempQueue.front())) << LOGGER::ENDL;
 				auto it = sentRequests.find(tempQueue.front()->getHeader().messageID);
 				if (it != sentRequests.end()) {
-					auto it2 = it->second.pendingResponses.find(tempQueue.front()->getHeader().getSource());
+					// "it" is the sentRequest object corresponding to the obtained response.
+					SERPID sourceOfResponse = tempQueue.front()->getHeader().getSource();
+					auto it2 = it->second.pendingResponses.find(sourceOfResponse);
 					if (it2 != it->second.pendingResponses.end()) {
+						// Remove the source of the response as a destionation for possible resends (when request is multisend)
+						it->second.request->removeDestination(sourceOfResponse);
 						if (it2->second) {
-							it->second.request->removeDestination(tempQueue.front()->getHeader().getSource());
 							it2->second->response = std::move(tempQueue.front());
 							it2->second->serpManager = nullptr;
 							it2->second->status = PendingResponse::Status::OBTAINED;
@@ -141,7 +159,7 @@ namespace SnackerEngine
 						if (it->second.pendingResponses.empty()) sentRequests.erase(it);
 					}
 					else {
-						warningLogger << "Received response with messageID " << tempQueue.front()->getHeader().messageID << " from client " << tempQueue.front()->getHeader().source << ", valid messageID but invalid serpID, expected e.g. " << it->second.pendingResponses.begin()->first << LOGGER::ENDL;
+						warningLogger << "Received response with messageID " << tempQueue.front()->getHeader().messageID << " from client " << tempQueue.front()->getHeader().source << ", valid messageID but invalid serpID." << LOGGER::ENDL;
 					}
 				}
 				else {
@@ -205,6 +223,7 @@ namespace SnackerEngine
 				if (it2->timeout <= 0.0) {
 					it2 = it->second.erase(it2);
 				}
+				else it2++;
 			}
 			if (it->second.empty()) {
 				it = sentResponses.erase(it);
@@ -231,6 +250,7 @@ namespace SnackerEngine
 	void SERPManager::handleIncomingRequest(std::unique_ptr<SERPMessage>&& request)
 	{
 		const SERPRequest& requestRef = static_cast<const SERPRequest&>(*request);
+		if (checkIfAlreadyRespondedAndResend(requestRef)) return;
 		if (logMessages) infoLogger << LOGGER::BEGIN << "Received the following message at time [" << getCurrentTimeAsString() << "]: " << to_string(requestRef) << LOGGER::ENDL;
 		if (request->getHeader().destination != serpID) {
 			warningLogger << LOGGER::BEGIN << "received incoming request with wrong destinationID!" << LOGGER::ENDL;
@@ -296,11 +316,12 @@ namespace SnackerEngine
 
 	void SERPManager::sendMessage(std::shared_ptr<SERPMessage> message, bool setMessageID)
 	{
+		Buffer buffer = endpointSERP.finalizeAndSerialize(*message, setMessageID);
 		endpointSERP.finalizeMessage(*message, setMessageID);
 		{
-		std::lock_guard lock(messagesToBeSentMutex);
-		messagesToBeSent.push(std::move(message));
-		areMessagesToBeSent = true;
+			std::lock_guard lock(messagesToBeSentMutex);
+			messagesToBeSent.push(std::move(buffer));
+			areMessagesToBeSent = true;
 		}
 		// Wake up sender thread
 		senderThreadConditionVariable.notify_one();
@@ -311,13 +332,14 @@ namespace SnackerEngine
 		if (senderThreadIsRunning.test_and_set()) return;
 		while (connected.test()) {
 			std::unique_lock<std::mutex> lock(messagesToBeSentMutex);
-			senderThreadConditionVariable.wait(lock);
+			// Wait on the condition variable, and make sure this is safe against spurious wakeups and race conditions with update().
+			senderThreadConditionVariable.wait(lock, [this] { return !connected.test() || !messagesToBeSent.empty(); });
 			// Check if we are still connected
-			if (!connected.test()) return;
+			if (!connected.test()) break;
 			// We have the lock and can process the first element in the messagesToBeSent queue.
-			std::shared_ptr<SnackerEngine::SERPMessage> message = nullptr;
+			std::optional<Buffer> buffer = std::nullopt;
 			if (!messagesToBeSent.empty()) {
-				message = std::move(messagesToBeSent.front());
+				buffer = std::move(messagesToBeSent.front());
 				messagesToBeSent.pop();
 			}
 			else {
@@ -326,14 +348,14 @@ namespace SnackerEngine
 			// Before we send, unlock the queue again, st. other threads don't have to wait
 			lock.unlock();
 			// Now we can send the message
-			endpointSERP.sendMessage(*message);
+			if (buffer.has_value()) endpointSERP.sendSerializedMessage(std::move(buffer.value()));
 			// Check if there are now more messages we can send
 			while (true) {
-				message = nullptr;
+				buffer = std::nullopt;
 				{
 					std::lock_guard lockGuard(messagesToBeSentMutex);
 					if (!messagesToBeSent.empty()) {
-						message = std::move(messagesToBeSent.front());
+						buffer = std::move(messagesToBeSent.front());
 						messagesToBeSent.pop();
 					}
 					else {
@@ -341,11 +363,11 @@ namespace SnackerEngine
 					}
 				}
 				// If we are disconnected, stop the thread
-				if (!connected.test()) return;
+				if (!connected.test()) break;
 				// If the queue was empty, leave the loop
-				if (!message) break;
+				if (!buffer.has_value()) break;
 				// Else just keep sending messages
-				endpointSERP.sendMessage(*message);
+				endpointSERP.sendSerializedMessage(std::move(buffer.value()));
 			}
 			while (endpointSERP.hasUnsentMessages()) endpointSERP.updateSend();
 		}
@@ -362,28 +384,28 @@ namespace SnackerEngine
 			int result = WSAPoll(&incomingMesageFD, 1, pollFdTimeout);
 			if (result == SOCKET_ERROR) {
 				// Disconnect and end thread
-				connected.clear();
+				signalDisconnect();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLNVAL) {
 				// Disconnect and end thread
-				connected.clear();
+				signalDisconnect();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLERR) {
 				// Disconnect and end thread
-				connected.clear();
+				signalDisconnect();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLHUP) {
 				// Disconnect and end thread
-				connected.clear();
+				signalDisconnect();
 				break;
 			}
 			else if (incomingMesageFD.revents & POLLRDNORM) {
 				// We received a message!
 				std::optional<std::vector<std::unique_ptr<SnackerEngine::SERPMessage>>> result = std::move(endpointSERP.receiveMessages());
-				if (!result.has_value()) disconnect();
+				if (!result.has_value()) signalDisconnect();
 				else {
 					for (unsigned int i = 0; i < result.value().size(); ++i) {
 						handleReceivedMessage(std::move(result.value()[i]));
@@ -392,6 +414,37 @@ namespace SnackerEngine
 			}
 		}
 		receiverThreadIsRunning.clear();
+	}
+
+	void SERPManager::signalDisconnect()
+	{
+		connected.clear();
+		senderThreadConditionVariable.notify_one();
+	}
+
+	void SERPManager::resolveDisconnect()
+	{
+		// Resolve every observer that is still waiting, so callers stop polling PENDING forever.
+		for (auto& [messageID, sentRequest] : sentRequests) {
+			for (auto& [destination, pendingResponse] : sentRequest.pendingResponses) {
+				if (!pendingResponse) continue;
+				pendingResponse->status = PendingResponse::Status::TIMEOUT;
+				pendingResponse->serpManager = nullptr;
+			}
+		}
+		sentRequests.clear();
+		{
+			std::lock_guard lock(sentResponsesMutex);
+			sentResponses.clear();
+		}
+		{
+			std::lock_guard lock(incomingResponsesMutex);
+			incomingResponses = std::queue<std::unique_ptr<SERPResponse>>();
+		}
+		clearIncomingRequestPaths();
+		serpIDResponse = std::nullopt;
+		serpID = SERPID(unsigned int(0));
+		disconnectNeedsResolving = false;
 	}
 
 	SERPManager::SERPManager()
@@ -593,7 +646,11 @@ namespace SnackerEngine
 
 	void SERPManager::update(double dt)
 	{
-		if (!connected.test()) return;
+		if (!connected.test()) {
+			if (disconnectNeedsResolving) resolveDisconnect();
+			return;
+		}
+		disconnectNeedsResolving = true;
 		// Update all sentRequest objects
 		updateSentRequests(dt);
 		// Update all sentResponse objects
@@ -605,14 +662,10 @@ namespace SnackerEngine
 
 	void SERPManager::disconnect()
 	{
-		connected.clear();
-		senderThreadConditionVariable.notify_one();
-		for (const auto& it : sentRequests) {
-			for (const auto& it2 : it.second.pendingResponses) {
-				if (it2.second) it2.second->serpManager = nullptr;
-			}
-		}
-		clearIncomingRequestPaths();
+		signalDisconnect();
+		if (senderThread.joinable())   senderThread.join();
+		if (receiverThread.joinable()) receiverThread.join();
+		resolveDisconnect();		
 	}
 
 }

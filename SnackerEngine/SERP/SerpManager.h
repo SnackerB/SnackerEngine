@@ -44,6 +44,8 @@ namespace SnackerEngine
 			SERPID expectedSerpID;
 			/// Helper function that should be called on move
 			void onMove(PendingResponse* other);
+			/// Helper function used for the deconstructor and the move assignment operator.
+			void deregister();
 		public:
 			/// Constructor should only be called by SERPManager!
 			PendingResponse(SERPManager* serpManager, std::size_t messageID, SERPID serpID)
@@ -114,7 +116,7 @@ namespace SnackerEngine
 		std::unordered_map<std::uint32_t, std::vector<SentResponse>> sentResponses;
 		std::mutex sentResponsesMutex;
 		/// Queue containing messages to be sent.
-		std::queue<std::shared_ptr<SERPMessage>> messagesToBeSent{};
+		std::queue<Buffer> messagesToBeSent{};
 		std::mutex messagesToBeSentMutex{};
 		std::atomic<bool> areMessagesToBeSent{ false };
 		/// Duration for how long sent responses are stored in the sentResponses map, in seconds.
@@ -153,6 +155,12 @@ namespace SnackerEngine
 		void runSenderThread();
 		/// Receives and handles incoming messages.
 		void runReceiverThread();
+		// Signals the SERPManager that it should disconnect from the SERP server. Can be called from anywhere.
+		void signalDisconnect();
+		/// Main-thread-only flag tracking whether resolveDisconnect() still needs to run.
+		bool disconnectNeedsResolving = false;
+		// Resolves the disconnect. Must only be called from the main thread.
+		void resolveDisconnect();
 	public:
 		/// Constructor
 		SERPManager();

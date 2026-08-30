@@ -58,32 +58,29 @@ namespace SnackerEngine
 		}
 	}
 
-	void SERPHeader::toNetworkByteOrder()
+	bool SERPHeader::serialize(BufferView buffer) const
 	{
-		source = htons(source);
-		destination = htons(destination);
-		messageID = htonl(messageID);
-		contentLength = htonl(contentLength);
-		flags = htons(flags);
-		statusCode = htons(statusCode);
-	}
-
-	void SERPHeader::toHostByteOrder()
-	{
-		source = ntohs(source);
-		destination = ntohs(destination);
-		messageID = ntohl(messageID);
-		contentLength = ntohl(contentLength);
-		flags = ntohs(flags);
-		statusCode = ntohs(statusCode);
-	}
-
-	bool SERPHeader::serialize(BufferView buffer)
-	{
-		if (buffer.size() != sizeof(SERPHeader)) return {};
-		toNetworkByteOrder();
-		memcpy(&buffer[0], this, sizeof(SERPHeader));
-		toHostByteOrder();
+		if (buffer.size() != serializedSize) return false;
+		// Destination pointer
+		std::byte* out = &buffer[0];
+		// helper function for writing a 16bit integer into the buffer, converting from host to network byte order
+		auto write16 = [&out](uint16_t value) {
+			uint16_t netValue = htons(value);
+			memcpy(out, &netValue, sizeof(netValue));
+			out += sizeof(netValue);
+			};
+		// helper function for writing a 32bit integer into the buffer, converting from host to network byte order
+		auto write32 = [&out](uint32_t value) {
+			uint32_t netValue = htonl(value);
+			memcpy(out, &netValue, sizeof(netValue));
+			out += sizeof(netValue);
+			};
+		write16(source);
+		write16(destination);
+		write32(messageID);
+		write32(contentLength);
+		write16(flags);
+		write16(statusCode);
 		return true;
 	}
 
@@ -98,10 +95,27 @@ namespace SnackerEngine
 
 	std::optional<SERPHeader> SERPHeader::parse(ConstantBufferView buffer)
 	{
-		if (buffer.size() != sizeof(SERPHeader)) return {};
+		if (buffer.size() != serializedSize) return std::nullopt;
+		// Source pointer
+		const std::byte* in = &buffer[0];
+		// helper function for reading a 16bit integer from the buffer, converting from network to host byte order
+		auto read16 = [&in]() { 
+			uint16_t value; 
+			memcpy(&value, in, sizeof(value)); 
+			in += sizeof(value); return ntohs(value);
+			};
+		auto read32 = [&in]() { 
+			uint32_t value; 
+			memcpy(&value, in, sizeof(value)); 
+			in += sizeof(value); return ntohl(value);
+			};
 		SERPHeader result{};
-		memcpy(&result, &buffer[0], sizeof(SERPHeader));
-		result.toHostByteOrder();
+		result.source = read16();
+		result.destination = read16();
+		result.messageID = read32();
+		result.contentLength = read32();
+		result.flags = read16();
+		result.statusCode = read16();
 		return result;
 	}
 
@@ -116,7 +130,7 @@ namespace SnackerEngine
 		}
 	}
 
-	bool SERPMessage::serializeDestinations(BufferView buffer)
+	bool SERPMessage::serializeDestinations(BufferView buffer) const
 	{
 		if (destinations.empty()) return true;
 		if (buffer.size() != sizeof(uint16_t) * destinations.size()) return false;
@@ -220,9 +234,9 @@ namespace SnackerEngine
 
 	Buffer SERPRequest::serialize()
 	{
-		Buffer result(sizeof(SERPHeader) + destinations.size() * sizeof(uint16_t) + target.size() + 1 + content.size());
-		header.serialize(result.getBufferView(0, sizeof(SERPHeader)));
-		std::size_t offset = sizeof(SERPHeader);
+		Buffer result(SERPHeader::serializedSize + destinations.size() * sizeof(uint16_t) + target.size() + 1 + content.size());
+		header.serialize(result.getBufferView(0, SERPHeader::serializedSize));
+		std::size_t offset = SERPHeader::serializedSize;
 		serializeDestinations(result.getBufferView(offset, destinations.size() * sizeof(uint16_t)));
 		offset += destinations.size() * sizeof(uint16_t);
 		if (!target.empty()) memcpy(&result[offset], &target[0], target.size());
@@ -311,9 +325,9 @@ namespace SnackerEngine
 
 	Buffer SERPResponse::serialize()
 	{
-		Buffer result(sizeof(SERPHeader) + content.size());
-		header.serialize(result.getBufferView(0, sizeof(SERPHeader)));
-		std::size_t offset = sizeof(SERPHeader);
+		Buffer result(SERPHeader::serializedSize + content.size());
+		header.serialize(result.getBufferView(0, SERPHeader::serializedSize));
+		std::size_t offset = SERPHeader::serializedSize;
 		if (!content.empty()) memcpy(&result[offset], &content[0], content.size());
 		return result;
 	}

@@ -12,7 +12,7 @@ namespace SnackerEngine
 		/// Maximum content length a message is allowed to have
 		unsigned int maxContentLength = 50 * 1000 * 1000; // 50 MB
 		/// MessageID for the next message
-		uint32_t nextMessageID = 0;
+		std::atomic<uint32_t> nextMessageID{ 0 };
 		/// The TCP Endpoint through which messages are received and sent
 		TCPEndpoint endpointTCP{};
 		/// Header of an unfinished to be received message that is yet to be fully parsed
@@ -46,6 +46,14 @@ namespace SnackerEngine
 		ConnectResult connectToSERPServer() { return endpointTCP.connectToSERPServer(); }
 		/// Tries to receive messages through the endpoint. If std::nullopt is returned, this means there was an error when recieving.
 		std::optional<std::vector<std::unique_ptr<SERPMessage>>> receiveMessages();
+
+
+		/// Helper function that finalizes and serializes a message. Safe to call from any thread.
+		Buffer finalizeAndSerialize(SERPMessage& message, bool setMessageID = true);
+		/// Helper function that queues an already-serialized message. Sender thread only.
+		void sendSerializedMessage(Buffer&& buffer);
+
+
 		/// Finalizes and sends a given message
 		void finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
 		/// Finalizes a message, but doesn't send it.

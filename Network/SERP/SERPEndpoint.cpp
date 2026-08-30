@@ -32,8 +32,8 @@ namespace SnackerEngine
 			}
 			else {
 				// This is a new message!
-				if (buffer.size() < sizeof(SERPHeader)) return std::make_pair<>(std::move(result), buffer);
-				tempMessageHeader = SERPHeader::parse(buffer.getBufferView(0, sizeof(SERPHeader)));
+				if (buffer.size() < SERPHeader::serializedSize) return std::make_pair<>(std::move(result), buffer);
+				tempMessageHeader = SERPHeader::parse(buffer.getBufferView(0, SERPHeader::serializedSize));
 				if (!tempMessageHeader.has_value()) {
 					// Invalid header. Return result and clear remaining buffer
 					return std::make_pair<>(std::move(result), buffer.getBufferView(buffer.size()));
@@ -57,9 +57,22 @@ namespace SnackerEngine
 					tempMessageBuffer = Buffer(tempMessageHeader.value().contentLength);
 					tempMessageBytesLeftToParse = tempMessageHeader.value().contentLength;
 				}
-				buffer = buffer.getBufferView(sizeof(SERPHeader));
+				buffer = buffer.getBufferView(SERPHeader::serializedSize);
 			}
 		}
+	}
+
+	Buffer SERPEndpoint::finalizeAndSerialize(SERPMessage& message, bool setMessageID)
+	{
+		if (message.isRequest() && setMessageID) message.header.messageID = nextMessageID.fetch_add(1);
+		message.finalize();
+		return message.serialize();
+	}
+
+	void SERPEndpoint::sendSerializedMessage(Buffer&& buffer)
+	{
+		messagesToBeSent.push(std::move(buffer));
+		updateSend();
 	}
 
 	std::optional<std::vector<std::unique_ptr<SERPMessage>>> SERPEndpoint::receiveMessages()

@@ -13,6 +13,7 @@ namespace SnackerEngine
 
 	struct SERPHeader
 	{
+		static constexpr std::size_t serializedSize = 2 + 2 + 4 + 4 + 2 + 2; // 16 bytes
 		uint16_t source;		// SERPID of source
 		uint16_t destination;	// SERPID of destination, or number of destination clients if multisend flag is set.
 		uint32_t messageID;		// unique (per sent message of source) message identifier
@@ -25,17 +26,12 @@ namespace SnackerEngine
 		void setLargeMessageFlag(bool isLargeMessage);
 		bool getMultiSendFlag() const;
 		void setMultiSendFlag(bool isMultiSend);
-	private:
-		/// Helper functions used during serialization / deserialization
-		void toNetworkByteOrder();
-		void toHostByteOrder();
-	public:
 		/// Serializes the header into the given buffer. Turns all integers to network byte order.
 		/// Returns true on success and false on failure. Only works if the buffer has the correct size
-		/// of sizeof(SERPHeader)
-		bool serialize(BufferView buffer);
+		/// of SERPHeader::serializedSize
+		bool serialize(BufferView buffer) const;
 		/// Tries to parse a Header from the given buffer. Returns an empty optional on failure.
-		/// Only works when the buffer has the size sizeof(SERPHeader). 
+		/// Only works when the buffer has the size SERPHeader::serializedSize. 
 		static std::optional<SERPHeader> parse(ConstantBufferView buffer);
 		/// Getters
 		SERPID getSource() { return SERPID(source); };
@@ -62,7 +58,7 @@ namespace SnackerEngine
 			: header(header), destinations{ std::move(destinations) } {};
 		/// Helper function that copies the destinations into the buffer. Only works if the buffer has size
 		/// destinations.size() * sizeof(uint16_t)
-		bool serializeDestinations(BufferView buffer);
+		bool serializeDestinations(BufferView buffer) const;
 		/// Helper function that tries to parse destinations from the given buffer.
 		/// Returns set of destinations in host byte order
 		static std::unordered_set<uint16_t> parseDestinations(ConstantBufferView bufferView, std::uint16_t count);
