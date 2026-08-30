@@ -317,7 +317,6 @@ namespace SnackerEngine
 	void SERPManager::sendMessage(std::shared_ptr<SERPMessage> message, bool setMessageID)
 	{
 		Buffer buffer = endpointSERP.finalizeAndSerialize(*message, setMessageID);
-		endpointSERP.finalizeMessage(*message, setMessageID);
 		{
 			std::lock_guard lock(messagesToBeSentMutex);
 			messagesToBeSent.push(std::move(buffer));

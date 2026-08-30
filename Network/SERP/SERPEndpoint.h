@@ -46,20 +46,10 @@ namespace SnackerEngine
 		ConnectResult connectToSERPServer() { return endpointTCP.connectToSERPServer(); }
 		/// Tries to receive messages through the endpoint. If std::nullopt is returned, this means there was an error when recieving.
 		std::optional<std::vector<std::unique_ptr<SERPMessage>>> receiveMessages();
-
-
 		/// Helper function that finalizes and serializes a message. Safe to call from any thread.
 		Buffer finalizeAndSerialize(SERPMessage& message, bool setMessageID = true);
 		/// Helper function that queues an already-serialized message. Sender thread only.
 		void sendSerializedMessage(Buffer&& buffer);
-
-
-		/// Finalizes and sends a given message
-		void finalizeAndSendMessage(SERPMessage& message, bool setMessageID = true);
-		/// Finalizes a message, but doesn't send it.
-		void finalizeMessage(SERPMessage& message, bool setMessageID = true);
-		/// sends a message (message should already be finalized)
-		void sendMessage(SERPMessage& message);
 		/// Returns true if there are still (partly) unsent messages in the queue, in which case updateSend() should be called
 		bool hasUnsentMessages() { return !messagesToBeSent.empty(); }
 		/// Getters
