@@ -996,7 +996,8 @@ CMakeFiles/Network.dir/SERP/SERPEndpoint.cpp.o: SERP/SERPEndpoint.cpp \
   /usr/include/c++/14/deque \
   /usr/include/c++/14/bits/stl_deque.h \
   /usr/include/c++/14/bits/deque.tcc \
-  /usr/include/c++/14/bits/stl_queue.h
+  /usr/include/c++/14/bits/stl_queue.h \
+  /usr/include/c++/14/atomic
 
 CMakeFiles/Network.dir/SERP/SERPID.cpp.o: SERP/SERPID.cpp \
   /usr/include/stdc-predef.h \
@@ -2760,6 +2761,8 @@ SERP/SERP.h:
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
 /usr/include/features-time64.h:
+
+/usr/include/c++/14/atomic:
 
 /usr/include/c++/14/exception:
 

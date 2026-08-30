@@ -1000,6 +1000,7 @@ CMakeFiles/Network.dir/SERP/SERPEndpoint.cpp.o
  /usr/include/c++/14/bits/stl_deque.h
  /usr/include/c++/14/bits/deque.tcc
  /usr/include/c++/14/bits/stl_queue.h
+ /usr/include/c++/14/atomic
 
 CMakeFiles/Network.dir/SERP/SERPID.cpp.o
  /root/bin/SnackerEngine/Network/SERP/SERPID.cpp
