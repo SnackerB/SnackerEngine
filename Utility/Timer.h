@@ -5,7 +5,6 @@
 
 namespace SnackerEngine
 {
-	//------------------------------------------------------------------------------------------------------
 	class Timer
 	{
 		/// Time that should pass between two updates
@@ -30,7 +29,6 @@ namespace SnackerEngine
 		/// The second return value is the time with which the update method should be callled
 		std::pair<bool, double> tick(double dt);
 	};
-	//------------------------------------------------------------------------------------------------------
+
 	std::string getCurrentTimeAsString();
-	//------------------------------------------------------------------------------------------------------
 }

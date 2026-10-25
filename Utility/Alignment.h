@@ -2,7 +2,6 @@
 
 namespace SnackerEngine
 {
-	//--------------------------------------------------------------------------------------------------
 	/// Enum for horizontal alignment
 	enum class AlignmentHorizontal
 	{
@@ -10,7 +9,7 @@ namespace SnackerEngine
 		CENTER,
 		RIGHT,
 	};
-	//--------------------------------------------------------------------------------------------------
+
 	/// Enum for vertical alignment
 	enum class AlignmentVertical
 	{
@@ -18,5 +17,4 @@ namespace SnackerEngine
 		CENTER,
 		BOTTOM
 	};
-	//--------------------------------------------------------------------------------------------------
 }

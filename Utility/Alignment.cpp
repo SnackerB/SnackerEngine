@@ -5,7 +5,6 @@
 
 namespace SnackerEngine
 {
-	//--------------------------------------------------------------------------------------------------
 	template<> bool isOfType(const nlohmann::json& json, JsonTag<AlignmentHorizontal> tag)
 	{
 		if (!json.is_string()) return false;
@@ -14,7 +13,7 @@ namespace SnackerEngine
 			json == "RIGHT") return true;
 		return false;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	template<> AlignmentHorizontal parseJson(const nlohmann::json& json, JsonTag<AlignmentHorizontal> tag)
 	{
 		if (json == "LEFT") return AlignmentHorizontal::LEFT;
@@ -22,7 +21,7 @@ namespace SnackerEngine
 		if (json == "RIGHT") return AlignmentHorizontal::RIGHT;
 		return AlignmentHorizontal::CENTER;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	template<> nlohmann::json toJson(const AlignmentHorizontal& value)
 	{
 		switch (value) {
@@ -31,7 +30,7 @@ namespace SnackerEngine
 			case AlignmentHorizontal::RIGHT: return nlohmann::json("RIGHT");
 		}
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	template<> bool isOfType(const nlohmann::json& json, JsonTag<AlignmentVertical> tag)
 	{
 		if (!json.is_string()) return false;
@@ -40,7 +39,7 @@ namespace SnackerEngine
 			json == "BOTTOM") return true;
 		return false;
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	template<> AlignmentVertical parseJson(const nlohmann::json& json, JsonTag<AlignmentVertical> tag)
 	{
 		if (json == "TOP") return AlignmentVertical::TOP;
@@ -49,7 +48,7 @@ namespace SnackerEngine
 		return AlignmentVertical::CENTER;
 		return nlohmann::json();
 	}
-	//--------------------------------------------------------------------------------------------------
+
 	template<> nlohmann::json toJson(const AlignmentVertical& value)
 	{
 		switch (value) {
@@ -59,5 +58,4 @@ namespace SnackerEngine
 		}
 		return nlohmann::json();
 	}
-	//--------------------------------------------------------------------------------------------------
 }
