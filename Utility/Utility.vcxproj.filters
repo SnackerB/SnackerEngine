@@ -71,9 +71,6 @@
     <ClInclude Include="Random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Exception.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>

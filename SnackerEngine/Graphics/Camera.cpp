@@ -5,6 +5,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <numbers>
 
 namespace SnackerEngine
 {
@@ -221,11 +222,11 @@ namespace SnackerEngine
 	//------------------------------------------------------------------------------------------------------
 	void FPSCamera::moveMouse(const Vec2d& delta)
 	{
-		yaw = fmodf(yaw + angleSpeed * static_cast<float>(delta.x) * angleSpeed, 2 * static_cast<float>(M_PI));
+		yaw = fmodf(yaw + angleSpeed * static_cast<float>(delta.x) * angleSpeed, 2 * static_cast<float>(std::numbers::pi));
 		pitch -= angleSpeed * static_cast<float>(delta.y) * angleSpeed;
 		// Clip pitch
-		if (pitch < -static_cast<float>(M_PI_2)) pitch = -static_cast<float>(M_PI_2);
-		else if (pitch > static_cast<float>(M_PI_2)) pitch = static_cast<float>(M_PI_2);
+		if (pitch < -static_cast<float>(std::numbers::pi / 2.0)) pitch = -static_cast<float>(std::numbers::pi / 2.0);
+		else if (pitch > static_cast<float>(std::numbers::pi / 2.0)) pitch = static_cast<float>(std::numbers::pi / 2.0);
 		computeDirectionAndTargetFromPitchAndYaw();
 		computeRightFromDirectionAndUp();
 	}

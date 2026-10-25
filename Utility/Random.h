@@ -1,16 +1,16 @@
 #pragma once
 
-#include <limits>
+#include <cstdint>
 
 namespace SnackerEngine
 {
 
-	/// Should be called on program start by the engine
-	void initializeRNG();
+	/// Seeds the PRNG.
+	void seedRNG(std::uint32_t seed);
 
-	float randomFloat(float min = std::numeric_limits<float>::min(), float max = std::numeric_limits<float>::max());
+	float randomFloat(float min = 0.0f, float max = 1.0f);
 
-	double randomDouble(double min = std::numeric_limits<double>::min(), double max = std::numeric_limits<double>::max());
+	double randomDouble(double min = 0.0, double max = 0.0);
 
 	/// Returns a random integer in [min, max]
 	int randomInteger(int min, int max);

@@ -4,6 +4,7 @@
 #include "AnimationFunctions.h"
 #include "Handles/VariableHandle.h"
 #include "Conversions.h"
+#include <algorithm>
 
 namespace SnackerEngine
 {
@@ -18,6 +19,11 @@ namespace SnackerEngine
 		virtual void onAnimate() {};
 	public:
 		Animatable(double duration, std::function<double(double)> animationFunction = AnimationFunction::linear);
+		Animatable(const Animatable&) = default;
+		Animatable& operator=(const Animatable&) = default;
+		Animatable(Animatable&&) noexcept = default;
+		Animatable& operator=(Animatable&&) noexcept = default;
+		virtual ~Animatable() = default;
 		/// Updates the animation with timestep dt. Can be overwritten for custom animation procedure.
 		virtual void update(double dt);
 		/// Returns true when the animation has fhinished
@@ -69,7 +75,9 @@ namespace SnackerEngine
 	inline void ValueAnimatable<T>::update(double dt)
 	{
 		time = std::min(time + dt, duration);
-		double percentage = animationFunction(time / duration);
+		double percentage = 1.0;
+		if (duration > 0.0) percentage = time / duration;
+		percentage = animationFunction(percentage);
 		onAnimate(interpolate(startVal, stopVal, percentage));
 	}
 

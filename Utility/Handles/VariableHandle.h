@@ -27,29 +27,20 @@ namespace SnackerEngine
 		/// Important: do not change the variable in this function again, as
 		/// this can lead to infinite loops!
 		virtual void onEvent() {}
-	protected:
-		/// Helper function that is called by connected variableHandles to notify a change in variable
-		void notifyVariableChanged(const T& newValue, VariableHandle<T>* sourceHandle, VariableHandle<T>* destinationHandle);
 		/// Helper function that can be called by derived classes to notify all connected variableHandles of a change
 		void notifyAllConnectedHandles();
 	public:
-		/// Constructor
-		VariableHandle()
-			: value{}, connectedHandles{} {}
-		VariableHandle(const T& value)
-			: value{ value }, connectedHandles{} {}
+		VariableHandle() : value{}, connectedHandles{} {}
+		VariableHandle(const T& value) : value{ value }, connectedHandles{} {}
+		VariableHandle(const VariableHandle& other) noexcept;
+		VariableHandle& operator=(const VariableHandle& other) noexcept;
+		VariableHandle(VariableHandle&& other) noexcept;
+		VariableHandle& operator=(VariableHandle&& other) noexcept;
+		virtual ~VariableHandle();
 		/// Disconnects this handle from the given handle (and vice versa)
 		void disconnect(VariableHandle& other);
 		/// Disconnect from all handles
 		void disconnectFromAll();
-		/// Copy constructor and assignment operator
-		VariableHandle(const VariableHandle& other) noexcept;
-		VariableHandle& operator=(const VariableHandle& other) noexcept;
-		/// Move constructor and assignment operator
-		VariableHandle(VariableHandle&& other) noexcept;
-		VariableHandle& operator=(VariableHandle&& other) noexcept;
-		/// Destructor
-		~VariableHandle();
 		/// Connects this handle with another handle. Returns true on success
 		void connect(VariableHandle<T>& other);
 		/// Returns true if this handle is currently connected to at least one other handle
@@ -78,12 +69,6 @@ namespace SnackerEngine
 				if (handle != sourceHandle) handle->notifyVariableChanged(newValue, this);
 			}
 		}
-	}
-
-	template<typename T>
-	inline void VariableHandle<T>::notifyVariableChanged(const T& newValue, VariableHandle<T>* sourceHandle, VariableHandle<T>* destinationHandle)
-	{
-		destinationHandle->notifyVariableChanged(newValue, sourceHandle);
 	}
 
 	template<typename T>
@@ -124,9 +109,7 @@ namespace SnackerEngine
 	template<typename T>
 	inline VariableHandle<T>& VariableHandle<T>::operator=(const VariableHandle& other) noexcept
 	{
-		disconnectFromAll();
-		value = other.value;
-		return *this;
+		this->set(other);
 	}
 
 	template<typename T>
@@ -182,9 +165,9 @@ namespace SnackerEngine
 	}
 
 	template<typename U>
-	VariableHandle<U> parseJSON(const nlohmann::json& json, JsonTag<VariableHandle<U>> tag)
+	VariableHandle<U> parseJson(const nlohmann::json& json, JsonTag<VariableHandle<U>> tag)
 	{
-		return VariableHandle<U>(parseJSON(json, JsonTag<U>{}));
+		return VariableHandle<U>(parseJson(json, JsonTag<U>{}));
 	}
 
 }

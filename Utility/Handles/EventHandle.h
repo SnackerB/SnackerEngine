@@ -49,19 +49,14 @@ namespace SnackerEngine
 		/// Function that gets called when an event happens.
 		virtual void onEvent() {}
 	public:
-		/// Constructor
-		EventHandle()
-			: observables{}, active{ false } {}
-		/// Unsubscribes from all observables
-		void unsubscribeFromAll();
-		/// Copy constructor and assignment operator
+		EventHandle() : observables{}, active{ false } {}
 		EventHandle(const EventHandle& other) noexcept;
 		EventHandle& operator=(const EventHandle& other) noexcept;
-		/// Move constructor and assignment operator
 		EventHandle(EventHandle&& other) noexcept;
 		EventHandle& operator=(EventHandle&& other) noexcept;
-		/// Destructor
-		~EventHandle();
+		virtual ~EventHandle();
+		/// Unsubscribes from all observables
+		void unsubscribeFromAll();
 		/// Getters
 		bool isActive() const { return active; }
 		/// Resets the handle

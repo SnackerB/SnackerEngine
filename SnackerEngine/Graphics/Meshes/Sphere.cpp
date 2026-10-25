@@ -3,8 +3,7 @@
 #include "AssetManager/MeshManager.h"
 #include "Math/VectorAlgorithms.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <numbers>
 
 namespace SnackerEngine
 {
@@ -55,8 +54,8 @@ namespace SnackerEngine
 				// Convert to spherical coordinates:
 				// theta is a longitude angle (around the equator) in radians.
 				// phi is a latitude angle (north or south of the equator).
-				float theta = texCoords[v].x * 2.0f * static_cast<float>(M_PI);
-				float phi = (texCoords[v].y - 0.5f) * static_cast<float>(M_PI);
+				float theta = texCoords[v].x * 2.0f * static_cast<float>(std::numbers::pi);
+				float phi = (texCoords[v].y - 0.5f) * static_cast<float>(std::numbers::pi);
 
 				// This determines the radius of the ring of this line of latitude.
 				// It's widest at the equator, and narrows as phi increases/decreases.

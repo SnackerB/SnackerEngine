@@ -3,7 +3,7 @@
 #include "AssetManager/MeshManager.h"
 #include "core/Log.h" // DEBUG
 
-#define _USE_MATH_DEFINES
+#include <numbers>
 #include <math.h>
 
 namespace SnackerEngine
@@ -17,7 +17,7 @@ namespace SnackerEngine
 		indices.reserve(subdivisions * 3);
 		vertices.push_back(0.5f); vertices.push_back(0.5f);
 		for (unsigned int i = 0; i < subdivisions; ++i) {
-			float rad = static_cast<float>(i) / static_cast<float>(subdivisions) * 2.0f * static_cast<float>(M_PI);
+			float rad = static_cast<float>(i) / static_cast<float>(subdivisions) * 2.0f * static_cast<float>(std::numbers::pi);
 			vertices.push_back(std::cos(rad)*0.5f + 0.5f);
 			vertices.push_back(std::sin(rad)*0.5f + 0.5f);
 			indices.push_back(0);

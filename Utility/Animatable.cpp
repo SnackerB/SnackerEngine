@@ -9,7 +9,7 @@ namespace SnackerEngine
 
 	void Animatable::update(double dt)
 	{
-		time = std::min(time + dt, duration);
+		time = std::max(0.0, std::min(time + dt, duration));
 		onAnimate();
 	}
 	

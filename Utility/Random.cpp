@@ -1,34 +1,35 @@
 #include "Random.h"
 #include <random>
 #include <ctime>
+#include <cstdint>
 
 namespace SnackerEngine
 {
 
-	static std::default_random_engine randomEngine;
-
-	void initializeRNG()
+	static std::mt19937& engine()
 	{
-		std::srand(static_cast<unsigned int>(time(NULL)));
-		randomEngine.seed(std::rand());
+		thread_local std::mt19937 randomEngine{ std::random_device{}() };
+		return randomEngine;
+	}
+
+	void seedRNG(std::uint32_t seed)
+	{
+		engine().seed(seed);
 	}
 
 	float randomFloat(float min, float max)
 	{
-		static std::uniform_real_distribution<float> dist(min, max);
-		return dist(randomEngine);
+		return std::uniform_real_distribution<float>(min, max)(engine());
 	}
 
 	double randomDouble(double min, double max)
 	{
-		static std::uniform_real_distribution<double> dist(min, max);
-		return dist(randomEngine);
+		return std::uniform_real_distribution<double>(min, max)(engine());
 	}
 
 	int randomInteger(int min, int max)
 	{
-		static std::uniform_int_distribution<> dist(min, max);
-		return dist(randomEngine);
+		return std::uniform_int_distribution<>(min, max)(engine());
 	}
 
 	int randomInteger(int max)

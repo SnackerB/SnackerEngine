@@ -1,7 +1,6 @@
 #pragma once
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <numbers>
 #include <xhash>
 
 namespace SnackerEngine
@@ -14,14 +13,14 @@ namespace SnackerEngine
 	/// Degrees to radians
 	T degToRad(const T& angleDeg)
 	{
-		return angleDeg * T(M_PI) / T(180);
+		return angleDeg * T(std::numbers::pi / T(180);
 	}
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>
 	/// Radians to degrees
 	T radToDeg(const T& angleRad)
 	{
-		return angleRad / T(M_PI) * T(180);
+		return angleRad / T(std::numbers::pi) * T(180);
 	}
 	//------------------------------------------------------------------------------------------------------
 	template<typename T>

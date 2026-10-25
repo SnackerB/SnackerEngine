@@ -2,6 +2,7 @@
 
 #include <string>
 #include <optional>
+#include <memory>
 
 namespace SnackerEngine
 {
@@ -17,6 +18,9 @@ namespace SnackerEngine
 	{
 	public:
 		Formatter() {};
+		// TODO: Maybe replace formatter via static functions.
+		virtual ~Formatter() = default;
+		virtual std::unique_ptr<Formatter<T>> clone() const = 0;
 		/// Takes a value and returns a formatted string
 		virtual std::string to_string(const T& val);
 		/// Takes a string and returns a value
@@ -30,6 +34,10 @@ namespace SnackerEngine
 		int digitsAfterDecimal = -1;
 	public:
 		FloatFormatter(int digitsBeforeDecimal = -1, int digitsAfterDecimal = -1);
+		std::unique_ptr<Formatter<float>> clone() const override 
+		{
+			return std::make_unique<FloatFormatter>(*this);
+		}
 		/// Takes a value and returns a formatted string
 		std::string to_string(const float& val) override;
 		/// Getters
@@ -47,6 +55,10 @@ namespace SnackerEngine
 		int digitsAfterDecimal = -1;
 	public:
 		DoubleFormatter(int digitsBeforeDecimal = -1, int digitsAfterDecimal = -1);
+		std::unique_ptr<Formatter<double>> clone() const override
+		{
+			return std::make_unique<DoubleFormatter>(*this);
+		}
 		/// Takes a value and returns a formatted string
 		std::string to_string(const double& val) override;
 		/// Getters
@@ -63,6 +75,10 @@ namespace SnackerEngine
 		int digits = -1;
 	public:
 		IntFormatter(int digits = -1);
+		std::unique_ptr<Formatter<int>> clone() const override
+		{
+			return std::make_unique<IntFormatter>(*this);
+		}
 		/// Takes a value and returns a formatted string
 		std::string to_string(const int& val) override;
 		/// Getters
@@ -77,6 +93,10 @@ namespace SnackerEngine
 		int digits = -1;
 	public:
 		UnsignedFormatter(int digits = -1);
+		std::unique_ptr<Formatter<unsigned>> clone() const override
+		{
+			return std::make_unique<UnsignedFormatter>(*this);
+		}
 		/// Takes a value and returns a formatted string
 		std::string to_string(const unsigned& val) override;
 		/// Getters
@@ -88,13 +108,13 @@ namespace SnackerEngine
 	template<typename T>
 	inline std::string Formatter<T>::to_string(const T& val)
 	{
-		return to_string(val);
+		return SnackerEngine::to_string(val);
 	}
 
 	template<typename T>
 	inline std::optional<T> Formatter<T>::from_string(std::string_view string_view)
 	{
-		return from_string(string_view);
+		return SnackerEngine::from_string(string_view);
 	}
 
 }

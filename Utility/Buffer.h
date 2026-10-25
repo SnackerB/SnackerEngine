@@ -1,10 +1,16 @@
 #pragma once
 
+#include <External/nlohmann_json/json.hpp>
+
 #include <vector>
-#include <bit>
 #include <string>
 #include <optional>
-#include "Json.h"
+#include <memory>
+#include <cstddef>
+#include <iterator>
+#include <climits>
+#include <cstdint>
+#include <filesystem>
 
 namespace SnackerEngine
 {
@@ -38,7 +44,7 @@ namespace SnackerEngine
 		/// Returns the size of the subBuffer in bytes
 		std::size_t size() const { return std::distance(_begin, _end); }
 		/// Returns a raw void pointer to the data
-		const void* getDataPtr() const { return &*_begin; }
+		const void* getDataPtr() const { return std::to_address(_begin); };
 		/// Returns the string that is created when interpreting each byte of the buffer
 		/// as a character. This copies the data.
 		std::string to_string() const;
@@ -54,7 +60,7 @@ namespace SnackerEngine
 		std::size_t find_first_not_of(std::byte byte, std::size_t offset = 0) const;
 		std::size_t find_first_not_of(const std::vector<std::byte>& bytes, std::size_t offset = 0) const;
 		/// Creates a new buffer by copying from this buffer
-		Buffer copyBytes(std::size_t offset = 0, std::size_t n = SIZE_MAX) const;
+		Buffer copyBytes(std::size_t offset = 0, std::size_t size = SIZE_MAX) const;
 		/// Returns the byte at the given index
 		std::byte get(std::size_t i) const { return *(_begin + i); }
 		/// Overloading of the bracket operator []
@@ -89,7 +95,8 @@ namespace SnackerEngine
 		/// Returns the size of the subBuffer in bytes
 		std::size_t size() const { return std::distance(_begin, _end); }
 		/// Returns a raw void pointer to the data
-		const void* getDataPtr() const { return &*_begin; }
+		void* getDataPtr() { return std::to_address(_begin); }
+		const void* getDataPtr() const { return std::to_address(_begin); }
 		/// Returns the string that is created when interpreting each byte of the buffer
 		/// as a character. This copies the data.
 		std::string to_string() const;
@@ -104,6 +111,8 @@ namespace SnackerEngine
 		/// If no such position is found, std::string::npos is returned
 		std::size_t find_first_not_of(std::byte byte, std::size_t offset = 0) const;
 		std::size_t find_first_not_of(const std::vector<std::byte>& bytes, std::size_t offset = 0) const;
+		/// Creates a new buffer by copying from this buffer
+		Buffer copyBytes(std::size_t offset = 0, std::size_t size = SIZE_MAX) const;
 		/// Returns the byte at the given index
 		std::byte get(std::size_t i) const { return *(_begin + i); }
 		/// Sets the byte at the given index
@@ -126,18 +135,22 @@ namespace SnackerEngine
 		/// The actual data as a pointer to a byte array
 		std::vector<std::byte> data;
 	public:
+		/// Construct empty buffer
+		Buffer() = default;
+		/// Construct buffer of given size filled with zeros
+		explicit Buffer(std::size_t size);
 		/// Construct buffer filled with given data
-		Buffer(std::vector<std::byte>&& data);
+		explicit Buffer(std::vector<std::byte>&& data);
 		/// Construct buffer by copying data from string.
-		/// If base64 is set to true, base65 encoding is assumed
-		Buffer(const std::string& data, bool base64 = false);
+		explicit Buffer(const std::string& data);
 		/// Construct buffer by copying data from json binary
-		Buffer(const nlohmann::json::binary_t& data);
-		/// Construct buffer of given size with garbage data
-		Buffer(std::size_t size = 0);
+		explicit Buffer(const nlohmann::json::binary_t& data);
+		/// Constructs a buffer from an base64 encoded string. Returns an empty optional if
+		/// the string is not a valid base64.
+		static std::optional<Buffer> fromBase64(const std::string& encodedData);
 		/// Tries to store the contents of a file in a buffer. If the file is not found or could not be opened
 		/// an empty optional is returned
-		static std::optional<Buffer> loadFromFile(const std::string filename);
+		static std::optional<Buffer> loadFromFile(const std::filesystem::path& filename);
 		/// Deleted Copy constructor and alignment operator
 		Buffer(const Buffer& other) = delete;
 		Buffer& operator=(const Buffer& other) = delete;
@@ -156,12 +169,12 @@ namespace SnackerEngine
 		ConstantBufferView getBufferView(std::size_t offset = 0, std::size_t size = SIZE_MAX) const;
 		/// Returns the size of the subBuffer in bytes
 		std::size_t size() const { return data.size(); }
-		/// Returns a raw void pointer to the data
-		const void* getDataPtr() const { return &data[0]; }
+		/// Returns a raw void pointer to the data.
+		const void* getDataPtr() const;
 		/// Returns the string that is created when interpreting each byte of the buffer
 		/// as a character. This copies the data.
 		std::string to_string() const;
-		std::string to_string_base_64() const;
+		std::string to_string_base64() const;
 		/// Returns the data of the buffer serialized to json binary data
 		nlohmann::json::binary_t to_json_binary() const;
 		/// Returns the position of the first byte that matches the given byte(s).
@@ -173,7 +186,7 @@ namespace SnackerEngine
 		std::size_t find_first_not_of(std::byte byte, std::size_t offset = 0) const;
 		std::size_t find_first_not_of(const std::vector<std::byte>& bytes, std::size_t offset = 0) const;
 		/// Creates a new buffer by copying from this buffer
-		Buffer copyBytes(std::size_t offset = 0, std::size_t n = SIZE_MAX) const;
+		Buffer copyBytes(std::size_t offset = 0, std::size_t size = SIZE_MAX) const;
 		/// Returns the byte at the given index
 		std::byte get(std::size_t i) const { return data[i]; }
 		/// Sets the byte at the given index

@@ -5,7 +5,7 @@
 namespace SnackerEngine
 {
 
-	nlohmann::json loadJSON(const std::string& filePath)
+	nlohmann::json loadJson(const std::string& filePath)
 	{
 		std::ifstream file(filePath);
 		if (!file.is_open()) {
@@ -19,7 +19,7 @@ namespace SnackerEngine
 		return data;
 	}
 
-	void saveJSON(const nlohmann::json& json, const std::string& filePath)
+	void saveJson(const nlohmann::json& json, const std::string& filePath)
 	{
 		std::ofstream file(filePath);
 		if (!file.is_open()) {
@@ -61,35 +61,35 @@ namespace SnackerEngine
 		return json.is_boolean();
 	}
 
-	template<> std::string parseJSON(const nlohmann::json& json, JsonTag<std::string> tag)
+	template<> std::string parseJson(const nlohmann::json& json, JsonTag<std::string> tag)
 	{
 		return static_cast<std::string>(json);
 	}
-	template<> std::size_t parseJSON(const nlohmann::json& json, JsonTag<std::size_t> tag)
+	template<> std::size_t parseJson(const nlohmann::json& json, JsonTag<std::size_t> tag)
 	{
 		return static_cast<std::size_t>(json);
 	}
-	template<> int parseJSON(const nlohmann::json& json, JsonTag<int> tag)
+	template<> int parseJson(const nlohmann::json& json, JsonTag<int> tag)
 	{
 		return static_cast<int>(json);
 	}
-	template<> long long int parseJSON(const nlohmann::json& json, JsonTag<long long int> tag)
+	template<> long long int parseJson(const nlohmann::json& json, JsonTag<long long int> tag)
 	{
 		return static_cast<long long int>(json);
 	}
-	template<> unsigned parseJSON(const nlohmann::json& json, JsonTag<unsigned> tag)
+	template<> unsigned parseJson(const nlohmann::json& json, JsonTag<unsigned> tag)
 	{
 		return static_cast<unsigned>(json);
 	}
-	template<> float parseJSON(const nlohmann::json& json, JsonTag<float> tag)
+	template<> float parseJson(const nlohmann::json& json, JsonTag<float> tag)
 	{
 		return static_cast<float>(json);
 	}
-	template<> double parseJSON(const nlohmann::json& json, JsonTag<double> tag)
+	template<> double parseJson(const nlohmann::json& json, JsonTag<double> tag)
 	{
 		return static_cast<double>(json);
 	}
-	template<> bool parseJSON(const nlohmann::json& json, JsonTag<bool> tag)
+	template<> bool parseJson(const nlohmann::json& json, JsonTag<bool> tag)
 	{
 		return static_cast<bool>(json);
 	}

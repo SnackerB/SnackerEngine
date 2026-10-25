@@ -117,24 +117,9 @@ namespace SnackerEngine
 		return value;
 	}
 
-	char digitToChar(int digit) {
+	static char digitToChar(int digit) {
 		if (digit < 0 || digit > 9) return 'X';
-		switch (digit)
-		{
-		case 0: return '0';
-		case 1: return '1';
-		case 2: return '2';
-		case 3: return '3';
-		case 4: return '4';
-		case 5: return '5';
-		case 6: return '6';
-		case 7: return '7';
-		case 8: return '8';
-		case 9: return '9';
-		default:
-			break;
-		}
-		return 'X';
+		return '0' + digit;
 	}
 
 	FloatFormatter::FloatFormatter(int digitsBeforeDecimal, int digitsAfterDecimal)
@@ -142,7 +127,7 @@ namespace SnackerEngine
 
 	std::string SnackerEngine::FloatFormatter::to_string(const float& val)
 	{
-		return std::string();
+		return std::to_string(val);
 	}
 
 	DoubleFormatter::DoubleFormatter(int digitsBeforeDecimal, int digitsAfterDecimal)
@@ -150,7 +135,7 @@ namespace SnackerEngine
 
 	std::string SnackerEngine::DoubleFormatter::to_string(const double& val)
 	{
-		if (digitsBeforeDecimal < 0 && digitsAfterDecimal < 0) return to_string(val);
+		if (digitsBeforeDecimal < 0 && digitsAfterDecimal < 0) return SnackerEngine::to_string(val);
 		int totalDigits = 0;
 		if (digitsBeforeDecimal > 0) totalDigits += digitsBeforeDecimal;
 		if (digitsAfterDecimal > 0) totalDigits += digitsAfterDecimal;

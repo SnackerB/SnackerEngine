@@ -1,16 +1,14 @@
 #include "AnimationFunctions.h"
-#define _USE_MATH_DEFINES
 #include <math.h>
 #include "Utility/Json.h"
+#include <numbers>
 
 namespace SnackerEngine
 {
 
 	namespace AnimationFunction
 	{
-
 		// Implementations taken from https://easings.net/de#easeOutElastic
-
 		double linear(double x)
 		{
 			return x;
@@ -18,7 +16,7 @@ namespace SnackerEngine
 
 		double easeInOutSine(double x)
 		{
-			return -(cos(M_PI * x) - 1) / 2;
+			return -(cos(std::numbers::pi * x) - 1) / 2;
 		}
 
 		double easeInOutQuad(double x)
@@ -43,7 +41,7 @@ namespace SnackerEngine
 
 		double easeOutElastic(double x)
 		{
-			constexpr double c4 = (2.0 * M_PI) / 3.0;
+			constexpr double c4 = (2.0 * std::numbers::pi) / 3.0;
 			return x == 0
 				? 0
 				: x == 1
@@ -85,7 +83,7 @@ namespace SnackerEngine
 			);
 	}
 
-	template<> AnimationFunction::AnimationFunction parseJSON(const nlohmann::json& json, JsonTag<AnimationFunction::AnimationFunction> tag)
+	template<> AnimationFunction::AnimationFunction parseJson(const nlohmann::json& json, JsonTag<AnimationFunction::AnimationFunction> tag)
 	{
 		if (json == "ANIMATION_FUNCTION_LINEAR") {
 			return AnimationFunction::linear;

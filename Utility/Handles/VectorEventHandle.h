@@ -36,14 +36,12 @@ namespace SnackerEngine
 		/// Function that is called when the any of the child event handles activated. Can be overwritten
 		virtual void onEvent() {}
 	public:
-		/// Constructor
 		VectorEventHandle(std::size_t count = 0);
-		/// Copy constructor and assignment operator
 		VectorEventHandle(const VectorEventHandle& other) noexcept;
 		VectorEventHandle& operator=(const VectorEventHandle& other) noexcept;
-		/// Move constructor and assignment operator
 		VectorEventHandle(VectorEventHandle&& other) noexcept;
 		VectorEventHandle& operator=(VectorEventHandle&& other) noexcept;
+		virtual ~VectorEventHandle() = default;
 		/// Returns the boolean active
 		bool isActive() const { return active; };
 		/// Sets the active boolean back to false and calls reset() on all child event handles

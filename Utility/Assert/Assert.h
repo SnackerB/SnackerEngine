@@ -2,9 +2,9 @@
 
 namespace SnackerEngine
 {
-	#ifdef _DEBUG
-	#define ASSERT(x) if (!(x)) __debugbreak();
+	#ifndef NDEBUG
+	#define ASSERT(x) do { if (!(x)) __debugbreak(); } while (0)
 	#else
-	#define ASSERT(x)
-	#endif // _DEBUG
+	#define ASSERT(x) do { (void)sizeof(x); } while (0)
+	#endif
 }

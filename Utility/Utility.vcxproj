@@ -182,7 +182,6 @@
     <ClInclude Include="base64.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Conversions.h" />
-    <ClInclude Include="Exception.h" />
     <ClInclude Include="Formatting.h" />
     <ClInclude Include="Handles\EventHandle.h" />
     <ClInclude Include="AnimationFunctions.h" />
