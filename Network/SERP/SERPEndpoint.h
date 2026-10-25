@@ -3,6 +3,7 @@
 #include "Network/TCP/TCPEndpoint.h"
 #include "SERP.h"
 #include <queue>
+#include <atomic>
 
 namespace SnackerEngine
 {
